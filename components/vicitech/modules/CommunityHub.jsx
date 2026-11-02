@@ -1,0 +1,501 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
+  CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X,
+} from "lucide-react";
+
+/* ───────────────────────── Static config & sample data ───────────────────────── */
+
+const CATEGORIES = {
+  all: { label: "All Posts", icon: MessageSquare },
+  build: { label: "Build Showcases", icon: Cpu, cls: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300" },
+  guide: { label: "School/Office IT Guides", icon: BookOpen, cls: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
+  qa: { label: "Tech Q&A", icon: HelpCircle, cls: "border-violet-400/30 bg-violet-400/10 text-violet-300" },
+  news: { label: "Official Announcements", icon: Megaphone, cls: "border-yellow-400/30 bg-yellow-400/10 text-yellow-300" },
+};
+const CAT_ORDER = ["all", "build", "guide", "qa", "news"];
+const POSTABLE = ["build", "guide", "qa"]; // announcements come from the ViciTech team only
+
+const ROLES = {
+  tech: { label: "Certified Technician", cls: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300", verified: true },
+  lab: { label: "CBT Lab Admin", cls: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300" },
+  fan: { label: "Hardware Enthusiast", cls: "border-zinc-700 bg-zinc-800/60 text-zinc-300" },
+  buyer: { label: "IT Procurement Lead", cls: "border-violet-400/30 bg-violet-400/10 text-violet-300" },
+  team: { label: "ViciTech Team", cls: "border-cyan-400 bg-cyan-400 text-zinc-950", verified: true },
+};
+
+const AUTHORS = {
+  team: { name: "ViciTech Team", role: "team" },
+  rizky: { name: "Rizky Aditya", role: "tech" },
+  dewi: { name: "Dewi Anggraini", role: "tech" },
+  hendra: { name: "Hendra Wijaya", role: "lab" },
+  sari: { name: "Sari Nugraha", role: "lab" },
+  bagas: { name: "Bagas Pratama", role: "fan" },
+  nadia: { name: "Nadia Putri", role: "fan" },
+  fajar: { name: "Fajar Ramadhan", role: "buyer" },
+  you: { name: "You", role: "fan" },
+};
+
+const ATTACH_SPECS = [["CPU", "AMD Ryzen 5 7600"], ["GPU", "NVIDIA RTX 4060 8 GB"], ["RAM", "16 GB DDR5-5600"], ["Storage", "1 TB NVMe SSD"], ["PSU", "550 W 80+ Bronze"]];
+const PROMPTS = {
+  build: "Describe your build: parts, temperatures, what you would change. Add tags like #RTX4060.",
+  guide: "Share the steps that worked for your lab or office. Add tags like #CBTSetup.",
+  qa: "What is going wrong? Include model numbers and symptoms. Add tags like #PSU.",
+};
+
+const mk = (id, by, cat, minsAgo, title, body, likes, comments = [], extra = {}) => ({
+  id, by, cat, title, body, likes, liked: false, createdAt: Date.now() - minsAgo * 60000,
+  comments: comments.map(([cby, m, text], i) => ({ id: `${id}-c${i + 1}`, by: cby, text, createdAt: Date.now() - m * 60000 })),
+  ...extra,
+});
+
+const SEED_POSTS = [
+  mk("p1", "team", "news", 35, "Price index update: RTX 40-series down this week",
+    "Our daily Hardware Price Index shows #RTX4060 and #RTX4070 listings trending lower week over week, while refurbished #ThinkPadGradeA stock is steady. Open the Hardware Engine to compare current prices.",
+    128, [["bagas", 20, "Good timing, I was about to order the 4060."]]),
+  mk("p2", "team", "news", 190, "Stock alert: Grade A+ ThinkPad T14 back at Hub Bandung",
+    "A fresh batch has passed the 15-point inspection and is listed now. Schools can request bulk quotes through the Trade-In & Recycle portal. #ThinkPadGradeA #Refurbished #CBTSetup",
+    86, [["sari", 150, "Requested a quote for 30 units, thank you!"], ["hendra", 120, "Does the whole batch share one inspection report?"]]),
+  mk("p3", "bagas", "build", 320, "1080p esports rig for under Rp 14 juta",
+    "Finished this over the weekend. It runs most esports titles above 140 FPS at 1080p and stays under 65 °C. #RTX4060 #Ryzen5 #BudgetBuild",
+    94, [["rizky", 250, "Clean cable management! A 550 W Bronze unit is plenty for this combo."], ["nadia", 200, "Which case fans are you running?"]],
+    { cost: 13900000, attachment: "esports-rig-front.jpg", specs: [["CPU", "AMD Ryzen 5 7600"], ["GPU", "NVIDIA RTX 4060 8 GB"], ["RAM", "16 GB DDR5-5600"], ["Storage", "1 TB NVMe SSD"], ["PSU", "550 W 80+ Bronze"]] }),
+  mk("p4", "nadia", "build", 1500, "Silent 4K video editing workstation",
+    "Priority was low noise during long renders. Fan curves are tuned to stay near 35 dB at full load. #Ryzen9 #CreatorRig #SilentBuild",
+    152, [["rizky", 1400, "Nice. Re-pasting the CPU brought mine down another 5 °C."]],
+    { cost: 38400000, attachment: "creator-rig.jpg", specs: [["CPU", "AMD Ryzen 9 7950X"], ["GPU", "NVIDIA RTX 4070 Super 12 GB"], ["RAM", "64 GB DDR5-6000"], ["Storage", "2 TB NVMe SSD"], ["PSU", "750 W 80+ Gold"]] }),
+  mk("p5", "rizky", "build", 2900, "Compact office SFF with dual monitors",
+    "Our standard B2B build: low power, quiet and ready for two displays. It idles around 25 W. #OfficeSFF #DualMonitor #CoreI5",
+    71, [], { cost: 9850000, specs: [["CPU", "Intel Core i5-12400"], ["GPU", "Integrated UHD 730"], ["RAM", "16 GB DDR4-3200"], ["Storage", "512 GB NVMe SSD"], ["PSU", "350 W 80+ White"]] }),
+  mk("p6", "hendra", "guide", 4300, "How to Prevent Thermal Throttling in School Labs",
+    "Our lab of 36 PCs used to slow down during the second CBT session. What fixed it:\n1. Clean dust filters every term.\n2. Re-paste any CPU older than three years.\n3. Keep the room below 28 °C and stagger exam sessions.\n4. Check fan curves in the BIOS after each firmware update.\n#CBTSetup #ThermalThrottling #LabMaintenance",
+    203, [["rizky", 4200, "Re-pasting is the step most schools skip. It is worth it."], ["sari", 4100, "Saved this for our next maintenance day."]]),
+  mk("p7", "dewi", "guide", 5800, "Best Refurbished Laptops under 5 Million IDR",
+    "Shortlist for student and admin laptops: look for business-class models like the ThinkPad T480 or Latitude 7280, battery health above 85% and an SSD. Always ask for the inspection summary. #ThinkPadGradeA #Refurbished #BudgetLab",
+    175, [["fajar", 5700, "Is Grade A cosmetic wear a problem for classroom use?"], ["dewi", 5600, "Not at all. It only affects the shell, and the 15-point check covers function."]]),
+  mk("p9", "fajar", "qa", 600, "Is a 350 W PSU enough for an i5-12400 with a GTX 1650?",
+    "We are speccing 20 office PCs and want to add a low-profile GPU to some. The Preset Builder shows about 150 W for the base build. Any reason to go bigger? #PSU #i512400",
+    24, [["rizky", 540, "A 450 W Bronze unit gives you headroom and better efficiency. Check the load meter in the Preset Builder."], ["fajar", 500, "Thanks, switching to 450 W."]]),
+  mk("p10", "bagas", "qa", 980, "Refurbished RTX 3080 hits 83 °C under load, is that normal?",
+    "Bought a Grade A+ card last week. Idle is fine, but games push it to 83 °C. #RTX3080 #Thermals #Refurbished",
+    37, [["rizky", 900, "Within spec, but under 75 °C is better. Check case airflow and the fan curve first."]]),
+];
+
+const BUILDERS = [["rizky", 14, 2480], ["dewi", 11, 2105], ["nadia", 9, 1870], ["bagas", 8, 1540], ["hendra", 7, 1320]];
+const GUIDES = [
+  { title: "How to Prevent Thermal Throttling in School Labs", reads: 3280, q: "thermal" },
+  { title: "Best Refurbished Laptops under 5 Million IDR", reads: 2910, q: "refurbished" },
+  { title: "Choosing the Right PSU for Office PCs", reads: 1760, q: "psu" },
+  { title: "CBT Lab Setup Checklist for 30 Seats", reads: 1540, q: "cbtsetup" },
+];
+
+/* ───────────────────────── Helpers ───────────────────────── */
+
+const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
+const num = (n) => new Intl.NumberFormat("id-ID").format(n);
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
+const TAG_RE = /#[A-Za-z0-9_]+/g;
+const AVATAR_TONES = ["bg-cyan-400/15 text-cyan-300", "bg-emerald-400/15 text-emerald-300", "bg-violet-400/15 text-violet-300", "bg-yellow-400/15 text-yellow-300"];
+
+function timeAgo(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m} min ago`;
+  if (m < 1440) return `${Math.floor(m / 60)} h ago`;
+  return `${Math.floor(m / 1440)} d ago`;
+}
+
+/* ───────────────────────── Small UI pieces ───────────────────────── */
+
+function Header({ onNavigate }) {
+  const go = (id) => () => onNavigate?.(id);
+  const link = `shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 ${focusRing}`;
+  return (
+    <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/85 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
+        <span className="flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
+        </span>
+        <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
+          <button type="button" onClick={go("engine")} className={link}>Hardware Engine</button>
+          <button type="button" onClick={go("builder")} className={link}>Preset Builder</button>
+          <button type="button" onClick={go("tradein")} className={link}>Trade-In &amp; Recycle</button>
+          <button type="button" onClick={go("qc")} className={link}>IoT QC Engine</button>
+          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-cyan-400 px-3 py-1.5 text-sm font-medium text-cyan-400 ${focusRing}`}>
+            <MessageSquare className="h-4 w-4" /> Community
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function Avatar({ authorKey, size = "h-10 w-10" }) {
+  const name = AUTHORS[authorKey].name;
+  if (authorKey === "you") return <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-zinc-800 text-zinc-300`}><User className="h-1/2 w-1/2" /></span>;
+  const tone = AVATAR_TONES[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length];
+  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+  return <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${tone}`} aria-hidden="true">{initials}</span>;
+}
+
+function RoleBadge({ role }) {
+  const r = ROLES[role];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${r.cls}`}>
+      {r.verified && <CheckCircle2 className="h-3 w-3" />}{r.label}
+    </span>
+  );
+}
+
+// Renders #tags inline as clickable badges that start a tag search
+function RichText({ text, onTag }) {
+  return text.split(/(#[A-Za-z0-9_]+)/g).map((part, i) =>
+    /^#[A-Za-z0-9_]+$/.test(part) ? (
+      <button key={i} type="button" onClick={() => onTag(part)} className={`mx-0.5 rounded bg-cyan-400/10 px-1.5 py-0.5 text-[13px] text-cyan-300 hover:bg-cyan-400/20 ${focusRing}`}>{part}</button>
+    ) : part
+  );
+}
+
+/* ───────────────────────── Post creator ───────────────────────── */
+
+function Composer({ onPublish }) {
+  const [title, setTitle] = useState("");
+  const [cat, setCat] = useState("build");
+  const [body, setBody] = useState("");
+  const [attached, setAttached] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const tags = useMemo(() => [...new Set(body.match(TAG_RE) ?? [])], [body]);
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(""), 3500);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  const publish = () => {
+    if (title.trim().length < 5) return setError("Give your post a title of at least 5 characters.");
+    if (body.trim().length < 10) return setError("Add a few details (at least 10 characters) so others can help.");
+    onPublish({ title: title.trim(), body: body.trim(), cat, attached });
+    setTitle(""); setBody(""); setAttached(false); setError("");
+    setNotice("Your post is live at the top of the feed.");
+  };
+
+  const field = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 ${focusRing}`;
+  return (
+    <section aria-labelledby="composer-title" className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+      <h2 id="composer-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50">
+        <PenSquare className="h-5 w-5 text-cyan-400" /> Share Your Build or Ask the Community
+      </h2>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="sm:col-span-2">
+          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-300">Post title</label>
+          <input id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="e.g. Quiet 4K editing rig under Rp 40 juta" className={field} />
+        </div>
+        <div>
+          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-300">Category</label>
+          <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
+            {POSTABLE.map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="mt-3">
+        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-300">Details</label>
+        <textarea id="post-body" rows={4} value={body} onChange={(e) => { setBody(e.target.value); setError(""); }} placeholder={PROMPTS[cat]} className={`${field} resize-y`} />
+        {tags.length > 0 && (
+          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
+            <Tag className="h-3.5 w-3.5" /> Tags detected:
+            {tags.map((t) => <span key={t} className="rounded bg-cyan-400/10 px-1.5 py-0.5 text-cyan-300">{t}</span>)}
+          </p>
+        )}
+      </div>
+
+      {attached && (
+        <div className="mt-3 flex gap-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+          <div className="grid h-16 w-24 shrink-0 place-items-center rounded-md border border-zinc-800 bg-zinc-900 text-zinc-500"><ImageIcon className="h-6 w-6" /></div>
+          <div className="min-w-0 flex-1 text-sm">
+            <p className="text-zinc-100">attached-photo.jpg <span className="text-xs text-zinc-500">(simulated)</span></p>
+            <p className="text-xs text-zinc-500">Sample spec sheet: {ATTACH_SPECS.map(([, v]) => v).join(", ")}</p>
+            {cat !== "build" && <p className="mt-1 text-xs text-zinc-500">The spec breakdown only appears on Build Showcases.</p>}
+          </div>
+          <button type="button" aria-label="Remove attachment" onClick={() => setAttached(false)} className={`h-fit rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button type="button" onClick={() => setAttached(true)} disabled={attached} className={`inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}>
+          <ImageIcon className="h-4 w-4" /> {attached ? "Attached" : "Attach image or spec sheet"}
+        </button>
+        <button type="button" onClick={publish} className={`ml-auto inline-flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-cyan-300 ${focusRing}`}>
+          <Send className="h-4 w-4" /> Publish Post
+        </button>
+      </div>
+      <div aria-live="polite">
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
+      </div>
+    </section>
+  );
+}
+
+/* ───────────────────────── Post card ───────────────────────── */
+
+function PostCard({ post, onLike, onComment, onTag }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [shareNote, setShareNote] = useState("");
+  const author = AUTHORS[post.by];
+  const cat = CATEGORIES[post.cat];
+  const CatIcon = cat.icon;
+
+  useEffect(() => {
+    if (!shareNote) return;
+    const t = setTimeout(() => setShareNote(""), 2200);
+    return () => clearTimeout(t);
+  }, [shareNote]);
+
+  const share = async () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const text = post.specs
+      ? `${post.title}\n${post.specs.map(([k, v]) => `${k}: ${v}`).join("\n")}${post.cost ? `\nTotal: ${idr(post.cost)}` : ""}`
+      : `${post.title}\n${origin}/community/${post.id}`;
+    try { await navigator.clipboard.writeText(text); setShareNote("Copied to clipboard"); }
+    catch { setShareNote("Copying isn't available in this browser"); }
+  };
+
+  const submitComment = (e) => {
+    e.preventDefault();
+    if (!draft.trim()) return;
+    onComment(post.id, draft.trim());
+    setDraft("");
+  };
+
+  const action = `inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
+  return (
+    <article className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+      <header className="flex items-start gap-3">
+        <Avatar authorKey={post.by} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="font-medium text-zinc-50">{author.name}</span>
+            <RoleBadge role={author.role} />
+          </div>
+          <p className="mt-0.5 text-xs text-zinc-500">{timeAgo(post.createdAt)}</p>
+        </div>
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${cat.cls}`}><CatIcon className="h-3.5 w-3.5" /> {cat.label}</span>
+      </header>
+
+      <h3 className="mt-4 text-lg font-semibold leading-snug text-zinc-50">{post.title}</h3>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-300"><RichText text={post.body} onTag={onTag} /></p>
+
+      {post.attachment && (
+        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-1.5 text-xs text-zinc-400"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
+      )}
+
+      {post.specs && (
+        <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60">
+          <p className="flex items-center gap-1.5 border-b border-zinc-800 px-3 py-2 text-xs text-zinc-500"><Cpu className="h-3.5 w-3.5 text-cyan-400" /> Hardware spec breakdown</p>
+          <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
+            {post.specs.map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-zinc-500">{k}</dt><dd className="text-right text-zinc-100">{v}</dd></div>
+            ))}
+          </dl>
+          {post.cost && <p className="flex justify-between border-t border-zinc-800 px-3 py-2 text-sm"><span className="text-zinc-500">Total build cost</span><span className="font-semibold tabular-nums text-emerald-400">{idr(post.cost)}</span></p>}
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-zinc-800 pt-3">
+        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-cyan-400/10 text-cyan-300" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"}`}>
+          <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="tabular-nums">{post.likes}</span>
+          <span className="sr-only">{post.liked ? "upvotes, you upvoted this" : "upvotes"}</span>
+        </button>
+        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"}`}>
+          <MessageSquare className="h-4 w-4" /> <span className="tabular-nums">{post.comments.length}</span> {post.comments.length === 1 ? "Comment" : "Comments"}
+        </button>
+        <button type="button" onClick={share} className={`${action} ml-auto text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100`}>
+          <Share2 className="h-4 w-4" /> {post.specs ? "Share Spec" : "Share"}
+        </button>
+      </div>
+      <p role="status" className="min-h-0 text-right text-xs text-emerald-400">{shareNote}</p>
+
+      {open && (
+        <div className="mt-2 space-y-3 rounded-lg bg-zinc-950/50 p-3">
+          {post.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet. Be the first to reply.</p>}
+          {post.comments.map((c) => (
+            <div key={c.id} className="flex gap-2.5">
+              <Avatar authorKey={c.by} size="h-8 w-8" />
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-x-2 text-sm">
+                  <span className="font-medium text-zinc-100">{AUTHORS[c.by].name}</span>
+                  <span className="text-xs text-zinc-500">{ROLES[AUTHORS[c.by].role].label}, {timeAgo(c.createdAt)}</span>
+                </p>
+                <p className="text-sm text-zinc-300">{c.text}</p>
+              </div>
+            </div>
+          ))}
+          <form onSubmit={submitComment} className="flex gap-2">
+            <label htmlFor={`reply-${post.id}`} className="sr-only">Write a reply</label>
+            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply" className={`min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 ${focusRing}`} />
+            <button type="submit" disabled={!draft.trim()} aria-label="Send reply" className={`grid h-9 w-9 place-items-center rounded-lg bg-cyan-400 text-zinc-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
+          </form>
+        </div>
+      )}
+    </article>
+  );
+}
+
+/* ───────────────────────── Sidebar ───────────────────────── */
+
+function Sidebar({ topTags, onTag, onGuide }) {
+  return (
+    <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start" aria-label="Community highlights">
+      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><Award className="h-5 w-5 text-emerald-400" /> Top Verified Builders of the Month</h2>
+        <ol className="mt-3 space-y-3">
+          {BUILDERS.map(([key, builds, points], i) => (
+            <li key={key} className="flex items-center gap-3">
+              <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-400" : "text-zinc-500"}`}>{i + 1}</span>
+              <Avatar authorKey={key} size="h-9 w-9" />
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-100">{AUTHORS[key].name}{i === 0 && <Award className="h-3.5 w-3.5 text-emerald-400" aria-label="Builder of the month" />}</p>
+                <p className="text-xs text-zinc-500">{ROLES[AUTHORS[key].role].label}</p>
+              </div>
+              <div className="text-right text-xs tabular-nums"><p className="font-medium text-cyan-300">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><BookOpen className="h-5 w-5 text-cyan-400" /> Trending Maintenance Guides</h2>
+        <ul className="mt-3 divide-y divide-zinc-800">
+          {GUIDES.map((g) => (
+            <li key={g.title}>
+              <button type="button" onClick={() => onGuide(g.q)} className={`w-full py-2.5 text-left hover:text-cyan-300 ${focusRing}`}>
+                <span className="block text-sm text-zinc-200">{g.title}</span>
+                <span className="text-xs tabular-nums text-zinc-500">{num(g.reads)} reads</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><Tag className="h-5 w-5 text-cyan-400" /> Popular hardware tags</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {topTags.map(([tag, count]) => (
+            <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-300 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>
+              {tag} <span className="text-zinc-500">{count}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </aside>
+  );
+}
+
+/* ───────────────────────── Page ───────────────────────── */
+
+export default function CommunityHub({ onNavigate }) {
+  const [posts, setPosts] = useState(SEED_POSTS);
+  const [category, setCategory] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const counts = useMemo(() => Object.fromEntries(CAT_ORDER.map((k) => [k, k === "all" ? posts.length : posts.filter((p) => p.cat === k).length])), [posts]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase().replace(/^#/, "");
+    return posts
+      .filter((p) => category === "all" || p.cat === category)
+      .filter((p) => {
+        if (!q) return true;
+        const hay = `${p.title} ${p.body} ${AUTHORS[p.by].name} ${CATEGORIES[p.cat].label} ${(p.specs ?? []).flat().join(" ")}`.toLowerCase();
+        return hay.includes(q);
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [posts, category, query]);
+
+  const topTags = useMemo(() => {
+    const tally = {};
+    posts.forEach((p) => (p.body.match(TAG_RE) ?? []).forEach((t) => { tally[t] = (tally[t] || 0) + 1; }));
+    return Object.entries(tally).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8);
+  }, [posts]);
+
+  const patch = (id, fn) => setPosts((list) => list.map((p) => (p.id === id ? fn(p) : p)));
+  const like = (id) => patch(id, (p) => ({ ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) }));
+  const addComment = (id, text) => patch(id, (p) => ({ ...p, comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: "you", text, createdAt: Date.now() }] }));
+
+  const publish = ({ title, body, cat, attached }) => {
+    const post = {
+      id: `p${Date.now()}`, by: "you", cat, title, body, createdAt: Date.now(), likes: 0, liked: false, comments: [],
+      ...(attached ? { attachment: "attached-photo.jpg", ...(cat === "build" ? { specs: ATTACH_SPECS } : {}) } : {}),
+    };
+    setPosts((list) => [post, ...list]);
+    setCategory("all"); setQuery(""); // make sure the new post is visible
+  };
+
+  const searchTag = (tag) => { setCategory("all"); setQuery(tag); };
+  const clearFilters = () => { setCategory("all"); setQuery(""); };
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+      <Header onNavigate={onNavigate} />
+
+      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
+          <MessageSquare className="h-8 w-8 text-cyan-400" /> Community &amp; Knowledge Hub
+        </h1>
+        <p className="mt-3 max-w-2xl text-zinc-400">
+          Show off your builds, learn from lab admins and certified technicians, and get answers from people who run real hardware every day.
+        </p>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <div className="space-y-5 lg:col-span-2">
+            <Composer onPublish={publish} />
+
+            <div className="relative">
+              <label htmlFor="feed-search" className="sr-only">Search posts</label>
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search topics, hardware or tags like #RTX4060" className={`w-full rounded-lg border border-zinc-700 bg-zinc-900 py-3 pl-12 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
+            </div>
+
+            <div role="group" aria-label="Filter posts by category" className="flex flex-wrap gap-2">
+              {CAT_ORDER.map((k) => {
+                const Icon = CATEGORIES[k].icon;
+                const active = category === k;
+                return (
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-cyan-400 bg-cyan-400/15 text-cyan-300" : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"}`}>
+                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="text-xs text-zinc-500">{counts[k]}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-sm text-zinc-500" aria-live="polite">
+              Showing {visible.length} {visible.length === 1 ? "post" : "posts"}{query.trim() ? ` for “${query.trim()}”` : ""}
+            </p>
+
+            {visible.length ? (
+              <div className="space-y-4">
+                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} />)}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-zinc-700 p-10 text-center">
+                <p className="text-zinc-100">No posts match your filters.</p>
+                <p className="mt-1 text-sm text-zinc-500">Try a different keyword or category, or start the conversation yourself.</p>
+                <button type="button" onClick={clearFilters} className={`mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>Clear filters</button>
+              </div>
+            )}
+          </div>
+
+          <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} />
+        </div>
+      </main>
+
+      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">
+        ViciTech Engine v1.0. Sample community content.
+      </footer>
+    </div>
+  );
+}
