@@ -15,6 +15,8 @@ import VersusArena from "./modules/VersusArena";
 import AccountDashboard from "./modules/AccountDashboard";
 import CommunityHub from "./modules/CommunityHub";
 import CheckoutModal, { PENDING_CHECKOUT_STORAGE_KEY } from "./CheckoutModal";
+import AuthNavigation from "./auth/AuthNavigation";
+import { supabase } from "@/lib/supabase";
 
 /*
   ViciTech master shell. One top bar, one tab bar and one footer wrap every module, and each module keeps its
@@ -244,7 +246,7 @@ function NotificationsMenu({ notifs, setNotifs, onNavigate }) {
   );
 }
 
-function RoleMenu({ role, setRole, onSignOut }) {
+function RoleMenu({ role, setRole }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);
@@ -252,9 +254,9 @@ function RoleMenu({ role, setRole, onSignOut }) {
   const r = ROLES[role];
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-expanded={open} aria-label={`Profile and role menu, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-2.5 rounded-lg border border-zinc-800 py-1 pl-1 pr-1 hover:border-zinc-700 lg:pr-3 ${focusRing}`}>
+      <button type="button" aria-expanded={open} aria-label={`Workspace role menu, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-2.5 rounded-lg border border-zinc-800 py-1 pl-1 pr-1 hover:border-zinc-700 lg:pr-3 ${focusRing}`}>
         <span className="grid h-7 w-7 place-items-center rounded-md bg-cyan-400/15 text-xs font-semibold text-cyan-300">{r.initials}</span>
-        <span className="hidden text-left lg:block"><span className="block text-xs font-medium leading-tight text-zinc-100">{r.name}</span><span className="block text-[11px] leading-tight text-zinc-500">{r.label}</span></span>
+        <span className="hidden text-left lg:block"><span className="block text-xs font-medium leading-tight text-zinc-100">{r.label}</span><span className="block text-[11px] leading-tight text-zinc-500">Workspace role</span></span>
       </button>
       {open && (
         <div className={`${panel} w-72 p-2`}>
@@ -269,14 +271,13 @@ function RoleMenu({ role, setRole, onSignOut }) {
               );
             })}
           </div>
-          <button type="button" disabled={!onSignOut} onClick={onSignOut} title={onSignOut ? undefined : "Connect your auth provider"} className={`mt-1 w-full rounded-lg border-t border-zinc-800 px-2 py-2 text-left text-sm text-zinc-400 enabled:hover:text-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-600 ${focusRing}`}>Sign out</button>
         </div>
       )}
     </div>
   );
 }
 
-function Navbar({ role, setRole, notifs, setNotifs, onNavigate, onSearch, onMenu, onSignOut }) {
+function Navbar({ role, setRole, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onSignOut }) {
   return (
     <div className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
@@ -301,7 +302,8 @@ function Navbar({ role, setRole, notifs, setNotifs, onNavigate, onSearch, onMenu
         <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} md:hidden`}><Search className="h-4 w-4" /></button>
         <StatusMenu />
         <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
-        <RoleMenu role={role} setRole={setRole} onSignOut={onSignOut} />
+        <RoleMenu role={role} setRole={setRole} />
+        <AuthNavigation onNotify={onNotify} onSignOut={onSignOut} />
       </div>
     </div>
   );
@@ -651,6 +653,31 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
 
   const notify = useCallback((msg) => setToast({ msg, n: Date.now() }), []);
   const clearToast = useCallback(() => setToast(null), []);
+  const handleSignOut = useCallback(async () => {
+    if (!supabase) {
+      notify("Supabase authentication is not configured.");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        notify(`Sign out failed: ${error.message}`);
+        return;
+      }
+    } catch (error) {
+      notify(`Sign out failed: ${error.message}`);
+      return;
+    }
+
+    try {
+      await onSignOut?.();
+    } catch (error) {
+      notify(`Signed out, but the follow-up action failed: ${error.message}`);
+      return;
+    }
+    notify("You have been signed out.");
+  }, [notify, onSignOut]);
   const openCheckout = useCallback((summary) => {
     setCheckoutSummary(summary);
     setIsCheckoutOpen(true);
@@ -808,19 +835,19 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
         notify(`Preset "${preset.name}" loaded into Preset Builder.`);
         navigate("builder");
       },
-      onSignOut,
+      onSignOut: handleSignOut,
     },
     community: {
       onNavigate: navigate,
     },
-  }), [role, builderConfig, qcSerial, navigate, notify, onSignOut, openCheckout]);
+  }), [role, builderConfig, qcSerial, navigate, notify, handleSignOut, openCheckout]);
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
       <style>{CSS}</style>
 
       <div className="sticky top-0 z-40">
-        <Navbar role={role} setRole={setRole} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onSignOut={onSignOut} />
+        <Navbar role={role} setRole={setRole} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onSignOut={handleSignOut} />
         <TabBar active={active} onNavigate={navigate} />
       </div>
 

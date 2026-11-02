@@ -24,9 +24,12 @@ components/vicitech/modules/
 
 ```bash
 npx create-next-app@latest vicitech --app --tailwind --no-typescript
-cd vicitech && npm i lucide-react
+cd vicitech && npm i lucide-react @supabase/supabase-js @supabase/ssr
 # copy app/page.jsx and components/ over the generated files
 ```
+
+Run `npm run dev` for local development, or `npm run build` followed by `npm start` for production.
+The app requires a Next.js server runtime for its Supabase OAuth callback; static export is not supported.
 
 Tailwind must be v3.1 or newer (the shell uses arbitrary variants such as `[&>div>header]:hidden`).
 Make sure `tailwind.config.js` scans the components:
@@ -40,13 +43,18 @@ content: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}"]
 ## Supabase checkout
 
 Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`, enable the GitHub
-provider in Supabase Authentication, and allow the app URL in Supabase's redirect URL settings. Register
-Supabase's GitHub callback URL with the GitHub OAuth app. Run `supabase/schema.sql` to create/update the
-orders table, including its JSONB build summary.
+provider and Email provider in Supabase Authentication, and allow your app URL plus
+`http://localhost:3000/auth/callback` in Supabase's redirect URL settings. Register Supabase's GitHub
+callback URL (`https://<project-ref>.supabase.co/auth/v1/callback`) with the GitHub OAuth app. The
+navbar supports GitHub OAuth and email/password sign-in and registration; email registration may require
+confirmation depending on your Supabase Auth settings. OAuth and email confirmation codes are exchanged
+by `app/auth/callback/route.js` and stored in secure Supabase SSR cookies.
+
+Run `supabase/schema.sql` to create/update the orders table, including its JSONB build summary.
 
 The Preset Builder hands the selected parts, pricing and specs to the shell-owned checkout modal. A user
-must sign in with GitHub before an order is submitted; the pending build is retained across the OAuth
-redirect. Supabase errors are shown in checkout rather than being reported as successful local orders.
+must sign in before an order is submitted; the pending build is retained across the OAuth redirect.
+Supabase errors are shown in checkout rather than being reported as successful local orders.
 
 ## Routes (URL hash)
 

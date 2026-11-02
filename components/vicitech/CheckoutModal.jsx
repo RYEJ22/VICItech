@@ -76,7 +76,9 @@ export default function CheckoutModal({ open, orderSummary, onClose, onOrderCrea
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "github",
         options: {
-          redirectTo: `${window.location.origin}${window.location.pathname}${window.location.search}${window.location.hash}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(
+            `${window.location.pathname}${window.location.search}${window.location.hash}`
+          )}`,
         },
       });
       if (authError) throw authError;
