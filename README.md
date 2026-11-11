@@ -1,12 +1,16 @@
 # ViciTech: integrated app (Next.js, App Router)
 
-One shell, seven modules, one URL hash per view. Everything runs on sample data.
+One shell, seven modules, one URL hash per view. Catalogs and several modules use sample data; account orders are fetched from Supabase for the signed-in user.
 
 ## Folder layout
 
 ```
 app/page.jsx                              renders <ViciTechApp />
 components/vicitech/ViciTechApp.jsx       master shell (navbar, tabs, home, palette, footer, routing)
+components/vicitech/CyberSuite.tsx         animated QC, compatibility builder, toast, community preview
+components/vicitech/CyberUI.tsx            themed motion buttons, QC badges and notification toast
+components/vicitech/SpotlightCard.tsx      theme-aware pointer spotlight card
+components/vicitech/ThemeToggle.tsx        animated dark/light mode switch
 components/vicitech/CheckoutModal.jsx      authenticated order review and Supabase checkout
 components/vicitech/modules/
   HardwareLibrary.jsx      phones, laptops, PC components, accessories + comparison drawer
@@ -24,12 +28,17 @@ components/vicitech/modules/
 
 ```bash
 npx create-next-app@latest vicitech --app --tailwind --no-typescript
-cd vicitech && npm i lucide-react @supabase/supabase-js @supabase/ssr
+cd vicitech && npm i lucide-react framer-motion @supabase/supabase-js @supabase/ssr
 # copy app/page.jsx and components/ over the generated files
 ```
 
 Run `npm run dev` for local development, or `npm run build` followed by `npm start` for production.
 The app requires a Next.js server runtime for its Supabase OAuth callback; static export is not supported.
+
+The ViciTech home dashboard includes an animated QC and hardware compatibility suite. QC test profiles
+in this suite are explicitly simulated. To enable account-owned report saving, run
+`supabase/qc_test_reports.sql` in the Supabase SQL Editor; row-level security limits reports to their owner.
+The shared root theme provider defaults to Dark Cyber and the QC dashboard is also available at `/qc-panel`.
 
 Tailwind must be v3.1 or newer (the shell uses arbitrary variants such as `[&>div>header]:hidden`).
 Make sure `tailwind.config.js` scans the components:
@@ -50,7 +59,51 @@ navbar supports GitHub OAuth and email/password sign-in and registration; email 
 confirmation depending on your Supabase Auth settings. OAuth and email confirmation codes are exchanged
 by `app/auth/callback/route.js` and stored in secure Supabase SSR cookies.
 
-Run `supabase/schema.sql` to create/update the orders table, including its JSONB build summary.
+Run `supabase/schema.sql` to create/update the orders table, including its unique order number and JSONB
+build summary, public authenticated member profiles, private owner-scoped presets, shared-build
+statistics, direct messages, and the append-only `telemetry_logs` table. The schema enables Realtime
+for telemetry and direct messages, restricts message access to conversation participants, and restricts
+telemetry writes and all-order access to trusted admins. Account Settings saves username, full name,
+avatar URL, and bio to the profile row and Supabase Auth user metadata. Account orders and presets are
+fetched only after sign-in and scoped to the current user's ID.
+
+Authenticated members can view `/profile/[username]`, see recent shared-build activity, and start a
+private conversation from the public profile. Owners can also see their saved preset details on their
+own profile; other users only see the count, preserving preset privacy. The `/messages` inbox supports
+recent conversations, unread badges, message read receipts, and live inserts through Supabase Realtime.
+Community member names and avatars link to their corresponding public profile routes. Profile statistics
+are returned by a count-only RPC.
+
+The authenticated Preset Builder submits orders through `/api/orders`; server-side pricing, component
+compatibility, build balance score, ownership, and unique `VT-PO-YYYY-NNNN` order IDs are validated
+before insertion. The unified `/qc-panel` includes simulated component diagnostics, a compatibility builder, and a
+customer tracker that displays actual order/QC data and subscribes to telemetry. The protected
+control portal at `/admin/iot-qc` registers queued orders for QC and receives
+live telemetry; its simulation action is explicitly labeled as simulated and never presented as a
+physical ESP32 reading. Admin actions require a signed-in user whose trusted `app_metadata.role` is
+`admin`.
+
+The home dashboard's interactive QC report suite stores only authenticated users' reports in
+`qc_test_reports`. Apply `supabase/qc_test_reports.sql` before using its save action.
+
+## Admin workspace and roles
+
+The `/admin` and `/admin/iot-qc` routes are protected by `middleware.js`; unauthenticated and non-admin
+users are redirected to `/admin/login`. Admin sign-in uses Supabase email/password authentication.
+Authorization checks the trusted `app_metadata.role` claim returned by `auth.getUser()` and requires
+the exact value `admin`. Assign this claim only through the Supabase Dashboard or a trusted server using
+the Supabase Admin API/service-role key. Never grant admin access from `user_metadata`, browser code,
+or a client-controlled role selector. The service-role key must remain server-side and must not use a
+`NEXT_PUBLIC_` environment variable.
+
+For ESP32 ingestion, configure server-only `SUPABASE_SERVICE_ROLE_KEY` and `IOT_INGEST_TOKEN`.
+Devices POST validated sensor payloads to `/api/iot/telemetry` with
+`Authorization: Bearer <IOT_INGEST_TOKEN>`; never expose either secret to browser code or commit it.
+The endpoint accepts telemetry only for registered QC units and streams inserted readings to both
+tracking views through Supabase Realtime.
+
+The client navbar exposes the separate Admin Workspace link only when the signed-in user has the same
+`app_metadata.role` claim. Middleware remains the enforcement boundary; hiding the link is only navigation.
 
 The Preset Builder hands the selected parts, pricing and specs to the shell-owned checkout modal. A user
 must sign in before an order is submitted; the pending build is retained across the OAuth redirect.
@@ -88,7 +141,8 @@ Lazy loading: `<ViciTechApp components={{ qc: dynamic(() => import("./modules/Io
 
 ## Still to wire to a real backend
 
-- Supabase queries and the MQTT stream (the QC lookup, telemetry and status badges are simulated).
+- MQTT transport and device provisioning (ESP32 devices can post through the token-protected telemetry
+  endpoint; admin-generated simulation payloads are persisted and clearly identified).
 - Preset Builder does not yet receive parts from the Bottleneck Analyzer, Versus Arena or Library. Those hand-offs
   only navigate to it and show a message.
 - Quote requests, API key storage, trade-in offers and community posts live in component state.

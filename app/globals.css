@@ -7,17 +7,42 @@ body {
   min-height: 100%;
 }
 
+html {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
 body {
   margin: 0;
-  background: #09090b; /* zinc-950 */
-  color: #f4f4f5;      /* zinc-100 */
+  background: #09090b;
+  color: #f4f4f5;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
+  transition: background-color 220ms ease, color 220ms ease;
+}
+
+html.light body {
+  background: #fafafa;
+  color: #18181b;
 }
 
 /* Enforce strict keep-alive tab state hidden display across all child modules */
 [hidden] {
   display: none !important;
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Custom sleek dark scrollbar */
@@ -38,6 +63,23 @@ body {
 
 /* Accent selection */
 ::selection {
-  background: rgba(34, 211, 238, 0.25);
-  color: #22d3ee;
+  background: rgba(16, 185, 129, 0.24);
+  color: #047857;
+}
+
+html.light ::selection {
+  background: rgba(16, 185, 129, 0.18);
+  color: #047857;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #fafafa;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
 }

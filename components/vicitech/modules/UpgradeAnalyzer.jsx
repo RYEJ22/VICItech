@@ -95,7 +95,7 @@ function ramOptions(d) {
 function Slot({ kind, label, sub }) {
   const free = kind === "free";
   return (
-    <div className={`min-w-[5.5rem] rounded-lg border px-3 py-2 text-center ${free ? "border-dashed border-emerald-400/50 bg-emerald-400/5 text-emerald-400" : kind === "fixed" ? "border-zinc-700 bg-zinc-800/60 text-zinc-300" : "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"}`}>
+    <div className={`min-w-[5.5rem] rounded-lg border px-3 py-2 text-center ${free ? "border-dashed border-emerald-400/50 bg-emerald-400/5 text-emerald-700 dark:text-emerald-400" : kind === "fixed" ? "border-zinc-200 dark:border-zinc-700 bg-zinc-100/60 dark:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300" : "border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300"}`}>
       <p className="text-sm font-medium">{label}</p>
       <p className="text-[11px] opacity-80">{sub}</p>
     </div>
@@ -105,7 +105,7 @@ function Slot({ kind, label, sub }) {
 function SlotGroup({ icon: Icon, title, detail, children }) {
   return (
     <div>
-      <p className="mb-2 flex flex-wrap items-center gap-2 text-sm text-zinc-300"><Icon className="h-4 w-4 text-cyan-400" /> {title} <span className="text-xs text-zinc-500">{detail}</span></p>
+      <p className="mb-2 flex flex-wrap items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><Icon className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> {title} <span className="text-xs text-zinc-500">{detail}</span></p>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
@@ -141,31 +141,31 @@ function Planner({ d, onNavigate }) {
 
   return (
     <section className={`${card} p-5`} aria-labelledby="plan-title">
-      <h2 id="plan-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50"><Zap className="h-5 w-5 text-cyan-400" /> Upgrade planner</h2>
+      <h2 id="plan-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Zap className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Upgrade planner</h2>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div>
-          <label htmlFor="ram-plan" className="mb-1.5 flex items-center gap-2 text-sm text-zinc-300"><MemoryStick className="h-4 w-4 text-cyan-400" /> Memory</label>
-          <select id="ram-plan" value={ramPick} onChange={(e) => setRamPick(e.target.value)} disabled={!ropts.length} className={`w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 disabled:opacity-50 ${focusRing}`}>
+          <label htmlFor="ram-plan" className="mb-1.5 flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><MemoryStick className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Memory</label>
+          <select id="ram-plan" value={ramPick} onChange={(e) => setRamPick(e.target.value)} disabled={!ropts.length} className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 disabled:opacity-50 ${focusRing}`}>
             <option value="keep">{ropts.length ? `Keep ${installed} GB` : `Keep ${installed} GB (soldered, no upgrade possible)`}</option>
             {ropts.map((o) => <option key={o.total} value={o.total}>{o.total} GB total, {o.n} x {o.s} GB, about {idr(o.cost)}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="store-plan" className="mb-1.5 flex items-center gap-2 text-sm text-zinc-300"><HardDrive className="h-4 w-4 text-cyan-400" /> Storage</label>
-          <select id="store-plan" value={storePick} onChange={(e) => setStorePick(e.target.value)} className={`w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 ${focusRing}`}>
+          <label htmlFor="store-plan" className="mb-1.5 flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><HardDrive className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Storage</label>
+          <select id="store-plan" value={storePick} onChange={(e) => setStorePick(e.target.value)} className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 ${focusRing}`}>
             {STORE_OPTS.map((o) => <option key={o.id} value={o.id} disabled={!allowed(o)}>{o.label}{allowed(o) ? "" : " (no free slot)"}</option>)}
           </select>
         </div>
       </div>
 
       <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
-        <div className="rounded-lg bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Memory</dt><dd className="text-zinc-100">{installed} GB <span className="text-zinc-500">to</span> <span className={ramPlan ? "font-semibold text-emerald-400" : ""}>{ramPlan ? ramPlan.total : installed} GB</span></dd></div>
-        <div className="rounded-lg bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Storage</dt><dd className="text-zinc-100">{fmtGB(storageNow)} <span className="text-zinc-500">to</span> <span className={opt.id !== "keep" ? "font-semibold text-emerald-400" : ""}>{fmtGB(storageAfter)}</span></dd></div>
-        <div className="rounded-lg bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Estimated cost</dt><dd className="font-semibold tabular-nums text-zinc-50">{idr(cost)}</dd></div>
+        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Memory</dt><dd className="text-zinc-900 dark:text-zinc-100">{installed} GB <span className="text-zinc-500">to</span> <span className={ramPlan ? "font-semibold text-emerald-700 dark:text-emerald-400" : ""}>{ramPlan ? ramPlan.total : installed} GB</span></dd></div>
+        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Storage</dt><dd className="text-zinc-900 dark:text-zinc-100">{fmtGB(storageNow)} <span className="text-zinc-500">to</span> <span className={opt.id !== "keep" ? "font-semibold text-emerald-700 dark:text-emerald-400" : ""}>{fmtGB(storageAfter)}</span></dd></div>
+        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-3"><dt className="text-xs text-zinc-500">Estimated cost</dt><dd className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(cost)}</dd></div>
       </dl>
-      {hints.length > 0 && <ul className="mt-3 space-y-1.5">{hints.map((h) => <li key={h} className="flex gap-2 text-sm text-zinc-400"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> {h}</li>)}</ul>}
+      {hints.length > 0 && <ul className="mt-3 space-y-1.5">{hints.map((h) => <li key={h} className="flex gap-2 text-sm text-zinc-600 dark:text-zinc-400"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> {h}</li>)}</ul>}
       {onNavigate && (
-        <button type="button" onClick={() => onNavigate("bottleneck")} className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>
+        <button type="button" onClick={() => onNavigate("bottleneck")} className={`mt-4 inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
           <Gauge className="h-4 w-4" /> Check bottlenecks with this setup
         </button>
       )}
@@ -188,27 +188,27 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
   const Kind = d.kind === "Laptop" ? Laptop : Monitor;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
-      <header className="border-b border-zinc-800 bg-zinc-950/90">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-300">Max Upgrade Analyzer</span>
+          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Max Upgrade Analyzer</span>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl"><ArrowRightLeft className="h-8 w-8 text-cyan-400" /> Max Upgrade Potential Analyzer</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">See how far a laptop or PC can grow: RAM limits, free NVMe and SATA slots, graphics and CPU headroom, plus a planner that prices the upgrade.</p>
+        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl"><ArrowRightLeft className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Max Upgrade Potential Analyzer</h1>
+        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">See how far a laptop or PC can grow: RAM limits, free NVMe and SATA slots, graphics and CPU headroom, plus a planner that prices the upgrade.</p>
 
         {/* Device picker */}
         <div className="mt-8 space-y-4">
           {["Laptop", "Desktop"].map((kind) => (
             <div key={kind}>
-              <p className="mb-2 text-sm text-zinc-400">{kind === "Laptop" ? "Laptops and mobile workstations" : "PCs and desktops"}</p>
+              <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">{kind === "Laptop" ? "Laptops and mobile workstations" : "PCs and desktops"}</p>
               <div role="radiogroup" aria-label={kind === "Laptop" ? "Choose a laptop" : "Choose a desktop"} className="flex flex-wrap gap-2">
                 {DEVICES.filter((x) => x.kind === kind).map((x) => (
-                  <button key={x.id} type="button" role="radio" aria-checked={x.id === d.id} onClick={() => pick(x.id)} className={`rounded-lg border px-3 py-2 text-sm transition-colors ${focusRing} ${x.id === d.id ? "border-cyan-400/60 bg-cyan-400/10 text-cyan-300 shadow-[0_0_18px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-800 text-zinc-300 hover:border-zinc-700"}`}>{x.name}</button>
+                  <button key={x.id} type="button" role="radio" aria-checked={x.id === d.id} onClick={() => pick(x.id)} className={`rounded-lg border px-3 py-2 text-sm transition-colors ${focusRing} ${x.id === d.id ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300 shadow-[0_0_18px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>{x.name}</button>
                 ))}
               </div>
             </div>
@@ -223,15 +223,15 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                 <ScoreRing value={sc.total} grade={sc.grade} />
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-2 text-sm text-zinc-500"><Kind className="h-4 w-4" /> {d.kind}, {idr(d.price)}</p>
-                  <h2 className="text-xl font-semibold text-zinc-50">{d.name}</h2>
-                  <p className="mt-1 text-sm"><span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 font-medium text-emerald-400">Grade {sc.grade[0]}</span> <span className="text-zinc-400">{sc.grade[1]}</span></p>
+                  <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">{d.name}</h2>
+                  <p className="mt-1 text-sm"><span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 font-medium text-emerald-700 dark:text-emerald-400">Grade {sc.grade[0]}</span> <span className="text-zinc-600 dark:text-zinc-400">{sc.grade[1]}</span></p>
                 </div>
               </div>
               <ul className="mt-5 grid gap-3 sm:grid-cols-3">
                 {[["Memory", sc.ram, 35], ["Storage", sc.storage, 35], ["CPU and GPU", sc.compute, 30]].map(([k, v, cap]) => (
                   <li key={k}>
-                    <div className="flex justify-between text-xs"><span className="text-zinc-400">{k}</span><span className="tabular-nums text-zinc-300">{Math.round(v)} / {cap}</span></div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-cyan-400 transition-all duration-500" style={{ width: `${(v / cap) * 100}%` }} /></div>
+                    <div className="flex justify-between text-xs"><span className="text-zinc-600 dark:text-zinc-400">{k}</span><span className="tabular-nums text-zinc-700 dark:text-zinc-300">{Math.round(v)} / {cap}</span></div>
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className="h-full rounded-full bg-emerald-600 dark:bg-emerald-400 transition-all duration-500" style={{ width: `${(v / cap) * 100}%` }} /></div>
                   </li>
                 ))}
               </ul>
@@ -239,7 +239,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
 
             {/* Slot map */}
             <section className={`${card} space-y-5 p-5`} aria-labelledby="slots-title">
-              <h2 id="slots-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50"><CircuitBoard className="h-5 w-5 text-cyan-400" /> Slot map</h2>
+              <h2 id="slots-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><CircuitBoard className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Slot map</h2>
               <SlotGroup icon={MemoryStick} title="Memory" detail={`${d.ram.type}, ${installed} GB now, up to ${max} GB`}>
                 {d.ram.soldered > 0 && <Slot kind="fixed" label={`${d.ram.soldered} GB`} sub="soldered" />}
                 {Array.from({ length: d.ram.slots }, (_, i) => d.ram.modules[i] ? <Slot key={i} kind="used" label={`${d.ram.modules[i]} GB`} sub={`slot ${i + 1}`} /> : <Slot key={i} kind="free" label="Free" sub={`slot ${i + 1}, up to ${d.ram.slotMax} GB`} />)}
@@ -257,7 +257,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
 
             {/* Maximum potential */}
             <section className={`${card} p-5`} aria-labelledby="max-title">
-              <h2 id="max-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50"><Gauge className="h-5 w-5 text-cyan-400" /> Maximum potential</h2>
+              <h2 id="max-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Gauge className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Maximum potential</h2>
               <dl className="mt-3 divide-y divide-zinc-800 text-sm">
                 {[
                   ["RAM", max > installed ? `${installed} GB now, up to ${max} GB` : `Locked at ${installed} GB`, max > installed],
@@ -265,7 +265,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                   ["Graphics", d.gpu.text, d.gpu.score > 0],
                   ["CPU", d.cpu.text, d.cpu.score > 0],
                 ].map(([k, v, ok]) => (
-                  <div key={k} className="grid grid-cols-4 gap-3 py-2.5"><dt className="text-zinc-500">{k}</dt><dd className="col-span-3 flex gap-2 text-zinc-200">{ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />}{v}</dd></div>
+                  <div key={k} className="grid grid-cols-4 gap-3 py-2.5"><dt className="text-zinc-500">{k}</dt><dd className="col-span-3 flex gap-2 text-zinc-800 dark:text-zinc-200">{ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />}{v}</dd></div>
                 ))}
               </dl>
             </section>
@@ -274,11 +274,11 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
           <div className="space-y-6 lg:col-span-2 lg:self-start">
             <Planner key={d.id} d={d} onNavigate={onNavigate} />
             <section className={`${card} p-5`} aria-labelledby="notes-title">
-              <h2 id="notes-title" className="text-lg font-semibold text-zinc-50">Upgrade notes</h2>
+              <h2 id="notes-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Upgrade notes</h2>
               <ul className="mt-3 space-y-2.5">
                 {d.notes.map(([tone, text]) => (
-                  <li key={text} className="flex gap-2.5 text-sm text-zinc-300">
-                    {tone === "ok" ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-label="Good news" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" aria-label="Caution" />} {text}
+                  <li key={text} className="flex gap-2.5 text-sm text-zinc-700 dark:text-zinc-300">
+                    {tone === "ok" ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-label="Good news" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" aria-label="Caution" />} {text}
                   </li>
                 ))}
               </ul>
@@ -287,7 +287,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
         </div>
       </main>
 
-      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample specifications: confirm slot counts and limits in the manufacturer's datasheet before buying parts.</footer>
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample specifications: confirm slot counts and limits in the manufacturer's datasheet before buying parts.</footer>
     </div>
   );
 }

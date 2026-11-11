@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+function getCleanRedirectUrl(request) {
+  return new URL("/", request.nextUrl.origin);
+}
+
 function getRedirectUrl(request, status, message) {
   const requestedPath = request.nextUrl.searchParams.get("next");
   const origin = request.nextUrl.origin;
@@ -15,6 +19,14 @@ function getRedirectUrl(request, status, message) {
   redirectUrl.searchParams.set("auth", status);
   if (message) redirectUrl.searchParams.set("auth_error", String(message).slice(0, 300));
   return redirectUrl;
+}
+
+function isMissingPkceVerifier(error) {
+  return (
+    error?.name === "AuthPKCECodeVerifierMissingError" ||
+    error?.code === "pkce_code_verifier_not_found" ||
+    /pkce code verifier/i.test(error?.message || "")
+  );
 }
 
 export async function GET(request) {
@@ -60,14 +72,22 @@ export async function GET(request) {
   });
 
   try {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(getRedirectUrl(request, "success"));
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    if (!data?.session?.user) {
+      throw new Error("Supabase did not return a user session for the callback code.");
     }
-    return NextResponse.redirect(
-      getRedirectUrl(request, "error", error.message.slice(0, 300))
-    );
+
+    return NextResponse.redirect(getRedirectUrl(request, "success"));
   } catch (error) {
+    if (isMissingPkceVerifier(error)) {
+      const cookieStore = cookies();
+      cookieStore.getAll()
+        .filter(({ name }) => name.includes("code-verifier"))
+        .forEach(({ name }) => cookieStore.delete(name));
+      return NextResponse.redirect(getCleanRedirectUrl(request));
+    }
+
     return NextResponse.redirect(
       getRedirectUrl(
         request,

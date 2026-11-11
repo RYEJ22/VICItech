@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X,
 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 /* ───────────────────────── Static config & sample data ───────────────────────── */
 
@@ -15,6 +17,24 @@ const CATEGORIES = {
 };
 const CAT_ORDER = ["all", "build", "guide", "qa", "news"];
 const POSTABLE = ["build", "guide", "qa"]; // announcements come from the ViciTech team only
+
+const databaseCategory = { build: "build_showcase", guide: "general", qa: "troubleshooting" };
+const feedCategory = { build_showcase: "build", general: "guide", troubleshooting: "qa", news: "news" };
+
+function mapDatabasePost(row) {
+  const category = feedCategory[row.category] || "guide";
+  return {
+    id: row.id,
+    by: "you",
+    cat: category,
+    title: row.title,
+    body: row.content,
+    createdAt: new Date(row.created_at).getTime(),
+    likes: Number(row.likes_count) || 0,
+    liked: false,
+    comments: [],
+  };
+}
 
 const ROLES = {
   tech: { label: "Certified Technician", cls: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300", verified: true },
@@ -111,10 +131,10 @@ function Header({ onNavigate }) {
   const go = (id) => () => onNavigate?.(id);
   const link = `shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 ${focusRing}`;
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/85 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <span className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
         </span>
         <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
@@ -122,7 +142,7 @@ function Header({ onNavigate }) {
           <button type="button" onClick={go("builder")} className={link}>Preset Builder</button>
           <button type="button" onClick={go("tradein")} className={link}>Trade-In &amp; Recycle</button>
           <button type="button" onClick={go("qc")} className={link}>IoT QC Engine</button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-cyan-400 px-3 py-1.5 text-sm font-medium text-cyan-400 ${focusRing}`}>
+          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-emerald-600 dark:border-emerald-400 px-3 py-1.5 text-sm font-medium text-cyan-700 dark:text-cyan-400 ${focusRing}`}>
             <MessageSquare className="h-4 w-4" /> Community
           </button>
         </nav>
@@ -131,12 +151,20 @@ function Header({ onNavigate }) {
   );
 }
 
-function Avatar({ authorKey, size = "h-10 w-10" }) {
-  const name = AUTHORS[authorKey].name;
-  if (authorKey === "you") return <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-zinc-800 text-zinc-300`}><User className="h-1/2 w-1/2" /></span>;
-  const tone = AVATAR_TONES[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length];
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
-  return <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${tone}`} aria-hidden="true">{initials}</span>;
+function profileHref(authorKey, user) {
+  const username = authorKey === "you" ? user?.user_metadata?.username : authorKey === "team" ? "" : authorKey;
+  return typeof username === "string" && /^[a-z0-9]{3,20}$/.test(username)
+    ? `/profile/${encodeURIComponent(username)}`
+    : "";
+}
+
+function Avatar({ authorKey, size = "h-10 w-10", user }) {
+  const name = AUTHORS[authorKey]?.name || "ViciTech member";
+  const avatar = authorKey === "you"
+    ? <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}><User className="h-1/2 w-1/2" /></span>
+    : <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>;
+  const href = profileHref(authorKey, user);
+  return href ? <a href={href} aria-label={`View ${name}'s profile`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">{avatar}</a> : avatar;
 }
 
 function RoleBadge({ role }) {
@@ -152,7 +180,7 @@ function RoleBadge({ role }) {
 function RichText({ text, onTag }) {
   return text.split(/(#[A-Za-z0-9_]+)/g).map((part, i) =>
     /^#[A-Za-z0-9_]+$/.test(part) ? (
-      <button key={i} type="button" onClick={() => onTag(part)} className={`mx-0.5 rounded bg-cyan-400/10 px-1.5 py-0.5 text-[13px] text-cyan-300 hover:bg-cyan-400/20 ${focusRing}`}>{part}</button>
+      <button key={i} type="button" onClick={() => onTag(part)} className={`mx-0.5 rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[13px] text-cyan-700 dark:text-cyan-300 hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20 ${focusRing}`}>{part}</button>
     ) : part
   );
 }
@@ -166,6 +194,7 @@ function Composer({ onPublish }) {
   const [attached, setAttached] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const tags = useMemo(() => [...new Set(body.match(TAG_RE) ?? [])], [body]);
   useEffect(() => {
@@ -174,66 +203,75 @@ function Composer({ onPublish }) {
     return () => clearTimeout(t);
   }, [notice]);
 
-  const publish = () => {
+  const publish = async () => {
     if (title.trim().length < 5) return setError("Give your post a title of at least 5 characters.");
     if (body.trim().length < 10) return setError("Add a few details (at least 10 characters) so others can help.");
-    onPublish({ title: title.trim(), body: body.trim(), cat, attached });
-    setTitle(""); setBody(""); setAttached(false); setError("");
-    setNotice("Your post is live at the top of the feed.");
+    setIsPublishing(true);
+    setError("");
+    try {
+      const published = await onPublish({ title: title.trim(), body: body.trim(), cat, attached });
+      if (!published) return;
+      setTitle(""); setBody(""); setAttached(false);
+      setNotice("Your post is live at the top of the feed.");
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const field = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 ${focusRing}`;
   return (
-    <section aria-labelledby="composer-title" className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-      <h2 id="composer-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50">
-        <PenSquare className="h-5 w-5 text-cyan-400" /> Share Your Build or Ask the Community
+    <section aria-labelledby="composer-title" className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
+      <h2 id="composer-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        <PenSquare className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Share Your Build or Ask the Community
       </h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-300">Post title</label>
+          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Post title</label>
           <input id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="e.g. Quiet 4K editing rig under Rp 40 juta" className={field} />
         </div>
         <div>
-          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-300">Category</label>
+          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Category</label>
           <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
             {POSTABLE.map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
           </select>
         </div>
       </div>
       <div className="mt-3">
-        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-300">Details</label>
+        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Details</label>
         <textarea id="post-body" rows={4} value={body} onChange={(e) => { setBody(e.target.value); setError(""); }} placeholder={PROMPTS[cat]} className={`${field} resize-y`} />
         {tags.length > 0 && (
           <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
             <Tag className="h-3.5 w-3.5" /> Tags detected:
-            {tags.map((t) => <span key={t} className="rounded bg-cyan-400/10 px-1.5 py-0.5 text-cyan-300">{t}</span>)}
+            {tags.map((t) => <span key={t} className="rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-cyan-700 dark:text-cyan-300">{t}</span>)}
           </p>
         )}
       </div>
 
       {attached && (
-        <div className="mt-3 flex gap-3 rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-          <div className="grid h-16 w-24 shrink-0 place-items-center rounded-md border border-zinc-800 bg-zinc-900 text-zinc-500"><ImageIcon className="h-6 w-6" /></div>
+        <div className="mt-3 flex gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 p-3">
+          <div className="grid h-16 w-24 shrink-0 place-items-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500"><ImageIcon className="h-6 w-6" /></div>
           <div className="min-w-0 flex-1 text-sm">
-            <p className="text-zinc-100">attached-photo.jpg <span className="text-xs text-zinc-500">(simulated)</span></p>
+            <p className="text-zinc-900 dark:text-zinc-100">attached-photo.jpg <span className="text-xs text-zinc-500">(simulated)</span></p>
             <p className="text-xs text-zinc-500">Sample spec sheet: {ATTACH_SPECS.map(([, v]) => v).join(", ")}</p>
             {cat !== "build" && <p className="mt-1 text-xs text-zinc-500">The spec breakdown only appears on Build Showcases.</p>}
           </div>
-          <button type="button" aria-label="Remove attachment" onClick={() => setAttached(false)} className={`h-fit rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+          <button type="button" aria-label="Remove attachment" onClick={() => setAttached(false)} className={`h-fit rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
         </div>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => setAttached(true)} disabled={attached} className={`inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}>
+        <button type="button" onClick={() => setAttached(true)} disabled={attached} className={`inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}>
           <ImageIcon className="h-4 w-4" /> {attached ? "Attached" : "Attach image or spec sheet"}
         </button>
-        <button type="button" onClick={publish} className={`ml-auto inline-flex items-center gap-2 rounded-lg bg-cyan-400 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-cyan-300 ${focusRing}`}>
-          <Send className="h-4 w-4" /> Publish Post
+        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex items-center gap-2 rounded-lg bg-emerald-600 dark:bg-emerald-400 px-5 py-2 text-sm font-semibold text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
+          <Send className="h-4 w-4" /> {isPublishing ? "Publishing…" : "Publish Post"}
         </button>
       </div>
       <div aria-live="polite">
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
-        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
+        {error && <p className="mt-3 text-sm text-red-700 dark:text-red-400">{error}</p>}
+        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
       </div>
     </section>
   );
@@ -241,13 +279,14 @@ function Composer({ onPublish }) {
 
 /* ───────────────────────── Post card ───────────────────────── */
 
-function PostCard({ post, onLike, onComment, onTag }) {
+function PostCard({ post, onLike, onComment, onTag, user }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [shareNote, setShareNote] = useState("");
-  const author = AUTHORS[post.by];
-  const cat = CATEGORIES[post.cat];
+  const author = AUTHORS[post.by] || AUTHORS.team;
+  const cat = CATEGORIES[post.cat] || CATEGORIES.all;
   const CatIcon = cat.icon;
+  const authorProfile = profileHref(post.by, user);
 
   useEffect(() => {
     if (!shareNote) return;
@@ -273,12 +312,14 @@ function PostCard({ post, onLike, onComment, onTag }) {
 
   const action = `inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
   return (
-    <article className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+    <article className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
       <header className="flex items-start gap-3">
-        <Avatar authorKey={post.by} />
+        <Avatar authorKey={post.by} user={user} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="font-medium text-zinc-50">{author.name}</span>
+            {authorProfile
+              ? <a href={authorProfile} className="font-medium text-zinc-900 dark:text-zinc-50 hover:text-cyan-700 dark:hover:text-cyan-300">{author.name}</a>
+              : <span className="font-medium text-zinc-900 dark:text-zinc-50">{author.name}</span>}
             <RoleBadge role={author.role} />
           </div>
           <p className="mt-0.5 text-xs text-zinc-500">{timeAgo(post.createdAt)}</p>
@@ -286,58 +327,60 @@ function PostCard({ post, onLike, onComment, onTag }) {
         <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${cat.cls}`}><CatIcon className="h-3.5 w-3.5" /> {cat.label}</span>
       </header>
 
-      <h3 className="mt-4 text-lg font-semibold leading-snug text-zinc-50">{post.title}</h3>
-      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-300"><RichText text={post.body} onTag={onTag} /></p>
+      <h3 className="mt-4 text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{post.title}</h3>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"><RichText text={post.body} onTag={onTag} /></p>
 
       {post.attachment && (
-        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/60 px-3 py-1.5 text-xs text-zinc-400"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
+        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
       )}
 
       {post.specs && (
-        <div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/60">
-          <p className="flex items-center gap-1.5 border-b border-zinc-800 px-3 py-2 text-xs text-zinc-500"><Cpu className="h-3.5 w-3.5 text-cyan-400" /> Hardware spec breakdown</p>
+        <div className="mt-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60">
+          <p className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-500"><Cpu className="h-3.5 w-3.5 text-cyan-700 dark:text-cyan-400" /> Hardware spec breakdown</p>
           <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
             {post.specs.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-zinc-500">{k}</dt><dd className="text-right text-zinc-100">{v}</dd></div>
+              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-zinc-500">{k}</dt><dd className="text-right text-zinc-900 dark:text-zinc-100">{v}</dd></div>
             ))}
           </dl>
-          {post.cost && <p className="flex justify-between border-t border-zinc-800 px-3 py-2 text-sm"><span className="text-zinc-500">Total build cost</span><span className="font-semibold tabular-nums text-emerald-400">{idr(post.cost)}</span></p>}
+          {post.cost && <p className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"><span className="text-zinc-500">Total build cost</span><span className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(post.cost)}</span></p>}
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-zinc-800 pt-3">
-        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-cyan-400/10 text-cyan-300" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"}`}>
+      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-zinc-200 dark:border-zinc-800 pt-3">
+        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300" : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
           <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="tabular-nums">{post.likes}</span>
           <span className="sr-only">{post.liked ? "upvotes, you upvoted this" : "upvotes"}</span>
         </button>
-        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"}`}>
+        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
           <MessageSquare className="h-4 w-4" /> <span className="tabular-nums">{post.comments.length}</span> {post.comments.length === 1 ? "Comment" : "Comments"}
         </button>
-        <button type="button" onClick={share} className={`${action} ml-auto text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100`}>
+        <button type="button" onClick={share} className={`${action} ml-auto text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100`}>
           <Share2 className="h-4 w-4" /> {post.specs ? "Share Spec" : "Share"}
         </button>
       </div>
-      <p role="status" className="min-h-0 text-right text-xs text-emerald-400">{shareNote}</p>
+      <p role="status" className="min-h-0 text-right text-xs text-emerald-700 dark:text-emerald-400">{shareNote}</p>
 
       {open && (
-        <div className="mt-2 space-y-3 rounded-lg bg-zinc-950/50 p-3">
+        <div className="mt-2 space-y-3 rounded-lg bg-white/50 dark:bg-zinc-950/50 p-3">
           {post.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet. Be the first to reply.</p>}
           {post.comments.map((c) => (
             <div key={c.id} className="flex gap-2.5">
-              <Avatar authorKey={c.by} size="h-8 w-8" />
+              <Avatar authorKey={c.by} size="h-8 w-8" user={user} />
               <div className="min-w-0 flex-1">
                 <p className="flex flex-wrap items-center gap-x-2 text-sm">
-                  <span className="font-medium text-zinc-100">{AUTHORS[c.by].name}</span>
-                  <span className="text-xs text-zinc-500">{ROLES[AUTHORS[c.by].role].label}, {timeAgo(c.createdAt)}</span>
+                  {profileHref(c.by, user)
+                    ? <a href={profileHref(c.by, user)} className="font-medium text-zinc-900 dark:text-zinc-100 hover:text-cyan-700 dark:hover:text-cyan-300">{AUTHORS[c.by]?.name || "ViciTech member"}</a>
+                    : <span className="font-medium text-zinc-900 dark:text-zinc-100">{AUTHORS[c.by]?.name || "ViciTech member"}</span>}
+                  <span className="text-xs text-zinc-500">{ROLES[AUTHORS[c.by]?.role]?.label || "Member"}, {timeAgo(c.createdAt)}</span>
                 </p>
-                <p className="text-sm text-zinc-300">{c.text}</p>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300">{c.text}</p>
               </div>
             </div>
           ))}
           <form onSubmit={submitComment} className="flex gap-2">
             <label htmlFor={`reply-${post.id}`} className="sr-only">Write a reply</label>
-            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply" className={`min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 ${focusRing}`} />
-            <button type="submit" disabled={!draft.trim()} aria-label="Send reply" className={`grid h-9 w-9 place-items-center rounded-lg bg-cyan-400 text-zinc-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
+            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply" className={`min-w-0 flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 ${focusRing}`} />
+            <button type="submit" disabled={!draft.trim()} aria-label="Send reply" className={`grid h-9 w-9 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
           </form>
         </div>
       )}
@@ -347,33 +390,38 @@ function PostCard({ post, onLike, onComment, onTag }) {
 
 /* ───────────────────────── Sidebar ───────────────────────── */
 
-function Sidebar({ topTags, onTag, onGuide }) {
+function Sidebar({ topTags, onTag, onGuide, user }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start" aria-label="Community highlights">
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><Award className="h-5 w-5 text-emerald-400" /> Top Verified Builders of the Month</h2>
+    <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Community highlights">
+      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Award className="h-5 w-5 text-emerald-700 dark:text-emerald-400" /> Top Verified Builders of the Month</h2>
         <ol className="mt-3 space-y-3">
           {BUILDERS.map(([key, builds, points], i) => (
             <li key={key} className="flex items-center gap-3">
-              <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-400" : "text-zinc-500"}`}>{i + 1}</span>
-              <Avatar authorKey={key} size="h-9 w-9" />
+              <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"}`}>{i + 1}</span>
+              <Avatar authorKey={key} size="h-9 w-9" user={user} />
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-100">{AUTHORS[key].name}{i === 0 && <Award className="h-3.5 w-3.5 text-emerald-400" aria-label="Builder of the month" />}</p>
-                <p className="text-xs text-zinc-500">{ROLES[AUTHORS[key].role].label}</p>
+                <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  {profileHref(key, user)
+                    ? <a href={profileHref(key, user)} className="truncate hover:text-cyan-700 dark:hover:text-cyan-300">{AUTHORS[key]?.name || "ViciTech member"}</a>
+                    : <span className="truncate">{AUTHORS[key]?.name || "ViciTech member"}</span>}
+                  {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-label="Builder of the month" />}
+                </p>
+                <p className="text-xs text-zinc-500">{ROLES[AUTHORS[key]?.role]?.label || "Member"}</p>
               </div>
-              <div className="text-right text-xs tabular-nums"><p className="font-medium text-cyan-300">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
+              <div className="text-right text-xs tabular-nums"><p className="font-medium text-cyan-700 dark:text-cyan-300">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><BookOpen className="h-5 w-5 text-cyan-400" /> Trending Maintenance Guides</h2>
+      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><BookOpen className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Trending Maintenance Guides</h2>
         <ul className="mt-3 divide-y divide-zinc-800">
           {GUIDES.map((g) => (
             <li key={g.title}>
-              <button type="button" onClick={() => onGuide(g.q)} className={`w-full py-2.5 text-left hover:text-cyan-300 ${focusRing}`}>
-                <span className="block text-sm text-zinc-200">{g.title}</span>
+              <button type="button" onClick={() => onGuide(g.q)} className={`w-full py-2.5 text-left hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
+                <span className="block text-sm text-zinc-800 dark:text-zinc-200">{g.title}</span>
                 <span className="text-xs tabular-nums text-zinc-500">{num(g.reads)} reads</span>
               </button>
             </li>
@@ -381,11 +429,11 @@ function Sidebar({ topTags, onTag, onGuide }) {
         </ul>
       </section>
 
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-50"><Tag className="h-5 w-5 text-cyan-400" /> Popular hardware tags</h2>
+      <section className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Tag className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Popular hardware tags</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {topTags.map(([tag, count]) => (
-            <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-full border border-zinc-700 px-2.5 py-1 text-xs text-zinc-300 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>
+            <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-full border border-zinc-200 dark:border-zinc-700 px-2.5 py-1 text-xs text-zinc-700 dark:text-zinc-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
               {tag} <span className="text-zinc-500">{count}</span>
             </button>
           ))}
@@ -397,10 +445,61 @@ function Sidebar({ topTags, onTag, onGuide }) {
 
 /* ───────────────────────── Page ───────────────────────── */
 
-export default function CommunityHub({ onNavigate }) {
+export default function CommunityHub({ onNavigate, user }) {
   const [posts, setPosts] = useState(SEED_POSTS);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
+  const [publishError, setPublishError] = useState("");
+
+  useEffect(() => {
+    let supabase;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch (clientError) {
+      setPublishError(clientError instanceof Error ? clientError.message : "Community feed is unavailable.");
+      return undefined;
+    }
+
+    let isActive = true;
+    const loadPosts = async () => {
+      const { data, error } = await supabase
+        .from("community_posts")
+        .select("id, title, content, category, likes_count, created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) {
+        if (isActive) setPublishError(`Community posts could not be refreshed: ${error.message}`);
+        return;
+      }
+      if (isActive && data) {
+        const persistedPosts = data.map(mapDatabasePost);
+        setPosts((current) => {
+          const byId = new Map(current.map((post) => [post.id, post]));
+          persistedPosts.forEach((post) => byId.set(post.id, post));
+          return [...byId.values()];
+        });
+      }
+    };
+
+    void loadPosts();
+    const channel = supabase
+      .channel("community-posts-feed")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "community_posts" }, ({ new: row }) => {
+        if (!row?.id || !row?.title || !row?.content) return;
+        const post = mapDatabasePost(row);
+        setPosts((current) => current.some((existing) => existing.id === post.id) ? current : [post, ...current]);
+      })
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setPublishError("Live community updates are unavailable. Reload the page to refresh the feed.");
+        }
+      });
+
+    return () => {
+      isActive = false;
+      void supabase.removeChannel(channel);
+    };
+  }, []);
 
   const counts = useMemo(() => Object.fromEntries(CAT_ORDER.map((k) => [k, k === "all" ? posts.length : posts.filter((p) => p.cat === k).length])), [posts]);
 
@@ -426,38 +525,66 @@ export default function CommunityHub({ onNavigate }) {
   const like = (id) => patch(id, (p) => ({ ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) }));
   const addComment = (id, text) => patch(id, (p) => ({ ...p, comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: "you", text, createdAt: Date.now() }] }));
 
-  const publish = ({ title, body, cat, attached }) => {
-    const post = {
-      id: `p${Date.now()}`, by: "you", cat, title, body, createdAt: Date.now(), likes: 0, liked: false, comments: [],
-      ...(attached ? { attachment: "attached-photo.jpg", ...(cat === "build" ? { specs: ATTACH_SPECS } : {}) } : {}),
-    };
-    setPosts((list) => [post, ...list]);
-    setCategory("all"); setQuery(""); // make sure the new post is visible
+  const publish = async ({ title, body, cat, attached }) => {
+    setPublishError("");
+    try {
+      const client = getSupabaseBrowserClient();
+      const { data: { user: activeUser }, error: authError } = await client.auth.getUser();
+      if (authError) throw new Error(authError.message);
+      if (!activeUser) throw new Error("Sign in before publishing a community post.");
+      const { data, error } = await client.from("community_posts").insert({
+        user_id: activeUser.id,
+        title,
+        content: body,
+        category: databaseCategory[cat],
+      }).select("id, title, content, category, likes_count, created_at").single();
+      if (error) throw new Error(error.message);
+      const post = mapDatabasePost(data);
+      if (attached) {
+        post.attachment = "attached-photo.jpg";
+        if (cat === "build") post.specs = ATTACH_SPECS;
+      }
+      setPosts((list) => [post, ...list.filter((existing) => existing.id !== post.id)]);
+      setCategory("all");
+      setQuery("");
+      if (cat === "build" && user?.id) {
+        const { error: buildError } = await client.from("shared_builds").insert({ user_id: activeUser.id, title });
+        if (buildError) setPublishError(`Post published, but the shared-build summary could not be saved: ${buildError.message}`);
+      }
+      return true;
+    } catch (publishError) {
+      setPublishError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
+      return false;
+    }
   };
 
   const searchTag = (tag) => { setCategory("all"); setQuery(tag); };
   const clearFilters = () => { setCategory("all"); setQuery(""); };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
       <Header onNavigate={onNavigate} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
-          <MessageSquare className="h-8 w-8 text-cyan-400" /> Community &amp; Knowledge Hub
+        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+          <MessageSquare className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Community &amp; Knowledge Hub
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">
+        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
           Show off your builds, learn from lab admins and certified technicians, and get answers from people who run real hardware every day.
         </p>
+        <Link href="/community/create" className="mt-5 inline-flex items-center gap-2 rounded-lg border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 px-4 py-2 text-sm font-medium text-cyan-800 dark:text-cyan-200 transition hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20">
+          <PenSquare className="h-4 w-4" /> Create a full post
+        </Link>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
             <Composer onPublish={publish} />
+            {publishError && <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">{publishError}</p>}
 
             <div className="relative">
               <label htmlFor="feed-search" className="sr-only">Search posts</label>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search topics, hardware or tags like #RTX4060" className={`w-full rounded-lg border border-zinc-700 bg-zinc-900 py-3 pl-12 pr-4 text-sm text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search topics, hardware or tags like #RTX4060" className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-3 pl-12 pr-4 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
             </div>
 
             <div role="group" aria-label="Filter posts by category" className="flex flex-wrap gap-2">
@@ -465,7 +592,7 @@ export default function CommunityHub({ onNavigate }) {
                 const Icon = CATEGORIES[k].icon;
                 const active = category === k;
                 return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-cyan-400 bg-cyan-400/15 text-cyan-300" : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"}`}>
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-emerald-600 dark:border-emerald-400 bg-emerald-600/15 dark:bg-emerald-400/15 text-cyan-700 dark:text-cyan-300" : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200"}`}>
                     <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="text-xs text-zinc-500">{counts[k]}</span>
                   </button>
                 );
@@ -478,22 +605,22 @@ export default function CommunityHub({ onNavigate }) {
 
             {visible.length ? (
               <div className="space-y-4">
-                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} />)}
+                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} user={user} />)}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-zinc-700 p-10 text-center">
-                <p className="text-zinc-100">No posts match your filters.</p>
+              <div className="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700 p-10 text-center">
+                <p className="text-zinc-900 dark:text-zinc-100">No posts match your filters.</p>
                 <p className="mt-1 text-sm text-zinc-500">Try a different keyword or category, or start the conversation yourself.</p>
-                <button type="button" onClick={clearFilters} className={`mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>Clear filters</button>
+                <button type="button" onClick={clearFilters} className={`mt-4 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>Clear filters</button>
               </div>
             )}
           </div>
 
-          <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} />
+          <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} user={user} />
         </div>
       </main>
 
-      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">
         ViciTech Engine v1.0. Sample community content.
       </footer>
     </div>

@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Sliders, CheckCircle2, Zap, Building2, GraduationCap, Gamepad2, ShoppingCart, FileText, RefreshCw,
   Cpu, CircuitBoard, MemoryStick, HardDrive, Gauge, Monitor, ShieldCheck, Truck, Bookmark, Plus, Minus, X,
-  ArrowRight,
+  LoaderCircle,
 } from "lucide-react";
 import { saveUserPreset } from "@/lib/supabase";
+import { useCheckout } from "@/context/CheckoutContext";
+import { listHardwareComponents } from "@/lib/hardware/components";
 
 /* ───────────────────────── Catalog (sample data, prices in IDR) ───────────────────────── */
 
@@ -116,12 +118,15 @@ const unitTotal = (sel) => SLOTS.reduce((sum, s) => sum + partOf(s.key, sel[s.ke
 function fixCompat(sel) {
   const next = { ...sel };
   const cpu = partOf("cpu", next.cpu);
-  if (partOf("mobo", next.mobo).sk !== cpu.sk) next.mobo = CATALOG.mobo.find((m) => m.sk === cpu.sk).id;
+  const compatibleBoards = CATALOG.mobo.filter((m) => !cpu.sk || !m.sk || m.sk === cpu.sk);
+  if (partOf("mobo", next.mobo).sk && cpu.sk && partOf("mobo", next.mobo).sk !== cpu.sk && compatibleBoards.length) {
+    next.mobo = compatibleBoards[0].id;
+  }
   const mobo = partOf("mobo", next.mobo);
   const ram = partOf("ram", next.ram);
-  if (ram.ddr !== mobo.ddr) {
+  if (ram.ddr && mobo.ddr && ram.ddr !== mobo.ddr) {
     const pool = CATALOG.ram.filter((r) => r.ddr === mobo.ddr);
-    next.ram = (pool.find((r) => r.gb >= ram.gb) || pool[pool.length - 1]).id;
+    if (pool.length) next.ram = (pool.find((r) => r.gb >= ram.gb) || pool[pool.length - 1]).id;
   }
   return next;
 }
@@ -165,21 +170,21 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 function Header({ onOpenEngine }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-800 bg-zinc-950/85 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <span className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-500 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-500 dark:bg-emerald-500 text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
         </span>
         <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
-          <button type="button" onClick={onOpenEngine} className={`shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 ${focusRing}`}>
+          <button type="button" onClick={onOpenEngine} className={`shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}>
             Hardware Engine
           </button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-cyan-500 px-3 py-1.5 text-sm font-medium text-cyan-400 ${focusRing}`}>
+          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-emerald-600 dark:border-emerald-400 px-3 py-1.5 text-sm font-medium text-cyan-700 dark:text-cyan-400 ${focusRing}`}>
             <Sliders className="h-4 w-4" /> Preset Builder
           </button>
         </nav>
-        <span className="ml-auto hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-400 md:inline-flex">
+        <span className="ml-auto hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-400 md:inline-flex">
           <span className="h-2 w-2 rounded-full bg-emerald-400" /> ViciTech Engine v1.0
         </span>
       </div>
@@ -190,18 +195,18 @@ function Header({ onOpenEngine }) {
 function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
   return (
-    <li className="rounded-xl border border-zinc-800 bg-zinc-900/50">
+    <li className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50">
       <div className="flex flex-wrap items-center gap-3 p-4">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-zinc-800 bg-zinc-950 text-cyan-400">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-cyan-700 dark:text-cyan-400">
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1 basis-48">
           <p className="text-xs text-zinc-500">{slot.label}</p>
-          <p className="font-medium text-zinc-50">{current.name}</p>
-          <p className="text-xs text-zinc-400">{current.spec}</p>
+          <p className="font-medium text-zinc-900 dark:text-zinc-50">{current.name}</p>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400">{current.spec}</p>
         </div>
         <div className="text-right">
-          <p className="font-semibold tabular-nums text-zinc-50">{idr(current.price)}</p>
+          <p className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(current.price)}</p>
           <p className="text-xs tabular-nums text-zinc-500">{current.w} W, {current.wr} mo warranty</p>
         </div>
         <button
@@ -217,7 +222,7 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
       </div>
 
       {open && (
-        <ul className="divide-y divide-zinc-800 border-t border-zinc-800">
+        <ul className="divide-y divide-zinc-800 border-t border-zinc-200 dark:border-zinc-800">
           {options.map((o) => {
             const isCurrent = o.id === current.id;
             const { delta, extra } = deltaFor(o);
@@ -227,14 +232,14 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
                   type="button"
                   aria-pressed={isCurrent}
                   onClick={() => onPick(o.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${isCurrent ? "bg-cyan-500/10" : "hover:bg-zinc-800/50"}`}
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${isCurrent ? "bg-cyan-500/10 dark:bg-emerald-500/10" : "hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"}`}
                 >
-                  {isCurrent ? <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-400" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-zinc-700" />}
+                  {isCurrent ? <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700" />}
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm text-zinc-100">{o.name}</span>
+                    <span className="block text-sm text-zinc-900 dark:text-zinc-100">{o.name}</span>
                     <span className="block text-xs text-zinc-500">{o.spec}{extra ? ", includes matching parts" : ""}</span>
                   </span>
-                  <span className={`text-sm font-medium tabular-nums ${isCurrent ? "text-cyan-400" : delta > 0 ? "text-amber-400" : delta < 0 ? "text-emerald-400" : "text-zinc-500"}`}>
+                  <span className={`text-sm font-medium tabular-nums ${isCurrent ? "text-cyan-700 dark:text-cyan-400" : delta > 0 ? "text-amber-700 dark:text-amber-400" : delta < 0 ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"}`}>
                     {isCurrent ? "Current" : fmtDelta(delta)}
                   </span>
                 </button>
@@ -258,7 +263,8 @@ function OrderDrawer({
   onClose,
   onSave,
   onQuote,
-  onCheckout,
+  onOrder,
+  isSaving,
 }) {
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -271,51 +277,51 @@ function OrderDrawer({
   const btn = `inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${focusRing}`;
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label="Fast-Track Pre-Order" onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-zinc-800 bg-zinc-950">
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-800 p-5">
+      <aside role="dialog" aria-modal="true" aria-label="Fast-Track Pre-Order" onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5">
           <div>
-            <h2 className="text-lg font-semibold text-zinc-50">Fast-Track Pre-Order</h2>
-            <p className="text-sm text-zinc-400">{preset.seg} {preset.name}, {qtyLabel}</p>
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Fast-Track Pre-Order</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{preset.seg} {preset.name}, {qtyLabel}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close pre-order" className={`rounded-lg p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+          <button type="button" onClick={onClose} aria-label="Close pre-order" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
         </div>
 
         <div className="flex-1 space-y-6 overflow-y-auto p-5">
           <section>
-            <h3 className="mb-2 text-sm font-medium text-zinc-300">Itemized price per unit</h3>
-            <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+            <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Itemized price per unit</h3>
+            <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
               {calc.rows.map((r) => (
                 <li key={r.key} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
-                  <span className="min-w-0"><span className="text-zinc-500">{r.label}: </span><span className="text-zinc-100">{r.part.name}</span></span>
-                  <span className="shrink-0 tabular-nums text-zinc-200">{idr(r.part.price)}</span>
+                  <span className="min-w-0"><span className="text-zinc-500">{r.label}: </span><span className="text-zinc-900 dark:text-zinc-100">{r.part.name}</span></span>
+                  <span className="shrink-0 tabular-nums text-zinc-800 dark:text-zinc-200">{idr(r.part.price)}</span>
                 </li>
               ))}
             </ul>
             <dl className="mt-3 space-y-1.5 text-sm tabular-nums">
-              <div className="flex justify-between text-zinc-400"><dt>Unit base price</dt><dd>{idr(calc.unit)}</dd></div>
-              <div className="flex justify-between text-zinc-400"><dt>× {qty} unit{qty > 1 ? "s" : ""}</dt><dd>{idr(calc.gross)}</dd></div>
-              {calc.pct > 0 && <div className="flex justify-between text-emerald-400"><dt>Bulk discount {calc.pct}%</dt><dd>-{idr(calc.discount)}</dd></div>}
-              <div className="flex justify-between border-t border-zinc-800 pt-2 text-zinc-300"><dt>Base price</dt><dd>{idr(calc.basePrice)}</dd></div>
-              <div className="flex justify-between text-cyan-400">
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>Unit base price</dt><dd>{idr(calc.unit)}</dd></div>
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>× {qty} unit{qty > 1 ? "s" : ""}</dt><dd>{idr(calc.gross)}</dd></div>
+              {calc.pct > 0 && <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><dt>Bulk discount {calc.pct}%</dt><dd>-{idr(calc.discount)}</dd></div>}
+              <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 pt-2 text-zinc-700 dark:text-zinc-300"><dt>Base price</dt><dd>{idr(calc.basePrice)}</dd></div>
+              <div className="flex justify-between text-cyan-700 dark:text-cyan-400">
                 <dt className="flex items-center gap-1.5">
                   <Zap className="h-3.5 w-3.5" /> JIT 5% Buffer (Dynamic Market Buffer)
                 </dt>
                 <dd>+{idr(calc.jitBuffer)}</dd>
               </div>
-              <div className="flex justify-between border-t border-zinc-800 pt-2 text-base font-semibold text-zinc-50">
+              <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 pt-2 text-base font-semibold text-zinc-900 dark:text-zinc-50">
                 <dt>Order Total (Base + JIT)</dt>
-                <dd className="text-emerald-400">{idr(calc.total)}</dd>
+                <dd className="text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</dd>
               </div>
             </dl>
           </section>
 
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-300"><Truck className="h-4 w-4 text-cyan-400" /> Estimated delivery via Hub Bandung</h3>
-            <ol className="space-y-3 border-l border-zinc-800 pl-4">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Truck className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Estimated delivery via Hub Bandung</h3>
+            <ol className="space-y-3 border-l border-zinc-200 dark:border-zinc-800 pl-4">
               {timeline.map((s, i) => (
                 <li key={s.label} className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${i === timeline.length - 1 ? "bg-emerald-500" : "bg-cyan-500"}`} />
-                  <p className="text-sm text-zinc-100">{s.label} <span className="text-zinc-500">by {s.date}</span></p>
+                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${i === timeline.length - 1 ? "bg-emerald-500" : "bg-cyan-500 dark:bg-emerald-500"}`} />
+                  <p className="text-sm text-zinc-900 dark:text-zinc-100">{s.label} <span className="text-zinc-500">by {s.date}</span></p>
                   <p className="text-xs text-zinc-500">{s.note}</p>
                 </li>
               ))}
@@ -323,27 +329,29 @@ function OrderDrawer({
           </section>
 
           {notice && (
-            <p role="status" className="flex gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            <p role="status" className="flex gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {notice}
             </p>
           )}
         </div>
 
-        <div className="space-y-2 border-t border-zinc-800 p-5">
-          {!psuOk && <p className="text-xs text-red-400">Power draw exceeds the PSU capacity. Swap the PSU to enable checkout.</p>}
+        <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 p-5">
+          {!psuOk && <p className="text-xs text-red-700 dark:text-red-400">Power draw exceeds the PSU capacity. Swap the PSU to enable checkout.</p>}
           <button
             type="button"
-            onClick={onCheckout}
+            onClick={onOrder}
             disabled={!psuOk}
-            className={`${btn} ${psuOk ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400 font-semibold" : "cursor-not-allowed bg-zinc-800 text-zinc-500"}`}
+            className={`${btn} ${psuOk ? "bg-emerald-500 text-zinc-950 hover:bg-emerald-400 font-semibold" : "cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-500"}`}
           >
-            <span className="flex items-center gap-2"><ShoppingCart className="h-4 w-4" /> Checkout / Order Now</span>
+            <span className="flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" /> Continue to Checkout
+            </span>
           </button>
-          <button type="button" onClick={onQuote} className={`${btn} border border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/10`}>
+          <button type="button" onClick={onQuote} className={`${btn} border border-emerald-600/50 dark:border-emerald-400/50 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/10 dark:hover:bg-emerald-500/10`}>
             <FileText className="h-4 w-4" /> {preset.seg === "B2C" ? "Request PDF Quote" : `Request Official ${preset.seg} PDF Quote`}
           </button>
-          <button type="button" onClick={onSave} className={`${btn} border border-zinc-700 text-zinc-200 hover:border-zinc-500`}>
-            <Bookmark className="h-4 w-4" /> Save Preset to Account Vault
+          <button type="button" onClick={onSave} disabled={isSaving} className={`${btn} border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-zinc-500 disabled:cursor-wait disabled:opacity-60`}>
+            {isSaving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Bookmark className="h-4 w-4" />} {isSaving ? "Saving preset…" : "Save preset to Account"} Vault
           </button>
         </div>
       </aside>
@@ -353,7 +361,9 @@ function OrderDrawer({
 
 /* ───────────────────────── Page ───────────────────────── */
 
-export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout, role = "b2s", importedConfig }) {
+export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", userId, importedConfig }) {
+  const { triggerCheckout } = useCheckout();
+  const [, setCatalogRevision] = useState(0);
   const [presetId, setPresetId] = useState(role && PRESETS[role] ? role : "b2s");
   const [sel, setSel] = useState(PRESETS[role && PRESETS[role] ? role : "b2s"].parts);
   const [qty, setQty] = useState(PRESETS[role && PRESETS[role] ? role : "b2s"].qty);
@@ -362,6 +372,60 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
   const [drawer, setDrawer] = useState(false);
   const [notice, setNotice] = useState("");
   const [saved, setSaved] = useState([]);
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    listHardwareComponents({ activeOnly: true }).then((components) => {
+      if (!active) return;
+      for (const slot of Object.keys(CATALOG)) {
+        CATALOG[slot] = CATALOG[slot].filter((item) => !item.inventoryId);
+      }
+
+      for (const component of components) {
+        const { specs = {} } = component;
+        const id = `hardware-${component.id}`;
+        const price = Number(component.base_price) || 0;
+        const watts = Number(specs.tdpWatts || specs.wattage || specs.boardPowerWatts) || 0;
+        const ddrMatch = String(specs.memoryType || "").match(/DDR([45])/i);
+        const ddr = ddrMatch ? Number(ddrMatch[1]) : null;
+
+        if (component.category === "cpu") {
+          CATALOG.cpu.push(part(id, component.name, `${specs.cores || "CPU"}C${specs.threads ? ` / ${specs.threads}T` : ""}, ${specs.socket || "socket unspecified"}`, price, watts, 36, {
+            inventoryId: component.id,
+            sk: specs.socket || null,
+            ddr: ddr ? [ddr] : [4, 5],
+          }));
+        } else if (component.category === "motherboard") {
+          CATALOG.mobo.push(part(id, component.name, `${specs.formFactor || "Motherboard"}, ${specs.socket || "socket unspecified"}, ${specs.memoryType || "memory unspecified"}`, price, watts || 35, 36, {
+            inventoryId: component.id,
+            sk: specs.socket || null,
+            ddr: ddr || null,
+          }));
+        } else if (component.category === "ram") {
+          const capacity = Number(specs.capacityGB) || 16;
+          CATALOG.ram.push(part(id, component.name, `${capacity} GB${specs.speedMTs ? `, ${specs.speedMTs} MT/s` : ""}`, price, watts || 6, 60, {
+            inventoryId: component.id,
+            ddr: ddr || 5,
+            gb: capacity,
+          }));
+        } else if (component.category === "storage") {
+          CATALOG.storage.push(part(id, component.name, `${specs.interface || "Storage"}${specs.capacityGB ? `, ${specs.capacityGB} GB` : ""}`, price, watts || 5, 36, { inventoryId: component.id }));
+        } else if (component.category === "gpu") {
+          CATALOG.gpu.push(part(id, component.name, `${specs.vramGB || 0} GB ${specs.memoryType || "graphics"}`, price, watts, 36, { inventoryId: component.id }));
+        } else if (component.category === "psu") {
+          const capacity = Number(specs.wattage) || 0;
+          CATALOG.psu.push(part(id, component.name, `${capacity} W ${specs.efficiencyRating || ""}`.trim(), price, 0, 36, { inventoryId: component.id, cap: capacity }));
+        } else if (component.category === "case") {
+          CATALOG.chassis.push(part(id, component.name, `${specs.formFactor || "PC case"}`, price, 0, 24, { inventoryId: component.id }));
+        }
+      }
+      setCatalogRevision((revision) => revision + 1);
+    }).catch((error) => {
+      if (active) setNotice(`Hardware inventory could not be loaded: ${error.message}`);
+    });
+    return () => { active = false; };
+  }, []);
 
   // Sync role default if user switches roles and has not modified parts
   useEffect(() => {
@@ -439,11 +503,14 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
   };
 
   const savePreset = async () => {
+    if (isSavingPreset) return;
+    setIsSavingPreset(true);
     const time = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
     const label = `${preset.seg} config, ${time}`;
     setSaved((list) => [{ id: Date.now(), presetId, sel, qty, unit: calc.unit, label }, ...list].slice(0, 5));
     try {
       await saveUserPreset({
+        userId,
         name: `${preset.name} (${preset.seg})`,
         role,
         parts: calc.rows.map((r) => [r.label, r.part.name, r.part.price]),
@@ -453,22 +520,20 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
       setNotice("Preset saved and synced with your ViciTech Account vault.");
     } catch {
       setNotice("Preset saved locally in memory.");
+    } finally {
+      setIsSavingPreset(false);
     }
   };
 
   const loadSaved = (s) => { setPresetId(s.presetId); setSel(s.sel); setQty(s.qty); setOpenSlot(null); setAutoNote(""); };
   const requestQuote = () => setNotice(`Quote request ${makeRef("VT-Q")} created. The official PDF will be sent within 1 business day.`);
 
-  const checkout = () => {
+  const submitOrder = () => {
     if (!psuOk) return;
-    if (!onOpenCheckout) {
-      setNotice("Open this configurator in the ViciTech OS shell to continue to secure checkout.");
-      return;
-    }
-
-    onOpenCheckout({
+    triggerCheckout({
       userRole: role,
-      productName: `${preset.seg} ${preset.name} (${qty}x)`,
+      productName: `${preset.seg} ${preset.name}`,
+      type: "preset_builder",
       quantity: qty,
       items: calc.rows.map((row) => ({
         id: row.key,
@@ -477,22 +542,18 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
         spec: row.part.spec,
         unitPrice: row.part.price,
       })),
+      specs: {
+        powerDrawWatts: calc.watts,
+        psuCapacityWatts: calc.cap,
+        warrantyMonths: calc.warranty,
+        presetName: `${preset.seg} ${preset.name}`,
+      },
       pricing: {
-        unitPrice: calc.unit,
-        gross: calc.gross,
-        discount: calc.discount,
         basePrice: calc.basePrice,
         jitBuffer: calc.jitBuffer,
         total: calc.total,
       },
-      specs: {
-        presetName: preset.name,
-        segment: preset.seg,
-        powerDrawWatts: calc.watts,
-        psuCapacityWatts: calc.cap,
-        warrantyMonths: calc.warranty,
-      },
-      notes: `Smart Preset Configurator (${calc.watts}W load, ${calc.warranty}-mo warranty)`,
+      notes: `${qty} unit${qty === 1 ? "" : "s"}; ${calc.pct}% bulk discount`,
     });
     setDrawer(false);
   };
@@ -502,14 +563,14 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
   const iconBtn = `grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-300 hover:border-cyan-500/60 hover:text-cyan-400 ${focusRing}`;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
       <Header onOpenEngine={onOpenEngine} />
 
       <main className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">
-          <Sliders className="h-8 w-8 text-cyan-400" /> Smart Preset Builder &amp; Configurator
+        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
+          <Sliders className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Smart Preset Builder &amp; Configurator
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">
+        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
           Start from a curated build for your segment, swap any part, and watch price, power draw and live 5% JIT buffer update as you go.
         </p>
 
@@ -525,20 +586,20 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`flex flex-col rounded-xl border p-4 text-left transition-colors ${focusRing} ${active ? "border-cyan-500/70 bg-cyan-500/5 ring-1 ring-cyan-500/30 shadow-[0_0_20px_-6px_rgba(6,182,212,0.5)]" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"}`}
+                className={`flex flex-col rounded-xl border p-4 text-left transition-colors ${focusRing} ${active ? "border-emerald-600/70 dark:border-emerald-400/70 bg-cyan-500/5 dark:bg-emerald-500/5 ring-1 ring-cyan-500/30 shadow-[0_0_20px_-6px_rgba(6,182,212,0.5)]" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}
               >
                 <span className="flex items-center gap-3">
-                  <span className={`grid h-10 w-10 place-items-center rounded-lg ${active ? "bg-cyan-500 text-zinc-950" : "bg-zinc-800 text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-10 w-10 place-items-center rounded-lg ${active ? "bg-cyan-500 dark:bg-emerald-500 text-zinc-950" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
                   <span>
-                    <span className="block text-xs font-medium text-cyan-400">{p.seg}</span>
-                    <span className="block font-semibold text-zinc-50">{p.name}</span>
+                    <span className="block text-xs font-medium text-cyan-700 dark:text-cyan-400">{p.seg}</span>
+                    <span className="block font-semibold text-zinc-900 dark:text-zinc-50">{p.name}</span>
                   </span>
                 </span>
-                <span className="mt-3 text-sm text-zinc-400">{p.blurb}</span>
+                <span className="mt-3 text-sm text-zinc-600 dark:text-zinc-400">{p.blurb}</span>
                 <span className="mt-3 flex flex-wrap gap-1.5">
-                  {p.focus.map((f) => <span key={f} className="rounded-full border border-zinc-700 px-2 py-0.5 text-xs text-zinc-300">{f}</span>)}
+                  {p.focus.map((f) => <span key={f} className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-300">{f}</span>)}
                 </span>
-                <span className="mt-4 text-sm text-zinc-500">From <span className="font-semibold tabular-nums text-zinc-200">{idr(presetUnit[p.id])}</span> per unit</span>
+                <span className="mt-4 text-sm text-zinc-500">From <span className="font-semibold tabular-nums text-zinc-800 dark:text-zinc-200">{idr(presetUnit[p.id])}</span> per unit</span>
               </button>
             );
           })}
@@ -548,17 +609,17 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
           {/* Component list */}
           <section className="lg:col-span-2" aria-label="Components">
             <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h2 className="text-lg font-semibold text-zinc-50">Components</h2>
-              {isCustom && <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-300">Customized</span>}
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Components</h2>
+              {isCustom && <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">Customized</span>}
               {isCustom && (
-                <button type="button" onClick={() => choosePreset(presetId)} className={`ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-400 hover:text-cyan-400 ${focusRing}`}>
+                <button type="button" onClick={() => choosePreset(presetId)} className={`ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-600 dark:text-zinc-400 hover:text-cyan-700 dark:hover:text-cyan-400 ${focusRing}`}>
                   <RefreshCw className="h-4 w-4" /> Reset to preset
                 </button>
               )}
             </div>
             {autoNote && (
-              <p role="status" className="mb-3 flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-200">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-400" /> {autoNote}
+              <p role="status" className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-600/30 dark:border-emerald-400/30 bg-cyan-500/10 dark:bg-emerald-500/10 p-3 text-sm text-cyan-800 dark:text-cyan-200">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" /> {autoNote}
               </p>
             )}
             <ul className="space-y-3">
@@ -578,50 +639,50 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
           </section>
 
           {/* Live summary */}
-          <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start" aria-label="Build summary">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+          <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Build summary">
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
               <p className="text-sm text-zinc-500">Unit base price</p>
-              <p className="text-2xl font-semibold tabular-nums text-zinc-50">{idr(calc.unit)}</p>
+              <p className="text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(calc.unit)}</p>
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <label htmlFor="qty" className="text-sm text-zinc-400">Quantity</label>
+                <label htmlFor="qty" className="text-sm text-zinc-600 dark:text-zinc-400">Quantity</label>
                 <div className="flex items-center gap-2">
                   <button type="button" aria-label="Decrease units" className={iconBtn} onClick={() => setQty((q) => clampQty(q - 1))}><Minus className="h-4 w-4" /></button>
-                  <input id="qty" type="number" min={1} max={MAX_QTY} value={qty} onChange={(e) => setQty(clampQty(e.target.value))} className={`h-9 w-20 rounded-lg border border-zinc-700 bg-zinc-950 text-center tabular-nums ${focusRing}`} />
+                  <input id="qty" type="number" min={1} max={MAX_QTY} value={qty} onChange={(e) => setQty(clampQty(e.target.value))} className={`h-9 w-20 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 text-center tabular-nums ${focusRing}`} />
                   <button type="button" aria-label="Increase units" className={iconBtn} onClick={() => setQty((q) => clampQty(q + 1))}><Plus className="h-4 w-4" /></button>
                 </div>
               </div>
-              {calc.pct > 0 && <p className="mt-3 flex justify-between text-sm tabular-nums text-emerald-400"><span>Bulk discount {calc.pct}%</span><span>-{idr(calc.discount)}</span></p>}
+              {calc.pct > 0 && <p className="mt-3 flex justify-between text-sm tabular-nums text-emerald-700 dark:text-emerald-400"><span>Bulk discount {calc.pct}%</span><span>-{idr(calc.discount)}</span></p>}
               {nextTier && <p className="mt-1 text-xs text-zinc-500">Add {nextTier.min - qty} more unit{nextTier.min - qty > 1 ? "s" : ""} for {nextTier.pct}% off.</p>}
 
-              <div className="mt-4 space-y-1.5 border-t border-zinc-800 pt-4">
-                <div className="flex justify-between text-xs text-zinc-400">
+              <div className="mt-4 space-y-1.5 border-t border-zinc-200 dark:border-zinc-800 pt-4">
+                <div className="flex justify-between text-xs text-zinc-600 dark:text-zinc-400">
                   <span>Base price ({qty}x)</span>
                   <span className="tabular-nums">{idr(calc.basePrice)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-cyan-400">
+                <div className="flex justify-between text-xs text-cyan-700 dark:text-cyan-400">
                   <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> JIT 5% Buffer</span>
                   <span className="tabular-nums">+{idr(calc.jitBuffer)}</span>
                 </div>
-                <div className="flex justify-between border-t border-zinc-800/80 pt-2 text-base font-semibold">
-                  <span className="text-zinc-200">Order total</span>
-                  <span className="tabular-nums text-emerald-400">{idr(calc.total)}</span>
+                <div className="flex justify-between border-t border-zinc-200/80 dark:border-zinc-800/80 pt-2 text-base font-semibold">
+                  <span className="text-zinc-800 dark:text-zinc-200">Order total</span>
+                  <span className="tabular-nums text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-zinc-300"><Zap className="h-4 w-4 text-cyan-400" /> Estimated power draw</span>
-                <span className="font-semibold tabular-nums text-zinc-50">{calc.watts} W</span>
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Zap className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Estimated power draw</span>
+                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{calc.watts} W</span>
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Power draw against PSU capacity">
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Power draw against PSU capacity">
                 <div className={`h-full rounded-full transition-all ${meter}`} style={{ width: `${Math.min(100, loadPct)}%` }} />
               </div>
               <p className="mt-2 text-xs tabular-nums text-zinc-500">{loadPct}% of {calc.cap} W PSU capacity</p>
-              {!psuOk && <p className="mt-2 text-xs text-red-400">Draw exceeds PSU capacity. Swap to a larger power supply.</p>}
-              {psuOk && calc.load > 0.8 && <p className="mt-2 text-xs text-amber-300">Little headroom left. A larger PSU leaves room to upgrade.</p>}
-              <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-400" title="The shortest warranty among the selected parts">
+              {!psuOk && <p className="mt-2 text-xs text-red-700 dark:text-red-400">Draw exceeds PSU capacity. Swap to a larger power supply.</p>}
+              {psuOk && calc.load > 0.8 && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">Little headroom left. A larger PSU leaves room to upgrade.</p>}
+              <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-700 dark:text-emerald-400" title="The shortest warranty among the selected parts">
                 <ShieldCheck className="h-4 w-4" /> {calc.warranty}-month warranty
               </p>
             </div>
@@ -629,21 +690,21 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
             <button
               type="button"
               onClick={() => setDrawer(true)}
-              className={`hidden w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 px-4 py-3 text-sm font-semibold text-zinc-950 hover:bg-cyan-400 shadow-[0_0_16px_-4px_rgba(6,182,212,0.6)] lg:inline-flex ${focusRing}`}
+              className={`hidden w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 dark:bg-emerald-500 px-4 py-3 text-sm font-semibold text-white dark:text-zinc-950 hover:bg-emerald-600 dark:hover:bg-emerald-400 shadow-[0_0_16px_-4px_rgba(6,182,212,0.6)] lg:inline-flex ${focusRing}`}
             >
               <ShoppingCart className="h-4 w-4" /> Review Fast-Track Pre-Order
             </button>
 
             {saved.length > 0 && (
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-300"><Bookmark className="h-4 w-4 text-cyan-400" /> Saved presets</h3>
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4">
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Bookmark className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Saved presets</h3>
                 <ul className="space-y-1">
                   {saved.map((s) => (
                     <li key={s.id} className="flex items-center gap-2 text-sm">
-                      <span className="min-w-0 flex-1 truncate text-zinc-200">{s.label}</span>
+                      <span className="min-w-0 flex-1 truncate text-zinc-800 dark:text-zinc-200">{s.label}</span>
                       <span className="tabular-nums text-xs text-zinc-500">{idr(s.unit)}</span>
-                      <button type="button" onClick={() => loadSaved(s)} className={`rounded px-2 py-1 text-xs text-cyan-400 hover:bg-cyan-500/10 ${focusRing}`}>Load</button>
-                      <button type="button" aria-label={`Delete ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
+                      <button type="button" onClick={() => loadSaved(s)} className={`rounded px-2 py-1 text-xs text-cyan-700 dark:text-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-emerald-500/10 ${focusRing}`}>Load</button>
+                      <button type="button" aria-label={`Delete ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                     </li>
                   ))}
                 </ul>
@@ -654,10 +715,10 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
       </main>
 
       {/* Mobile action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-zinc-800 bg-zinc-950/95 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-500">Order total, {qtyLabel} (incl. 5% JIT)</p>
-          <p className="truncate font-semibold tabular-nums text-emerald-400">{idr(calc.total)}</p>
+          <p className="truncate font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</p>
         </div>
         <button type="button" onClick={() => setDrawer(true)} className={`inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 ${focusRing}`}>
           <ShoppingCart className="h-4 w-4" /> Checkout
@@ -676,7 +737,8 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, onOpenCheckout
           onClose={closeDrawer}
           onSave={savePreset}
           onQuote={requestQuote}
-          onCheckout={checkout}
+          onOrder={submitOrder}
+          isSaving={isSavingPreset}
         />
       )}
     </div>

@@ -1,5 +1,6 @@
 "use client";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { Component, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Search, Bell, ShieldCheck, Layers, Zap,
   Gauge, Swords, User, Building2, GraduationCap, Menu, X, ArrowRight, CheckCircle2,
@@ -14,9 +15,12 @@ import BottleneckAnalyzer from "./modules/BottleneckAnalyzer";
 import VersusArena from "./modules/VersusArena";
 import AccountDashboard from "./modules/AccountDashboard";
 import CommunityHub from "./modules/CommunityHub";
-import CheckoutModal, { PENDING_CHECKOUT_STORAGE_KEY } from "./CheckoutModal";
+import CyberSuite from "./CyberSuite";
+import ThemeToggle from "../ThemeToggle";
 import AuthNavigation from "./auth/AuthNavigation";
 import { supabase } from "@/lib/supabase";
+import { getUserDisplayName, getUserInitials } from "@/lib/supabase/profile";
+import { PENDING_CHECKOUT_STORAGE_KEY, useCheckout } from "@/context/CheckoutContext";
 
 /*
   ViciTech master shell. One top bar, one tab bar and one footer wrap every module, and each module keeps its
@@ -57,9 +61,9 @@ const DEFAULT_VIEWS = { library: "catalog" };
 const validView = (id, v) => BY_ID[id]?.views?.some(([k]) => k === v);
 
 const ROLES = {
-  b2c: { label: "B2C Member / Creator", name: "Dimas Saputra", initials: "DS", icon: User, greeting: "Compare parts, plan a build and share it with the community.", rec: ["bottleneck", "versus", "community"] },
-  b2b: { label: "B2B Enterprise Admin", name: "Aulia Rahman", initials: "AR", icon: Building2, greeting: "Fleet overview for your organization: certify, order and track.", rec: ["qc", "tradein", "account"] },
-  b2s: { label: "B2S School / CBT Lab Admin", name: "Hendra Wijaya", initials: "HW", icon: GraduationCap, greeting: "Equip labs, track warranties and keep every seat exam-ready.", rec: ["builder", "tradein", "qc"] },
+  b2c: { label: "B2C Member / Creator", icon: User, greeting: "Compare parts, plan a build and share it with the community.", rec: ["bottleneck", "versus", "community"] },
+  b2b: { label: "B2B Enterprise Admin", icon: Building2, greeting: "Fleet overview for your organization: certify, order and track.", rec: ["qc", "tradein", "account"] },
+  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, greeting: "Equip labs, track warranties and keep every seat exam-ready.", rec: ["builder", "tradein", "qc"] },
 };
 
 const SEED_NOTIFS = {
@@ -125,13 +129,12 @@ const seedEvents = () => {
     .map(([type, text, s], i) => ({ id: i, type, text, at: now - s * 1000 }));
 };
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
-const iconBtn = `relative grid h-9 w-9 place-items-center rounded-lg border border-zinc-800 text-zinc-300 hover:border-zinc-700 hover:text-cyan-300 ${focusRing}`;
-const panel = "absolute right-0 top-full z-50 mt-2 rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/50";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70";
+const iconBtn = `relative grid h-9 w-9 place-items-center rounded-lg border border-zinc-200 text-zinc-700 transition-colors duration-200 hover:border-zinc-300 hover:text-emerald-700 dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-emerald-300 ${focusRing}`;
+const panel = "absolute right-0 top-full z-50 mt-2 rounded-xl border border-zinc-200 bg-white/95 shadow-xl shadow-zinc-300/30 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 dark:shadow-black/50";
 const CSS = `
 @keyframes vt-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .vt-in{animation:vt-in .28s ease-out both}
-.vt-module .lg\\:top-20{top:8.5rem!important}
 @media (prefers-reduced-motion:reduce){.vt-in{animation:none}}`;
 
 /* ───────────────────────── Hooks ───────────────────────── */
@@ -190,16 +193,16 @@ function StatusMenu() {
     return () => clearInterval(id);
   }, []);
   return (
-    <div ref={ref} className="relative hidden lg:block">
-      <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-3 rounded-lg border border-zinc-800 px-3 py-2 text-xs text-zinc-300 hover:border-zinc-700 ${focusRing}`}>
+    <div ref={ref} className="relative hidden shrink-0 items-center gap-2 text-xs xl:flex">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:border-zinc-200 dark:hover:border-zinc-700 ${focusRing}`}>
         <span className="flex items-center gap-1.5"><Dot /> Database OK</span>
         <span className="flex items-center gap-1.5"><Dot /> IoT Broker Online</span>
       </button>
       {open && (
         <div className={`${panel} w-72 p-4 text-sm`}>
-          <p className="font-medium text-zinc-100">System status</p>
+          <p className="font-medium text-zinc-900 dark:text-zinc-100">System status</p>
           {[["Supabase database", "OK", lat.db], ["IoT MQTT broker", "Online", lat.mqtt]].map(([name, state, ms]) => (
-            <div key={name} className="mt-3 flex items-center justify-between gap-3"><span className="flex items-center gap-2 text-zinc-300"><Dot /> {name}</span><span className="text-xs tabular-nums text-zinc-500">{state}, {ms} ms</span></div>
+            <div key={name} className="mt-3 flex items-center justify-between gap-3"><span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Dot /> {name}</span><span className="text-xs tabular-nums text-zinc-500">{state}, {ms} ms</span></div>
           ))}
           <p className="mt-3 text-xs text-zinc-600">Connected to Supabase with live local state resilience.</p>
         </div>
@@ -218,23 +221,23 @@ function NotificationsMenu({ notifs, setNotifs, onNavigate }) {
     <div ref={ref} className="relative">
       <button type="button" aria-label={`Notifications, ${unread} unread`} aria-expanded={open} onClick={() => setOpen((v) => !v)} className={iconBtn}>
         <Bell className="h-4 w-4" />
-        {unread > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-cyan-400 px-1 text-[10px] font-bold text-zinc-950">{unread}</span>}
+        {unread > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-emerald-600 dark:bg-emerald-400 px-1 text-[10px] font-bold text-white dark:text-zinc-950">{unread}</span>}
       </button>
       {open && (
         <div className={`${panel} w-[min(22rem,calc(100vw-2rem))]`}>
-          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-            <p className="text-sm font-medium text-zinc-100">Notifications</p>
-            <button type="button" disabled={!unread} onClick={() => setNotifs((l) => l.map((n) => ({ ...n, unread: false })))} className={`rounded text-xs text-cyan-400 hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Mark all as read</button>
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Notifications</p>
+            <button type="button" disabled={!unread} onClick={() => setNotifs((l) => l.map((n) => ({ ...n, unread: false })))} className={`rounded text-xs text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Mark all as read</button>
           </div>
           <ul className="max-h-80 divide-y divide-zinc-800 overflow-y-auto">
             {notifs.map((n) => {
               const Icon = BY_ID[n.target[0]]?.icon || Bell;
               return (
                 <li key={n.id}>
-                  <button type="button" onClick={() => { setNotifs((l) => l.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); setOpen(false); onNavigate(...n.target); }} className={`flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-zinc-900 ${focusRing}`}>
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-                    <span className="min-w-0 flex-1"><span className={`block text-sm ${n.unread ? "text-zinc-100" : "text-zinc-400"}`}>{n.text}</span><span className="text-xs text-zinc-500">{n.ago}</span></span>
-                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-cyan-400" aria-label="Unread" />}
+                  <button type="button" onClick={() => { setNotifs((l) => l.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); setOpen(false); onNavigate(...n.target); }} className={`flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white dark:hover:bg-zinc-900 ${focusRing}`}>
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" />
+                    <span className="min-w-0 flex-1"><span className={`block text-sm ${n.unread ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400"}`}>{n.text}</span><span className="text-xs text-zinc-500">{n.ago}</span></span>
+                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-label="Unread" />}
                   </button>
                 </li>
               );
@@ -246,17 +249,18 @@ function NotificationsMenu({ notifs, setNotifs, onNavigate }) {
   );
 }
 
-function RoleMenu({ role, setRole }) {
+function RoleMenu({ role, setRole, user }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);
   useDismiss(open, close, ref);
   const r = ROLES[role];
+  const displayName = getUserDisplayName(user);
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-expanded={open} aria-label={`Workspace role menu, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-2.5 rounded-lg border border-zinc-800 py-1 pl-1 pr-1 hover:border-zinc-700 lg:pr-3 ${focusRing}`}>
-        <span className="grid h-7 w-7 place-items-center rounded-md bg-cyan-400/15 text-xs font-semibold text-cyan-300">{r.initials}</span>
-        <span className="hidden text-left lg:block"><span className="block text-xs font-medium leading-tight text-zinc-100">{r.label}</span><span className="block text-[11px] leading-tight text-zinc-500">Workspace role</span></span>
+      <button type="button" aria-expanded={open} aria-label={`Profile and workspace role menu, ${displayName}, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`flex max-w-[180px] items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 py-1 pl-1 pr-2 hover:border-zinc-200 dark:hover:border-zinc-700 ${focusRing}`}>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-emerald-600/15 dark:bg-emerald-400/15 text-xs font-semibold text-cyan-700 dark:text-cyan-300">{getUserInitials(user)}</span>
+        <span className="hidden min-w-0 flex-1 text-left xl:block"><span className="block truncate text-xs font-medium leading-tight text-zinc-900 dark:text-zinc-100" title={displayName}>{displayName}</span><span className="block truncate text-[11px] leading-tight text-zinc-500" title={r.label}>{r.label}</span></span>
       </button>
       {open && (
         <div className={`${panel} w-72 p-2`}>
@@ -265,8 +269,8 @@ function RoleMenu({ role, setRole }) {
             {Object.entries(ROLES).map(([k, v]) => {
               const I = v.icon;
               return (
-                <button key={k} type="button" role="radio" aria-checked={role === k} onClick={() => { setRole(k); setOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm ${focusRing} ${role === k ? "bg-cyan-400/10 text-cyan-300" : "text-zinc-300 hover:bg-zinc-900"}`}>
-                  <I className="h-4 w-4" /> {v.label} {role === k && <CheckCircle2 className="ml-auto h-4 w-4 text-emerald-400" />}
+                <button key={k} type="button" role="radio" aria-checked={role === k} onClick={() => { setRole(k); setOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm ${focusRing} ${role === k ? "bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300" : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-900"}`}>
+                  <I className="h-4 w-4" /> {v.label} {role === k && <CheckCircle2 className="ml-auto h-4 w-4 text-emerald-700 dark:text-emerald-400" />}
                 </button>
               );
             })}
@@ -277,33 +281,37 @@ function RoleMenu({ role, setRole }) {
   );
 }
 
-function Navbar({ role, setRole, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onSignOut }) {
+function Navbar({ role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
   return (
-    <div className="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6">
-        <button type="button" aria-label="Open menu" onClick={onMenu} className={`${iconBtn} md:hidden`}><Menu className="h-4 w-4" /></button>
-        <button type="button" onClick={() => onNavigate("home")} aria-label="ViciTech home" className={`flex items-center gap-2.5 rounded-lg ${focusRing}`}>
-          <span className="relative grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950">
+    <div className="border-b border-zinc-200 bg-white/85 text-zinc-900 backdrop-blur-md transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-950/90 dark:text-zinc-100">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 overflow-x-auto px-4 py-2 sm:px-6">
+        <button type="button" aria-label="Open menu" onClick={onMenu} className={`${iconBtn} shrink-0 md:hidden`}><Menu className="h-4 w-4" /></button>
+        <button type="button" onClick={() => onNavigate("home")} aria-label="ViciTech home" className={`flex shrink-0 items-center gap-2.5 rounded-lg ${focusRing}`}>
+          <span className="relative grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-emerald-950">
             <Cpu className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-70 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_8px_2px_rgba(34,211,238,0.8)] ring-2 ring-zinc-950" />
+              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70 motion-safe:animate-ping" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_8px_2px_rgba(16,185,129,0.65)] ring-2 ring-white dark:ring-zinc-950" />
             </span>
           </span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
         </button>
-        <span className="hidden items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300 xl:inline-flex">ViciTech OS v1.0 - Connected</span>
-        <div className="flex flex-1 justify-center">
-          <button type="button" onClick={onSearch} className={`hidden w-full max-w-md items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-left text-sm text-zinc-500 hover:border-zinc-700 md:flex ${focusRing}`}>
-            <Search className="h-4 w-4" /> <span className="flex-1">Search modules, serials, guides</span>
-            <kbd className="rounded border border-zinc-700 bg-zinc-950 px-1.5 py-0.5 text-[11px] text-zinc-400">Ctrl + K</kbd>
+        <div className="hidden shrink-0 justify-center md:flex">
+          <button type="button" onClick={onSearch} className={`flex w-40 shrink-0 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-500 transition-colors duration-200 hover:border-zinc-300 md:w-60 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 ${focusRing}`}>
+            <Search className="h-4 w-4 shrink-0" /> <span className="min-w-0 flex-1 truncate">Search modules, serials, guides</span>
+            <kbd className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[11px] text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400">Ctrl + K</kbd>
           </button>
         </div>
-        <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} md:hidden`}><Search className="h-4 w-4" /></button>
+        <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} shrink-0 md:hidden`}><Search className="h-4 w-4" /></button>
         <StatusMenu />
-        <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
-        <RoleMenu role={role} setRole={setRole} />
-        <AuthNavigation onNotify={onNotify} onSignOut={onSignOut} />
+        {user && (
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
+            <RoleMenu role={role} setRole={setRole} user={user} />
+          </div>
+        )}
+        <AuthNavigation onAuthState={onAuthState} onNotify={onNotify} onNavigate={onNavigate} onSignOut={onSignOut} />
+        <ThemeToggle className="h-9 w-9 shrink-0 rounded-lg" />
       </div>
     </div>
   );
@@ -311,16 +319,22 @@ function Navbar({ role, setRole, notifs, setNotifs, onNavigate, onSearch, onMenu
 
 function TabBar({ active, onNavigate }) {
   return (
-    <nav aria-label="Primary" className="hidden border-b border-zinc-800 bg-zinc-950/90 backdrop-blur md:block">
-      <ul className="mx-auto flex max-w-7xl gap-1.5 overflow-x-auto px-4 py-2.5 sm:px-6">
+    <nav aria-label="Primary" className="hidden border-b border-zinc-200 bg-white/85 backdrop-blur-md transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-950/90 md:block">
+      <ul className="no-scrollbar mx-auto flex max-w-7xl flex-nowrap gap-1.5 overflow-x-auto whitespace-nowrap px-4 py-2.5 sm:px-6">
         {NAV.map((m) => {
           const on = active === m.id;
           const Icon = m.icon;
           return (
             <li key={m.id}>
-              <button type="button" title={m.label} aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-all ${focusRing} ${on ? "border-cyan-400/50 bg-cyan-400/10 font-medium text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"}`}>
+              {m.id === "qc" ? (
+                <Link href="/qc-panel" title={m.label} className={`flex items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-colors duration-200 ${focusRing} border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100`}>
+                  <Icon className="h-4 w-4" /> {m.short}
+                </Link>
+              ) : (
+                <button type="button" title={m.label} aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "border-emerald-500/40 bg-emerald-500/10 font-medium text-emerald-800 dark:text-emerald-300" : "border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"}`}>
                 <Icon className="h-4 w-4" /> {m.short}
-              </button>
+                </button>
+              )}
             </li>
           );
         })}
@@ -331,14 +345,14 @@ function TabBar({ active, onNavigate }) {
 
 /* ───────────────────────── Overlays ───────────────────────── */
 
-function MobileDrawer({ open, onClose, active, onNavigate, role }) {
+function MobileDrawer({ open, onClose, active, onNavigate, role, user }) {
   useOverlay(open, onClose);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 md:hidden" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" onClick={(e) => e.stopPropagation()} className="flex h-full w-80 max-w-[85vw] flex-col border-r border-zinc-800 bg-zinc-950">
-        <div className="flex items-center justify-between border-b border-zinc-800 p-4">
-          <span className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span> ViciTech</span>
+      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" onClick={(e) => e.stopPropagation()} className="flex h-full w-80 max-w-[85vw] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4">
+          <span className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span> ViciTech</span>
           <button type="button" aria-label="Close menu" onClick={onClose} className={iconBtn}><X className="h-4 w-4" /></button>
         </div>
         <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -346,17 +360,24 @@ function MobileDrawer({ open, onClose, active, onNavigate, role }) {
             const on = active === m.id;
             const Icon = m.icon;
             return (
-              <button key={m.id} type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left ${focusRing} ${on ? "border-cyan-400/50 bg-cyan-400/10 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent hover:bg-zinc-900"}`}>
-                <Icon className={`h-5 w-5 shrink-0 ${on ? "text-cyan-300" : "text-zinc-500"}`} />
-                <span><span className={`block text-sm ${on ? "font-medium text-cyan-300" : "text-zinc-200"}`}>{m.short}</span><span className="block text-xs text-zinc-500">{m.sub}</span></span>
-              </button>
+              m.id === "qc" ? (
+                <Link key={m.id} href="/qc-panel" onClick={onClose} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left ${focusRing} border-transparent hover:bg-white dark:hover:bg-zinc-900`}>
+                  <Icon className="h-5 w-5 shrink-0 text-zinc-500" />
+                  <span><span className="block text-sm text-zinc-800 dark:text-zinc-200">{m.short}</span><span className="block text-xs text-zinc-500">Public rig tracking · Admin portal available to admins</span></span>
+                </Link>
+              ) : (
+                <button key={m.id} type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent hover:bg-white dark:hover:bg-zinc-900"}`}>
+                <Icon className={`h-5 w-5 shrink-0 ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-500"}`} />
+                <span><span className={`block text-sm ${on ? "font-medium text-cyan-700 dark:text-cyan-300" : "text-zinc-800 dark:text-zinc-200"}`}>{m.short}</span><span className="block text-xs text-zinc-500">{m.sub}</span></span>
+                </button>
+              )
             );
           })}
         </nav>
-        <div className="space-y-2 border-t border-zinc-800 p-4 text-xs text-zinc-400">
+        <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 p-4 text-xs text-zinc-600 dark:text-zinc-400">
           <p className="flex items-center gap-2"><Dot /> Database OK</p>
           <p className="flex items-center gap-2"><Dot /> IoT Broker Online</p>
-          <p className="pt-1 text-zinc-500">Signed in as {ROLES[role]?.label || role}</p>
+          {user && <p className="truncate pt-1 text-zinc-500">Signed in as {user.email || getUserDisplayName(user)}</p>}
         </div>
       </aside>
     </div>
@@ -389,11 +410,11 @@ function CommandPalette({ open, onClose, onSelect }) {
   };
   return (
     <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/70 p-4 pt-[12vh]" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-xl overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/60">
-        <div className="flex items-center gap-3 border-b border-zinc-800 px-4">
+      <div role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-xl overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl shadow-black/60">
+        <div className="flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 px-4">
           <Search className="h-4 w-4 text-zinc-500" />
-          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Search modules, actions or a serial number" aria-label="Search" autoComplete="off" spellCheck={false} className="h-12 flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none" />
-          <kbd className="rounded border border-zinc-700 px-1.5 py-0.5 text-[11px] text-zinc-500">Esc</kbd>
+          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Search modules, actions or a serial number" aria-label="Search" autoComplete="off" spellCheck={false} className="h-12 flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 focus:outline-none" />
+          <kbd className="rounded border border-zinc-200 dark:border-zinc-700 px-1.5 py-0.5 text-[11px] text-zinc-500">Esc</kbd>
         </div>
         <ul role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto p-2">
           {items.length === 0 && <li className="px-3 py-6 text-center text-sm text-zinc-500">No matches. Try “gpu”, “upgrade” or a serial like VICI-SRV-2026-9042.</li>}
@@ -401,16 +422,16 @@ function CommandPalette({ open, onClose, onSelect }) {
             const Icon = BY_ID[it.module]?.icon || Layers;
             return (
               <li key={it.label} role="option" aria-selected={i === idx}>
-                <button type="button" onMouseEnter={() => setIdx(i)} onClick={() => onSelect(it)} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left ${i === idx ? "bg-cyan-400/10" : ""}`}>
-                  <Icon className={`h-4 w-4 shrink-0 ${i === idx ? "text-cyan-300" : "text-zinc-500"}`} />
-                  <span className="flex-1 text-sm text-zinc-100">{it.label}</span>
+                <button type="button" onMouseEnter={() => setIdx(i)} onClick={() => onSelect(it)} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left ${i === idx ? "bg-emerald-600/10 dark:bg-emerald-400/10" : ""}`}>
+                  <Icon className={`h-4 w-4 shrink-0 ${i === idx ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-500"}`} />
+                  <span className="flex-1 text-sm text-zinc-900 dark:text-zinc-100">{it.label}</span>
                   <span className="hidden text-xs text-zinc-500 sm:block">{it.hint}</span>
                 </button>
               </li>
             );
           })}
         </ul>
-        <p className="border-t border-zinc-800 px-4 py-2 text-xs text-zinc-600">Up and down to move, Enter to open, Esc to close.</p>
+        <p className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-2 text-xs text-zinc-600">Up and down to move, Enter to open, Esc to close.</p>
       </div>
     </div>
   );
@@ -424,7 +445,7 @@ function ToastHost({ toast, onDone }) {
   }, [toast, onDone]);
   if (!toast) return null;
   return (
-    <div role="status" className="vt-in fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-xl border border-emerald-400/30 bg-zinc-950 p-3.5 text-sm text-emerald-300 shadow-2xl shadow-black/60">
+    <div role="status" className="vt-in fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-xl border border-emerald-400/30 bg-white dark:bg-zinc-950 p-3.5 text-sm text-emerald-700 dark:text-emerald-300 shadow-2xl shadow-black/60">
       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> <span>{toast.msg}</span>
     </div>
   );
@@ -436,10 +457,10 @@ function Stat({ icon: Icon, target, format, label, onClick }) {
   const v = useCountUp(target);
   return (
     <li>
-      <button type="button" onClick={onClick} className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-zinc-800/40 ${focusRing}`}>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-emerald-400"><Icon className="h-5 w-5" /></span>
-        <span><span className="block text-2xl font-semibold tabular-nums text-zinc-50">{format(v)}</span><span className="block text-sm text-zinc-400">{label}</span></span>
-        <ArrowRight className="ml-auto h-4 w-4 text-zinc-600" />
+      <button type="button" onClick={onClick} className={`flex w-full items-center gap-4 p-4 text-left transition-colors duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/40 ${focusRing}`}>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon className="h-5 w-5" /></span>
+        <span><span className="block text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{format(v)}</span><span className="block text-sm text-zinc-600 dark:text-zinc-400">{label}</span></span>
+        <ArrowRight className="ml-auto h-4 w-4 text-zinc-500 dark:text-zinc-500" />
       </button>
     </li>
   );
@@ -464,22 +485,22 @@ function ActivityFeed({ onNavigate }) {
   }, []);
   const ago = (at) => { const s = Math.max(0, Math.floor((now - at) / 1000)); return s < 5 ? "just now" : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)} min ago`; };
   return (
-    <section aria-labelledby="feed-title" className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section aria-labelledby="feed-title" className="rounded-xl border border-zinc-200 bg-white/80 p-5 transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-900/50" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="flex items-center justify-between gap-3">
-        <h2 id="feed-title" className="flex items-center gap-2 text-base font-semibold text-zinc-50"><Zap className="h-5 w-5 text-cyan-400" /> Live activity</h2>
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs ${paused ? "border-zinc-700 text-zinc-400" : "border-emerald-400/30 bg-emerald-400/10 text-emerald-400"}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${paused ? "bg-zinc-500" : "bg-emerald-400 motion-safe:animate-pulse"}`} /> {paused ? "Paused" : "Live"}
+        <h2 id="feed-title" className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Zap className="h-5 w-5 text-emerald-700 dark:text-emerald-400" /> Live activity</h2>
+        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs ${paused ? "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${paused ? "bg-zinc-400" : "bg-emerald-500 motion-safe:animate-pulse"}`} /> {paused ? "Paused" : "Live"}
         </span>
       </div>
-      <ul className="mt-3 divide-y divide-zinc-800">
+      <ul className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-800">
         {events.map((e) => {
           const t = EVENT_TYPES[e.type] || EVENT_TYPES.price;
           const Icon = t.icon;
           return (
             <li key={e.id} className="vt-in">
-              <button type="button" onClick={() => onNavigate(...t.target)} className={`flex w-full items-start gap-3 py-2.5 text-left hover:text-cyan-300 ${focusRing}`}>
+              <button type="button" onClick={() => onNavigate(...t.target)} className={`flex w-full items-start gap-3 py-2.5 text-left transition-colors duration-200 hover:text-emerald-700 dark:hover:text-emerald-300 ${focusRing}`}>
                 <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${t.tone}`} />
-                <span className="min-w-0 flex-1 text-sm text-zinc-200">{e.text}</span>
+                <span className="min-w-0 flex-1 text-sm text-zinc-800 dark:text-zinc-200">{e.text}</span>
                 <span className="shrink-0 text-xs tabular-nums text-zinc-500">{ago(e.at)}</span>
               </button>
             </li>
@@ -505,14 +526,14 @@ function HomeDashboard({ role, onNavigate }) {
   ];
   return (
     <>
-      <section className="border-b border-zinc-800" aria-labelledby="home-title">
+      <section className="border-b border-zinc-200 transition-colors duration-200 dark:border-zinc-800" aria-labelledby="home-title">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-16">
           <div className="lg:col-span-3">
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-400"><Layers className="h-3.5 w-3.5" /> Circular IT economy platform</p>
-            <h1 id="home-title" className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-tight text-zinc-50 sm:text-4xl lg:text-5xl">Welcome to the ViciTech home base</h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-zinc-400">{r.greeting} Trade in, build, verify, analyze and compare hardware in one connected ecosystem.</p>
+            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-800 dark:text-emerald-300"><Layers className="h-3.5 w-3.5" /> Circular IT economy platform</p>
+            <h1 id="home-title" className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-5xl">Welcome to the ViciTech home base</h1>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400">{r.greeting} Trade in, build, verify, analyze and compare hardware in one connected ecosystem.</p>
           </div>
-          <ul className="divide-y divide-zinc-800 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40 lg:col-span-2" aria-label="Executive summary">
+          <ul className="divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white/80 transition-colors duration-200 dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/40 lg:col-span-2" aria-label="Executive summary">
             {stats.map((s) => <Stat key={s.label} {...s} onClick={() => onNavigate(...s.go)} />)}
           </ul>
         </div>
@@ -520,23 +541,23 @@ function HomeDashboard({ role, onNavigate }) {
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-3">
         <section aria-labelledby="launch-title" className="lg:col-span-2">
-          <h2 id="launch-title" className="text-xl font-semibold text-zinc-50">Quick launcher</h2>
+          <h2 id="launch-title" className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Quick launcher</h2>
           <div className="mt-3 flex flex-wrap gap-2" aria-label="Quick actions">
-            {quick.map(([label, ...go]) => <button key={label} type="button" onClick={() => onNavigate(...go)} className={`rounded-full border border-zinc-700 px-3 py-1.5 text-xs text-zinc-300 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>{label}</button>)}
+            {quick.map(([label, ...go]) => <button key={label} type="button" onClick={() => onNavigate(...go)} className={`rounded-full border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 transition-colors duration-200 hover:border-emerald-500/60 hover:text-emerald-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:text-emerald-300 ${focusRing}`}>{label}</button>)}
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {MODULES.map((m, i) => {
               const Icon = m.icon;
               const rec = r.rec?.includes(m.id);
               return (
-                <button key={m.id} type="button" onClick={() => onNavigate(m.id)} className={`group flex flex-col rounded-xl border p-5 text-left transition-all ${focusRing} ${rec ? "border-cyan-400/40 bg-cyan-400/5" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"} hover:shadow-[0_0_24px_-8px_rgba(34,211,238,0.5)]`}>
+                <button key={m.id} type="button" onClick={() => onNavigate(m.id)} className={`group flex flex-col rounded-xl border p-5 text-left transition-all duration-200 ${focusRing} ${rec ? "border-emerald-500/35 bg-emerald-500/5" : "border-zinc-200 bg-white/80 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-zinc-700"} hover:shadow-[0_0_24px_-8px_rgba(16,185,129,0.28)]`}>
                   <span className="flex items-start justify-between gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-zinc-800 text-cyan-400 group-hover:bg-cyan-400 group-hover:text-zinc-950"><Icon className="h-5 w-5" /></span>
-                    {rec && <span className="rounded-full border border-cyan-400/30 px-2 py-0.5 text-xs text-cyan-300">Recommended for {r.label}</span>}
+                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-zinc-100 text-emerald-700 transition-colors duration-200 group-hover:bg-emerald-500 group-hover:text-emerald-950 dark:bg-zinc-800 dark:text-emerald-300"><Icon className="h-5 w-5" /></span>
+                    {rec && <span className="rounded-full border border-emerald-500/30 px-2 py-0.5 text-xs text-emerald-800 dark:text-emerald-300">Recommended for {r.label}</span>}
                   </span>
-                  <span className="mt-4 font-semibold text-zinc-50">{m.label}</span>
-                  <span className="mt-1 text-sm text-zinc-400">{m.blurb}</span>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm text-cyan-400">Open module <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
+                  <span className="mt-4 font-semibold text-zinc-900 dark:text-zinc-50">{m.label}</span>
+                  <span className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{m.blurb}</span>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-400">Open module <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
                 </button>
               );
             })}
@@ -544,6 +565,7 @@ function HomeDashboard({ role, onNavigate }) {
         </section>
         <div className="lg:sticky lg:top-40 lg:self-start"><ActivityFeed onNavigate={onNavigate} /></div>
       </div>
+      <CyberSuite />
     </>
   );
 }
@@ -558,11 +580,11 @@ function Chromeless({ active = true, children }) {
 function SubTabs({ label, items, value, onChange }) {
   return (
     <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1.5">
+      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-1.5">
         {items.map(([id, text, Icon]) => {
           const on = value === id;
           return (
-            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all ${focusRing} ${on ? "border-cyan-400/50 bg-cyan-400/10 font-medium text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"}`}>
+            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-700 dark:text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
               <Icon className="h-4 w-4" /> {text}
             </button>
           );
@@ -572,8 +594,49 @@ function SubTabs({ label, items, value, onChange }) {
   );
 }
 
+class ModuleErrorBoundary extends Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("[ViciTech OS] Module render failed:", error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-red-500/30 bg-white p-6 text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100">
+          <h2 className="text-lg font-semibold">This module could not be displayed</h2>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">The rest of ViciTech OS is still available. Reload the module or choose another section.</p>
+          <button type="button" onClick={() => this.setState({ hasError: false })} className="mt-4 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500">
+            Retry module
+          </button>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
-  return <Chromeless active={active}><Comp {...extra} /></Chromeless>;
+  if (typeof Comp !== "function") {
+    return (
+      <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-amber-500/30 bg-white p-6 text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100">
+        <h2 className="text-lg font-semibold">This module is unavailable</h2>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Its component is not configured. Choose another section or check the module imports.</p>
+      </section>
+    );
+  }
+
+  return (
+    <ModuleErrorBoundary>
+      <Chromeless active={active}><Comp {...(extra || {})} /></Chromeless>
+    </ModuleErrorBoundary>
+  );
 });
 
 const LibraryModule = memo(function LibraryModule({ C, view, onView, deviceId, onDevice, onNavigate, onOpenBuilder }) {
@@ -597,28 +660,28 @@ const LibraryModule = memo(function LibraryModule({ C, view, onView, deviceId, o
 
 function Footer({ onNavigate }) {
   const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["IoT MQTT", Activity]];
-  const link = `rounded text-sm text-zinc-400 hover:text-cyan-300 ${focusRing}`;
+  const link = `rounded text-sm text-zinc-600 transition-colors duration-200 hover:text-emerald-700 dark:text-zinc-400 dark:hover:text-emerald-300 ${focusRing}`;
   return (
-    <footer className="mt-10 border-t border-zinc-800">
+    <footer className="mt-10 border-t border-zinc-200 transition-colors duration-200 dark:border-zinc-800">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
-          <p className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span> ViciTech</p>
-          <p className="mt-3 max-w-sm text-sm text-zinc-400">A circular IT economy platform: hardware trade-ins, IoT-verified quality, AI bottleneck analysis, smart presets with JIT buffers, and a community knowledge hub.</p>
+          <p className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-emerald-950"><Cpu className="h-5 w-5" /></span> ViciTech</p>
+          <p className="mt-3 max-w-sm text-sm text-zinc-600 dark:text-zinc-400">A circular IT economy platform: hardware trade-ins, IoT-verified quality, AI bottleneck analysis, smart presets with JIT buffers, and a community knowledge hub.</p>
           <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tech stack">
-            {stack.map(([name, Icon]) => <li key={name} className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-300"><Icon className="h-3.5 w-3.5 text-cyan-400" /> {name}</li>)}
+            {stack.map(([name, Icon]) => <li key={name} className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"><Icon className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" /> {name}</li>)}
           </ul>
         </div>
         <nav aria-label="Modules">
-          <p className="text-sm font-medium text-zinc-200">Modules</p>
+          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Modules</p>
           <ul className="mt-3 space-y-2">{MODULES.map((m) => <li key={m.id}><button type="button" onClick={() => onNavigate(m.id)} className={link}>{m.short}</button></li>)}</ul>
         </nav>
         <div>
-          <p className="flex items-center gap-2 text-sm font-medium text-zinc-200"><ShieldCheck className="h-4 w-4 text-emerald-400" /> Compliance &amp; Standards</p>
+          <p className="flex items-center gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200"><ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Compliance &amp; Standards</p>
           <ul className="mt-3 space-y-2">{["NIST 800-88 data sanitization", "15-point IoT QC protocol", "JIT dynamic buffer policy", "Refurbished grading standards"].map((t) => <li key={t}><a href="#" onClick={(e) => e.preventDefault()} className={link}>{t}</a></li>)}</ul>
         </div>
       </div>
-      <div className="border-t border-zinc-800">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-zinc-600 sm:px-6">
+      <div className="border-t border-zinc-200 dark:border-zinc-800">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-zinc-500 sm:px-6">
           <p>© {new Date().getFullYear()} ViciTech OS. All rights reserved.</p>
           <p>Production-ready build with Supabase persistence and live keep-alive tab switching.</p>
         </div>
@@ -633,26 +696,47 @@ const DEFAULT_COMPONENTS = {
   catalog: HardwareLibrary, upgrade: UpgradeAnalyzer, builder: PresetBuilder, tradein: TradeInPortal, qc: IotQcEngine,
   bottleneck: BottleneckAnalyzer, versus: VersusArena, account: AccountDashboard, community: CommunityHub,
 };
-const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account", "community"];
+const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account", "community", "profile", "messages"];
 
-export default function ViciTechApp({ components, initialRole = "b2c", onSignOut }) {
+export default function ViciTechApp({
+  components,
+  initialRole = "b2c",
+  initialModule = "home",
+  initialSerial = null,
+  initialProfileUsername = "",
+  initialMessageUsername = "",
+  homeUrl,
+  onSignOut,
+}) {
+  const { triggerCheckout } = useCheckout();
   const C = useMemo(() => ({ ...DEFAULT_COMPONENTS, ...components }), [components]);
-  const [active, setActive] = useState("home");
+  const [active, setActive] = useState(initialModule);
   const [views, setViews] = useState(DEFAULT_VIEWS);
-  const [visited, setVisited] = useState(() => new Set(["home"]));
+  const [visited, setVisited] = useState(() => new Set(["home", initialModule]));
   const [role, setRole] = useState(initialRole);
+  const [authState, setAuthState] = useState({ user: null, session: null, isLoading: true });
   const [notifsByRole, setNotifsByRole] = useState(SEED_NOTIFS);
   const [upgradeDevice, setUpgradeDevice] = useState("t14");
   const [builderConfig, setBuilderConfig] = useState(null);
-  const [qcSerial, setQcSerial] = useState(null);
+  const [qcSerial, setQcSerial] = useState(initialSerial);
   const [palette, setPalette] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [toast, setToast] = useState(null);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [checkoutSummary, setCheckoutSummary] = useState(null);
 
   const notify = useCallback((msg) => setToast({ msg, n: Date.now() }), []);
+  const updateAuthState = useCallback((nextAuthState) => {
+    setAuthState(nextAuthState);
+  }, []);
   const clearToast = useCallback(() => setToast(null), []);
+  useEffect(() => {
+    const handleOrderCreated = (event) => {
+      if (event.detail?.id) {
+        notify(`Order ${event.detail.id} was placed and saved to your ViciTech account.`);
+      }
+    };
+    window.addEventListener("vicitech:order_created", handleOrderCreated);
+    return () => window.removeEventListener("vicitech:order_created", handleOrderCreated);
+  }, [notify]);
   const handleSignOut = useCallback(async () => {
     if (!supabase) {
       notify("Supabase authentication is not configured.");
@@ -678,16 +762,6 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
     }
     notify("You have been signed out.");
   }, [notify, onSignOut]);
-  const openCheckout = useCallback((summary) => {
-    setCheckoutSummary(summary);
-    setIsCheckoutOpen(true);
-  }, []);
-  const closeCheckout = useCallback(() => {
-    setIsCheckoutOpen(false);
-    setCheckoutSummary(null);
-    window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
-  }, []);
-
   useEffect(() => {
     try {
       const saved = window.sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY);
@@ -698,13 +772,12 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
         notify("The pending checkout could not be restored. Please start checkout again.");
         return;
       }
-      setCheckoutSummary(summary);
-      setIsCheckoutOpen(true);
+      triggerCheckout(summary);
     } catch (error) {
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
       notify(`The pending checkout could not be restored: ${error.message}`);
     }
-  }, [notify]);
+  }, [notify, triggerCheckout]);
 
   const show = useCallback((id, view) => {
     setActive(id);
@@ -713,6 +786,11 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
   }, []);
 
   const navigate = useCallback((id, viewOrData) => {
+    if (id === "home" && homeUrl && window.location.pathname !== homeUrl) {
+      window.location.assign(homeUrl);
+      return;
+    }
+
     // Map legacy account/community to top-level community
     if (id === "account" && viewOrData === "community") {
       id = "community";
@@ -747,13 +825,23 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
     const hash = `#${id}${v ? `/${v}` : ""}`;
     if (window.location.hash !== hash) window.history.pushState(null, "", hash);
     window.scrollTo(0, 0);
-  }, [show, notify]);
+  }, [show, notify, homeUrl]);
 
   // The URL hash mirrors the active view (deep links and the back button)
   useEffect(() => {
     const read = () => {
+      if (["qc", "profile", "messages"].includes(initialModule)) {
+        show(initialModule);
+        if (window.location.hash) {
+          window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
+        }
+        return;
+      }
       const rawHash = window.location.hash.slice(1);
-      if (!rawHash) return show("home");
+      if (!rawHash) {
+        if (initialModule === "home") show("home");
+        return;
+      }
       let [id, view] = rawHash.split("/");
       if (id === "account" && view === "community") {
         id = "community";
@@ -765,7 +853,7 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
     read();
     window.addEventListener("hashchange", read);
     return () => window.removeEventListener("hashchange", read);
-  }, [show]);
+  }, [show, initialModule]);
 
   useEffect(() => {
     if (BY_ID[active]) {
@@ -789,8 +877,8 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
   const extras = useMemo(() => ({
     builder: {
       role,
+      userId: authState.user?.id,
       importedConfig: builderConfig,
-      onOpenCheckout: openCheckout,
       onNavigate: navigate,
       onOpenEngine: (serial) => {
         if (serial) setQcSerial(serial);
@@ -828,6 +916,8 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
     },
     account: {
       role,
+      user: authState.user,
+      isAuthLoading: authState.isLoading,
       onRoleChange: setRole,
       onNavigate: navigate,
       onReconfigure: (preset) => {
@@ -839,15 +929,26 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
     },
     community: {
       onNavigate: navigate,
+      user: authState.user,
     },
-  }), [role, builderConfig, qcSerial, navigate, notify, handleSignOut, openCheckout]);
+    profile: {
+      username: initialProfileUsername,
+      user: authState.user,
+      isAuthLoading: authState.isLoading,
+    },
+    messages: {
+      user: authState.user,
+      isAuthLoading: authState.isLoading,
+      initialUsername: initialMessageUsername,
+    },
+  }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-zinc-100 antialiased">
+    <div className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-100">
       <style>{CSS}</style>
 
       <div className="sticky top-0 z-40">
-        <Navbar role={role} setRole={setRole} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onSignOut={handleSignOut} />
+        <Navbar role={role} setRole={setRole} user={authState.user} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onAuthState={updateAuthState} onSignOut={handleSignOut} />
         <TabBar active={active} onNavigate={navigate} />
       </div>
 
@@ -877,14 +978,8 @@ export default function ViciTechApp({ components, initialRole = "b2c", onSignOut
       </main>
 
       <Footer onNavigate={navigate} />
-      <MobileDrawer open={drawer} onClose={closeDrawer} active={active} onNavigate={navigate} role={role} />
+      <MobileDrawer open={drawer} onClose={closeDrawer} active={active} onNavigate={navigate} role={role} user={authState.user} />
       <CommandPalette open={palette} onClose={closePalette} onSelect={(it) => navigate(it.module, it.view)} />
-      <CheckoutModal
-        open={isCheckoutOpen}
-        orderSummary={checkoutSummary}
-        onClose={closeCheckout}
-        onOrderCreated={(order) => notify(`Order ${order.id} was placed and saved to your ViciTech account.`)}
-      />
       <ToastHost toast={toast} onDone={clearToast} />
     </div>
   );

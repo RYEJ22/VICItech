@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   User, Building2, GraduationCap, Package, RefreshCw, Sliders, ShieldCheck, Settings, FileText,
-  CheckCircle2, Clock, LogOut, ChevronDown, Cpu, Leaf, Plus, X, Activity, Database,
+  CheckCircle2, Clock, LogOut, ChevronDown, Cpu, Plus, X, Activity,
 } from "lucide-react";
 import { listMyOrders, listUserPresets } from "@/lib/supabase";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getUserDisplayName, getUserInitials, getUserOrganization } from "@/lib/supabase/profile";
 
 /* ───────────────────────── Helpers ───────────────────────── */
 
@@ -13,8 +15,6 @@ const later = (d) => new Date(Date.now() + d * DAY);
 const addMonths = (d, m) => { const x = new Date(d); x.setMonth(x.getMonth() + m); return x; };
 const fmtDate = (d) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(d);
 const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
-const num = (n) => new Intl.NumberFormat("id-ID").format(n);
-const rel = (h) => (h < 1 ? "Just now" : h < 24 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} d ago`);
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
 const sum = (list, f) => list.reduce((s, x) => s + f(x), 0);
 
@@ -57,95 +57,26 @@ const randomKey = () => {
   return `vt_live_${Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("").slice(0, 32)}`;
 };
 
-/* ───────────────────────── Sample account data ───────────────────────── */
-// Dates are offsets from today so the sample data never goes stale.
-
-const STAGES = ["Verified", "IoT Stress Testing", "Packaging at Bandung Hub", "Shipped"];
 const TRADE_STAGES = ["Submitted", "Inspection scheduled", "Inspected at Hub Bandung", "Offer ready", "Paid"];
 const CITIES = ["Taraju, Tasikmalaya", "Tasikmalaya", "Bandung Hub pickup"];
 const SCOPES = ["orders:write", "tradein:read", "qc:read", "presets:read"];
 const CHECKS = ["Battery or PSU health", "Thermal re-pasting", "Fan and cooling", "CPU stress test", "Screen or display output", "Keyboard or front panel", "Webcam and audio", "Speakers", "Storage health", "Memory test", "Secure data wipe (NIST 800-88)", "Ports and connectivity", "Wi-Fi and Bluetooth", "Chassis and hinges", "BIOS and firmware"];
 
-// stage = number of completed steps (4 = shipped)
-const order = (id, title, type, units, total, stage, placed, eta, x = {}) => ({ id, title, type, units, total, stage, placed, eta, savings: 0, co2: 0, ...x });
-const trade = (id, title, entity, equipment, units, condition, low, high, stage, submitted, kg, x = {}) => ({ id, title, entity, equipment, units, condition, low, high, stage, submitted, kg, ...x });
-const preset = (id, name, kind, units, updated, parts) => ({ id, name, kind, units, updated, parts });
-const cert = (serial, name, tested, techId, tech, units, assignee, purchased, months = 12) => ({ serial, name, tested, techId, tech, units, assignee, purchased, months });
-
 const ROLES = {
-  b2c: { label: "B2C Member / Creator", icon: User, name: "Dimas Saputra", email: "dimas.saputra@example.com", org: "", since: 640, target: 600, focus: "Saved presets, custom rigs and community posts" },
-  b2b: { label: "B2B Enterprise Admin", icon: Building2, name: "Aulia Rahman", email: "aulia.rahman@nusantaramitra.example", org: "PT Nusantara Mitra Digital", since: 910, target: 9000, focus: "Bulk office orders, tax invoices and company assets" },
-  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, name: "Hendra Wijaya", email: "hendra.wijaya@smk-teknologi.example", org: "SMK Teknologi Nusantara", since: 480, target: 5000, focus: "Lab procurement, bulk warranty and maintenance" },
+  b2c: { label: "B2C Member / Creator", icon: User, focus: "Your saved builds and activity" },
+  b2b: { label: "B2B Enterprise Admin", icon: Building2, focus: "Your organization and orders" },
+  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, focus: "Your lab and orders" },
 };
 
-const DATA = {
-  b2c: {
-    orders: [
-      order("VT-PO-2026-0412", "Creator & Gaming Rig (custom build)", "Pre-order", 1, 29550000, 1, 2, 6),
-      order("VT-OR-2026-0391", "ThinkPad T14 Gen 4, Recertified A+", "Order", 1, 9800000, 4, 9, 2, { savings: 12100000, co2: 215, serial: "VICI-LTP-2026-1187" }),
-    ],
-    trades: [trade("VT-TI-2026-0155", "Desktop with RTX 3060 and Ryzen 5 3600", "Individual", "Desktops", 1, "Operational", 1000000, 1400000, 2, 12, 7)],
-    presets: [
-      preset("rig", "Creator & Gaming Rig", "PC", 1, 3, [["CPU", "AMD Ryzen 7 7800X3D", 7200000], ["Motherboard", "MSI MAG B650M Mortar", 2300000], ["RAM", "32 GB DDR5-6000", 1900000], ["Storage", "1 TB NVMe SSD", 1250000], ["GPU", "NVIDIA RTX 4070 Super", 10900000], ["PSU", "750 W 80+ Gold", 1500000], ["Case / Monitor", 'ATX Mid-Tower + 27" QHD 165 Hz', 4500000]]),
-      preset("esports", "Budget Esports Build", "PC", 1, 11, [["CPU", "AMD Ryzen 5 7600", 3900000], ["Motherboard", "ASRock A620M-HDV", 1500000], ["RAM", "16 GB DDR5-6000", 950000], ["Storage", "512 GB NVMe SSD", 750000], ["GPU", "NVIDIA RTX 4060 8 GB", 4800000], ["PSU", "550 W 80+ Bronze", 850000], ["Case", "ATX Airflow Mid-Tower", 1050000]]),
-      preset("travel", "Travel Creator Laptop Kit", "Laptop", 1, 20, [["Laptop", "ASUS ROG Zephyrus G14 (32 GB / 1 TB)", 33500000], ["Dock", "Dell WD19S Docking Station (Recertified)", 2700000], ["Mouse", "Logitech MX Master 3S", 1650000]]),
-    ],
-    certs: [
-      cert("VICI-LTP-2026-1187", "ThinkPad T14 Gen 4 (Recertified A+)", 12, "TECH-0388", "Dewi Anggraini", 1, "", 9),
-      cert("VICI-DSK-2026-3305", "ViciTech Office Workstation SFF", 150, "TECH-0412", "Rizky Aditya", 1, "", 140),
-    ],
-    posts: [["1080p esports rig for under Rp 14 juta", 94, 2, 14], ["Silent 4K editing workstation notes", 52, 5, 33], ["Re-pasting a ThinkPad T14 after two years", 31, 4, 61]],
-    addresses: [{ id: "a1", label: "Home", city: "Taraju, Tasikmalaya", line: "Jl. Raya Taraju (sample address)" }],
-    activity: [["Pre-order VT-PO-2026-0412 entered IoT stress testing", 5], ["Trade-in VT-TI-2026-0155 inspection scheduled", 30], ["Your build post received 12 new upvotes", 52], ["Certificate VICI-LTP-2026-1187 added to your vault", 216]],
-  },
-  b2b: {
-    orders: [
-      order("VT-PO-2026-0377", "Bulk office refurbished order: 40 ThinkPad T14 Gen 4", "Pre-order", 40, 392000000, 2, 5, 9, { savings: 484000000, co2: 8600, serial: "VICI-LTP-2026-1190" }),
-      order("VT-PO-2026-0358", "SFF office workstations (B2B preset), 20 units", "Pre-order", 20, 197000000, 3, 12, 3, { serial: "VICI-DSK-2026-3320" }),
-      order("VT-OR-2026-0301", "Docking stations, 40 units (Recertified)", "Order", 40, 108000000, 4, 30, 0, { savings: 96000000, co2: 2400 }),
-    ],
-    trades: [
-      trade("VT-TI-2026-0149", "60 office laptops", "Corporate Office", "Laptops", 60, "Operational", 129600000, 175800000, 3, 8, 120, { offer: 152400000 }),
-      trade("VT-TI-2026-0160", "80 office monitors", "Corporate Office", "Monitors", 80, "Minor Defect", 19200000, 26400000, 1, 3, 400),
-    ],
-    presets: [
-      preset("fleet", "Office Workstation SFF Fleet", "PC", 20, 4, [["CPU", "Intel Core i5-12400", 2700000], ["Motherboard", "MSI PRO B660M-A D4", 1850000], ["RAM", "16 GB DDR4-3200", 750000], ["Storage", "512 GB NVMe SSD", 750000], ["PSU", "350 W 80+ White", 400000], ["Case / Monitor", 'Compact SFF + Dual 24" IPS Monitors', 3400000]]),
-      preset("exec", "Executive Laptop Fleet", "Laptop", 12, 18, [["Laptop", "Dell Latitude 7440 (16 GB / 512 GB)", 22400000], ["Dock", "Dell WD19S Docking Station (Recertified)", 2700000]]),
-      preset("refurb", "Refurbished Office Laptop Fleet", "Laptop", 40, 27, [["Laptop", "ThinkPad T14 Gen 4 (Recertified A+)", 9800000]]),
-    ],
-    certs: [
-      cert("VICI-LTP-2026-1190", "ThinkPad T14 Gen 4 batch (order VT-PO-2026-0377)", 3, "TECH-0388", "Dewi Anggraini", 40, "Finance, Sales and Operations", null),
-      cert("VICI-DSK-2026-3320", "SFF workstation batch (order VT-PO-2026-0358)", 1, "TECH-0412", "Rizky Aditya", 20, "Customer Support floor", null),
-      cert("VICI-DSK-2026-2210", "Office Workstation SFF batch (previous order)", 200, "TECH-0412", "Rizky Aditya", 15, "Finance, floor 2", 190),
-      cert("VICI-LTP-2026-0950", "ThinkPad T14 batch (previous order)", 340, "TECH-0388", "Dewi Anggraini", 25, "Sales and Operations", 335),
-    ],
-    invoices: [["INV-2026-0377", "VT-PO-2026-0377", 392000000, "Pending"], ["INV-2026-0358", "VT-PO-2026-0358", 197000000, "Issued"], ["INV-2026-0301", "VT-OR-2026-0301", 108000000, "Issued"]],
-    addresses: [{ id: "a1", label: "Head office", city: "Tasikmalaya", line: "Jl. Perintis Kemerdekaan (sample address)" }, { id: "a2", label: "Bandung Hub pickup", city: "Bandung Hub pickup", line: "ViciTech Hub Bandung, pickup counter" }],
-    activity: [["Offer ready for trade-in VT-TI-2026-0149", 3], ["Order VT-PO-2026-0358 started packaging at Bandung Hub", 20], ["Tax invoice INV-2026-0377 is pending", 48], ["Batch VICI-LTP-2026-0950 warranty ends soon", 96]],
-  },
-  b2s: {
-    orders: [
-      order("VT-PO-2026-0402", "CBT lab procurement: 36 seats (B2S preset)", "Pre-order", 36, 201600000, 2, 6, 8, { serial: "VICI-DSK-2026-4101" }),
-      order("VT-OR-2026-0344", "Spare units: 4 refurbished OptiPlex 7090 desktops", "Order", 4, 25200000, 4, 21, 0, { savings: 38400000, co2: 1280, serial: "VICI-DSK-2026-3988" }),
-    ],
-    trades: [trade("VT-TI-2026-0152", "30 retired lab desktops", "School / CBT Lab", "Desktops", 30, "Minor Defect", 24000000, 32700000, 1, 4, 210)],
-    presets: [
-      preset("labkom", "B2S CBT Labkom Standard", "Lab", 36, 6, [["CPU", "Intel Core i3-12100", 1900000], ["Motherboard", "ASUS Prime H610M-K D4", 1150000], ["RAM", "8 GB DDR4-3200", 400000], ["Storage", "256 GB SATA SSD", 450000], ["PSU", "350 W 80+ White", 400000], ["Case / Monitor", 'Micro-ATX Case + 19.5" Monitor', 1300000]]),
-      preset("teacher", "Teacher Workstation", "PC", 6, 15, [["CPU", "Intel Core i5-12400", 2700000], ["Motherboard", "MSI PRO B660M-A D4", 1850000], ["RAM", "16 GB DDR4-3200", 750000], ["Storage", "512 GB NVMe SSD", 750000], ["PSU", "350 W 80+ White", 400000], ["Case / Monitor", 'Compact SFF + Dual 24" IPS Monitors', 3400000]]),
-      preset("desk", "Teacher Desk Kit", "Lab", 4, 40, [["Mouse", "Logitech MX Master 3S", 1650000], ["Keyboard", "Keychron K8 Pro", 1850000], ["UPS", "APC Back-UPS 1100VA", 2100000]]),
-    ],
-    certs: [
-      cert("VICI-DSK-2026-4101", "CBT Labkom Standard batch (order VT-PO-2026-0402)", 2, "TECH-0412", "Rizky Aditya", 36, "Lab 1 and Lab 2", null),
-      cert("VICI-DSK-2026-3988", "OptiPlex 7090 SFF refurbished spares", 25, "TECH-0388", "Dewi Anggraini", 4, "Spare stock room", 21),
-      cert("VICI-DSK-2026-2874", "Lab 3 desktops (previous order)", 250, "TECH-0412", "Rizky Aditya", 30, "Lab 3", 240),
-    ],
-    maintenance: [["m4", "Exam-day power circuit load test", "Lab 1 and Lab 2", 6], ["m1", "Quarterly dust cleaning and fan check", "Lab 1", 12], ["m2", "Re-paste CPUs older than three years", "Lab 3", 30], ["m3", "BIOS and firmware update window", "All labs", 45]],
-    addresses: [{ id: "a1", label: "School lab", city: "Taraju, Tasikmalaya", line: "Jl. Pendidikan (sample address)" }, { id: "a2", label: "Bandung Hub pickup", city: "Bandung Hub pickup", line: "ViciTech Hub Bandung, pickup counter" }],
-    activity: [["CBT lab order VT-PO-2026-0402 passed IoT stress testing", 7], ["Maintenance task due in 6 days: exam-day power test", 24], ["Trade-in VT-TI-2026-0152 inspection scheduled", 40], ["Spare units shipped to your school lab", 120]],
-  },
+const EMPTY_ACCOUNT_DATA = {
+  trades: [],
+  presets: [],
+  certs: [],
+  invoices: [],
+  maintenance: [],
+  posts: [],
 };
-
-const initStore = () => Object.fromEntries(Object.keys(ROLES).map((r) => [r, { addresses: DATA[r].addresses, defaultAddr: "a1", keys: [], offers: {}, done: {}, prefs: { twoFactor: true, alerts: true } }]));
+const initStore = () => Object.fromEntries(Object.keys(ROLES).map((r) => [r, { addresses: [], defaultAddr: null, keys: [], offers: {}, done: {}, prefs: { twoFactor: false, alerts: true } }]));
 
 /* ───────────────────────── Derived values ───────────────────────── */
 
@@ -154,39 +85,16 @@ const warrantyEnd = (c) => (c.purchased === null ? null : addMonths(ago(c.purcha
 const daysLeft = (c) => { const e = warrantyEnd(c); return e ? Math.ceil((e - Date.now()) / DAY) : null; };
 const tradeStage = (t, offers) => (offers[t.id] === "accepted" ? Math.max(t.stage, 4) : t.stage);
 
-function summarize(role, d, store) {
-  const co2 = sum(d.orders, (o) => o.co2);
-  const ewaste = sum(d.trades.filter((t) => store.offers[t.id] !== "declined"), (t) => t.kg);
-  const active = d.certs.filter((c) => (daysLeft(c) ?? 1) > 0 && c.purchased !== null);
-  const next = [...active].sort((a, b) => daysLeft(a) - daysLeft(b))[0];
-  return {
-    savings: sum(d.orders, (o) => o.savings), co2, ewaste,
-    score: Math.min(100, Math.round(((co2 + ewaste * 3) / ROLES[role].target) * 100)),
-    warrantyUnits: sum(active, (c) => c.units), next,
-    activeOrders: d.orders.filter((o) => o.stage < 4).length,
-  };
-}
-
-function focusCards(role, d, m, store) {
-  const openMaint = (d.maintenance || []).filter((t) => !store.done[t[0]]).sort((a, b) => a[3] - b[3])[0];
-  const lead = d.orders.find((o) => o.stage < 4);
-  return {
-    b2c: () => [
-      { icon: Sliders, label: "Saved presets", value: d.presets.length, sub: "Ready to re-configure", tab: "presets" },
-      { icon: Cpu, label: "Custom rigs", value: d.presets.filter((p) => p.kind === "PC").length, sub: "Desktop builds saved", tab: "presets" },
-      { icon: FileText, label: "Community posts", value: d.posts.length, sub: `${sum(d.posts, (p) => p[1])} upvotes in total`, tab: "presets" },
-    ],
-    b2b: () => [
-      { icon: Package, label: "Bulk office orders", value: d.orders.filter((o) => o.units >= 10 && o.stage < 4).length, sub: "In progress", tab: "orders" },
-      { icon: FileText, label: "Tax invoices", value: d.invoices.filter((i) => i[3] === "Pending").length, sub: "Pending issue", tab: "orders" },
-      { icon: Building2, label: "Company assets", value: sum(d.certs, (c) => c.units), sub: "Units with certificates", tab: "certs" },
-    ],
-    b2s: () => [
-      { icon: Package, label: "Lab procurement", value: lead ? STAGES[lead.stage] : "Complete", sub: lead ? lead.title : "No open orders", tab: "orders" },
-      { icon: ShieldCheck, label: "Bulk warranty", value: m.warrantyUnits, sub: "Units under warranty", tab: "certs" },
-      { icon: Clock, label: "Maintenance", value: openMaint ? `${openMaint[3]} days` : "All done", sub: openMaint ? openMaint[1] : "No open tasks", tab: "certs" },
-    ],
-  }[role]();
+function focusCards(userPresets, isLoading) {
+  const savedPresets = isLoading ? "…" : userPresets.length;
+  const customRigs = isLoading ? "…" : userPresets.filter((preset) =>
+    Array.isArray(preset.parts) && preset.parts.length > 0
+  ).length;
+  return [
+    { icon: Sliders, label: "Saved presets", value: savedPresets, sub: "Saved to this account", tab: "presets" },
+    { icon: Cpu, label: "Custom rigs", value: customRigs, sub: "Your saved configurations", tab: "presets" },
+    { icon: FileText, label: "Community posts", value: "—", sub: "Community profile not connected", tab: "community" },
+  ];
 }
 
 /* ───────────────────────── Small UI ───────────────────────── */
@@ -204,14 +112,14 @@ function Stepper({ steps, done, current = true }) {
   // done = number of completed steps; the next one is "in progress" when current is true
   return (
     <div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-800"><div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${(done / steps.length) * 100}%` }} /></div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className="h-full rounded-full bg-emerald-400 transition-all duration-500" style={{ width: `${(done / steps.length) * 100}%` }} /></div>
       <ol className="mt-3 grid gap-2 sm:grid-cols-[repeat(auto-fit,minmax(9rem,1fr))]">
         {steps.map((s, i) => {
           const complete = i < done, now = i === done && current;
           return (
             <li key={s} className="flex items-start gap-2 text-sm">
-              {complete ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : now ? <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" /> : <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded-full border border-zinc-700" />}
-              <span className={complete ? "text-zinc-200" : now ? "font-medium text-amber-300" : "text-zinc-500"}>{s}{now && <span className="block text-xs font-normal text-zinc-500">In progress</span>}</span>
+              {complete ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> : now ? <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" /> : <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700" />}
+              <span className={complete ? "text-zinc-800 dark:text-zinc-200" : now ? "font-medium text-amber-700 dark:text-amber-300" : "text-zinc-500"}>{s}{now && <span className="block text-xs font-normal text-zinc-500">In progress</span>}</span>
             </li>
           );
         })}
@@ -223,9 +131,9 @@ function Stepper({ steps, done, current = true }) {
 function Switch({ on, onChange, label, hint }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <div><p className="text-sm text-zinc-100">{label}</p><p className="text-xs text-zinc-500">{hint}</p></div>
-      <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${focusRing} ${on ? "bg-emerald-400" : "bg-zinc-700"}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-zinc-950 transition-all ${on ? "left-[1.375rem]" : "left-0.5"}`} />
+      <div><p className="text-sm text-zinc-900 dark:text-zinc-100">{label}</p><p className="text-xs text-zinc-500">{hint}</p></div>
+      <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${focusRing} ${on ? "bg-emerald-400" : "bg-zinc-100 dark:bg-zinc-700"}`}>
+        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white dark:bg-zinc-950 transition-all ${on ? "left-[1.375rem]" : "left-0.5"}`} />
       </button>
     </div>
   );
@@ -244,19 +152,19 @@ function RoleSwitcher({ role, onChange }) {
   const Cur = ROLES[role].icon;
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex w-full items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 hover:border-cyan-400/60 sm:w-72 ${focusRing}`}>
-        <Cur className="h-4 w-4 text-cyan-400" /><span className="flex-1 text-left">{ROLES[role].label}</span><ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex w-full items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 sm:w-72 ${focusRing}`}>
+        <Cur className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /><span className="flex-1 text-left">{ROLES[role].label}</span><ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <ul role="listbox" aria-label="Switch role" className="absolute right-0 top-full z-20 mt-2 w-full min-w-[18rem] rounded-xl border border-zinc-800 bg-zinc-950 p-1.5 shadow-2xl shadow-black/50">
+        <ul role="listbox" aria-label="Switch role" className="absolute right-0 top-full z-20 mt-2 w-full min-w-[18rem] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1.5 shadow-2xl shadow-black/50">
           {Object.entries(ROLES).map(([k, r]) => {
             const I = r.icon;
             return (
               <li key={k} role="option" aria-selected={k === role}>
-                <button type="button" onClick={() => { onChange(k); setOpen(false); }} className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left ${focusRing} ${k === role ? "bg-cyan-400/10" : "hover:bg-zinc-900"}`}>
-                  <I className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
-                  <span><span className="block text-sm text-zinc-100">{r.label}</span><span className="block text-xs text-zinc-500">{r.focus}</span></span>
-                  {k === role && <CheckCircle2 className="ml-auto mt-0.5 h-4 w-4 text-emerald-400" />}
+                <button type="button" onClick={() => { onChange(k); setOpen(false); }} className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left ${focusRing} ${k === role ? "bg-emerald-600/10 dark:bg-emerald-400/10" : "hover:bg-white dark:hover:bg-zinc-900"}`}>
+                  <I className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" />
+                  <span><span className="block text-sm text-zinc-900 dark:text-zinc-100">{r.label}</span><span className="block text-xs text-zinc-500">{r.focus}</span></span>
+                  {k === role && <CheckCircle2 className="ml-auto mt-0.5 h-4 w-4 text-emerald-700 dark:text-emerald-400" />}
                 </button>
               </li>
             );
@@ -269,86 +177,67 @@ function RoleSwitcher({ role, onChange }) {
 
 /* ───────────────────────── Tab panels ───────────────────────── */
 
-function OrdersTab({ d, role, liveOrders = [], onCert, onInvoice, onOpenQc }) {
-  const combined = useMemo(() => {
-    const mappedLive = liveOrders.map((o) => ({
-      id: o.id,
-      title: o.product_name,
-      type: "Pre-order",
-      units: 1,
-      total: o.total_price || (o.base_price ? o.base_price + (o.jit_buffer || 0) : 0),
-      stage: o.status === "Shipped" ? 4 : o.status === "Packaging at Bandung Hub" ? 3 : 2,
-      placed: 0,
-      eta: 3,
-      serial: o.serial_number,
-      source: o.source,
-      isLive: true,
-    }));
-    const seen = new Set();
-    const result = [];
-    for (const o of [...mappedLive, ...d.orders]) {
-      if (!seen.has(o.id)) {
-        seen.add(o.id);
-        result.push(o);
-      }
-    }
-    return result;
-  }, [liveOrders, d.orders]);
-
+function OrdersTab({ liveOrders = [], isLoading, error, onNavigate, onOpenQc }) {
+  if (isLoading) {
+    return <p role="status" className={`${card} p-5 text-sm text-zinc-600 dark:text-zinc-400`}>Loading your orders…</p>;
+  }
+  if (error) {
+    return <p role="alert" className="rounded-xl border border-red-400/30 bg-red-400/5 p-5 text-sm text-red-700 dark:text-red-300">{error}</p>;
+  }
+  if (!liveOrders.length) {
+    return (
+      <section className={`${card} overflow-hidden p-6 sm:p-8`}>
+        <div className="mx-auto max-w-xl text-center">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300 shadow-[0_0_32px_-12px_rgba(34,211,238,0.65)]">
+            <Cpu className="h-7 w-7" />
+          </span>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Garage status</p>
+          <h3 className="mt-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">No active orders yet.</h3>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">Start building your custom rig in Preset Builder!</p>
+          <button type="button" onClick={() => onNavigate?.("builder")} className={`${btn} mt-5 border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-800 dark:text-cyan-200 hover:bg-emerald-600/15 dark:hover:bg-emerald-400/15`}>
+            <Plus className="h-4 w-4" /> Open Preset Builder
+          </button>
+        </div>
+      </section>
+    );
+  }
   return (
     <div className="space-y-4">
-      {combined.map((o) => (
+      {liveOrders.map((o) => {
+        const total = Number(o.total_price ?? (Number(o.base_price || 0) + Number(o.jit_buffer || 0)));
+        const placed = o.created_at ? new Date(o.created_at) : null;
+        const status = o.status || "Status pending";
+        const units = Number(o.order_summary?.quantity || o.order_summary?.qty || 1);
+        return (
         <article key={o.id} className={`${card} p-5`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <Chip tone={o.type === "Pre-order" ? "amber" : "cyan"}>{o.type}</Chip>
-                <span className="text-xs tabular-nums text-zinc-500">{o.id}</span>
-                {o.isLive && (
-                  <span className="inline-flex items-center gap-1 rounded bg-emerald-400/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
-                    <Database className="h-3 w-3" /> Live Supabase Order
-                  </span>
-                )}
+                <Chip tone="cyan">{status}</Chip>
+                <span className="break-all text-xs tabular-nums text-zinc-500">{o.id}</span>
               </div>
-              <h3 className="mt-1.5 font-semibold text-zinc-50">{o.title}</h3>
-              <p className="text-xs text-zinc-500">Placed {o.placed === 0 ? "Just now" : fmtDate(ago(o.placed))}, {o.units} {o.units > 1 ? "units" : "unit"}</p>
+              <h3 className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-50">{o.product_name}</h3>
+              <p className="text-xs text-zinc-500">{placed && !Number.isNaN(placed.getTime()) ? `Placed ${fmtDate(placed)}, ` : ""}{units} {units === 1 ? "unit" : "units"}</p>
             </div>
-            <p className="text-lg font-semibold tabular-nums text-zinc-50">{idr(o.total)}</p>
+            <p className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(total)}</p>
           </div>
-          <div className="mt-4"><Stepper steps={STAGES} done={o.stage} current={o.stage < 4} /></div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-800 pt-3 text-sm">
-            <p className="text-zinc-400">{o.stage === 4 ? (o.eta > 0 ? `Shipped, arriving around ${fmtDate(later(o.eta))}` : "Delivered") : `Estimated shipping around ${fmtDate(later(o.eta))}`}</p>
-            <div className="flex flex-wrap items-center gap-2">
-              {o.serial && (
-                <button type="button" onClick={() => onOpenQc?.(o.serial)} className={`${ghost} py-1.5 text-cyan-300 hover:text-cyan-200`}>
-                  <Activity className="h-4 w-4" /> Inspect in IoT QC
-                </button>
-              )}
-              {o.serial && o.stage >= 2 && <button type="button" onClick={() => onCert(o.serial)} className={`${ghost} py-1.5`}><ShieldCheck className="h-4 w-4" /> View QC certificate</button>}
-            </div>
-          </div>
+          {o.serial_number && <button type="button" onClick={() => onOpenQc?.(o.serial_number)} className={`${ghost} mt-4 py-1.5 text-cyan-700 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200`}><Activity className="h-4 w-4" /> Inspect in IoT QC</button>}
         </article>
-      ))}
-      {role === "b2b" && (
-        <section className={`${card} p-5`} aria-labelledby="inv-title">
-          <h3 id="inv-title" className="flex items-center gap-2 font-semibold text-zinc-50"><FileText className="h-4 w-4 text-cyan-400" /> Tax invoices</h3>
-          <ul className="mt-3 divide-y divide-zinc-800">
-            {d.invoices.map(([no, ref, amount, status]) => (
-              <li key={no} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
-                <span className="min-w-0 flex-1"><span className="block text-zinc-100">{no}</span><span className="text-xs text-zinc-500">For order {ref}</span></span>
-                <span className="tabular-nums text-zinc-200">{idr(amount)}</span>
-                <Chip tone={status === "Issued" ? "emerald" : "amber"}>{status}</Chip>
-                <button type="button" onClick={() => onInvoice({ no, ref, amount, status })} className={`${ghost} py-1.5`}>Download summary</button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      );
+      })}
     </div>
   );
 }
 
 function TradeTab({ d, store, onOffer, onNavigate }) {
+  if (!d.trades.length) {
+    return (
+      <section className={`${card} p-6 text-center`}>
+        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">No trade-in requests yet.</p>
+        {onNavigate && <button type="button" onClick={() => onNavigate("tradein")} className={`${ghost} mt-4`}><Plus className="h-4 w-4" /> Explore Trade-In</button>}
+      </section>
+    );
+  }
   return (
     <div className="space-y-4">
       {d.trades.map((t) => {
@@ -360,21 +249,21 @@ function TradeTab({ d, store, onOffer, onNavigate }) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2"><Chip tone="cyan">{t.entity}</Chip><span className="text-xs tabular-nums text-zinc-500">{t.id}</span></div>
-                <h3 className="mt-1.5 font-semibold text-zinc-50">{t.title}</h3>
+                <h3 className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-50">{t.title}</h3>
                 <p className="text-xs text-zinc-500">{t.units} x {t.equipment.toLowerCase()}, {t.condition.toLowerCase()}, submitted {fmtDate(ago(t.submitted))}</p>
               </div>
-              <div className="text-right"><p className="text-xs text-zinc-500">Estimated buyback</p><p className="font-semibold tabular-nums text-emerald-400">{idr(t.low)} to {idr(t.high)}</p></div>
+              <div className="text-right"><p className="text-xs text-zinc-500">Estimated buyback</p><p className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(t.low)} to {idr(t.high)}</p></div>
             </div>
             <div className="mt-4"><Stepper steps={TRADE_STAGES} done={decision === "declined" ? t.stage : eff} current={decision !== "declined" && eff < 5} /></div>
             {offerOpen && (
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3">
-                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-emerald-300">Final offer: {idr(t.offer)}</p><p className="text-xs text-zinc-400">Based on the Hub Bandung inspection. Accept to start the payout.</p></div>
+                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Final offer: {idr(t.offer)}</p><p className="text-xs text-zinc-600 dark:text-zinc-400">Based on the Hub Bandung inspection. Accept to start the payout.</p></div>
                 <button type="button" onClick={() => onOffer(t.id, "accepted")} className={`${btn} bg-emerald-400 font-semibold text-zinc-950 hover:bg-emerald-300`}>Accept offer</button>
                 <button type="button" onClick={() => onOffer(t.id, "declined")} className={ghost}>Decline</button>
               </div>
             )}
-            {decision === "accepted" && <p className="mt-4 flex items-center gap-2 text-sm text-emerald-400"><CheckCircle2 className="h-4 w-4" /> Offer of {idr(t.offer)} accepted. Payout is being processed.</p>}
-            {decision === "declined" && <p className="mt-4 text-sm text-zinc-400">You declined this offer. The request is closed.</p>}
+            {decision === "accepted" && <p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> Offer of {idr(t.offer)} accepted. Payout is being processed.</p>}
+            {decision === "declined" && <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">You declined this offer. The request is closed.</p>}
           </article>
         );
       })}
@@ -383,7 +272,7 @@ function TradeTab({ d, store, onOffer, onNavigate }) {
   );
 }
 
-function PresetsTab({ d, role, userPresets = [], onExport, onReconfigure, canReconfigure }) {
+function PresetsTab({ userPresets = [], isLoading, onExport, onReconfigure, canReconfigure, onNavigate }) {
   const [open, setOpen] = useState(null);
   const combinedPresets = useMemo(() => {
     const mappedUser = userPresets.map((up) => ({
@@ -395,8 +284,21 @@ function PresetsTab({ d, role, userPresets = [], onExport, onReconfigure, canRec
       parts: Array.isArray(up.parts) ? up.parts : [],
       isUserSaved: true,
     }));
-    return [...mappedUser, ...d.presets];
-  }, [userPresets, d.presets]);
+    return mappedUser;
+  }, [userPresets]);
+
+  if (isLoading) {
+    return <p role="status" className={`${card} p-5 text-sm text-zinc-600 dark:text-zinc-400`}>Loading your saved presets…</p>;
+  }
+  if (!combinedPresets.length) {
+    return (
+      <section className={`${card} p-6 text-center`}>
+        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">No saved presets yet.</p>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Create a custom configuration in Preset Builder and save it to your account.</p>
+        <button type="button" onClick={() => onNavigate?.("builder")} className={`${ghost} mt-4`}><Sliders className="h-4 w-4" /> Open Preset Builder</button>
+      </section>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -409,45 +311,45 @@ function PresetsTab({ d, role, userPresets = [], onExport, onReconfigure, canRec
                 <div className="flex items-center gap-2">
                   <Chip tone="cyan">{p.kind}</Chip>
                   {p.isUserSaved && (
-                    <span className="rounded bg-cyan-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300">
+                    <span className="rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300">
                       User Saved Preset
                     </span>
                   )}
                   <span className="text-xs text-zinc-500">Updated {p.updated === 0 ? "Today" : fmtDate(ago(p.updated))}</span>
                 </div>
-                <h3 className="mt-1.5 font-semibold text-zinc-50">{p.name}</h3>
+                <h3 className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-50">{p.name}</h3>
                 <p className="text-xs text-zinc-500">{p.units} {p.units > 1 ? "units" : "unit"}, {idr(unit)} per unit</p>
               </div>
-              <p className="text-lg font-semibold tabular-nums text-zinc-50">{idr(unit * p.units)}</p>
+              <p className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(unit * p.units)}</p>
             </div>
-            <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} className={`mt-3 inline-flex items-center gap-1.5 rounded text-sm text-cyan-400 hover:text-cyan-300 ${focusRing}`}>
+            <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} className={`mt-3 inline-flex items-center gap-1.5 rounded text-sm text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
               <ChevronDown className={`h-4 w-4 transition-transform ${open === p.id ? "rotate-180" : ""}`} /> {open === p.id ? "Hide parts" : "View parts"}
             </button>
             {open === p.id && (
-              <dl className="mt-2 divide-y divide-zinc-800 rounded-lg border border-zinc-800 text-sm">
-                {p.parts.map(([slot, name, price]) => <div key={slot} className="flex justify-between gap-3 px-3 py-2"><dt className="text-zinc-500">{slot}: <span className="text-zinc-200">{name}</span></dt><dd className="tabular-nums text-zinc-300">{idr(price)}</dd></div>)}
+              <dl className="mt-2 divide-y divide-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-800 text-sm">
+                {p.parts.map(([slot, name, price]) => <div key={slot} className="flex justify-between gap-3 px-3 py-2"><dt className="text-zinc-500">{slot}: <span className="text-zinc-800 dark:text-zinc-200">{name}</span></dt><dd className="tabular-nums text-zinc-700 dark:text-zinc-300">{idr(price)}</dd></div>)}
               </dl>
             )}
-            <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
-              <button type="button" onClick={() => onExport(p)} className={`${btn} bg-cyan-400 font-medium text-zinc-950 hover:bg-cyan-300`}><FileText className="h-4 w-4" /> Export PDF Proposal</button>
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-3">
+              <button type="button" onClick={() => onExport(p)} className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><FileText className="h-4 w-4" /> Export PDF Proposal</button>
               <button type="button" disabled={!canReconfigure} title={canReconfigure ? undefined : "Connect the Preset Builder to enable this"} onClick={() => onReconfigure(p)} className={ghost}><Sliders className="h-4 w-4" /> Re-configure in Builder</button>
             </div>
           </article>
         );
       })}
-      {role === "b2c" && (
-        <section className={`${card} p-5`} aria-labelledby="posts-title">
-          <h3 id="posts-title" className="font-semibold text-zinc-50">Your community posts</h3>
-          <ul className="mt-3 divide-y divide-zinc-800">
-            {d.posts.map(([title, likes, comments, days]) => <li key={title} className="flex flex-wrap items-center gap-3 py-2.5 text-sm"><span className="min-w-0 flex-1 text-zinc-100">{title}</span><span className="text-xs tabular-nums text-zinc-500">{likes} upvotes, {comments} comments, {days} d ago</span></li>)}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }
 
 function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onDone }) {
+  if (!d.certs.length) {
+    return (
+      <section className={`${card} p-6 text-center`}>
+        <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">No QC certificates yet.</p>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Certificates for your units will appear here when available.</p>
+      </section>
+    );
+  }
   const c = d.certs.find((x) => x.serial === selected) || d.certs[0];
   const left = daysLeft(c);
   const total = c.months * 30;
@@ -460,9 +362,9 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
             const dl = daysLeft(x);
             return (
               <li key={x.serial}>
-                <button type="button" aria-pressed={x.serial === c.serial} onClick={() => setSelected(x.serial)} className={`w-full rounded-xl border p-3 text-left ${focusRing} ${x.serial === c.serial ? "border-cyan-400/60 bg-cyan-400/10" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"}`}>
-                  <span className="block text-xs tabular-nums text-cyan-300">{x.serial}</span>
-                  <span className="block text-sm text-zinc-100">{x.name}</span>
+                <button type="button" aria-pressed={x.serial === c.serial} onClick={() => setSelected(x.serial)} className={`w-full rounded-xl border p-3 text-left ${focusRing} ${x.serial === c.serial ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
+                  <span className="block text-xs tabular-nums text-cyan-700 dark:text-cyan-300">{x.serial}</span>
+                  <span className="block text-sm text-zinc-900 dark:text-zinc-100">{x.name}</span>
                   <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">{x.units} {x.units > 1 ? "units" : "unit"}{x.assignee && <>, {x.assignee}</>}
                     {dl === null ? <Chip>Warranty starts on delivery</Chip> : dl <= 0 ? <Chip tone="amber">Warranty ended</Chip> : <Chip tone={dl <= 60 ? "amber" : "emerald"}>{dl} days of warranty left</Chip>}
                   </span>
@@ -474,20 +376,20 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
 
         <section className={`${card} p-5 xl:col-span-3`} aria-label="Certificate details">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h3 className="font-semibold text-zinc-50">{c.name}</h3><p className="text-sm tabular-nums text-cyan-300">{c.serial}{c.units > 1 ? ` and ${c.units - 1} more serials in this batch` : ""}</p></div>
+            <div><h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{c.name}</h3><p className="text-sm tabular-nums text-cyan-700 dark:text-cyan-300">{c.serial}{c.units > 1 ? ` and ${c.units - 1} more serials in this batch` : ""}</p></div>
             <Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> 15 of 15 Pass</Chip>
           </div>
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-            {[["Tested", fmtDate(ago(c.tested))], ["Technician sign-off", `${c.techId}, ${c.tech}`], ["Units covered", c.units], [role === "b2s" ? "Lab or room" : "Assigned to", c.assignee || "You"]].map(([k, v]) => <div key={k} className="rounded-lg bg-zinc-950/60 p-2.5"><dt className="text-xs text-zinc-500">{k}</dt><dd className="text-zinc-100">{v}</dd></div>)}
+            {[["Tested", fmtDate(ago(c.tested))], ["Technician sign-off", `${c.techId}, ${c.tech}`], ["Units covered", c.units], [role === "b2s" ? "Lab or room" : "Assigned to", c.assignee || "You"]].map(([k, v]) => <div key={k} className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2.5"><dt className="text-xs text-zinc-500">{k}</dt><dd className="text-zinc-900 dark:text-zinc-100">{v}</dd></div>)}
           </dl>
           <div className="mt-4">
-            <div className="flex justify-between text-sm"><span className="text-zinc-400">Warranty</span><span className={tone}>{left === null ? "Starts when the order is delivered" : left <= 0 ? "Ended" : `${left} days left, ends ${fmtDate(warrantyEnd(c))}`}</span></div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-800"><div className={`h-full rounded-full ${left !== null && left <= 60 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width: `${left === null ? 100 : Math.max(0, Math.min(100, (left / total) * 100))}%` }} /></div>
+            <div className="flex justify-between text-sm"><span className="text-zinc-600 dark:text-zinc-400">Warranty</span><span className={tone}>{left === null ? "Starts when the order is delivered" : left <= 0 ? "Ended" : `${left} days left, ends ${fmtDate(warrantyEnd(c))}`}</span></div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full ${left !== null && left <= 60 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width: `${left === null ? 100 : Math.max(0, Math.min(100, (left / total) * 100))}%` }} /></div>
           </div>
-          <h4 className="mb-2 mt-5 text-sm font-medium text-zinc-300">15-point inspection</h4>
-          <ul className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">{CHECKS.map((k) => <li key={k} className="flex items-center gap-2 text-sm text-zinc-300"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" /> {k}</li>)}</ul>
+          <h4 className="mb-2 mt-5 text-sm font-medium text-zinc-700 dark:text-zinc-300">15-point inspection</h4>
+          <ul className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">{CHECKS.map((k) => <li key={k} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> {k}</li>)}</ul>
           <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" onClick={() => onReport(c)} className={`${btn} bg-cyan-400 font-medium text-zinc-950 hover:bg-cyan-300`}><FileText className="h-4 w-4" /> Download report (PDF)</button>
+            <button type="button" onClick={() => onReport(c)} className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><FileText className="h-4 w-4" /> Download report (PDF)</button>
             <button type="button" onClick={() => onLink(c)} className={ghost}>Copy verification link</button>
           </div>
         </section>
@@ -495,15 +397,15 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
 
       {role === "b2s" && (
         <section className={`${card} p-5`} aria-labelledby="maint-title">
-          <h3 id="maint-title" className="flex items-center gap-2 font-semibold text-zinc-50"><Clock className="h-4 w-4 text-amber-400" /> Maintenance schedule</h3>
+          <h3 id="maint-title" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50"><Clock className="h-4 w-4 text-amber-700 dark:text-amber-400" /> Maintenance schedule</h3>
           <ul className="mt-3 divide-y divide-zinc-800">
             {d.maintenance.map(([id, title, where, due]) => {
               const done = store.done[id];
               return (
                 <li key={id} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
-                  <span className="min-w-0 flex-1"><span className={`block ${done ? "text-zinc-500 line-through" : "text-zinc-100"}`}>{title}</span><span className="text-xs text-zinc-500">{where}, due {fmtDate(later(due))}</span></span>
+                  <span className="min-w-0 flex-1"><span className={`block ${done ? "text-zinc-500 line-through" : "text-zinc-900 dark:text-zinc-100"}`}>{title}</span><span className="text-xs text-zinc-500">{where}, due {fmtDate(later(due))}</span></span>
                   {!done && due <= 14 && <Chip tone="amber">Due in {due} days</Chip>}
-                  <button type="button" aria-pressed={!!done} onClick={() => onDone(id)} className={`${ghost} py-1.5`}>{done ? <><CheckCircle2 className="h-4 w-4 text-emerald-400" /> Done</> : "Mark done"}</button>
+                  <button type="button" aria-pressed={!!done} onClick={() => onDone(id)} className={`${ghost} py-1.5`}>{done ? <><CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Done</> : "Mark done"}</button>
                 </li>
               );
             })}
@@ -528,7 +430,7 @@ function AddressForm({ onAdd }) {
       <input aria-label="Address label" value={f.label} onChange={(e) => setF({ ...f, label: e.target.value })} placeholder="Label, e.g. Warehouse" className={inputCls} />
       <select aria-label="City or hub" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} className={inputCls}>{CITIES.map((c) => <option key={c}>{c}</option>)}</select>
       <input aria-label="Street line" value={f.line} onChange={(e) => setF({ ...f, line: e.target.value })} placeholder="Street and number" className={inputCls} />
-      <div className="flex items-center gap-3 sm:col-span-3"><button type="submit" className={ghost}><Plus className="h-4 w-4" /> Add address</button>{err && <p role="alert" className="text-sm text-red-400">{err}</p>}</div>
+      <div className="flex items-center gap-3 sm:col-span-3"><button type="submit" className={ghost}><Plus className="h-4 w-4" /> Add address</button>{err && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{err}</p>}</div>
     </form>
   );
 }
@@ -539,7 +441,7 @@ function ApiKeys({ role, rs, patch, flash }) {
   const [fresh, setFresh] = useState(null);
   const [err, setErr] = useState("");
   if (role === "b2c") {
-    return <p className="mt-3 rounded-lg border border-dashed border-zinc-700 p-4 text-sm text-zinc-400">API keys for automated procurement are available on B2B and B2S accounts. Switch the role to try the generator.</p>;
+    return <p className="mt-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 p-4 text-sm text-zinc-600 dark:text-zinc-400">API keys for automated procurement are available on B2B and B2S accounts. Switch the role to try the generator.</p>;
   }
   const create = (e) => {
     e.preventDefault();
@@ -555,22 +457,22 @@ function ApiKeys({ role, rs, patch, flash }) {
       <form onSubmit={create} className="space-y-3">
         <input aria-label="API key name" value={name} onChange={(e) => { setName(e.target.value); setErr(""); }} placeholder="Key name, e.g. ERP procurement hook" className={inputCls} />
         <fieldset className="flex flex-wrap gap-2"><legend className="sr-only">Scopes</legend>
-          {SCOPES.map((s) => { const on = scopes.includes(s); return <label key={s} className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${on ? "border-cyan-400/60 bg-cyan-400/10 text-cyan-300" : "border-zinc-700 text-zinc-400"}`}><input type="checkbox" className="sr-only" checked={on} onChange={() => setScopes((l) => (on ? l.filter((x) => x !== s) : [...l, s]))} />{s}</label>; })}
+          {SCOPES.map((s) => { const on = scopes.includes(s); return <label key={s} className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300" : "border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"}`}><input type="checkbox" className="sr-only" checked={on} onChange={() => setScopes((l) => (on ? l.filter((x) => x !== s) : [...l, s]))} />{s}</label>; })}
         </fieldset>
-        <div className="flex flex-wrap items-center gap-3"><button type="submit" className={`${btn} bg-cyan-400 font-medium text-zinc-950 hover:bg-cyan-300`}><Plus className="h-4 w-4" /> Generate API key</button>{err && <p role="alert" className="text-sm text-red-400">{err}</p>}</div>
+        <div className="flex flex-wrap items-center gap-3"><button type="submit" className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><Plus className="h-4 w-4" /> Generate API key</button>{err && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{err}</p>}</div>
       </form>
       {fresh && (
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3" role="status">
-          <p className="text-sm font-medium text-amber-200">Copy this key now. It will not be shown again.</p>
-          <code className="mt-2 block break-all rounded bg-zinc-950 p-2 text-xs text-emerald-300">{fresh}</code>
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Copy this key now. It will not be shown again.</p>
+          <code className="mt-2 block break-all rounded bg-white dark:bg-zinc-950 p-2 text-xs text-emerald-700 dark:text-emerald-300">{fresh}</code>
           <div className="mt-2 flex gap-2"><button type="button" onClick={copy} className={`${ghost} py-1.5`}>Copy key</button><button type="button" onClick={() => setFresh(null)} className={`${ghost} py-1.5`}>I saved it</button></div>
         </div>
       )}
-      <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+      <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-800">
         {rs.keys.length === 0 && <li className="p-3 text-sm text-zinc-500">No keys yet.</li>}
         {rs.keys.map((k) => (
           <li key={k.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
-            <span className="min-w-0 flex-1"><span className="block text-zinc-100">{k.name}</span><span className="text-xs text-zinc-500">vt_live_••••{k.last4}, created {fmtDate(k.created)}, {k.scopes.join(", ")}</span></span>
+            <span className="min-w-0 flex-1"><span className="block text-zinc-900 dark:text-zinc-100">{k.name}</span><span className="text-xs text-zinc-500">vt_live_••••{k.last4}, created {fmtDate(k.created)}, {k.scopes.join(", ")}</span></span>
             <button type="button" onClick={() => patch((s) => ({ ...s, keys: s.keys.filter((x) => x.id !== k.id) }))} className={`${ghost} py-1.5`}>Revoke</button>
           </li>
         ))}
@@ -580,11 +482,223 @@ function ApiKeys({ role, rs, patch, flash }) {
   );
 }
 
-function SettingsTab({ role, rs, patch, flash }) {
+function ProfileIdentity({ user }) {
+  const [username, setUsername] = useState(user?.user_metadata?.username || "");
+  const [displayName, setDisplayName] = useState(
+    user?.user_metadata?.full_name || getUserDisplayName(user)
+  );
+  const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || "");
+  const [bio, setBio] = useState(user?.user_metadata?.bio || "");
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    setUsername(user?.user_metadata?.username || "");
+    setDisplayName(user?.user_metadata?.full_name || getUserDisplayName(user));
+    setAvatarUrl(user?.user_metadata?.avatar_url || "");
+    setBio(user?.user_metadata?.bio || "");
+    setMessage("");
+
+    if (!user?.id) return () => { active = false; };
+
+    try {
+      getSupabaseBrowserClient()
+        .from("profiles")
+        .select("username, display_name, full_name, avatar_url, bio")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (!active) return;
+          if (error) {
+            setMessage(`Could not load your saved profile: ${error.message}`);
+            return;
+          }
+          if (data) {
+            setUsername(data.username || user?.user_metadata?.username || "");
+            setDisplayName(data.full_name || data.display_name || user?.user_metadata?.full_name || getUserDisplayName(user));
+            setAvatarUrl(data.avatar_url || user?.user_metadata?.avatar_url || "");
+            setBio(data.bio || user?.user_metadata?.bio || "");
+          }
+        })
+        .catch((error) => {
+          if (active) setMessage(`Could not load your saved profile: ${error.message}`);
+        });
+    } catch (error) {
+      setMessage(`Could not load your saved profile: ${error.message}`);
+    }
+
+    return () => { active = false; };
+  }, [user]);
+
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    const normalizedUsername = username.trim();
+    const normalizedDisplayName = displayName.trim();
+    const normalizedAvatarUrl = avatarUrl.trim();
+    const normalizedBio = bio.trim();
+    if (!/^[a-z0-9]{3,20}$/.test(normalizedUsername)) {
+      setMessage("Username must be 3–20 characters and contain only lowercase letters and numbers.");
+      return;
+    }
+    if (!normalizedDisplayName || normalizedDisplayName.length > 80) {
+      setMessage("Display name is required and must be 80 characters or fewer.");
+      return;
+    }
+    if (normalizedBio.length > 500) {
+      setMessage("Bio must be 500 characters or fewer.");
+      return;
+    }
+    if (normalizedAvatarUrl) {
+      try {
+        if (new URL(normalizedAvatarUrl).protocol !== "https:") throw new Error();
+      } catch {
+        setMessage("Avatar URL must be a valid HTTPS URL.");
+        return;
+      }
+    }
+    if (!user?.id) {
+      setMessage("You must be signed in to update your profile.");
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage("");
+    try {
+      const client = getSupabaseBrowserClient();
+      const { data: previousProfile, error: readError } = await client
+        .from("profiles")
+        .select("username, display_name, full_name, avatar_url, bio")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (readError) throw new Error(`Could not verify the current profile: ${readError.message}`);
+
+      const { error: saveError } = await client.from("profiles").upsert(
+        {
+          id: user.id,
+          username: normalizedUsername,
+          display_name: normalizedDisplayName,
+          full_name: normalizedDisplayName,
+          avatar_url: normalizedAvatarUrl || null,
+          bio: normalizedBio || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+      if (saveError) {
+        if (saveError.code === "23505") throw new Error("That username is already taken. Choose another one.");
+        throw new Error(`Could not save your profile: ${saveError.message}`);
+      }
+
+      const { error: authError } = await client.auth.updateUser({
+        data: {
+          username: normalizedUsername,
+          full_name: normalizedDisplayName,
+          avatar_url: normalizedAvatarUrl || null,
+          bio: normalizedBio || null,
+        },
+      });
+      if (authError) {
+        const rollback = previousProfile
+          ? await client.from("profiles").upsert(
+              { id: user.id, ...previousProfile, updated_at: new Date().toISOString() },
+              { onConflict: "id" }
+            )
+          : await client.from("profiles").delete().eq("id", user.id);
+        if (rollback.error) {
+          throw new Error(
+            `Auth metadata update failed: ${authError.message}. Profile rollback also failed: ${rollback.error.message}`
+          );
+        }
+        throw new Error(`Auth metadata update failed: ${authError.message}`);
+      }
+
+      setUsername(normalizedUsername);
+      setDisplayName(normalizedDisplayName);
+      setAvatarUrl(normalizedAvatarUrl);
+      setBio(normalizedBio);
+      setMessage("Profile saved. Your account and navbar identity are updated.");
+    } catch (error) {
+      setMessage(error.message || "Could not save your profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <section className={`${card} p-5`} aria-labelledby="identity-title">
+      <h3 id="identity-title" className="font-semibold text-zinc-900 dark:text-zinc-50">Profile &amp; Identity</h3>
+      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Choose the username and display name shown across ViciTech.</p>
+      <form onSubmit={saveProfile} className="mt-4 space-y-4">
+        <label className="block text-sm text-zinc-700 dark:text-zinc-300">
+          Username
+          <span className="mt-1.5 flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 focus-within:border-emerald-600/60 dark:focus-within:border-emerald-400/60">
+            <span className="text-zinc-500">@</span>
+            <input
+              type="text"
+              name="username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+              autoComplete="username"
+              maxLength={20}
+              pattern="[a-z0-9]{3,20}"
+              required
+              aria-describedby="username-help"
+              className="w-full bg-transparent px-2 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none"
+            />
+          </span>
+          <span id="username-help" className="mt-1 block text-xs text-zinc-500">3–20 lowercase letters or numbers. Usernames must be unique.</span>
+        </label>
+        <label className="block text-sm text-zinc-700 dark:text-zinc-300">
+          Display name
+          <input
+            type="text"
+            name="displayName"
+            value={displayName}
+            onChange={(event) => setDisplayName(event.target.value)}
+            autoComplete="name"
+            maxLength={80}
+            required
+            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+          />
+        </label>
+        <label className="block text-sm text-zinc-700 dark:text-zinc-300">
+          Avatar image URL
+          <input
+            type="url"
+            name="avatarUrl"
+            value={avatarUrl}
+            onChange={(event) => setAvatarUrl(event.target.value)}
+            placeholder="https://example.com/avatar.png"
+            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+          />
+        </label>
+        <label className="block text-sm text-zinc-700 dark:text-zinc-300">
+          Public bio
+          <textarea
+            name="bio"
+            value={bio}
+            onChange={(event) => setBio(event.target.value)}
+            maxLength={500}
+            rows={3}
+            className="mt-1.5 w-full resize-y rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+          />
+        </label>
+        <button type="submit" disabled={isSaving} className={`${ghost} disabled:cursor-wait disabled:opacity-60`}>
+          {isSaving ? "Saving profile…" : "Save profile"}
+        </button>
+        {message && <p role="status" aria-live="polite" className="text-sm text-cyan-800 dark:text-cyan-200">{message}</p>}
+      </form>
+    </section>
+  );
+}
+
+function SettingsTab({ role, rs, patch, flash, user }) {
   return (
     <div className="space-y-4">
+      <ProfileIdentity user={user} />
       <section className={`${card} p-5`} aria-labelledby="sec-title">
-        <h3 id="sec-title" className="font-semibold text-zinc-50">Account security</h3>
+        <h3 id="sec-title" className="font-semibold text-zinc-900 dark:text-zinc-50">Account security</h3>
         <div className="divide-y divide-zinc-800">
           <Switch on={rs.prefs.twoFactor} onChange={(v) => patch((s) => ({ ...s, prefs: { ...s.prefs, twoFactor: v } }))} label="Two-factor authentication" hint="Ask for a one-time code when you sign in." />
           <Switch on={rs.prefs.alerts} onChange={(v) => patch((s) => ({ ...s, prefs: { ...s.prefs, alerts: v } }))} label="Sign-in alerts" hint="Email me when a new device signs in." />
@@ -593,15 +707,15 @@ function SettingsTab({ role, rs, patch, flash }) {
       </section>
 
       <section className={`${card} p-5`} aria-labelledby="addr-title">
-        <h3 id="addr-title" className="font-semibold text-zinc-50">Shipping addresses</h3>
+        <h3 id="addr-title" className="font-semibold text-zinc-900 dark:text-zinc-50">Shipping addresses</h3>
         <ul className="mt-3 space-y-2" role="radiogroup" aria-label="Default shipping address">
           {rs.addresses.map((a) => {
             const on = rs.defaultAddr === a.id;
             return (
-              <li key={a.id} className={`flex items-start gap-3 rounded-lg border p-3 ${on ? "border-cyan-400/50 bg-cyan-400/5" : "border-zinc-800"}`}>
-                <button type="button" role="radio" aria-checked={on} aria-label={`Use ${a.label} as default`} onClick={() => patch((s) => ({ ...s, defaultAddr: a.id }))} className={`mt-1 h-4 w-4 shrink-0 rounded-full border ${focusRing} ${on ? "border-cyan-400 bg-cyan-400" : "border-zinc-600"}`} />
-                <div className="min-w-0 flex-1 text-sm"><p className="text-zinc-100">{a.label} {on && <Chip tone="cyan">Default</Chip>}</p><p className="text-xs text-zinc-500">{a.line}, {a.city}</p></div>
-                {!on && <button type="button" aria-label={`Remove ${a.label}`} onClick={() => patch((s) => ({ ...s, addresses: s.addresses.filter((x) => x.id !== a.id) }))} className={`rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>}
+              <li key={a.id} className={`flex items-start gap-3 rounded-lg border p-3 ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/5 dark:bg-emerald-400/5" : "border-zinc-200 dark:border-zinc-800"}`}>
+                <button type="button" role="radio" aria-checked={on} aria-label={`Use ${a.label} as default`} onClick={() => patch((s) => ({ ...s, defaultAddr: a.id }))} className={`mt-1 h-4 w-4 shrink-0 rounded-full border ${focusRing} ${on ? "border-emerald-600 dark:border-emerald-400 bg-emerald-600 dark:bg-emerald-400" : "border-zinc-200 dark:border-zinc-600"}`} />
+                <div className="min-w-0 flex-1 text-sm"><p className="text-zinc-900 dark:text-zinc-100">{a.label} {on && <Chip tone="cyan">Default</Chip>}</p><p className="text-xs text-zinc-500">{a.line}, {a.city}</p></div>
+                {!on && <button type="button" aria-label={`Remove ${a.label}`} onClick={() => patch((s) => ({ ...s, addresses: s.addresses.filter((x) => x.id !== a.id) }))} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>}
               </li>
             );
           })}
@@ -610,8 +724,8 @@ function SettingsTab({ role, rs, patch, flash }) {
       </section>
 
       <section className={`${card} p-5`} aria-labelledby="api-title">
-        <h3 id="api-title" className="flex items-center gap-2 font-semibold text-zinc-50"><Settings className="h-4 w-4 text-cyan-400" /> Enterprise integration</h3>
-        <p className="text-sm text-zinc-400">Create API keys so your ERP or procurement tool can place pre-orders and read QC certificates.</p>
+        <h3 id="api-title" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50"><Settings className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Enterprise integration</h3>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">Create API keys so your ERP or procurement tool can place pre-orders and read QC certificates.</p>
         <ApiKeys role={role} rs={rs} patch={patch} flash={flash} />
       </section>
     </div>
@@ -620,36 +734,30 @@ function SettingsTab({ role, rs, patch, flash }) {
 
 /* ───────────────────────── Sidebar ───────────────────────── */
 
-function Sidebar({ m, role, d }) {
-  const r = 26, len = 2 * Math.PI * r;
+function Sidebar({ orders, presets, ordersLoading, ordersError, presetsLoading }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start" aria-label="Account summary">
+    <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Account summary">
       <section className={`${card} p-5`}>
-        <h2 className="text-base font-semibold text-zinc-50">Account impact</h2>
-        <div className="mt-4 space-y-5">
-          <div className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-emerald-400/30 bg-emerald-400/10 text-emerald-400"><RefreshCw className="h-4 w-4" /></span><div><p className="text-xs text-zinc-500">Total savings from circular economy</p><p className="text-xl font-semibold tabular-nums text-emerald-400">{idr(m.savings)}</p><p className="text-xs text-zinc-500">Compared with original retail prices</p></div></div>
-          <div className="flex items-center gap-3">
-            <svg viewBox="0 0 64 64" className="h-16 w-16 shrink-0 -rotate-90" role="img" aria-label={`Offset score ${m.score} out of 100`}>
-              <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" className="stroke-zinc-800" />
-              <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${(len * m.score) / 100} ${len}`} className="stroke-cyan-400 transition-all duration-500" />
-              <text x="32" y="32" textAnchor="middle" dominantBaseline="central" fontSize="16" fontWeight="600" className="fill-zinc-50" transform="rotate(90 32 32)">{m.score}</text>
-            </svg>
-            <div><p className="flex items-center gap-1.5 text-xs text-zinc-500"><Leaf className="h-3.5 w-3.5 text-emerald-400" /> Carbon and e-waste offset score</p><p className="text-sm tabular-nums text-zinc-200">{num(m.co2)} kg CO₂e avoided</p><p className="text-sm tabular-nums text-zinc-200">{num(m.ewaste)} kg e-waste diverted</p><p className="text-xs text-zinc-600">Score against a yearly target of {num(ROLES[role].target)} kg</p></div>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Account overview</h2>
+        <dl className="mt-4 space-y-3">
+          <div className="flex items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+            <dt className="text-sm text-zinc-600 dark:text-zinc-400">Orders</dt>
+            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{ordersLoading ? "Loading" : ordersError ? "Unavailable" : orders.length}</dd>
           </div>
-          <div className="flex gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-300"><ShieldCheck className="h-4 w-4" /></span><div><p className="text-xs text-zinc-500">Active warranties remaining</p><p className="text-xl font-semibold tabular-nums text-zinc-50">{m.warrantyUnits} {m.warrantyUnits === 1 ? "unit" : "units"}</p><p className="text-xs text-zinc-500">{m.next ? `Next ends in ${daysLeft(m.next)} days: ${m.next.name}` : "No active warranties yet"}</p></div></div>
-        </div>
-      </section>
-      <section className={`${card} p-5`}>
-        <h2 className="text-base font-semibold text-zinc-50">Recent activity</h2>
-        <ul className="mt-3 space-y-3">{d.activity.map(([text, h]) => <li key={text} className="flex gap-2.5 text-sm"><Clock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" /><span><span className="block text-zinc-300">{text}</span><span className="text-xs text-zinc-500">{rel(h)}</span></span></li>)}</ul>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-sm text-zinc-600 dark:text-zinc-400">Saved presets</dt>
+            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{presetsLoading ? "Loading" : presets.length}</dd>
+          </div>
+        </dl>
+        <p className="mt-4 text-xs leading-relaxed text-zinc-500">Order totals and saved presets reflect records associated with your account.</p>
       </section>
     </aside>
   );
 }
 
-/* ───────────────────────── Page ───────────────────────── */
+/* ------------------------- Page ------------------------- */
 
-export default function AccountDashboard({ initialRole = "b2c", role: controlledRole, onRoleChange, onNavigate, onReconfigure, onSignOut }) {
+function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, onRoleChange, onNavigate, onReconfigure, onSignOut, user }) {
   const [localRole, setLocalRole] = useState(initialRole);
   const role = controlledRole ?? localRole; // controlled when the shell passes `role`
   const [tab, setTab] = useState("orders");
@@ -657,31 +765,77 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
   const [selectedCert, setSelectedCert] = useState(null);
   const [toast, setToast] = useState("");
   const [liveOrders, setLiveOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState("");
   const [userPresets, setUserPresets] = useState([]);
+  const [presetsLoading, setPresetsLoading] = useState(true);
 
-  const profile = ROLES[role];
-  const d = DATA[role];
+  const profile = {
+    ...ROLES[role],
+    name: getUserDisplayName(user),
+    email: user?.email || "",
+    org: getUserOrganization(user),
+  };
+  const d = EMPTY_ACCOUNT_DATA;
   const rs = store[role];
-  const m = useMemo(() => summarize(role, d, rs), [role, d, rs]);
-  const focus = useMemo(() => focusCards(role, d, m, rs), [role, d, m, rs]);
+  const focus = useMemo(() => focusCards(userPresets, presetsLoading), [userPresets, presetsLoading]);
 
   useEffect(() => {
     let ignore = false;
-    listMyOrders({ role }).then((orders) => {
-      if (!ignore && orders) setLiveOrders(orders);
-    });
-    setUserPresets(listUserPresets(role));
+    if (!user?.id) {
+      setLiveOrders([]);
+      setOrdersError("");
+      setOrdersLoading(false);
+      setUserPresets([]);
+      setPresetsLoading(false);
+      return undefined;
+    }
+
+    const loadOrders = () => {
+      setOrdersLoading(true);
+      setOrdersError("");
+      return listMyOrders({ userId: user.id })
+        .then((orders) => {
+          if (!ignore) setLiveOrders(orders);
+        })
+        .catch((error) => {
+          if (!ignore) {
+            setLiveOrders([]);
+            setOrdersError(error.message || "Could not load your orders.");
+          }
+        })
+        .finally(() => {
+          if (!ignore) setOrdersLoading(false);
+        });
+    };
+    void loadOrders();
+
+    const loadPresets = () => {
+      setPresetsLoading(true);
+      return listUserPresets(user.id)
+        .then((presets) => {
+          if (!ignore) setUserPresets(presets);
+        })
+        .catch((error) => {
+          if (!ignore) {
+            setUserPresets([]);
+            setToast(`Could not load saved presets: ${error.message}`);
+          }
+        })
+        .finally(() => {
+          if (!ignore) setPresetsLoading(false);
+        });
+    };
+    void loadPresets();
 
     const onOrderCreated = (e) => {
-      if (e.detail) {
-        setLiveOrders((prev) => [e.detail, ...prev.filter((x) => x.id !== e.detail.id)]);
-        flash(`Order ${e.detail.id} recorded & synchronized.`);
+      if (e.detail?.user_id === user.id) {
+        void loadOrders();
       }
     };
     const onPresetSaved = (e) => {
-      if (e.detail) {
-        setUserPresets((prev) => [e.detail, ...prev.filter((x) => x.id !== e.detail.id)]);
-        flash(`Preset ${e.detail.name} saved to account.`);
+      if (e.detail?.user_id === user.id) {
+        void loadPresets();
       }
     };
 
@@ -692,7 +846,7 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
       window.removeEventListener("vicitech:order_created", onOrderCreated);
       window.removeEventListener("vicitech:preset_saved", onPresetSaved);
     };
-  }, [role]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!toast) return;
@@ -704,7 +858,6 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
   const flash = (msg) => setToast(msg);
   const changeRole = (r) => (onRoleChange ? onRoleChange(r) : setLocalRole(r));
   useEffect(() => { setSelectedCert(null); setToast(""); }, [role]);
-  const openCert = (serial) => { setSelectedCert(serial); setTab("certs"); };
   const canReconfigure = !!(onReconfigure || onNavigate);
 
   const exportProposal = (p) => {
@@ -720,10 +873,6 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
     if (onReconfigure) onReconfigure(p);
     else if (onNavigate) onNavigate("builder", p);
   };
-  const exportInvoice = (i) => {
-    saveBlob(makePdf(["VICITECH INVOICE SUMMARY (SAMPLE)", "", `Invoice: ${i.no}`, `Order: ${i.ref}`, `Billed to: ${profile.org || profile.name}`, `Amount: ${idr(i.amount)}`, `Status: ${i.status}`, "", "This summary is sample data. The official tax invoice is issued by the ViciTech finance team."]), `${i.no}.pdf`);
-    flash(`Summary for ${i.no} downloaded.`);
-  };
   const certHash = (c) => sha256Hex(JSON.stringify({ serial: c.serial, tech: c.techId, checks: 15, result: "PASS" }));
   const exportReport = async (c) => {
     const hash = await certHash(c);
@@ -736,10 +885,10 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
   };
 
   const tabs = [
-    { id: "orders", label: "Active Orders & Pre-Orders", short: "Orders", icon: Package, count: (m.activeOrders + liveOrders.length) },
-    { id: "trade", label: "Trade-In & Buyback Status", short: "Trade-In", icon: RefreshCw, count: d.trades.length },
-    { id: "presets", label: "Saved Presets & Configurations", short: "Presets", icon: Sliders, count: d.presets.length + userPresets.length },
-    { id: "certs", label: "IoT QC Certificates Vault", short: "QC Vault", icon: ShieldCheck, count: d.certs.length },
+    { id: "orders", label: "Orders & Pre-Orders", short: "Orders", icon: Package, count: ordersLoading || ordersError ? undefined : liveOrders.length },
+    { id: "trade", label: "Trade-In & Buyback Status", short: "Trade-In", icon: RefreshCw },
+    { id: "presets", label: "Saved Presets & Configurations", short: "Presets", icon: Sliders, count: presetsLoading ? undefined : userPresets.length },
+    { id: "certs", label: "IoT QC Certificates Vault", short: "QC Vault", icon: ShieldCheck },
     { id: "settings", label: "Settings & Enterprise Integration", short: "Settings", icon: Settings },
   ];
   const onTabKey = (e) => {
@@ -748,15 +897,15 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
     if (next === null) return;
     e.preventDefault(); setTab(tabs[next].id); document.getElementById(`tab-${tabs[next].id}`)?.focus();
   };
-  const initials = profile.name.split(" ").map((w) => w[0]).join("");
+  const initials = getUserInitials(user);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
-      <header className="border-b border-zinc-800 bg-zinc-950/90">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-300">My Account</span>
+          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">My Account</span>
         </div>
       </header>
 
@@ -764,11 +913,11 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
         {/* Profile header */}
         <section className={`${card} p-5`} aria-label="Profile">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-cyan-400/40 bg-cyan-400/10 text-xl font-semibold text-cyan-300" aria-hidden="true">{initials}</span>
+            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 text-xl font-semibold text-cyan-700 dark:text-cyan-300" aria-hidden="true">{initials}</span>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight text-zinc-50">{profile.name}</h1><Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> Verified ID</Chip></div>
-              <p className="text-sm text-zinc-400">{profile.email}</p>
-              <p className="text-xs text-zinc-500">{profile.org && `${profile.org}, `}Member since {fmtDate(ago(profile.since))}</p>
+              <div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{profile.name}</h1><Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> Signed in</Chip></div>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">{profile.email}</p>
+              {profile.org && <p className="text-xs text-zinc-500">{profile.org}</p>}
             </div>
             <div className="flex w-full flex-wrap items-end gap-3 sm:w-auto">
               <div><p className="mb-1.5 text-xs text-zinc-500">Viewing as</p><RoleSwitcher role={role} onChange={changeRole} /></div>
@@ -782,9 +931,9 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
           {focus.map((f) => {
             const I = f.icon;
             return (
-              <button key={f.label} type="button" onClick={() => setTab(f.tab)} className={`${card} flex items-center gap-3 p-4 text-left transition-colors hover:border-cyan-400/50 ${focusRing}`}>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-zinc-800 text-cyan-400"><I className="h-5 w-5" /></span>
-                <span className="min-w-0"><span className="block text-xs text-zinc-500">{f.label}</span><span className="block text-lg font-semibold tabular-nums text-zinc-50">{f.value}</span><span className="block truncate text-xs text-zinc-500">{f.sub}</span></span>
+              <button key={f.label} type="button" onClick={() => f.tab === "community" ? onNavigate?.("community") : setTab(f.tab)} className={`${card} flex items-center gap-3 p-4 text-left transition-colors hover:border-emerald-600/50 dark:hover:border-emerald-400/50 ${focusRing}`}>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-cyan-700 dark:text-cyan-400"><I className="h-5 w-5" /></span>
+                <span className="min-w-0"><span className="block text-xs text-zinc-500">{f.label}</span><span className="block text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{f.value}</span><span className="block truncate text-xs text-zinc-500">{f.sub}</span></span>
               </button>
             );
           })}
@@ -792,35 +941,69 @@ export default function AccountDashboard({ initialRole = "b2c", role: controlled
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <div className="min-w-0 space-y-4 lg:col-span-2">
-            <div role="tablist" aria-label="Account sections" onKeyDown={onTabKey} className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/50 p-1.5">
+            <div role="tablist" aria-label="Account sections" onKeyDown={onTabKey} className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-1.5">
               {tabs.map((t) => {
                 const I = t.icon, on = tab === t.id;
                 return (
                   <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-label={t.label} title={t.label} aria-selected={on} aria-controls="account-panel" tabIndex={on ? 0 : -1} onClick={() => setTab(t.id)}
-                    className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-all ${focusRing} ${on ? "border-cyan-400/50 bg-cyan-400/10 font-medium text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"}`}>
+                    className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-all ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-700 dark:text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
                     <I className="h-4 w-4" /> {t.short}
-                    {t.count !== undefined && <span className="rounded-full bg-zinc-800 px-1.5 text-xs tabular-nums text-zinc-300">{t.count}</span>}
+                    {t.count !== undefined && <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-1.5 text-xs tabular-nums text-zinc-700 dark:text-zinc-300">{t.count}</span>}
                   </button>
                 );
               })}
             </div>
 
-            <div aria-live="polite" className="min-h-0">{toast && <p className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-300"><CheckCircle2 className="h-4 w-4 shrink-0" /> {toast}</p>}</div>
+            <div aria-live="polite" className="min-h-0">{toast && <p className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4 shrink-0" /> {toast}</p>}</div>
 
             <section id="account-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-              <h2 className="mb-3 text-lg font-semibold text-zinc-50">{tabs.find((t) => t.id === tab).label}</h2>
-              {tab === "orders" && <OrdersTab d={d} role={role} liveOrders={liveOrders} onCert={openCert} onInvoice={exportInvoice} onOpenQc={(s) => onNavigate?.("qc", s)} />}
+              <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">{tabs.find((t) => t.id === tab).label}</h2>
+              {tab === "orders" && <OrdersTab liveOrders={liveOrders} isLoading={ordersLoading} error={ordersError} onNavigate={onNavigate} onOpenQc={(s) => onNavigate?.("qc", s)} />}
               {tab === "trade" && <TradeTab d={d} store={rs} onOffer={(id, v) => { patch((s) => ({ ...s, offers: { ...s.offers, [id]: v } })); flash(v === "accepted" ? "Offer accepted. Payout is being processed." : "Offer declined."); }} onNavigate={onNavigate} />}
-              {tab === "presets" && <PresetsTab d={d} role={role} userPresets={userPresets} onExport={exportProposal} onReconfigure={reconfigure} canReconfigure={canReconfigure} />}
+              {tab === "presets" && <PresetsTab d={d} role={role} userPresets={userPresets} isLoading={presetsLoading} onExport={exportProposal} onReconfigure={reconfigure} canReconfigure={canReconfigure} onNavigate={onNavigate} />}
               {tab === "certs" && <CertsTab d={d} role={role} store={rs} selected={selectedCert} setSelected={setSelectedCert} onReport={exportReport} onLink={copyLink} onDone={(id) => patch((s) => ({ ...s, done: { ...s.done, [id]: !s.done[id] } }))} />}
-              {tab === "settings" && <SettingsTab role={role} rs={rs} patch={patch} flash={flash} />}
+              {tab === "settings" && <SettingsTab role={role} rs={rs} patch={patch} flash={flash} user={user} />}
             </section>
           </div>
-          <Sidebar m={m} role={role} d={d} />
+          <Sidebar orders={liveOrders} presets={userPresets} ordersLoading={ordersLoading} ordersError={ordersError} presetsLoading={presetsLoading} />
         </div>
       </main>
 
-      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample account data for three roles.</footer>
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Account records are scoped to your signed-in profile.</footer>
     </div>
   );
+}
+
+export default function AccountDashboard({ user, isAuthLoading, onNavigate, ...props }) {
+  if (isAuthLoading) {
+    return (
+      <main className="grid min-h-[60vh] place-items-center bg-white dark:bg-zinc-950 px-4 text-zinc-700 dark:text-zinc-300">
+        <p role="status" className="text-sm">Checking your ViciTech account…</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="grid min-h-[60vh] place-items-center bg-white dark:bg-zinc-950 px-4 py-12 text-zinc-900 dark:text-zinc-100">
+        <section className="w-full max-w-lg rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 p-8 text-center shadow-xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Account access</p>
+          <h1 className="mt-3 text-2xl font-semibold">Sign in to view your account</h1>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            Your orders, saved presets, and QC certificates are only available after you sign in.
+            Use the Sign In button in the navigation bar to continue.
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate?.("home")}
+            className="mt-6 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            Return home
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  return <AccountDashboardContent key={user.id} {...props} user={user} onNavigate={onNavigate} />;
 }

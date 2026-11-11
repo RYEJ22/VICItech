@@ -3,6 +3,8 @@ import {
   Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
   CheckCircle2, ShieldCheck, Zap, Plus, FileText, Check, X,
 } from "lucide-react";
+import { useCheckout } from "@/context/CheckoutContext";
+import { listHardwareComponents } from "@/lib/hardware/components";
 
 /* ───────────────────────── Category config ───────────────────────── */
 
@@ -66,7 +68,7 @@ const CATS = {
   },
 };
 const CAT_ORDER = ["phones", "laptops", "pc", "peripherals"];
-const COND_LABEL = { new: "New", refurb: "Recertified Grade A+" };
+const COND_LABEL = { new: "New", refurb: "Recertified Grade A+", used: "Used" };
 
 /* ───────────────────────── Sample catalog ───────────────────────── */
 
@@ -112,17 +114,11 @@ const PRODUCTS = [
   hay: `${p.brand} ${p.name} ${p.type} ${COND_LABEL[p.cond]} ${CATS[p.cat].short} ${Object.values(p.specs).join(" ")}`.toLowerCase(),
 }));
 
-const BY_ID = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
 const STEP = 500000;
 const BOUNDS = Object.fromEntries(CAT_ORDER.map((k) => {
   const prices = PRODUCTS.filter((p) => p.cat === k).map((p) => p.price);
   return [k, { min: Math.floor(Math.min(...prices) / STEP) * STEP, max: Math.ceil(Math.max(...prices) / STEP) * STEP }];
 }));
-const OPTIONS = Object.fromEntries(CAT_ORDER.map((k) => {
-  const items = PRODUCTS.filter((p) => p.cat === k);
-  return [k, { brands: [...new Set(items.map((p) => p.brand))].sort(), types: [...new Set(items.map((p) => p.type))].sort() }];
-}));
-
 /* ───────────────────────── Helpers ───────────────────────── */
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
@@ -144,7 +140,7 @@ function Overlay({ label, onClose, side = "right", children }) {
   return (
     <div className={`fixed inset-0 z-50 flex bg-black/70 ${right ? "justify-end" : "items-end justify-center sm:items-center sm:p-6"}`} onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}
-        className={right ? "flex h-full w-full max-w-md flex-col border-l border-zinc-800 bg-zinc-950" : "flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl border border-zinc-800 bg-zinc-950 sm:rounded-2xl"}>
+        className={right ? "flex h-full w-full max-w-md flex-col border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950" : "flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sm:rounded-2xl"}>
         {children}
       </div>
     </div>
@@ -153,68 +149,84 @@ function Overlay({ label, onClose, side = "right", children }) {
 
 function OverlayHeader({ title, subtitle, onClose }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-zinc-800 p-5">
-      <div><h2 className="text-lg font-semibold text-zinc-50">{title}</h2>{subtitle && <p className="text-sm text-zinc-400">{subtitle}</p>}</div>
-      <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+    <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5">
+      <div><h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>{subtitle && <p className="text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>}</div>
+      <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
     </div>
   );
 }
 
 function CondBadge({ cond }) {
+  if (cond === "used") {
+    return <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">Used</span>;
+  }
   return cond === "refurb" ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
   ) : (
-    <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-300">New</span>
+    <span className="inline-flex rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300">New</span>
   );
 }
 
-const Delta = ({ d }) => <span className={`text-xs tabular-nums ${d < 0 ? "text-emerald-400" : "text-yellow-400"}`}>{d > 0 ? "+" : ""}{d.toFixed(1)}% in 7 days</span>;
+const Delta = ({ d }) => <span className={`text-xs tabular-nums ${d < 0 ? "text-emerald-700 dark:text-emerald-400" : "text-yellow-700 dark:text-yellow-400"}`}>{d > 0 ? "+" : ""}{d.toFixed(1)}% in 7 days</span>;
 
 /* ───────────────────────── Product card ───────────────────────── */
 
 function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet, onBuilder, onUpgrade }) {
+  const { triggerCheckout } = useCheckout();
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
   const secondary = `inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${focusRing}`;
   return (
-    <article className={`flex flex-col rounded-xl border bg-zinc-900/50 p-4 transition-colors ${inCompare ? "border-cyan-400/70 ring-1 ring-cyan-400/30" : "border-zinc-800 hover:border-zinc-700"}`}>
-      <div className="grid h-28 place-items-center rounded-lg border border-zinc-800 bg-zinc-950/70 text-zinc-600" aria-hidden="true"><Icon className="h-10 w-10" /></div>
+    <article className={`flex flex-col rounded-xl border bg-white/50 dark:bg-zinc-900/50 p-4 transition-colors ${inCompare ? "border-emerald-600/70 dark:border-emerald-400/70 ring-1 ring-cyan-400/30" : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
+      <div className="grid h-28 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 text-zinc-600" aria-hidden="true"><Icon className="h-10 w-10" /></div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-xs text-zinc-300">{p.brand}</span>
+        <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-300">{p.brand}</span>
         <CondBadge cond={p.cond} />
         <span className="ml-auto text-xs text-zinc-500">{p.type}</span>
       </div>
-      <h3 className="mt-2 text-base font-semibold leading-snug text-zinc-50">{p.name}</h3>
+      <h3 className="mt-2 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{p.name}</h3>
       <div className="mt-2">
-        <p className="flex items-center gap-1 text-xs text-zinc-500"><Zap className="h-3 w-3 text-cyan-400" /> Live market price index</p>
-        <p className="text-xl font-semibold tabular-nums text-zinc-50">{idr(p.price)}</p>
+        <p className="flex items-center gap-1 text-xs text-zinc-500"><Zap className="h-3 w-3 text-cyan-700 dark:text-cyan-400" /> Live market price index</p>
+        <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(p.price)}</p>
         <Delta d={p.delta} />
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-2">
         {cfg.card.map((key) => {
           const s = cfg.specs.find((x) => x.key === key);
           return (
-            <div key={key} className="rounded-lg bg-zinc-950/60 p-2">
+            <div key={key} className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2">
               <dt className="text-xs text-zinc-500">{specLabel(s)}</dt>
-              <dd className="mt-0.5 text-sm font-medium leading-snug text-zinc-100">{specValue(p, s)}</dd>
+              <dd className="mt-0.5 text-sm font-medium leading-snug text-zinc-900 dark:text-zinc-100">{specValue(p, s)}</dd>
             </div>
           );
         })}
       </dl>
       <div className="mt-auto space-y-2 pt-4">
         <button type="button" aria-pressed={inCompare} disabled={blocked} onClick={() => onCompare(p)} title={blocked ? `Compare up to ${MAX_COMPARE} items` : undefined}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${inCompare ? "border-cyan-400 bg-cyan-400 text-zinc-950" : blocked ? "cursor-not-allowed border-zinc-800 text-zinc-600" : "border-zinc-700 text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300"}`}>
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${inCompare ? "border-emerald-600 dark:border-emerald-400 bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : blocked ? "cursor-not-allowed border-zinc-200 dark:border-zinc-800 text-zinc-600" : "border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300"}`}>
           {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "Added to comparison" : "Add to Side-by-Side Comparison"}
         </button>
-        <div className="flex gap-2">
-          <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} border-zinc-700 text-zinc-300 hover:border-zinc-500`}><FileText className="h-3.5 w-3.5" /> View Full Datasheet</button>
-          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-400" : "border-zinc-700 text-zinc-300 hover:border-emerald-400/60 hover:text-emerald-400"}`}>
+        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-500`}><FileText className="h-3.5 w-3.5" /> View Full Datasheet</button>
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-700 dark:text-emerald-400" : "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-400"}`}>
             {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />} {inBuilder ? "In Preset Builder" : "Add to Preset Builder"}
+          </button>
+          <button
+            type="button"
+            onClick={() => triggerCheckout({
+              title: p.name,
+              price: p.price,
+              type: "direct_buy",
+              specs: p.specs,
+            })}
+            className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-500 dark:bg-emerald-500 px-2 py-2 text-xs font-semibold text-black transition-all hover:bg-emerald-600 dark:hover:bg-emerald-400"
+          >
+            Check Out Now
           </button>
         </div>
         {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
-          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full border-zinc-700 text-zinc-300 hover:border-cyan-400/60 hover:text-cyan-300`}><Zap className="h-3.5 w-3.5" /> Check upgrade potential</button>
+          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300`}><Zap className="h-3.5 w-3.5" /> Check upgrade potential</button>
         )}
       </div>
     </article>
@@ -231,34 +243,34 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
       <OverlayHeader title="Full Datasheet" subtitle={p.name} onClose={onClose} />
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-xs text-zinc-300">{p.brand}</span>
+          <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-300">{p.brand}</span>
           <CondBadge cond={p.cond} />
           <span className="text-xs text-zinc-500">{cfg.short}, {p.type}</span>
         </div>
         <div>
           <p className="text-xs text-zinc-500">Live market price index</p>
-          <p className="text-2xl font-semibold tabular-nums text-zinc-50">{idr(p.price)}</p>
+          <p className="text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(p.price)}</p>
           <Delta d={p.delta} />
         </div>
         <section>
-          <h3 className="mb-2 text-sm font-medium text-zinc-300">All specifications</h3>
-          <dl className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+          <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">All specifications</h3>
+          <dl className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
             {cfg.specs.map((s) => (
-              <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">{s.label}</dt><dd className="col-span-3 text-zinc-100">{specValue(p, s)}</dd></div>
+              <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">{s.label}</dt><dd className="col-span-3 text-zinc-900 dark:text-zinc-100">{specValue(p, s)}</dd></div>
             ))}
-            {hasPerf && <div className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">Performance per Rp 1 juta</dt><dd className="col-span-3 tabular-nums text-emerald-400">{perfPerMillion(p).toFixed(1)}</dd></div>}
+            {hasPerf && <div className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">Performance per Rp 1 juta</dt><dd className="col-span-3 tabular-nums text-emerald-700 dark:text-emerald-400">{perfPerMillion(p).toFixed(1)}</dd></div>}
           </dl>
         </section>
-        <p className="flex gap-2 rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 text-sm text-zinc-400">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-          {p.cond === "refurb" ? "Recertified units pass the 15-point inspection and ship with a 12-month ViciTech warranty." : "Sealed unit with the manufacturer's official warranty."}
+        <p className="flex gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+          {p.cond === "refurb" ? "Recertified units pass the 15-point inspection and ship with a 12-month ViciTech warranty." : p.cond === "used" ? "Pre-owned component; inspect the listed specifications and condition before purchase." : "Sealed unit with the manufacturer's official warranty."}
         </p>
       </div>
-      <div className="grid gap-2 border-t border-zinc-800 p-5 sm:grid-cols-2">
-        <button type="button" onClick={() => onCompare(p)} disabled={compareFull && !inCompare} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${inCompare ? "bg-cyan-400 text-zinc-950" : "border border-zinc-700 text-zinc-200 hover:border-cyan-400/60"}`}>
+      <div className="grid gap-2 border-t border-zinc-200 dark:border-zinc-800 p-5 sm:grid-cols-2">
+        <button type="button" onClick={() => onCompare(p)} disabled={compareFull && !inCompare} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${inCompare ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60"}`}>
           {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In comparison" : "Add to comparison"}
         </button>
-        <button type="button" onClick={() => onBuilder(p.id)} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${inBuilder ? "bg-emerald-400 text-zinc-950" : "border border-zinc-700 text-zinc-200 hover:border-emerald-400/60"}`}>
+        <button type="button" onClick={() => onBuilder(p.id)} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${inBuilder ? "bg-emerald-400 text-zinc-950" : "border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-400/60"}`}>
           {inBuilder ? <CheckCircle2 className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {inBuilder ? "In Preset Builder" : "Add to Preset Builder"}
         </button>
       </div>
@@ -293,11 +305,11 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClose }) 
   return (
     <Overlay label="Side-by-side comparison" onClose={onClose} side="center">
       <OverlayHeader title={`Compare ${cfg.short}`} subtitle="Green cells mark the best value in each row." onClose={onClose} />
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 px-5 py-3 text-sm">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-zinc-400">
-          {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-emerald-400">{p.name}</span></p>)}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 px-5 py-3 text-sm">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-zinc-600 dark:text-zinc-400">
+          {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-emerald-700 dark:text-emerald-400">{p.name}</span></p>)}
         </div>
-        <label className="flex cursor-pointer items-center gap-2 text-zinc-300">
+        <label className="flex cursor-pointer items-center gap-2 text-zinc-700 dark:text-zinc-300">
           <input type="checkbox" checked={diffOnly} onChange={(e) => setDiffOnly(e.target.checked)} className="h-4 w-4 accent-cyan-400" /> Show differences only
         </label>
       </div>
@@ -309,8 +321,8 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClose }) 
               {items.map((p) => (
                 <th key={p.id} className="p-3 text-left align-top font-normal">
                   <div className="flex items-start justify-between gap-2">
-                    <div><p className="font-semibold text-zinc-50">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
-                    <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p)} className={`rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+                    <div><p className="font-semibold text-zinc-900 dark:text-zinc-50">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
+                    <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p)} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
                   </div>
                 </th>
               ))}
@@ -319,12 +331,12 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClose }) 
           <tbody>
             {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-zinc-500">These items have identical specifications.</td></tr>}
             {shown.map((r) => (
-              <tr key={r.key} className="border-t border-zinc-800">
-                <th scope="row" className="p-3 text-left font-normal text-zinc-400 sm:pl-5">{r.label}</th>
+              <tr key={r.key} className="border-t border-zinc-200 dark:border-zinc-800">
+                <th scope="row" className="p-3 text-left font-normal text-zinc-600 dark:text-zinc-400 sm:pl-5">{r.label}</th>
                 {items.map((p, i) => {
                   const win = r.best !== null && r.vals[i] === r.best;
                   return (
-                    <td key={p.id} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-400" : r.same ? "text-zinc-500" : "text-zinc-200"}`}>
+                    <td key={p.id} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-700 dark:text-emerald-400" : r.same ? "text-zinc-500" : "text-zinc-800 dark:text-zinc-200"}`}>
                       <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0" aria-label="Best in row" />}{r.show(r.vals[i])}</span>
                     </td>
                   );
@@ -350,24 +362,24 @@ function BuilderList({ items, onRemove, onClear, onClose, onOpenBuilder }) {
       <OverlayHeader title="Preset Builder list" subtitle="Items you plan to include in a preset or bulk order" onClose={onClose} />
       <div className="flex-1 overflow-y-auto p-5">
         {items.length === 0 ? <p className="text-sm text-zinc-500">Nothing here yet. Use Add to Preset Builder on any card.</p> : (
-          <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+          <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
             {items.map((p) => (
               <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
-                <div className="min-w-0 flex-1"><p className="truncate text-sm text-zinc-100">{p.name}</p><p className="text-xs text-zinc-500">{CATS[p.cat].short}, {p.brand}</p></div>
-                <span className="text-sm tabular-nums text-zinc-200">{idr(p.price)}</span>
-                <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p.id)} className={`rounded p-1 text-zinc-500 hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm text-zinc-900 dark:text-zinc-100">{p.name}</p><p className="text-xs text-zinc-500">{CATS[p.cat].short}, {p.brand}</p></div>
+                <span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">{idr(p.price)}</span>
+                <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p.id)} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <div className="space-y-2 border-t border-zinc-800 p-5">
-        <p className="flex justify-between text-base font-semibold"><span className="text-zinc-300">Total</span><span className="tabular-nums text-emerald-400">{idr(total)}</span></p>
-        {copied && <p role="status" className="text-xs text-emerald-400">{copied}</p>}
+      <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 p-5">
+        <p className="flex justify-between text-base font-semibold"><span className="text-zinc-700 dark:text-zinc-300">Total</span><span className="tabular-nums text-emerald-700 dark:text-emerald-400">{idr(total)}</span></p>
+        {copied && <p role="status" className="text-xs text-emerald-700 dark:text-emerald-400">{copied}</p>}
         {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`w-full rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 disabled:opacity-40 ${focusRing}`}>Open Preset Builder</button>}
         <div className="flex gap-2">
-          <button type="button" disabled={!items.length} onClick={copy} className={`flex-1 rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-200 hover:border-zinc-500 disabled:opacity-40 ${focusRing}`}>Copy list</button>
-          <button type="button" disabled={!items.length} onClick={onClear} className={`flex-1 rounded-lg border border-zinc-700 px-4 py-2.5 text-sm text-zinc-400 hover:text-zinc-100 disabled:opacity-40 ${focusRing}`}>Clear all</button>
+          <button type="button" disabled={!items.length} onClick={copy} className={`flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 hover:border-zinc-500 disabled:opacity-40 ${focusRing}`}>Copy list</button>
+          <button type="button" disabled={!items.length} onClick={onClear} className={`flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40 ${focusRing}`}>Clear all</button>
         </div>
       </div>
     </Overlay>
@@ -377,6 +389,8 @@ function BuilderList({ items, onRemove, onClear, onClose, onOpenBuilder }) {
 /* ───────────────────────── Page ───────────────────────── */
 
 export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
+  const [inventoryProducts, setInventoryProducts] = useState([]);
+  const [inventoryError, setInventoryError] = useState("");
   const [cat, setCat] = useState("phones");
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState(newFilters);
@@ -386,12 +400,89 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const [panel, setPanel] = useState(null); // "compare" | "builder" | null
   const [diffOnly, setDiffOnly] = useState(false);
 
+  useEffect(() => {
+    let active = true;
+    listHardwareComponents({ activeOnly: true }).then((components) => {
+      if (!active) return;
+      const products = components.map((component) => {
+        const specs = component.specs || {};
+        const benchmark = Math.max(0, Math.min(100, Number(component.performance_score) / 100));
+        const detailSpecs = {
+          ...specs,
+          formFactor: specs.formFactor || specs.coolerType || specs.interface || component.category,
+          tdp: specs.tdpWatts || specs.wattage || 0,
+          socket: specs.socket || specs.chipset || specs.interface || "—",
+          perf: benchmark,
+          cores: specs.cores
+            ? `${specs.cores}C${specs.threads ? ` / ${specs.threads}T` : ""}`
+            : specs.vramGB
+              ? `${specs.vramGB} GB VRAM`
+              : specs.capacityGB
+                ? `${specs.capacityGB} GB`
+                : specs.capacityTB
+                  ? `${specs.capacityTB} TB`
+                  : component.category.toUpperCase(),
+          ...Object.fromEntries(Object.entries(specs).map(([key, value]) => [`spec_${key}`, value])),
+        };
+        const cond = component.condition === "brand_new"
+          ? "new"
+          : component.condition === "used"
+            ? "used"
+            : "refurb";
+        const product = {
+          id: `registry:${component.id}`,
+          cat: "pc",
+          brand: component.brand,
+          name: component.name,
+          type: component.category.toUpperCase(),
+          cond,
+          price: Number(component.base_price),
+          delta: 0,
+          specs: detailSpecs,
+        };
+        return {
+          ...product,
+          hay: `${product.brand} ${product.name} ${product.type} ${COND_LABEL[cond]} ${CATS.pc.short} ${Object.values(detailSpecs).join(" ")}`.toLowerCase(),
+        };
+      });
+      setInventoryProducts(products);
+      const maxPcPrice = products.reduce((max, product) => Math.max(max, product.price), BOUNDS.pc.max);
+      setFilters((current) => ({
+        ...current,
+        pc: { ...current.pc, max: Math.max(current.pc.max, maxPcPrice) },
+      }));
+      setInventoryError("");
+    }).catch((error) => {
+      if (active) setInventoryError(`Hardware registry could not be loaded: ${error.message}`);
+    });
+    return () => { active = false; };
+  }, []);
+
+  const products = useMemo(() => [...PRODUCTS, ...inventoryProducts], [inventoryProducts]);
+  const productById = useMemo(() => Object.fromEntries(products.map((product) => [product.id, product])), [products]);
+  const categoryBounds = useMemo(() => Object.fromEntries(CAT_ORDER.map((key) => {
+    const prices = products.filter((product) => product.cat === key).map((product) => product.price);
+    const min = prices.reduce((value, price) => Math.min(value, price), Number.POSITIVE_INFINITY);
+    const max = prices.reduce((value, price) => Math.max(value, price), 0);
+    return [key, {
+      min: Math.floor(min / STEP) * STEP,
+      max: Math.ceil(max / STEP) * STEP,
+    }];
+  })), [products]);
+  const categoryOptions = useMemo(() => Object.fromEntries(CAT_ORDER.map((key) => {
+    const items = products.filter((product) => product.cat === key);
+    return [key, {
+      brands: [...new Set(items.map((product) => product.brand))].sort(),
+      types: [...new Set(items.map((product) => product.type))].sort(),
+    }];
+  })), [products]);
+
   const cfg = CATS[cat];
   const f = filters[cat];
   const tokens = useMemo(() => query.trim().toLowerCase().split(/\s+/).filter(Boolean), [query]);
 
   // Search runs across every category, so each tab shows how many matches it holds
-  const searched = useMemo(() => PRODUCTS.filter((p) => tokens.every((t) => p.hay.includes(t))), [tokens]);
+  const searched = useMemo(() => products.filter((p) => tokens.every((t) => p.hay.includes(t))), [products, tokens]);
   const tabCounts = useMemo(() => Object.fromEntries(CAT_ORDER.map((k) => [k, searched.filter((p) => p.cat === k).length])), [searched]);
   const visible = useMemo(
     () => searched.filter((p) => p.cat === cat && (f.cond === "all" || p.cond === f.cond) && (f.brand === "all" || p.brand === f.brand) && (f.type === "all" || p.type === f.type) && p.price <= f.max),
@@ -399,16 +490,22 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   );
   const otherHits = CAT_ORDER.filter((k) => k !== cat && tabCounts[k] > 0);
 
-  const selected = compare[cat].map((id) => BY_ID[id]);
-  const builderItems = builder.map((id) => BY_ID[id]);
+  const selected = compare[cat].map((id) => productById[id]).filter(Boolean);
+  const builderItems = builder.map((id) => productById[id]).filter(Boolean);
   const compareOpen = panel === "compare" && selected.length >= 2;
-  const sheet = sheetId ? BY_ID[sheetId] : null;
+  const sheet = sheetId ? productById[sheetId] : null;
   const barVisible = selected.length > 0 || builder.length > 0;
 
   useEffect(() => { if (panel === "compare" && selected.length < 2) setPanel(null); }, [panel, selected.length]);
 
   const setFilter = (key, value) => setFilters((all) => ({ ...all, [cat]: { ...all[cat], [key]: value } }));
-  const resetFilters = () => { setQuery(""); setFilters((all) => ({ ...all, [cat]: newFilters()[cat] })); };
+  const resetFilters = () => {
+    setQuery("");
+    setFilters((all) => ({
+      ...all,
+      [cat]: { ...newFilters()[cat], max: categoryBounds[cat].max },
+    }));
+  };
   const toggleCompare = useCallback((p) => setCompare((c) => {
     const ids = c[p.cat];
     return { ...c, [p.cat]: ids.includes(p.id) ? ids.filter((i) => i !== p.id) : ids.length >= MAX_COMPARE ? ids : [...ids, p.id] };
@@ -416,22 +513,23 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const toggleBuilder = useCallback((id) => setBuilder((l) => (l.includes(id) ? l.filter((i) => i !== id) : [...l, id])), []);
   const closePanel = useCallback(() => setPanel(null), []);
   const closeSheet = useCallback(() => setSheetId(null), []);
-  const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < BOUNDS[cat].max;
+  const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < categoryBounds[cat].max;
 
   const field = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 ${focusRing}`;
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
-      <header className="border-b border-zinc-800 bg-zinc-950/90">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-300">Hardware Library</span>
+          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Hardware Library</span>
         </div>
       </header>
 
       <main className={`mx-auto max-w-7xl px-4 py-10 sm:px-6 ${barVisible ? "pb-32" : ""}`}>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl">Hardware &amp; Peripheral Library</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">Hardware &amp; Peripheral Library</h1>
+        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
+        {inventoryError && <p role="status" className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">{inventoryError} Showing the curated catalog instead.</p>}
 
         {/* Category tabs */}
         <div role="tablist" aria-label="Hardware categories" className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -441,15 +539,15 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
             const on = cat === k;
             return (
               <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="library-panel" onClick={() => setCat(k)}
-                className={`rounded-xl border p-4 text-left transition-all ${focusRing} ${on ? "border-cyan-400/60 bg-cyan-400/10 shadow-[0_0_22px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"}`}>
+                className={`rounded-xl border p-4 text-left transition-all ${focusRing} ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 shadow-[0_0_22px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
                 <span className="flex items-center justify-between gap-2">
-                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-cyan-400 text-zinc-950" : "bg-zinc-800 text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
                   <span className="flex items-center gap-1.5">
-                    {compare[k].length > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-cyan-400/15 px-2 py-0.5 text-xs text-cyan-300"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
-                    <span className="rounded-full border border-zinc-700 px-2 py-0.5 text-xs tabular-nums text-zinc-400">{tabCounts[k]}</span>
+                    {compare[k].length > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/15 dark:bg-emerald-400/15 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
+                    <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs tabular-nums text-zinc-600 dark:text-zinc-400">{tabCounts[k]}</span>
                   </span>
                 </span>
-                <span className={`mt-3 block text-sm font-semibold ${on ? "text-cyan-300" : "text-zinc-100"}`}>{c.label}</span>
+                <span className={`mt-3 block text-sm font-semibold ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-900 dark:text-zinc-100"}`}>{c.label}</span>
                 <span className="mt-1 block text-xs text-zinc-500">{c.focus}</span>
               </button>
             );
@@ -458,7 +556,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
         {/* Filters */}
         <section id="library-panel" role="tabpanel" aria-labelledby={`tab-${cat}`}>
-          <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+          <div className="mt-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4">
             <div className="relative">
               <label htmlFor="lib-search" className="sr-only">Search all hardware categories</label>
               <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
@@ -466,37 +564,37 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-4">
               <div>
-                <p className="mb-1.5 text-sm text-zinc-300">Condition</p>
-                <div role="radiogroup" aria-label="Condition" className="grid grid-cols-3 gap-1 rounded-lg border border-zinc-700 bg-zinc-950 p-1">
-                  {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"]].map(([v, label]) => (
-                    <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`rounded-md px-1 py-1.5 text-xs ${focusRing} ${f.cond === v ? "bg-cyan-400 font-medium text-zinc-950" : "text-zinc-400 hover:text-zinc-100"}`}>{label}</button>
+                <p className="mb-1.5 text-sm text-zinc-700 dark:text-zinc-300">Condition</p>
+                <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 p-1">
+                  {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"], ["used", "Used"]].map(([v, label]) => (
+                    <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`rounded-md px-1 py-1.5 text-xs ${focusRing} ${f.cond === v ? "bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>{label}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <label htmlFor="f-brand" className="mb-1.5 block text-sm text-zinc-300">Brand</label>
+                <label htmlFor="f-brand" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Brand</label>
                 <select id="f-brand" value={f.brand} onChange={(e) => setFilter("brand", e.target.value)} className={field}>
-                  <option value="all">All brands</option>{OPTIONS[cat].brands.map((b) => <option key={b}>{b}</option>)}
+                  <option value="all">All brands</option>{categoryOptions[cat].brands.map((b) => <option key={b}>{b}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="f-type" className="mb-1.5 block text-sm text-zinc-300">{cfg.typeLabel}</label>
+                <label htmlFor="f-type" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">{cfg.typeLabel}</label>
                 <select id="f-type" value={f.type} onChange={(e) => setFilter("type", e.target.value)} className={field}>
-                  <option value="all">All</option>{OPTIONS[cat].types.map((t) => <option key={t}>{t}</option>)}
+                  <option value="all">All</option>{categoryOptions[cat].types.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="f-price" className="mb-1.5 flex justify-between text-sm text-zinc-300"><span>Max price</span><span className="tabular-nums text-cyan-300">{idr(f.max)}</span></label>
-                <input id="f-price" type="range" min={BOUNDS[cat].min} max={BOUNDS[cat].max} step={STEP} value={f.max} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 w-full accent-cyan-400" />
+                <label htmlFor="f-price" className="mb-1.5 flex justify-between text-sm text-zinc-700 dark:text-zinc-300"><span>Max price</span><span className="tabular-nums text-cyan-700 dark:text-cyan-300">{idr(f.max)}</span></label>
+                <input id="f-price" type="range" min={categoryBounds[cat].min} max={categoryBounds[cat].max} step={STEP} value={Math.min(f.max, categoryBounds[cat].max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 w-full accent-cyan-400" />
               </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
               <p className="flex items-center gap-2 text-zinc-500"><SlidersHorizontal className="h-4 w-4" /> Filters for {cfg.short}. Search covers every category.</p>
-              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`rounded text-cyan-400 hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Reset filters</button>
+              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`rounded text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Reset filters</button>
             </div>
           </div>
 
-          <p className="mt-4 text-sm text-zinc-500" aria-live="polite">Showing {visible.length} of {PRODUCTS.filter((p) => p.cat === cat).length} in {cfg.short}</p>
+          <p className="mt-4 text-sm text-zinc-500" aria-live="polite">Showing {visible.length} of {products.filter((p) => p.cat === cat).length} in {cfg.short}</p>
 
           {visible.length ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -506,42 +604,42 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-zinc-700 p-10 text-center">
-              <p className="text-zinc-100">No {cfg.short.toLowerCase()} match these filters.</p>
+            <div className="mt-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700 p-10 text-center">
+              <p className="text-zinc-900 dark:text-zinc-100">No {cfg.short.toLowerCase()} match these filters.</p>
               {tokens.length > 0 && otherHits.length > 0 && (
-                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-zinc-400">
+                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                   Your search has matches in:
-                  {otherHits.map((k) => <button key={k} type="button" onClick={() => setCat(k)} className={`rounded-full border border-zinc-700 px-3 py-1 text-xs text-cyan-300 hover:border-cyan-400/60 ${focusRing}`}>{CATS[k].short} ({tabCounts[k]})</button>)}
+                  {otherHits.map((k) => <button key={k} type="button" onClick={() => setCat(k)} className={`rounded-full border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>{CATS[k].short} ({tabCounts[k]})</button>)}
                 </p>
               )}
-              <button type="button" onClick={resetFilters} className={`mt-4 rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 ${focusRing}`}>Reset filters</button>
+              <button type="button" onClick={resetFilters} className={`mt-4 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>Reset filters</button>
             </div>
           )}
         </section>
       </main>
 
-      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample catalog, prices and specifications.</footer>
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample catalog, prices and specifications.</footer>
 
       {barVisible && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-800 bg-zinc-950/95 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
               {selected.length > 0 && <span className="shrink-0 text-xs text-zinc-500">Comparing {cfg.short}:</span>}
               {selected.map((p) => (
-                <span key={p.id} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900 py-1 pl-3 pr-1.5 text-xs text-zinc-200">
+                <span key={p.id} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-1 pl-3 pr-1.5 text-xs text-zinc-800 dark:text-zinc-200">
                   <span className="max-w-[10rem] truncate">{p.name}</span>
-                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`rounded-full p-0.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`rounded-full p-0.5 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                 </span>
               ))}
               {selected.length === 1 && <span className="shrink-0 text-xs text-zinc-500">Pick one more {cfg.short.toLowerCase()} to compare</span>}
             </div>
             {builder.length > 0 && (
-              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 px-3 py-2 text-sm text-emerald-400 hover:bg-emerald-400/10 ${focusRing}`}>
+              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400 hover:bg-emerald-400/10 ${focusRing}`}>
                 <Plus className="h-4 w-4" /> Preset Builder list ({builder.length})
               </button>
             )}
             {selected.length > 0 && (
-              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${focusRing} ${selected.length >= 2 ? "bg-cyan-400 text-zinc-950 hover:bg-cyan-300" : "cursor-not-allowed bg-zinc-800 text-zinc-500"}`}>
+              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${focusRing} ${selected.length >= 2 ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300" : "cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-500"}`}>
                 <ArrowRightLeft className="h-4 w-4" /> Compare now
               </button>
             )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AlertCircle, CheckCircle2, Github, LoaderCircle, X } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 
@@ -9,7 +10,7 @@ function getCallbackUrl() {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath || "/")}`;
 }
 
-export default function AuthModal({ open, onClose, onNotify }) {
+export default function AuthModal({ open, user, onClose, onNotify }) {
   const [mode, setMode] = useState("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +19,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
   const [messageType, setMessageType] = useState("error");
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || user) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const handleKeyDown = (event) => {
@@ -29,7 +30,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isSubmitting, onClose, open]);
+  }, [isSubmitting, onClose, open, user]);
 
   useEffect(() => {
     if (open) {
@@ -38,7 +39,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
     }
   }, [mode, open]);
 
-  if (!open) return null;
+  if (!open || user) return null;
 
   const setError = (error) => {
     setMessage(error);
@@ -89,14 +90,11 @@ export default function AuthModal({ open, onClose, onNotify }) {
       if (error) throw error;
 
       if (data.session) {
-        setMessage("Your account is ready.");
-        setMessageType("success");
         onNotify?.("Account created and signed in.");
-        onClose();
       } else {
-        setMessage("Check your email for a confirmation link to finish creating your account.");
-        setMessageType("success");
+        onNotify?.("Account created. Check your email to confirm your address.");
       }
+      onClose();
     } catch (error) {
       setError(error.message || "Authentication failed. Please try again.");
     } finally {
@@ -106,9 +104,11 @@ export default function AuthModal({ open, onClose, onNotify }) {
 
   const configured = isSupabaseAuthConfigured;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-[85] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSubmitting) onClose();
       }}
@@ -117,15 +117,15 @@ export default function AuthModal({ open, onClose, onNotify }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
-        className="w-full max-w-md overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/70"
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl shadow-black/70"
       >
-        <header className="flex items-start justify-between border-b border-zinc-800 p-5 sm:p-6">
+        <header className="flex items-start justify-between border-b border-zinc-200 dark:border-zinc-800 p-5 sm:p-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">ViciTech OS</p>
-            <h2 id="auth-title" className="mt-2 text-xl font-semibold text-zinc-50">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">ViciTech OS</p>
+            <h2 id="auth-title" className="mt-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
               {mode === "sign-in" ? "Welcome back" : "Create your account"}
             </h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               {mode === "sign-in" ? "Sign in to your ViciTech account." : "Join the ViciTech ecosystem."}
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
             onClick={onClose}
             disabled={isSubmitting}
             aria-label="Close sign-in dialog"
-            className="rounded-lg p-2 text-zinc-400 transition hover:bg-zinc-900 hover:text-zinc-100 disabled:opacity-50"
+            className="rounded-lg p-2 text-zinc-600 dark:text-zinc-400 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -142,7 +142,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
 
         <div className="space-y-5 p-5 sm:p-6">
           {!configured && (
-            <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+            <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
               Add the Supabase URL and anon key to <code>.env.local</code> to enable authentication.
             </p>
           )}
@@ -151,21 +151,21 @@ export default function AuthModal({ open, onClose, onNotify }) {
             type="button"
             onClick={signInWithGitHub}
             disabled={isSubmitting || !configured}
-            className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm font-medium text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Github className="h-4 w-4" />}
             Continue with GitHub
           </button>
 
           <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-zinc-600">
-            <span className="h-px flex-1 bg-zinc-800" />
+            <span className="h-px flex-1 bg-zinc-100 dark:bg-zinc-800" />
             or use email
-            <span className="h-px flex-1 bg-zinc-800" />
+            <span className="h-px flex-1 bg-zinc-100 dark:bg-zinc-800" />
           </div>
 
           <form onSubmit={submitEmail} className="space-y-4">
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-zinc-300">Email</span>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</span>
               <input
                 type="email"
                 autoComplete="email"
@@ -173,13 +173,13 @@ export default function AuthModal({ open, onClose, onNotify }) {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-600/60 dark:focus:border-emerald-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
                 placeholder="you@example.com"
               />
             </label>
 
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-zinc-300">Password</span>
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</span>
               <input
                 type="password"
                 autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
@@ -188,7 +188,7 @@ export default function AuthModal({ open, onClose, onNotify }) {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 disabled={isSubmitting}
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
+                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-emerald-600/60 dark:focus:border-emerald-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
                 placeholder="At least 6 characters"
               />
             </label>
@@ -210,26 +210,27 @@ export default function AuthModal({ open, onClose, onNotify }) {
             <button
               type="submit"
               disabled={isSubmitting || !configured}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-400 px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 dark:bg-emerald-400 px-4 py-3 text-sm font-semibold text-white dark:text-zinc-950 transition hover:bg-emerald-500 dark:hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}
               {mode === "sign-in" ? "Sign in with email" : "Create account"}
             </button>
           </form>
 
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
             {mode === "sign-in" ? "New to ViciTech?" : "Already have an account?"}{" "}
             <button
               type="button"
               onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
               disabled={isSubmitting}
-              className="font-medium text-cyan-300 hover:text-cyan-200 disabled:opacity-50"
+              className="font-medium text-cyan-700 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200 disabled:opacity-50"
             >
               {mode === "sign-in" ? "Create an account" : "Sign in"}
             </button>
           </p>
         </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }

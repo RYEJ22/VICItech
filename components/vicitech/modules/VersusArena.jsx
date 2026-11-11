@@ -176,30 +176,30 @@ const SIDES = { a: { label: "Item A", text: "text-cyan-300", bar: "bg-cyan-400" 
 
 function CondBadge({ cond }) {
   return cond === "refurb" ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
   ) : (
-    <span className="inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-300">New</span>
+    <span className="inline-flex rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300">New</span>
   );
 }
 
 function ItemCard({ item, side, leader, line, Icon, onChange }) {
   const s = SIDES[side];
   return (
-    <article className={`relative rounded-xl border p-4 ${leader ? "border-emerald-400/50 bg-emerald-400/5" : "border-zinc-800 bg-zinc-900/50"}`}>
+    <article className={`relative rounded-xl border p-4 ${leader ? "border-emerald-400/50 bg-emerald-400/5" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50"}`}>
       <div className="flex items-center justify-between">
         <span className={`text-sm font-medium ${s.text}`}>{s.label}</span>
-        {leader && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs text-emerald-400"><Trophy className="h-3.5 w-3.5" /> Leads overall</span>}
+        {leader && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><Trophy className="h-3.5 w-3.5" /> Leads overall</span>}
       </div>
       <div className="mt-3 flex gap-3">
-        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-zinc-800 bg-zinc-950/70 text-zinc-500" aria-hidden="true"><Icon className="h-7 w-7" /></div>
+        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 text-zinc-500" aria-hidden="true"><Icon className="h-7 w-7" /></div>
         <div className="min-w-0">
-          <h3 className="font-semibold leading-snug text-zinc-50">{item.name}</h3>
+          <h3 className="font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{item.name}</h3>
           <p className="text-xs text-zinc-500">{item.brand}, {line(item)}</p>
           <div className="mt-1.5"><CondBadge cond={item.cond} /></div>
         </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-50">{idr(item.price)}</p>
-      <button type="button" onClick={onChange} className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}>
+      <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(item.price)}</p>
+      <button type="button" onClick={onChange} className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
         <Search className="h-4 w-4" /> Change {s.label}
       </button>
     </article>
@@ -220,15 +220,15 @@ function Picker({ cat, side, otherId, currentId, onPick, onClose }) {
   const list = cfg.items.filter((p) => tokens.every((t) => `${p.brand} ${p.name} ${cfg.line(p)}`.toLowerCase().includes(t)));
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-6" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={`Choose ${SIDES[side].label}`} onClick={(e) => e.stopPropagation()} className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl border border-zinc-800 bg-zinc-950 sm:rounded-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-800 p-4">
-          <h2 className="text-lg font-semibold text-zinc-50">Choose {SIDES[side].label}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+      <div role="dialog" aria-modal="true" aria-label={`Choose ${SIDES[side].label}`} onClick={(e) => e.stopPropagation()} className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sm:rounded-2xl">
+        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Choose {SIDES[side].label}</h2>
+          <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
         </div>
-        <div className="relative border-b border-zinc-800 p-3">
+        <div className="relative border-b border-zinc-200 dark:border-zinc-800 p-3">
           <label htmlFor="picker-search" className="sr-only">Search {cfg.label}</label>
           <Search className="pointer-events-none absolute left-6 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-          <input id="picker-search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, brand or chip" className={`w-full rounded-lg border border-zinc-700 bg-zinc-900 py-2.5 pl-10 pr-3 text-sm text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
+          <input id="picker-search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, brand or chip" className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 pl-10 pr-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
         </div>
         <ul className="flex-1 divide-y divide-zinc-800 overflow-y-auto">
           {list.length === 0 && <li className="p-6 text-center text-sm text-zinc-500">No matches in this category.</li>}
@@ -236,12 +236,12 @@ function Picker({ cat, side, otherId, currentId, onPick, onClose }) {
             const taken = p.id === otherId;
             return (
               <li key={p.id}>
-                <button type="button" disabled={taken} onClick={() => onPick(p.id)} className={`flex w-full items-center gap-3 px-4 py-3 text-left ${focusRing} ${taken ? "cursor-not-allowed opacity-40" : p.id === currentId ? "bg-cyan-400/10" : "hover:bg-zinc-900"}`}>
+                <button type="button" disabled={taken} onClick={() => onPick(p.id)} className={`flex w-full items-center gap-3 px-4 py-3 text-left ${focusRing} ${taken ? "cursor-not-allowed opacity-40" : p.id === currentId ? "bg-emerald-600/10 dark:bg-emerald-400/10" : "hover:bg-white dark:hover:bg-zinc-900"}`}>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-zinc-100">{p.name}</span>
+                    <span className="block truncate text-sm text-zinc-900 dark:text-zinc-100">{p.name}</span>
                     <span className="block truncate text-xs text-zinc-500">{p.brand}, {cfg.line(p)}</span>
                   </span>
-                  <span className="flex flex-col items-end gap-1"><span className="text-sm tabular-nums text-zinc-200">{idr(p.price)}</span><CondBadge cond={p.cond} /></span>
+                  <span className="flex flex-col items-end gap-1"><span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">{idr(p.price)}</span><CondBadge cond={p.cond} /></span>
                   {taken && <span className="text-xs text-zinc-500">Used as {SIDES[side === "a" ? "b" : "a"].label}</span>}
                 </button>
               </li>
@@ -296,18 +296,18 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
   const valueGap = Math.round((Math.max(result.valA, result.valB) / Math.min(result.valA, result.valB) - 1) * 100);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
-      <header className="border-b border-zinc-800 bg-zinc-950/90">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400 text-zinc-950"><Cpu className="h-5 w-5" /></span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
           <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-300">Versus Arena</span>
+          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Versus Arena</span>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl"><Swords className="h-8 w-8 text-cyan-400" /> Versus Arena</h1>
-        <p className="mt-3 max-w-2xl text-zinc-400">Put two products head to head, see who wins each spec, compare value per rupiah and get a clear verdict for the way you plan to use them.</p>
+        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl"><Swords className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Versus Arena</h1>
+        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">Put two products head to head, see who wins each spec, compare value per rupiah and get a clear verdict for the way you plan to use them.</p>
 
         {/* Category tabs */}
         <div role="tablist" aria-label="Comparison category" className="mt-8 grid gap-3 sm:grid-cols-3">
@@ -317,9 +317,9 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
             const on = tab === k;
             return (
               <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="arena-panel" onClick={() => switchTab(k)}
-                className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${focusRing} ${on ? "border-cyan-400/60 bg-cyan-400/10 shadow-[0_0_22px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-800 bg-zinc-900/50 hover:border-zinc-700"}`}>
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${on ? "bg-cyan-400 text-zinc-950" : "bg-zinc-800 text-zinc-300"}`}><TabIcon className="h-5 w-5" /></span>
-                <span><span className={`block text-sm font-semibold ${on ? "text-cyan-300" : "text-zinc-100"}`}>{c.label}</span><span className="block text-xs text-zinc-500">{c.sub}</span></span>
+                className={`flex items-center gap-3 rounded-xl border p-4 text-left transition-all ${focusRing} ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 shadow-[0_0_22px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${on ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"}`}><TabIcon className="h-5 w-5" /></span>
+                <span><span className={`block text-sm font-semibold ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-900 dark:text-zinc-100"}`}>{c.label}</span><span className="block text-xs text-zinc-500">{c.sub}</span></span>
               </button>
             );
           })}
@@ -330,31 +330,31 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
           <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
             <ItemCard item={A} side="a" leader={result.leader === "a"} line={cfg.line} Icon={Icon} onChange={() => setPicker("a")} />
             <div className="flex items-center justify-center gap-3 md:flex-col">
-              <span className="grid h-12 w-12 place-items-center rounded-full border border-zinc-700 bg-zinc-900 text-cyan-400"><Swords className="h-6 w-6" /></span>
-              <button type="button" onClick={swap} aria-label="Swap Item A and Item B" className={`grid h-10 w-10 place-items-center rounded-lg border border-zinc-700 text-zinc-300 hover:border-cyan-400/60 hover:text-cyan-300 ${focusRing}`}><ArrowRightLeft className="h-4 w-4" /></button>
+              <span className="grid h-12 w-12 place-items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-cyan-700 dark:text-cyan-400"><Swords className="h-6 w-6" /></span>
+              <button type="button" onClick={swap} aria-label="Swap Item A and Item B" className={`grid h-10 w-10 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}><ArrowRightLeft className="h-4 w-4" /></button>
             </div>
             <ItemCard item={B} side="b" leader={result.leader === "b"} line={cfg.line} Icon={Icon} onChange={() => setPicker("b")} />
           </div>
 
           {/* Scoreboard */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4" aria-label="Scoreboard">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4" aria-label="Scoreboard">
             <div className="flex items-center justify-between text-sm">
               <span className={`font-medium ${SIDES.a.text}`}>{A.name}: {result.wonA} rows</span>
               <span className="text-xs text-zinc-500">{result.ranked} ranked rows</span>
               <span className={`font-medium ${SIDES.b.text}`}>{B.name}: {result.wonB} rows</span>
             </div>
-            <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-zinc-800" role="img" aria-label={`${A.name} wins ${result.wonA} rows, ${B.name} wins ${result.wonB}`}>
+            <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="img" aria-label={`${A.name} wins ${result.wonA} rows, ${B.name} wins ${result.wonB}`}>
               <div className={`${SIDES.a.bar} transition-all duration-500`} style={{ width: `${(result.wonA / total) * 100}%` }} />
               <div className={`${SIDES.b.bar} ml-auto transition-all duration-500`} style={{ width: `${(result.wonB / total) * 100}%` }} />
             </div>
           </div>
 
           {/* Matrix */}
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
+          <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] border-collapse text-sm">
                 <caption className="sr-only">Specification comparison. Winning values are highlighted in green.</caption>
-                <thead className="bg-zinc-900/70">
+                <thead className="bg-white/70 dark:bg-zinc-900/70">
                   <tr>
                     <th className="w-56 p-3 text-left font-normal text-zinc-500">Specification</th>
                     <th className={`p-3 text-left font-semibold ${SIDES.a.text}`}>{A.name}</th>
@@ -363,17 +363,17 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
                 </thead>
                 <tbody>
                   {result.rows.map((r) => (
-                    <tr key={r.key} className={`border-t border-zinc-800 ${r.key === "value" ? "bg-zinc-900/40" : ""}`}>
-                      <th scope="row" className="p-3 text-left font-normal text-zinc-400">{r.label}</th>
+                    <tr key={r.key} className={`border-t border-zinc-200 dark:border-zinc-800 ${r.key === "value" ? "bg-white/40 dark:bg-zinc-900/40" : ""}`}>
+                      <th scope="row" className="p-3 text-left font-normal text-zinc-600 dark:text-zinc-400">{r.label}</th>
                       {[["a", A], ["b", B]].map(([side, item]) => {
                         const win = r.win === side;
                         const lose = r.rank && r.win && !win;
                         return (
-                          <td key={side} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-400" : lose ? "text-zinc-500" : "text-zinc-200"}`}>
+                          <td key={side} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-700 dark:text-emerald-400" : lose ? "text-zinc-500" : "text-zinc-800 dark:text-zinc-200"}`}>
                             <span className="flex items-start gap-1.5">
                               {win && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-label="Wins this row" />}
                               {lose && <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" aria-label="Loses this row" />}
-                              <span>{r.show(item)}{win && r.note && <span className="ml-2 text-xs font-normal text-emerald-300">{r.note}</span>}</span>
+                              <span>{r.show(item)}{win && r.note && <span className="ml-2 text-xs font-normal text-emerald-700 dark:text-emerald-300">{r.note}</span>}</span>
                             </span>
                             {r.rank && !r.win && <span className="text-xs text-zinc-500">Tie</span>}
                           </td>
@@ -388,26 +388,26 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
 
           <div className="grid gap-6 lg:grid-cols-5">
             {/* Price to performance */}
-            <section aria-labelledby="value-title" className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 lg:col-span-2 lg:self-start">
-              <h2 id="value-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50"><Scale className="h-5 w-5 text-cyan-400" /> Price to performance</h2>
-              <p className="mt-1 text-sm text-zinc-400">Performance index points you get for every Rp 1 juta.</p>
+            <section aria-labelledby="value-title" className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5 lg:col-span-2 lg:self-start">
+              <h2 id="value-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Scale className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Price to performance</h2>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Performance index points you get for every Rp 1 juta.</p>
               <div className="mt-4 space-y-4">
                 {[["a", A, result.valA], ["b", B, result.valB]].map(([side, item, v]) => (
                   <div key={side}>
-                    <div className="flex items-center justify-between gap-3 text-sm"><span className={`truncate ${SIDES[side].text}`}>{item.name}</span><span className={`flex items-center gap-1 tabular-nums ${better === side ? "font-semibold text-emerald-400" : "text-zinc-300"}`}><Zap className="h-3.5 w-3.5" /> {v.toFixed(1)}</span></div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-800"><div className={`h-full rounded-full transition-all duration-500 ${better === side ? "bg-emerald-400" : "bg-zinc-500"}`} style={{ width: `${(v / Math.max(result.valA, result.valB)) * 100}%` }} /></div>
+                    <div className="flex items-center justify-between gap-3 text-sm"><span className={`truncate ${SIDES[side].text}`}>{item.name}</span><span className={`flex items-center gap-1 tabular-nums ${better === side ? "font-semibold text-emerald-700 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"}`}><Zap className="h-3.5 w-3.5" /> {v.toFixed(1)}</span></div>
+                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full transition-all duration-500 ${better === side ? "bg-emerald-400" : "bg-zinc-500"}`} style={{ width: `${(v / Math.max(result.valA, result.valB)) * 100}%` }} /></div>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-zinc-300">{valueGap === 0 ? "Both deliver the same value per rupiah." : <><span className="font-semibold text-emerald-400">{(better === "a" ? A : B).name}</span> gives {valueGap}% more performance per rupiah.</>}</p>
+              <p className="mt-4 text-sm text-zinc-700 dark:text-zinc-300">{valueGap === 0 ? "Both deliver the same value per rupiah." : <><span className="font-semibold text-emerald-700 dark:text-emerald-400">{(better === "a" ? A : B).name}</span> gives {valueGap}% more performance per rupiah.</>}</p>
             </section>
 
             {/* Verdict */}
-            <section aria-labelledby="verdict-title" className="rounded-2xl border border-cyan-400/30 bg-zinc-900 p-5 lg:col-span-3">
-              <h2 id="verdict-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-50"><Sparkles className="h-5 w-5 text-amber-400" /> ViciTech Verdict</h2>
+            <section aria-labelledby="verdict-title" className="rounded-2xl border border-emerald-600/30 dark:border-emerald-400/30 bg-white dark:bg-zinc-900 p-5 lg:col-span-3">
+              <h2 id="verdict-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Sparkles className="h-5 w-5 text-amber-700 dark:text-amber-400" /> ViciTech Verdict</h2>
               <p className="text-xs text-zinc-500">Generated from the matrix above with rule-based scoring, not a benchmark run.</p>
 
-              <p className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-300">
+              <p className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
                 <Trophy className="h-4 w-4 shrink-0" />
                 <span>Recommended pick: <span className="font-semibold">{leaderItem.name}</span>, winning {result.leader === "a" ? result.wonA : result.wonB} of {result.ranked} ranked rows{result.wonA === result.wonB ? " and better value on a tie" : ""}.</span>
               </p>
@@ -415,9 +415,9 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
               <ul className="mt-4 space-y-2.5">
                 {result.verdicts.map((v) => (
                   <li key={v.id} className="flex gap-2.5 text-sm">
-                    {v.tie ? <Scale className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" /> : <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${v.side === "a" ? "text-cyan-400" : "text-amber-400"}`} />}
-                    <span className="text-zinc-300">
-                      {v.tie ? <><span className="font-medium text-zinc-100">{v.label}:</span> too close to call, the two are within 4%.</> : <><span className="font-medium text-zinc-100">Winner for {v.label}:</span> {v.text}.</>}
+                    {v.tie ? <Scale className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" /> : <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${v.side === "a" ? "text-cyan-700 dark:text-cyan-400" : "text-amber-700 dark:text-amber-400"}`} />}
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      {v.tie ? <><span className="font-medium text-zinc-900 dark:text-zinc-100">{v.label}:</span> too close to call, the two are within 4%.</> : <><span className="font-medium text-zinc-900 dark:text-zinc-100">Winner for {v.label}:</span> {v.text}.</>}
                     </span>
                   </li>
                 ))}
@@ -425,16 +425,16 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <button type="button" onClick={deploy} className={`inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 ${focusRing}`}><Cpu className="h-4 w-4" /> Deploy to Preset Builder</button>
-                <button type="button" onClick={requestQuote} className={`inline-flex items-center gap-2 rounded-lg border border-cyan-400/50 px-4 py-2.5 text-sm font-medium text-cyan-300 hover:bg-cyan-400/10 ${focusRing}`}><ShieldCheck className="h-4 w-4" /> Request Official Quote</button>
+                <button type="button" onClick={requestQuote} className={`inline-flex items-center gap-2 rounded-lg border border-emerald-600/50 dark:border-emerald-400/50 px-4 py-2.5 text-sm font-medium text-cyan-700 dark:text-cyan-300 hover:bg-emerald-600/10 dark:hover:bg-emerald-400/10 ${focusRing}`}><ShieldCheck className="h-4 w-4" /> Request Official Quote</button>
               </div>
 
               <div aria-live="polite" className="mt-3 space-y-2 text-sm">
-                {notice && <p className="flex items-center gap-2 text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
+                {notice && <p className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
                 {quote && (
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
-                    <p className="font-medium text-zinc-100">Quote request {quote.ref}</p>
-                    <p className="text-zinc-400">{quote.item.name}, listed at {idr(quote.item.price)}. The ViciTech team reviews it and replies with the official quote.</p>
-                    <button type="button" onClick={copyQuote} className={`mt-2 rounded border border-zinc-700 px-3 py-1 text-xs text-zinc-200 hover:border-cyan-400/60 ${focusRing}`}>Copy summary</button>
+                  <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 p-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">Quote request {quote.ref}</p>
+                    <p className="text-zinc-600 dark:text-zinc-400">{quote.item.name}, listed at {idr(quote.item.price)}. The ViciTech team reviews it and replies with the official quote.</p>
+                    <button type="button" onClick={copyQuote} className={`mt-2 rounded border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>Copy summary</button>
                   </div>
                 )}
                 {deployed.length > 0 && <p className="text-xs text-zinc-500">Queued for Preset Builder: {deployed.map((d) => d.name).join(", ")}</p>}
@@ -444,7 +444,7 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
         </section>
       </main>
 
-      <footer className="border-t border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample catalog, prices and scores.</footer>
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample catalog, prices and scores.</footer>
 
       {picker && <Picker cat={tab} side={picker} otherId={sel[tab][picker === "a" ? "b" : "a"]} currentId={sel[tab][picker]} onPick={(id) => choose(picker, id)} onClose={() => setPicker(null)} />}
     </div>
