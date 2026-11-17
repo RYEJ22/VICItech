@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
@@ -25,7 +25,8 @@ function mapDatabasePost(row) {
   const category = feedCategory[row.category] || "guide";
   return {
     id: row.id,
-    by: "you",
+    // Penulis = pemilik baris (user_id), bukan "you". Postingan user lain tidak lagi dianggap milik akun yang sedang login.
+    by: row.user_id || "member",
     cat: category,
     title: row.title,
     body: row.content,
@@ -151,20 +152,37 @@ function Header({ onNavigate }) {
   );
 }
 
-function profileHref(authorKey, user) {
-  const username = authorKey === "you" ? user?.user_metadata?.username : authorKey === "team" ? "" : authorKey;
-  return typeof username === "string" && /^[a-z0-9]{3,20}$/.test(username)
-    ? `/profile/${encodeURIComponent(username)}`
-    : "";
+const USERNAME_RE = /^[a-z0-9]{3,20}$/;
+const usernameHref = (username) =>
+  typeof username === "string" && USERNAME_RE.test(username) ? `/profile/${encodeURIComponent(username)}` : "";
+
+// Satu-satunya tempat yang menentukan nama, peran, dan link profil seorang penulis.
+// `key` bisa berupa key penulis sampel ("rizky"), UUID user Supabase, atau "you" (komentar lokal tanpa sesi).
+function resolveAuthor(key, { currentUser, profiles }) {
+  const seed = key !== "you" ? AUTHORS[key] : undefined;
+  if (seed) return { ...seed, href: key === "team" ? "" : usernameHref(key), isSelf: false };
+
+  const userId = key === "you" ? currentUser?.id : key;
+  const isSelf = key === "you" || (Boolean(userId) && userId === currentUser?.id);
+  const profile = userId ? profiles[userId] : undefined;
+  // Username berasal dari tabel profiles milik penulis itu sendiri.
+  // user_metadata hanya cadangan untuk akun yang sedang login, tidak pernah dipakai untuk akun orang lain.
+  const username = profile?.username || (isSelf ? currentUser?.user_metadata?.username : "");
+  return {
+    name: isSelf ? "You" : username || "ViciTech member",
+    role: "fan",
+    href: usernameHref(username),
+    isSelf,
+  };
 }
 
-function Avatar({ authorKey, size = "h-10 w-10", user }) {
-  const name = AUTHORS[authorKey]?.name || "ViciTech member";
-  const avatar = authorKey === "you"
+function Avatar({ author, size = "h-10 w-10" }) {
+  const avatar = author.isSelf
     ? <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}><User className="h-1/2 w-1/2" /></span>
-    : <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>;
-  const href = profileHref(authorKey, user);
-  return href ? <a href={href} aria-label={`View ${name}'s profile`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]">{avatar}</a> : avatar;
+    : <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>;
+  return author.href
+    ? <a href={author.href} aria-label={author.isSelf ? "View your profile" : `View ${author.name}'s profile`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]">{avatar}</a>
+    : avatar;
 }
 
 function RoleBadge({ role }) {
@@ -279,14 +297,14 @@ function Composer({ onPublish }) {
 
 /* ───────────────────────── Post card ───────────────────────── */
 
-function PostCard({ post, onLike, onComment, onTag, user }) {
+function PostCard({ post, onLike, onComment, onTag, resolve }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [shareNote, setShareNote] = useState("");
-  const author = AUTHORS[post.by] || AUTHORS.team;
+  const author = resolve(post.by);
   const cat = CATEGORIES[post.cat] || CATEGORIES.all;
   const CatIcon = cat.icon;
-  const authorProfile = profileHref(post.by, user);
+  const authorProfile = author.href;
 
   useEffect(() => {
     if (!shareNote) return;
@@ -314,7 +332,7 @@ function PostCard({ post, onLike, onComment, onTag, user }) {
   return (
     <article className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
       <header className="flex items-start gap-3">
-        <Avatar authorKey={post.by} user={user} />
+        <Avatar author={author} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {authorProfile
@@ -363,20 +381,23 @@ function PostCard({ post, onLike, onComment, onTag, user }) {
       {open && (
         <div className="mt-2 space-y-3 rounded-lg bg-white/50 dark:bg-white/50 p-3">
           {post.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet. Be the first to reply.</p>}
-          {post.comments.map((c) => (
-            <div key={c.id} className="flex gap-2.5">
-              <Avatar authorKey={c.by} size="h-8 w-8" user={user} />
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-x-2 text-sm">
-                  {profileHref(c.by, user)
-                    ? <a href={profileHref(c.by, user)} className="font-medium text-zinc-900 dark:text-[#141518] hover:text-[#A83A00] dark:hover:text-[#A83A00]">{AUTHORS[c.by]?.name || "ViciTech member"}</a>
-                    : <span className="font-medium text-zinc-900 dark:text-[#141518]">{AUTHORS[c.by]?.name || "ViciTech member"}</span>}
-                  <span className="text-xs text-zinc-500">{ROLES[AUTHORS[c.by]?.role]?.label || "Member"}, {timeAgo(c.createdAt)}</span>
-                </p>
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">{c.text}</p>
+          {post.comments.map((c) => {
+            const commenter = resolve(c.by);
+            return (
+              <div key={c.id} className="flex gap-2.5">
+                <Avatar author={commenter} size="h-8 w-8" />
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-x-2 text-sm">
+                    {commenter.href
+                      ? <a href={commenter.href} className="font-medium text-zinc-900 dark:text-[#141518] hover:text-[#A83A00] dark:hover:text-[#A83A00]">{commenter.name}</a>
+                      : <span className="font-medium text-zinc-900 dark:text-[#141518]">{commenter.name}</span>}
+                    <span className="text-xs text-zinc-500">{ROLES[commenter.role]?.label || "Member"}, {timeAgo(c.createdAt)}</span>
+                  </p>
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">{c.text}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <form onSubmit={submitComment} className="flex gap-2">
             <label htmlFor={`reply-${post.id}`} className="sr-only">Write a reply</label>
             <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply" className={`min-w-0 flex-1 rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2 text-sm text-zinc-900 dark:text-[#141518] placeholder:text-zinc-600 ${focusRing}`} />
@@ -390,28 +411,31 @@ function PostCard({ post, onLike, onComment, onTag, user }) {
 
 /* ───────────────────────── Sidebar ───────────────────────── */
 
-function Sidebar({ topTags, onTag, onGuide, user }) {
+function Sidebar({ topTags, onTag, onGuide, resolve }) {
   return (
     <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Community highlights">
       <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
         <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Award className="h-5 w-5 text-emerald-700 dark:text-emerald-700" /> Top Verified Builders of the Month</h2>
         <ol className="mt-3 space-y-3">
-          {BUILDERS.map(([key, builds, points], i) => (
-            <li key={key} className="flex items-center gap-3">
-              <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-700 dark:text-emerald-700" : "text-zinc-500"}`}>{i + 1}</span>
-              <Avatar authorKey={key} size="h-9 w-9" user={user} />
-              <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-900 dark:text-[#141518]">
-                  {profileHref(key, user)
-                    ? <a href={profileHref(key, user)} className="truncate hover:text-[#A83A00] dark:hover:text-[#A83A00]">{AUTHORS[key]?.name || "ViciTech member"}</a>
-                    : <span className="truncate">{AUTHORS[key]?.name || "ViciTech member"}</span>}
-                  {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-700" aria-label="Builder of the month" />}
-                </p>
-                <p className="text-xs text-zinc-500">{ROLES[AUTHORS[key]?.role]?.label || "Member"}</p>
-              </div>
-              <div className="text-right text-xs tabular-nums"><p className="font-medium text-[#A83A00] dark:text-[#A83A00]">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
-            </li>
-          ))}
+          {BUILDERS.map(([key, builds, points], i) => {
+            const author = resolve(key);
+            return (
+              <li key={key} className="flex items-center gap-3">
+                <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-700 dark:text-emerald-700" : "text-zinc-500"}`}>{i + 1}</span>
+                <Avatar author={author} size="h-9 w-9" />
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-900 dark:text-[#141518]">
+                    {author.href
+                      ? <a href={author.href} className="truncate hover:text-[#A83A00] dark:hover:text-[#A83A00]">{author.name}</a>
+                      : <span className="truncate">{author.name}</span>}
+                    {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-700" aria-label="Builder of the month" />}
+                  </p>
+                  <p className="text-xs text-zinc-500">{ROLES[author.role]?.label || "Member"}</p>
+                </div>
+                <div className="text-right text-xs tabular-nums"><p className="font-medium text-[#A83A00] dark:text-[#A83A00]">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
+              </li>
+            );
+          })}
         </ol>
       </section>
 
@@ -445,11 +469,61 @@ function Sidebar({ topTags, onTag, onGuide, user }) {
 
 /* ───────────────────────── Page ───────────────────────── */
 
-export default function CommunityHub({ onNavigate, user }) {
+/* Sesi user selalu dibaca dari Supabase Auth, bukan dari prop yang bisa tertinggal. */
+function useCurrentUser() {
+  const [currentUser, setCurrentUser] = useState(null);
+  useEffect(() => {
+    let supabase;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch {
+      return undefined;
+    }
+    let isActive = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (isActive) setCurrentUser(data?.user ?? null);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (isActive) setCurrentUser(session?.user ?? null);
+    });
+    return () => {
+      isActive = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+  return [currentUser, setCurrentUser];
+}
+
+export default function CommunityHub({ onNavigate }) {
   const [posts, setPosts] = useState(SEED_POSTS);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
   const [publishError, setPublishError] = useState("");
+  const [currentUser, setCurrentUser] = useCurrentUser();
+  const [profiles, setProfiles] = useState({});
+  const requestedProfiles = useRef(new Set());
+
+  // Ambil username penulis dari tabel `profiles` (kolom: id = auth user id, username).
+  // Jika tabel/kolom berbeda atau RLS menolak, penulis tampil tanpa link, bukan dengan link yang salah.
+  const loadProfiles = useCallback(async (supabase, userIds) => {
+    const ids = [...new Set(userIds)].filter((id) => id && !requestedProfiles.current.has(id));
+    if (!ids.length) return;
+    ids.forEach((id) => requestedProfiles.current.add(id));
+    const { data, error } = await supabase.from("profiles").select("id, username").in("id", ids);
+    if (error || !data) return;
+    setProfiles((current) => ({ ...current, ...Object.fromEntries(data.map((p) => [p.id, p])) }));
+  }, []);
+
+  const resolve = useMemo(() => (key) => resolveAuthor(key, { currentUser, profiles }), [currentUser, profiles]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    try {
+      void loadProfiles(getSupabaseBrowserClient(), [currentUser.id]);
+    } catch {
+      /* feed tetap berjalan tanpa link profil */
+    }
+  }, [currentUser?.id, loadProfiles]);
 
   useEffect(() => {
     let supabase;
@@ -464,7 +538,7 @@ export default function CommunityHub({ onNavigate, user }) {
     const loadPosts = async () => {
       const { data, error } = await supabase
         .from("community_posts")
-        .select("id, title, content, category, likes_count, created_at")
+        .select("id, user_id, title, content, category, likes_count, created_at")
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) {
@@ -473,6 +547,7 @@ export default function CommunityHub({ onNavigate, user }) {
       }
       if (isActive && data) {
         const persistedPosts = data.map(mapDatabasePost);
+        void loadProfiles(supabase, data.map((row) => row.user_id));
         setPosts((current) => {
           const byId = new Map(current.map((post) => [post.id, post]));
           persistedPosts.forEach((post) => byId.set(post.id, post));
@@ -487,6 +562,7 @@ export default function CommunityHub({ onNavigate, user }) {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "community_posts" }, ({ new: row }) => {
         if (!row?.id || !row?.title || !row?.content) return;
         const post = mapDatabasePost(row);
+        void loadProfiles(supabase, [row.user_id]);
         setPosts((current) => current.some((existing) => existing.id === post.id) ? current : [post, ...current]);
       })
       .subscribe((status) => {
@@ -499,7 +575,7 @@ export default function CommunityHub({ onNavigate, user }) {
       isActive = false;
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadProfiles]);
 
   const counts = useMemo(() => Object.fromEntries(CAT_ORDER.map((k) => [k, k === "all" ? posts.length : posts.filter((p) => p.cat === k).length])), [posts]);
 
@@ -509,11 +585,11 @@ export default function CommunityHub({ onNavigate, user }) {
       .filter((p) => category === "all" || p.cat === category)
       .filter((p) => {
         if (!q) return true;
-        const hay = `${p.title} ${p.body} ${AUTHORS[p.by].name} ${CATEGORIES[p.cat].label} ${(p.specs ?? []).flat().join(" ")}`.toLowerCase();
+        const hay = `${p.title} ${p.body} ${resolve(p.by).name} ${CATEGORIES[p.cat].label} ${(p.specs ?? []).flat().join(" ")}`.toLowerCase();
         return hay.includes(q);
       })
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [posts, category, query]);
+  }, [posts, category, query, resolve]);
 
   const topTags = useMemo(() => {
     const tally = {};
@@ -523,23 +599,29 @@ export default function CommunityHub({ onNavigate, user }) {
 
   const patch = (id, fn) => setPosts((list) => list.map((p) => (p.id === id ? fn(p) : p)));
   const like = (id) => patch(id, (p) => ({ ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) }));
-  const addComment = (id, text) => patch(id, (p) => ({ ...p, comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: "you", text, createdAt: Date.now() }] }));
+  const addComment = (id, text) => patch(id, (p) => ({ ...p, comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: currentUser?.id ?? "you", text, createdAt: Date.now() }] }));
 
   const publish = async ({ title, body, cat, attached }) => {
     setPublishError("");
     try {
       const client = getSupabaseBrowserClient();
+      // Ambil user terbaru dari Auth server TEPAT sebelum insert.
+      // Jangan memakai prop/state `user`: bisa tertinggal setelah login, logout, atau ganti akun.
       const { data: { user: activeUser }, error: authError } = await client.auth.getUser();
       if (authError) throw new Error(authError.message);
       if (!activeUser) throw new Error("Sign in before publishing a community post.");
+      setCurrentUser(activeUser); // tampilan ikut akun yang benar-benar dipakai untuk insert
+
       const { data, error } = await client.from("community_posts").insert({
         user_id: activeUser.id,
         title,
         content: body,
         category: databaseCategory[cat],
-      }).select("id, title, content, category, likes_count, created_at").single();
+      }).select("id, user_id, title, content, category, likes_count, created_at").single();
       if (error) throw new Error(error.message);
+
       const post = mapDatabasePost(data);
+      void loadProfiles(client, [activeUser.id]);
       if (attached) {
         post.attachment = "attached-photo.jpg";
         if (cat === "build") post.specs = ATTACH_SPECS;
@@ -547,7 +629,7 @@ export default function CommunityHub({ onNavigate, user }) {
       setPosts((list) => [post, ...list.filter((existing) => existing.id !== post.id)]);
       setCategory("all");
       setQuery("");
-      if (cat === "build" && user?.id) {
+      if (cat === "build") {
         const { error: buildError } = await client.from("shared_builds").insert({ user_id: activeUser.id, title });
         if (buildError) setPublishError(`Post published, but the shared-build summary could not be saved: ${buildError.message}`);
       }
@@ -606,7 +688,7 @@ export default function CommunityHub({ onNavigate, user }) {
 
             {visible.length ? (
               <div className="space-y-4">
-                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} user={user} />)}
+                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} resolve={resolve} />)}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-200 dark:border-black/10 p-10 text-center">
@@ -617,7 +699,7 @@ export default function CommunityHub({ onNavigate, user }) {
             )}
           </div>
 
-          <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} user={user} />
+          <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} resolve={resolve} />
         </div>
       </main>
 
