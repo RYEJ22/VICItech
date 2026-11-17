@@ -169,10 +169,12 @@ function resolveAuthor(key, { currentUser, profiles }) {
   // user_metadata hanya cadangan untuk akun yang sedang login, tidak pernah dipakai untuk akun orang lain.
   const username = profile?.username || (isSelf ? currentUser?.user_metadata?.username : "");
   return {
-    name: isSelf ? "You" : username || "ViciTech member",
-    role: "fan",
-    href: usernameHref(username),
-    isSelf,
+   return {
+  name: profile?.full_name || profile?.display_name || username || "ViciTech member",
+  role: "fan",
+  href: usernameHref(username),
+  isSelf, // biarin kalau mau nandain kepunyaan sendiri
+}
   };
 }
 
