@@ -168,15 +168,16 @@ function resolveAuthor(key, { currentUser, profiles }) {
   // Username berasal dari tabel profiles milik penulis itu sendiri.
   // user_metadata hanya cadangan untuk akun yang sedang login, tidak pernah dipakai untuk akun orang lain.
   const username = profile?.username || (isSelf ? currentUser?.user_metadata?.username : "");
+  
   return {
-   return {
-  name: profile?.full_name || profile?.display_name || username || "ViciTech member",
-  role: "fan",
-  href: usernameHref(username),
-  isSelf, // biarin kalau mau nandain kepunyaan sendiri
-}
+    name: profile?.full_name || profile?.display_name || username || "ViciTech member",
+    role: "fan",
+    href: usernameHref(username),
+    isSelf, // biarin kalau mau nandain kepunyaan sendiri
   };
 }
+  
+
 
 function Avatar({ author, size = "h-10 w-10" }) {
   const avatar = author.isSelf
