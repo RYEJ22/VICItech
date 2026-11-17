@@ -7,9 +7,9 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 p-5">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{label}</p>
-      <p className="mt-2 text-3xl font-semibold tabular-nums text-cyan-700 dark:text-cyan-300">{value}</p>
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
+      <p className="text-xs font-medium uppercase tracking-[0.12em] text-[#777C83]">{label}</p>
+      <p className="mt-2 font-serif text-3xl font-semibold tabular-nums text-[#C94300]">{value}</p>
     </div>
   );
 }
@@ -110,65 +110,68 @@ export default function PublicProfilePage({ username, user, isAuthLoading }) {
 
   return (
     <main className="mx-auto min-h-[65vh] w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-      <Link href="/" className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:border-emerald-600/40 dark:hover:border-emerald-400/40 hover:text-cyan-800 dark:hover:text-cyan-200">
+      <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-black/[0.08] bg-white/70 px-4 py-2 text-sm font-medium text-[#5A606A] transition hover:border-[#FF5500]/30 hover:text-[#A83A00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60">
         <ArrowLeft className="h-4 w-4" /> Home
       </Link>
 
       {status === "loading" && (
-        <section aria-label="Loading profile" className="mt-6 animate-pulse rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 p-6 sm:p-8">
+        <section aria-label="Loading profile" className="mt-6 animate-pulse rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] sm:p-8">
           <div className="flex items-center gap-5">
-            <div className="h-20 w-20 rounded-full bg-zinc-100 dark:bg-zinc-800" />
-            <div className="space-y-3"><div className="h-5 w-48 rounded bg-zinc-100 dark:bg-zinc-800" /><div className="h-4 w-32 rounded bg-zinc-100 dark:bg-zinc-800" /></div>
+            <div className="h-20 w-20 rounded-full bg-[#F0EFEC]" />
+            <div className="space-y-3"><div className="h-5 w-48 rounded-lg bg-[#F0EFEC]" /><div className="h-4 w-32 rounded-lg bg-[#F0EFEC]" /></div>
           </div>
-          <div className="mt-6 h-16 rounded bg-zinc-100/70 dark:bg-zinc-800/70" />
-          <div className="mt-6 grid gap-3 sm:grid-cols-2"><div className="h-24 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/70" /><div className="h-24 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/70" /></div>
+          <div className="mt-6 h-16 rounded-2xl bg-[#F6F5F2]" />
+          <div className="mt-6 grid gap-3 sm:grid-cols-2"><div className="h-24 rounded-2xl bg-[#F6F5F2]" /><div className="h-24 rounded-2xl bg-[#F6F5F2]" /></div>
         </section>
       )}
 
       {status === "signed-out" && (
-        <section className="mt-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8 text-center">
-          <ShieldCheck className="mx-auto h-10 w-10 text-cyan-700 dark:text-cyan-300" />
-          <h1 className="mt-4 text-2xl font-semibold">Sign in to view profiles</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Public member profiles are available to authenticated ViciTech users.</p>
+        <section className="mt-6 rounded-3xl border border-black/[0.06] bg-white p-8 text-center shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
+          <ShieldCheck className="mx-auto h-10 w-10 text-[#FF5500]" />
+          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-[#141518]">Sign in to view profiles</h1>
+          <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">Public member profiles are available to authenticated ViciTech users.</p>
         </section>
       )}
 
       {status === "not-found" && (
-        <section className="mt-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-10 text-center">
-          <UserRound className="mx-auto h-12 w-12 text-zinc-600" />
-          <h1 className="mt-4 text-2xl font-semibold">User Not Found</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">This ViciTech profile does not exist or is no longer available.</p>
+        <section className="mt-6 rounded-3xl border border-black/[0.06] bg-white p-10 text-center shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
+          <UserRound className="mx-auto h-12 w-12 text-[#A3A6AA]" />
+          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-[#141518]">User not found</h1>
+          <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">This ViciTech profile does not exist or is no longer available.</p>
         </section>
       )}
 
       {status === "error" && (
-        <p role="alert" className="mt-6 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-800 dark:text-red-200">{error}</p>
+        <p role="alert" className="mt-6 rounded-2xl border border-red-600/20 bg-red-50 p-4 text-sm text-red-800">{error}</p>
       )}
 
       {status === "ready" && profile && (
         <>
-          <section className="mt-6 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50">
-            <div className="h-28 bg-gradient-to-r from-cyan-500/20 via-slate-800 to-zinc-950 sm:h-36" />
+          <section className="mt-6 overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-[0_14px_40px_rgba(20,21,24,0.05)]">
+            <div className="relative h-28 overflow-hidden bg-[linear-gradient(115deg,#FFE5D8_0%,#FFF3EA_45%,#F0EFEC_100%)] sm:h-36">
+              <div className="absolute -right-8 -top-20 h-56 w-56 rounded-full border border-[#FF5500]/10" aria-hidden="true" />
+              <div className="absolute -right-2 -top-14 h-44 w-44 rounded-full border border-[#FF5500]/10" aria-hidden="true" />
+            </div>
             <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:pb-7">
               <div className="-mt-14 flex min-w-0 items-end gap-4 sm:-mt-16">
                 {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-24 w-24 shrink-0 rounded-full border-4 border-zinc-200 dark:border-zinc-950 bg-white dark:bg-zinc-900 object-cover sm:h-28 sm:w-28" />
+                  <img src={profile.avatar_url} alt="" className="h-24 w-24 shrink-0 rounded-full border-4 border-white bg-white object-cover shadow-sm sm:h-28 sm:w-28" />
                 ) : (
-                  <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-4 border-zinc-200 dark:border-zinc-950 bg-emerald-600/15 dark:bg-emerald-400/15 text-3xl font-semibold text-cyan-800 dark:text-cyan-200 sm:h-28 sm:w-28">
+                  <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-4 border-white bg-[#FF5500]/[0.08] text-3xl font-semibold text-[#A83A00] shadow-sm sm:h-28 sm:w-28">
                     {(name.trim().charAt(0) || "V").toUpperCase()}
                   </div>
                 )}
                 <div className="min-w-0 pb-1">
-                  <h1 className="truncate text-2xl font-semibold text-zinc-900 dark:text-zinc-50 sm:text-3xl">{name}</h1>
-                  <p className="mt-1 truncate font-mono text-sm text-cyan-700 dark:text-cyan-300">@{profile.username}</p>
+                  <h1 className="truncate font-serif text-2xl font-semibold tracking-tight text-[#141518] sm:text-3xl">{name}</h1>
+                  <p className="mt-1 truncate text-sm font-medium text-[#A83A00]">@{profile.username}</p>
                 </div>
               </div>
               {isOwner ? (
-                <Link href="/#account" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/50 dark:hover:border-emerald-400/50 hover:text-cyan-800 dark:hover:text-cyan-200">
+                <Link href="/#account" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-medium text-[#30343A] transition-colors hover:border-[#FF5500]/30 hover:text-[#A83A00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60">
                   Edit profile
                 </Link>
               ) : (
-                <Link href={`/messages?to=${encodeURIComponent(profile.username)}`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-emerald-600 dark:bg-emerald-400 px-5 py-3 text-sm font-semibold text-white dark:text-zinc-950 transition hover:bg-emerald-500 dark:hover:bg-emerald-300">
+                <Link href={`/messages?to=${encodeURIComponent(profile.username)}`} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#FF5500] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E94B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white">
                   <MessageSquare className="h-4 w-4" /> Send Message
                 </Link>
               )}
@@ -177,25 +180,25 @@ export default function PublicProfilePage({ username, user, isAuthLoading }) {
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(260px,0.7fr)]">
             <div className="space-y-5">
-              <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 p-5 sm:p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-600 dark:text-zinc-400">About</h2>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 dark:text-zinc-200">
+              <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)] sm:p-6">
+                <h2 className="font-serif text-xl font-semibold text-[#141518]">About</h2>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#5A606A]">
                   {profile.bio?.trim() || "This member has not added a bio yet."}
                 </p>
               </section>
-              <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 p-5 sm:p-6">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-600 dark:text-zinc-400">Recent public activity</h2>
+              <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)] sm:p-6">
+                <h2 className="font-serif text-xl font-semibold text-[#141518]">Recent public activity</h2>
                 {activity.length ? (
-                  <ul className="mt-4 divide-y divide-zinc-800">
+                  <ul className="mt-4 divide-y divide-black/[0.06]">
                     {activity.map((item) => item?.id && (
                       <li key={item.id} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-                        <span className="min-w-0 truncate text-sm text-zinc-800 dark:text-zinc-200">{item.title || "Shared a build"}</span>
-                        <time className="shrink-0 text-xs text-zinc-500" dateTime={item.created_at}>{formatActivityDate(item.created_at)}</time>
+                        <span className="min-w-0 truncate text-sm text-[#30343A]">{item.title || "Shared a build"}</span>
+                        <time className="shrink-0 text-xs text-[#777C83]" dateTime={item.created_at}>{formatActivityDate(item.created_at)}</time>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-3 text-sm text-zinc-500">No public activity yet.</p>
+                  <p className="mt-3 text-sm text-[#777C83]">No public activity yet.</p>
                 )}
               </section>
             </div>
@@ -205,23 +208,23 @@ export default function PublicProfilePage({ username, user, isAuthLoading }) {
                 <Stat label="Shared Builds" value={stats.builds} />
               </section>
               {isOwner && (
-                <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 p-5 sm:p-6">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-600 dark:text-zinc-400">Your saved presets</h2>
+                <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)] sm:p-6">
+                  <h2 className="font-serif text-xl font-semibold text-[#141518]">Your saved presets</h2>
                   {savedPresets.length ? (
                     <ul className="mt-3 space-y-2">
                       {savedPresets.map((preset) => preset?.id && (
-                        <li key={preset.id} className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 p-3">
-                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{preset.name || "Untitled preset"}</p>
-                          <p className="mt-1 text-xs text-zinc-500">
+                        <li key={preset.id} className="rounded-2xl border border-black/[0.06] bg-[#F6F5F2]/70 p-3.5">
+                          <p className="truncate text-sm font-medium text-[#30343A]">{preset.name || "Untitled preset"}</p>
+                          <p className="mt-1 text-xs text-[#777C83]">
                             {(preset.role || "b2c").toUpperCase()} · {Array.isArray(preset.parts) ? preset.parts.length : 0} parts · {preset.qty || 1} unit(s)
                           </p>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="mt-3 text-sm text-zinc-500">You have not saved any presets yet.</p>
+                    <p className="mt-3 text-sm text-[#777C83]">You have not saved any presets yet.</p>
                   )}
-                  <p className="mt-3 text-xs text-zinc-600">Preset details are private and only visible to you.</p>
+                  <p className="mt-3 text-xs leading-relaxed text-[#777C83]">Preset details are private and only visible to you.</p>
                 </section>
               )}
             </div>

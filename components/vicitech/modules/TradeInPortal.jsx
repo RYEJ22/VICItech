@@ -41,9 +41,9 @@ function estimate({ entity, equipment, condition, qty }) {
 /* ───────────────────────── Refurbished catalog (sample data) ───────────────────────── */
 
 const GRADES = {
-  "A+": { label: "Grade A+ (Like New)", cls: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400" },
-  A: { label: "Grade A (Minor Cosmetic Wear)", cls: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400" },
-  RE: { label: "Recertified Enterprise", cls: "border-violet-400/30 bg-violet-400/10 text-violet-300" },
+  "A+": { label: "Grade A+ (Like New)", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
+  A: { label: "Grade A (Minor Cosmetic Wear)", cls: "border-[#FF5500]/20 bg-[#FF5500]/[0.06] text-[#A83A00]" },
+  RE: { label: "Recertified Enterprise", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
 };
 
 const NOTES = {
@@ -108,23 +108,23 @@ const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency:
 const num = (n) => new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(n);
 const roundTo = (n, step = 10000) => Math.round(n / step) * step;
 const clampQty = (v) => Math.min(MAX_QTY, Math.max(1, parseInt(v, 10) || 1));
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
 
 /* ───────────────────────── UI pieces ───────────────────────── */
 
 function Header({ onOpenEngine, onOpenBuilder }) {
-  const link = `shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 ${focusRing}`;
+  const link = `shrink-0 rounded-full px-3 py-2 text-sm text-[#5A606A] hover:bg-black/[0.04] hover:text-[#141518] ${focusRing}`;
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-[#F6F5F2]/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <span className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-500 dark:bg-emerald-500 text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
+          <span className="font-serif text-xl font-semibold tracking-tight text-[#141518]">ViciTech</span>
         </span>
         <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
           <button type="button" onClick={onOpenEngine} className={link}>Hardware Engine</button>
           <button type="button" onClick={onOpenBuilder} className={link}>Preset Builder</button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-emerald-600 dark:border-emerald-400 px-3 py-1.5 text-sm font-medium text-cyan-700 dark:text-cyan-400 ${focusRing}`}>
+          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-[#FF5500] px-3 py-1.5 text-sm font-medium text-[#C94300] ${focusRing}`}>
             <Recycle className="h-4 w-4" /> Trade-In &amp; Recycle
           </button>
         </nav>
@@ -144,12 +144,12 @@ function Choice({ active, onClick, icon: Icon, title, hint }) {
       aria-checked={active}
       onClick={onClick}
       className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${focusRing} ${
-        active ? "border-cyan-500/70 bg-cyan-500/10" : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-700"
+        active ? "border-[#FF5500]/35 bg-[#FF5500]/[0.05]" : "border-black/[0.08] bg-white hover:border-black/15"
       }`}
     >
-      {Icon && <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${active ? "text-cyan-700 dark:text-cyan-400" : "text-zinc-500"}`} />}
+      {Icon && <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${active ? "text-[#FF5500]" : "text-zinc-500"}`} />}
       <span>
-        <span className={`block text-sm font-medium ${active ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-800 dark:text-zinc-200"}`}>{title}</span>
+        <span className={`block text-sm font-medium ${active ? "text-[#C94300]" : "text-zinc-800 dark:text-zinc-200"}`}>{title}</span>
         {hint && <span className="mt-0.5 block text-xs text-zinc-500">{hint}</span>}
       </span>
     </button>
@@ -164,7 +164,7 @@ function ProductCard({ p, onInspect }) {
   const { triggerCheckout } = useCheckout();
 
   return (
-    <article className="flex flex-col rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4">
+    <article className="flex flex-col rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_12px_32px_rgba(20,21,24,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <GradeBadge grade={p.grade} />
         <span className="text-xs text-zinc-500">{p.kind}</span>
@@ -187,15 +187,15 @@ function ProductCard({ p, onInspect }) {
       </div>
 
       <dl className="mt-4 grid grid-cols-3 gap-2 text-xs">
-        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2">
+        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
           <dt className="flex items-center gap-1 text-zinc-500"><Recycle className="h-3 w-3" /> E-waste</dt>
           <dd className="mt-1 font-medium tabular-nums text-zinc-900 dark:text-zinc-100">{num(p.kg)} kg</dd>
         </div>
-        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2">
+        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
           <dt className="flex items-center gap-1 text-zinc-500"><Leaf className="h-3 w-3" /> CO₂ avoided</dt>
           <dd className="mt-1 font-medium tabular-nums text-zinc-900 dark:text-zinc-100">{num(p.co2)} kg</dd>
         </div>
-        <div className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2">
+        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
           <dt className="flex items-center gap-1 text-zinc-500"><ShieldCheck className="h-3 w-3" /> Warranty</dt>
           <dd className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{WARRANTY_MONTHS} months</dd>
         </div>
@@ -205,7 +205,7 @@ function ProductCard({ p, onInspect }) {
         <button
           type="button"
           onClick={() => onInspect(p)}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-800 dark:text-zinc-200 transition-colors hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-400 ${focusRing}`}
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}
         >
           <CheckCircle2 className="h-4 w-4" /> Inspection Summary
         </button>
@@ -223,7 +223,7 @@ function ProductCard({ p, onInspect }) {
               configuration: p.spec,
             },
           })}
-          className="inline-flex w-full items-center justify-center rounded-lg bg-cyan-500 dark:bg-emerald-500 px-4 py-2 text-sm font-semibold text-black shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all hover:bg-emerald-600 dark:hover:bg-emerald-400"
+          className="inline-flex w-full items-center justify-center rounded-full bg-[#FF5500] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#E94B00]"
         >
           🚀 Check Out Now
         </button>
@@ -256,7 +256,7 @@ function InspectionDrawer({ product, onClose }) {
       <aside role="dialog" aria-modal="true" aria-label={`Inspection summary for ${product.name}`} onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
         <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5">
           <div>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Inspection Summary</h2>
+            <h2 className="font-serif text-xl font-semibold text-zinc-900 dark:text-zinc-50">Inspection Summary</h2>
             <p className="text-sm text-zinc-600 dark:text-zinc-400">{product.name}</p>
             <div className="mt-2"><GradeBadge grade={product.grade} /></div>
           </div>
@@ -269,7 +269,7 @@ function InspectionDrawer({ product, onClose }) {
               <CheckCircle2 className="h-4 w-4" /> {total} of {total} points verified
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-sm text-zinc-700 dark:text-zinc-300">
-              <ShieldCheck className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> {WARRANTY_MONTHS}-month warranty
+              <ShieldCheck className="h-4 w-4 text-[#FF5500]" /> {WARRANTY_MONTHS}-month warranty
             </span>
           </div>
 
@@ -280,7 +280,7 @@ function InspectionDrawer({ product, onClose }) {
                 {g.items.map((it) => (
                   <li key={it.label} className="flex gap-3 px-3 py-2.5">
                     {it.status === "serviced"
-                      ? <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" aria-label="Serviced by our technicians" />
+                      ? <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5500]" aria-label="Serviced by our technicians" />
                       : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-label="Passed" />}
                     <div>
                       <p className="text-sm text-zinc-900 dark:text-zinc-100">{it.label}</p>
@@ -293,7 +293,7 @@ function InspectionDrawer({ product, onClose }) {
           ))}
           <p className="text-xs text-zinc-500">
             <CheckCircle2 className="mr-1 inline h-3 w-3 text-emerald-700 dark:text-emerald-400" /> Passed as received.
-            <RefreshCw className="ml-3 mr-1 inline h-3 w-3 text-cyan-700 dark:text-cyan-400" /> Serviced by our technicians.
+            <RefreshCw className="ml-3 mr-1 inline h-3 w-3 text-[#FF5500]" /> Serviced by our technicians.
           </p>
 
           <div className="flex gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
@@ -349,12 +349,13 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
   const closeInspect = useMemo(() => () => setInspecting(null), []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
       <Header onOpenEngine={onOpenEngine} onOpenBuilder={onOpenBuilder} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
-          <Recycle className="h-8 w-8 text-emerald-700 dark:text-emerald-400" /> Office Refurbished &amp; Trade-In Portal
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Give good hardware another life</p>
+        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl">
+          <Recycle className="h-8 w-8 text-[#FF5500]" /> Office Refurbished &amp; Trade-In Portal
         </h1>
         <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
           Sell retired equipment for a clear buyback estimate, or buy recertified enterprise hardware with a full inspection record and the savings shown up front.
@@ -362,11 +363,11 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
 
         {/* Trade-in form */}
         <section className="mt-10" aria-labelledby="buyback-title">
-          <h2 id="buyback-title" className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-            <DollarSign className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Asset buyback request
+          <h2 id="buyback-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-[#141518]">
+            <DollarSign className="h-5 w-5 text-[#FF5500]" /> Asset buyback request
           </h2>
           <div className="mt-4 grid gap-6 lg:grid-cols-5">
-            <div className="space-y-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5 lg:col-span-3">
+            <div className="space-y-5 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-3">
               <fieldset>
                 <legend className="mb-2 text-sm text-zinc-700 dark:text-zinc-300">Entity type</legend>
                 <div role="radiogroup" aria-label="Entity type" className="grid gap-2 sm:grid-cols-3">
@@ -400,16 +401,16 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
               </fieldset>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                <button type="button" onClick={() => setRevealed(true)} className={`inline-flex items-center gap-2 rounded-lg bg-cyan-500 dark:bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white dark:text-zinc-950 hover:bg-emerald-600 dark:hover:bg-emerald-400 ${focusRing}`}>
+              <button type="button" onClick={() => setRevealed(true)} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] ${focusRing}`}>
                   <DollarSign className="h-4 w-4" /> Get Instant Valuation Estimate
                 </button>
-                <button type="button" onClick={downloadTemplate} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-cyan-700 dark:hover:text-cyan-400 ${focusRing}`}>
+                <button type="button" onClick={downloadTemplate} className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-zinc-600 hover:bg-black/[0.04] hover:text-[#C94300] ${focusRing}`}>
                   <FileSpreadsheet className="h-4 w-4" /> Download asset list template
                 </button>
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5 lg:col-span-2" aria-live="polite">
+            <div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-2" aria-live="polite">
               {!revealed ? (
                 <div className="flex h-full min-h-48 flex-col items-center justify-center text-center">
                   <DollarSign className="h-8 w-8 text-zinc-700" />
@@ -449,7 +450,7 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
                           aria-invalid={emailError} placeholder="name@organization.id"
                           className={`min-w-0 flex-1 rounded-lg border bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 ${focusRing} ${emailError ? "border-red-500" : "border-zinc-200 dark:border-zinc-700"}`}
                         />
-                        <button type="button" onClick={submit} className={`shrink-0 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 ${focusRing}`}>
+                        <button type="button" onClick={submit} className={`shrink-0 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white hover:bg-[#E94B00] ${focusRing}`}>
                           Submit for valuation
                         </button>
                       </div>
@@ -464,8 +465,8 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
 
         {/* Refurbished gallery */}
         <section className="mt-14" aria-labelledby="gallery-title">
-          <h2 id="gallery-title" className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-            <RefreshCw className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Certified refurbished hardware
+          <h2 id="gallery-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-[#141518]">
+            <RefreshCw className="h-5 w-5 text-[#FF5500]" /> Certified refurbished hardware
           </h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Every unit passes a 15-point inspection and ships with a {WARRANTY_MONTHS}-month warranty.</p>
 
@@ -473,14 +474,14 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
             {TABS.map((t) => (
               <button
                 key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${tab === t ? "border-emerald-600 dark:border-emerald-400 bg-cyan-500/15 dark:bg-emerald-500/15 text-cyan-700 dark:text-cyan-300" : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-700 hover:text-zinc-800 dark:hover:text-zinc-200"}`}
+                className={`rounded-full border px-4 py-2 text-sm transition-colors ${focusRing} ${tab === t ? "border-[#FF5500]/25 bg-[#FF5500]/[0.06] font-medium text-[#A83A00]" : "border-black/[0.08] text-zinc-600 hover:border-black/15 hover:text-zinc-800"}`}
               >
                 {t} <span className="ml-1 text-xs text-zinc-500">{tabCounts[t]}</span>
               </button>
             ))}
           </div>
 
-          <p className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-2xl border border-black/[0.06] bg-white px-5 py-4 text-sm text-zinc-600 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
             <Leaf className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
             Buying one of each unit shown saves <b className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(totals.saved)}</b>,
             keeps <b className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{num(totals.kg)} kg</b> of e-waste in use and avoids
@@ -493,7 +494,7 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
         </section>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">
+      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">
         ViciTech Engine v1.0. Sample prices, rates and inspection data.
       </footer>
 

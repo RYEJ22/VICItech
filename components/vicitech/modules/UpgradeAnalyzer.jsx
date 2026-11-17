@@ -54,8 +54,8 @@ const STORE_OPTS = [
 const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 const sum = (a) => a.reduce((s, x) => s + x, 0);
 const fmtGB = (gb) => (gb >= 1000 ? `${(gb / 1000).toFixed(gb % 1000 ? 1 : 0)} TB` : `${gb} GB`);
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
-const card = "rounded-xl border border-zinc-800 bg-zinc-900/50";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/70";
+const card = "card-unibody rounded-2xl p-6 border-none";
 
 const ramInstalled = (d) => d.ram.soldered + sum(d.ram.modules);
 const ramMax = (d) => d.ram.soldered + d.ram.slots * d.ram.slotMax;
@@ -95,8 +95,8 @@ function ramOptions(d) {
 function Slot({ kind, label, sub }) {
   const free = kind === "free";
   return (
-    <div className={`min-w-[5.5rem] rounded-lg border px-3 py-2 text-center ${free ? "border-dashed border-emerald-400/50 bg-emerald-400/5 text-emerald-700 dark:text-emerald-400" : kind === "fixed" ? "border-zinc-200 dark:border-zinc-700 bg-zinc-100/60 dark:bg-zinc-800/60 text-zinc-700 dark:text-zinc-300" : "border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300"}`}>
-      <p className="text-sm font-medium">{label}</p>
+    <div className={`min-w-[5.5rem] rounded-xl px-3 py-2.5 text-center shadow-sm ${free ? "bg-white border border-dashed border-[#FF5500]/50 text-[#FF5500]" : kind === "fixed" ? "bg-black/5 text-[#5A606A]" : "bg-white text-[#141518]"}`}>
+      <p className="text-sm font-semibold">{label}</p>
       <p className="text-[11px] opacity-80">{sub}</p>
     </div>
   );
@@ -105,8 +105,8 @@ function Slot({ kind, label, sub }) {
 function SlotGroup({ icon: Icon, title, detail, children }) {
   return (
     <div>
-      <p className="mb-2 flex flex-wrap items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><Icon className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> {title} <span className="text-xs text-zinc-500">{detail}</span></p>
-      <div className="flex flex-wrap gap-2">{children}</div>
+      <p className="mb-2 flex flex-wrap items-center gap-2 text-sm font-medium text-[#141518]"><Icon className="h-4 w-4 text-[#FF5500]" /> {title} <span className="text-xs text-[#5A606A] font-normal">{detail}</span></p>
+      <div className="flex flex-wrap gap-2.5">{children}</div>
     </div>
   );
 }
@@ -115,9 +115,9 @@ function ScoreRing({ value, grade }) {
   const r = 34, len = 2 * Math.PI * r;
   return (
     <svg viewBox="0 0 80 80" className="h-24 w-24 shrink-0 -rotate-90" role="img" aria-label={`Upgrade potential ${value} out of 100, grade ${grade[0]}`}>
-      <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-zinc-800" />
-      <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(len * value) / 100} ${len}`} className="stroke-emerald-400 transition-all duration-500" />
-      <text x="40" y="40" textAnchor="middle" dominantBaseline="central" fontSize="22" fontWeight="600" className="fill-zinc-50" transform="rotate(90 40 40)">{value}</text>
+      <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" className="stroke-black/10" />
+      <circle cx="40" cy="40" r={r} fill="none" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${(len * value) / 100} ${len}`} className="stroke-[#FF5500] transition-all duration-500" />
+      <text x="40" y="40" textAnchor="middle" dominantBaseline="central" fontSize="22" fontWeight="600" className="fill-[#141518]" transform="rotate(90 40 40)">{value}</text>
     </svg>
   );
 }

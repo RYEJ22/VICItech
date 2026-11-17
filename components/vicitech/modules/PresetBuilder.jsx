@@ -164,23 +164,23 @@ function summarize(sel, qty) {
   };
 }
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/70";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
 
 /* ───────────────────────── Small UI pieces ───────────────────────── */
 
 function Header({ onOpenEngine }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-[#F6F5F2]/90 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
         <span className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-500 dark:bg-emerald-500 text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
+          <span className="font-serif text-xl font-semibold tracking-tight text-[#141518]">ViciTech</span>
         </span>
         <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
           <button type="button" onClick={onOpenEngine} className={`shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}>
             Hardware Engine
           </button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-emerald-600 dark:border-emerald-400 px-3 py-1.5 text-sm font-medium text-cyan-700 dark:text-cyan-400 ${focusRing}`}>
+          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-[#FF5500] px-3 py-1.5 text-sm font-medium text-[#C94300] ${focusRing}`}>
             <Sliders className="h-4 w-4" /> Preset Builder
           </button>
         </nav>
@@ -195,9 +195,9 @@ function Header({ onOpenEngine }) {
 function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
   return (
-    <li className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50">
+    <li className="rounded-2xl border border-black/[0.06] bg-white shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
       <div className="flex flex-wrap items-center gap-3 p-4">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-cyan-700 dark:text-cyan-400">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-[#C94300] dark:text-[#C94300]">
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1 basis-48">
@@ -214,7 +214,7 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
           aria-expanded={open}
           onClick={onToggle}
           className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${focusRing} ${
-            open ? "border-cyan-500 bg-cyan-500/10 text-cyan-300" : "border-zinc-700 text-zinc-200 hover:border-cyan-500/60 hover:text-cyan-400"
+            open ? "border-[#FF5500]/30 bg-[#FF5500]/[0.06] text-[#C94300]" : "border-black/10 text-[#30343A] hover:border-[#FF5500]/40 hover:text-[#C94300]"
           }`}
         >
           <RefreshCw className="h-4 w-4" /> Swap / Upgrade
@@ -232,14 +232,14 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
                   type="button"
                   aria-pressed={isCurrent}
                   onClick={() => onPick(o.id)}
-                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${isCurrent ? "bg-cyan-500/10 dark:bg-emerald-500/10" : "hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"}`}
+                  className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${isCurrent ? "bg-[#FF5500]/10 dark:bg-emerald-500/10" : "hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"}`}
                 >
-                  {isCurrent ? <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700" />}
+                  {isCurrent ? <CheckCircle2 className="h-4 w-4 shrink-0 text-[#C94300] dark:text-[#C94300]" /> : <span className="h-4 w-4 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700" />}
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm text-zinc-900 dark:text-zinc-100">{o.name}</span>
                     <span className="block text-xs text-zinc-500">{o.spec}{extra ? ", includes matching parts" : ""}</span>
                   </span>
-                  <span className={`text-sm font-medium tabular-nums ${isCurrent ? "text-cyan-700 dark:text-cyan-400" : delta > 0 ? "text-amber-700 dark:text-amber-400" : delta < 0 ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"}`}>
+                  <span className={`text-sm font-medium tabular-nums ${isCurrent ? "text-[#C94300] dark:text-[#C94300]" : delta > 0 ? "text-amber-700 dark:text-amber-400" : delta < 0 ? "text-emerald-700 dark:text-emerald-400" : "text-zinc-500"}`}>
                     {isCurrent ? "Current" : fmtDelta(delta)}
                   </span>
                 </button>
@@ -302,7 +302,7 @@ function OrderDrawer({
               <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>× {qty} unit{qty > 1 ? "s" : ""}</dt><dd>{idr(calc.gross)}</dd></div>
               {calc.pct > 0 && <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><dt>Bulk discount {calc.pct}%</dt><dd>-{idr(calc.discount)}</dd></div>}
               <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 pt-2 text-zinc-700 dark:text-zinc-300"><dt>Base price</dt><dd>{idr(calc.basePrice)}</dd></div>
-              <div className="flex justify-between text-cyan-700 dark:text-cyan-400">
+              <div className="flex justify-between text-[#C94300] dark:text-[#C94300]">
                 <dt className="flex items-center gap-1.5">
                   <Zap className="h-3.5 w-3.5" /> JIT 5% Buffer (Dynamic Market Buffer)
                 </dt>
@@ -316,11 +316,11 @@ function OrderDrawer({
           </section>
 
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Truck className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Estimated delivery via Hub Bandung</h3>
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Truck className="h-4 w-4 text-[#C94300] dark:text-[#C94300]" /> Estimated delivery via Hub Bandung</h3>
             <ol className="space-y-3 border-l border-zinc-200 dark:border-zinc-800 pl-4">
               {timeline.map((s, i) => (
                 <li key={s.label} className="relative">
-                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${i === timeline.length - 1 ? "bg-emerald-500" : "bg-cyan-500 dark:bg-emerald-500"}`} />
+                  <span className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ${i === timeline.length - 1 ? "bg-emerald-500" : "bg-[#FF5500] dark:bg-emerald-500"}`} />
                   <p className="text-sm text-zinc-900 dark:text-zinc-100">{s.label} <span className="text-zinc-500">by {s.date}</span></p>
                   <p className="text-xs text-zinc-500">{s.note}</p>
                 </li>
@@ -347,7 +347,7 @@ function OrderDrawer({
               <ShoppingCart className="h-4 w-4" /> Continue to Checkout
             </span>
           </button>
-          <button type="button" onClick={onQuote} className={`${btn} border border-emerald-600/50 dark:border-emerald-400/50 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/10 dark:hover:bg-emerald-500/10`}>
+          <button type="button" onClick={onQuote} className={`${btn} border border-emerald-600/50 dark:border-emerald-400/50 text-[#C94300] dark:text-cyan-300 hover:bg-[#FF5500]/10 dark:hover:bg-emerald-500/10`}>
             <FileText className="h-4 w-4" /> {preset.seg === "B2C" ? "Request PDF Quote" : `Request Official ${preset.seg} PDF Quote`}
           </button>
           <button type="button" onClick={onSave} disabled={isSaving} className={`${btn} border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-zinc-500 disabled:cursor-wait disabled:opacity-60`}>
@@ -560,17 +560,18 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
 
   const closeDrawer = () => { setDrawer(false); setNotice(""); };
 
-  const iconBtn = `grid h-9 w-9 place-items-center rounded-lg border border-zinc-700 text-zinc-300 hover:border-cyan-500/60 hover:text-cyan-400 ${focusRing}`;
+  const iconBtn = `grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/40 hover:text-[#C94300] ${focusRing}`;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
       <Header onOpenEngine={onOpenEngine} />
 
       <main className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">
-          <Sliders className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Smart Preset Builder &amp; Configurator
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Build with confidence</p>
+        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl">
+          <Sliders className="h-8 w-8 text-[#FF5500]" /> Smart Preset Builder &amp; Configurator
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
+        <p className="mt-4 max-w-2xl leading-relaxed text-[#5A606A]">
           Start from a curated build for your segment, swap any part, and watch price, power draw and live 5% JIT buffer update as you go.
         </p>
 
@@ -586,12 +587,12 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`flex flex-col rounded-xl border p-4 text-left transition-colors ${focusRing} ${active ? "border-emerald-600/70 dark:border-emerald-400/70 bg-cyan-500/5 dark:bg-emerald-500/5 ring-1 ring-cyan-500/30 shadow-[0_0_20px_-6px_rgba(6,182,212,0.5)]" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}
+                className={`flex flex-col rounded-2xl border p-5 text-left transition-colors ${focusRing} ${active ? "border-[#FF5500]/30 bg-white ring-1 ring-[#FF5500]/15 shadow-[0_12px_32px_rgba(255,85,0,0.08)]" : "border-black/[0.07] bg-white/70 hover:border-black/15"}`}
               >
                 <span className="flex items-center gap-3">
-                  <span className={`grid h-10 w-10 place-items-center rounded-lg ${active ? "bg-cyan-500 dark:bg-emerald-500 text-zinc-950" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${active ? "bg-[#FF5500] text-white" : "bg-[#F6F5F2] text-[#5A606A]"}`}><Icon className="h-5 w-5" /></span>
                   <span>
-                    <span className="block text-xs font-medium text-cyan-700 dark:text-cyan-400">{p.seg}</span>
+                  <span className="block text-xs font-medium text-[#C94300]">{p.seg}</span>
                     <span className="block font-semibold text-zinc-900 dark:text-zinc-50">{p.name}</span>
                   </span>
                 </span>
@@ -612,14 +613,14 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
               <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Components</h2>
               {isCustom && <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">Customized</span>}
               {isCustom && (
-                <button type="button" onClick={() => choosePreset(presetId)} className={`ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-600 dark:text-zinc-400 hover:text-cyan-700 dark:hover:text-cyan-400 ${focusRing}`}>
+                <button type="button" onClick={() => choosePreset(presetId)} className={`ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-600 dark:text-zinc-400 hover:text-[#C94300] dark:hover:text-[#C94300] ${focusRing}`}>
                   <RefreshCw className="h-4 w-4" /> Reset to preset
                 </button>
               )}
             </div>
             {autoNote && (
-              <p role="status" className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-600/30 dark:border-emerald-400/30 bg-cyan-500/10 dark:bg-emerald-500/10 p-3 text-sm text-cyan-800 dark:text-cyan-200">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" /> {autoNote}
+              <p role="status" className="mb-3 flex items-center gap-2 rounded-2xl border border-[#FF5500]/20 bg-[#FF5500]/[0.05] p-3 text-sm text-[#8B3100]">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#C94300] dark:text-[#C94300]" /> {autoNote}
               </p>
             )}
             <ul className="space-y-3">
@@ -660,7 +661,7 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
                   <span>Base price ({qty}x)</span>
                   <span className="tabular-nums">{idr(calc.basePrice)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-cyan-700 dark:text-cyan-400">
+                <div className="flex justify-between text-xs text-[#C94300] dark:text-[#C94300]">
                   <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> JIT 5% Buffer</span>
                   <span className="tabular-nums">+{idr(calc.jitBuffer)}</span>
                 </div>
@@ -673,7 +674,7 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
 
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Zap className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Estimated power draw</span>
+                <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Zap className="h-4 w-4 text-[#C94300] dark:text-[#C94300]" /> Estimated power draw</span>
                 <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{calc.watts} W</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Power draw against PSU capacity">
@@ -690,20 +691,20 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
             <button
               type="button"
               onClick={() => setDrawer(true)}
-              className={`hidden w-full items-center justify-center gap-2 rounded-lg bg-cyan-500 dark:bg-emerald-500 px-4 py-3 text-sm font-semibold text-white dark:text-zinc-950 hover:bg-emerald-600 dark:hover:bg-emerald-400 shadow-[0_0_16px_-4px_rgba(6,182,212,0.6)] lg:inline-flex ${focusRing}`}
+              className={`hidden w-full items-center justify-center gap-2 rounded-full bg-[#FF5500] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] lg:inline-flex ${focusRing}`}
             >
               <ShoppingCart className="h-4 w-4" /> Review Fast-Track Pre-Order
             </button>
 
             {saved.length > 0 && (
               <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Bookmark className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Saved presets</h3>
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Bookmark className="h-4 w-4 text-[#C94300] dark:text-[#C94300]" /> Saved presets</h3>
                 <ul className="space-y-1">
                   {saved.map((s) => (
                     <li key={s.id} className="flex items-center gap-2 text-sm">
                       <span className="min-w-0 flex-1 truncate text-zinc-800 dark:text-zinc-200">{s.label}</span>
                       <span className="tabular-nums text-xs text-zinc-500">{idr(s.unit)}</span>
-                      <button type="button" onClick={() => loadSaved(s)} className={`rounded px-2 py-1 text-xs text-cyan-700 dark:text-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-emerald-500/10 ${focusRing}`}>Load</button>
+                      <button type="button" onClick={() => loadSaved(s)} className={`rounded px-2 py-1 text-xs text-[#C94300] dark:text-[#C94300] hover:bg-[#FF5500]/10 dark:hover:bg-emerald-500/10 ${focusRing}`}>Load</button>
                       <button type="button" aria-label={`Delete ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                     </li>
                   ))}
@@ -715,12 +716,12 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
       </main>
 
       {/* Mobile action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-black/[0.06] bg-[#F6F5F2]/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-500">Order total, {qtyLabel} (incl. 5% JIT)</p>
           <p className="truncate font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</p>
         </div>
-        <button type="button" onClick={() => setDrawer(true)} className={`inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 ${focusRing}`}>
+        <button type="button" onClick={() => setDrawer(true)} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E94B00] ${focusRing}`}>
           <ShoppingCart className="h-4 w-4" /> Checkout
         </button>
       </div>

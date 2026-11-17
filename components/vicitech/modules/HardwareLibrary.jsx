@@ -158,16 +158,16 @@ function OverlayHeader({ title, subtitle, onClose }) {
 
 function CondBadge({ cond }) {
   if (cond === "used") {
-    return <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300">Used</span>;
+    return <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium text-[#5A606A]">Used</span>;
   }
   return cond === "refurb" ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
+    <span className="badge-certified"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
   ) : (
-    <span className="inline-flex rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300">New</span>
+    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#141518] shadow-sm">New</span>
   );
 }
 
-const Delta = ({ d }) => <span className={`text-xs tabular-nums ${d < 0 ? "text-emerald-700 dark:text-emerald-400" : "text-yellow-700 dark:text-yellow-400"}`}>{d > 0 ? "+" : ""}{d.toFixed(1)}% in 7 days</span>;
+const Delta = ({ d }) => <span className="text-xs tabular-nums text-[#5A606A]">{d > 0 ? "+" : ""}{d.toFixed(1)}% in 7 days</span>;
 
 /* ───────────────────────── Product card ───────────────────────── */
 
@@ -176,41 +176,43 @@ function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet,
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
-  const secondary = `inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${focusRing}`;
+  const secondary = `inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/80 px-2 py-2 text-xs font-medium text-[#141518] shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 ${focusRing}`;
   return (
-    <article className={`flex flex-col rounded-xl border bg-white/50 dark:bg-zinc-900/50 p-4 transition-colors ${inCompare ? "border-emerald-600/70 dark:border-emerald-400/70 ring-1 ring-cyan-400/30" : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
-      <div className="grid h-28 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 text-zinc-600" aria-hidden="true"><Icon className="h-10 w-10" /></div>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-300">{p.brand}</span>
-        <CondBadge cond={p.cond} />
-        <span className="ml-auto text-xs text-zinc-500">{p.type}</span>
+    <article className={`card-unibody card-unibody-hover relative flex flex-col justify-between rounded-2xl p-5 border-none transition-all duration-200 hover:-translate-y-1 ${inCompare ? "selected-indicator" : ""}`}>
+      <div>
+        <div className="grid h-28 place-items-center rounded-xl bg-white shadow-sm text-[#141518]" aria-hidden="true"><Icon className="h-10 w-10" /></div>
+        <div className="mt-3.5 flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-white px-2.5 py-0.5 text-xs text-[#5A606A] shadow-sm font-medium">{p.brand}</span>
+          <CondBadge cond={p.cond} />
+          <span className="ml-auto text-xs text-[#5A606A]">{p.type}</span>
+        </div>
+        <h3 className="mt-2.5 text-base font-semibold leading-snug text-[#141518]">{p.name}</h3>
+        <div className="mt-2">
+          <p className="flex items-center gap-1 text-xs text-[#5A606A]"><Zap className="h-3 w-3 text-[#FF5500]" /> Live market price index</p>
+          <p className="text-xl font-semibold tabular-nums text-[#141518]">{idr(p.price)}</p>
+          <Delta d={p.delta} />
+        </div>
+        <dl className="mt-3.5 grid grid-cols-2 gap-2">
+          {cfg.card.map((key) => {
+            const s = cfg.specs.find((x) => x.key === key);
+            return (
+              <div key={key} className="rounded-xl bg-white/60 p-2 shadow-sm">
+                <dt className="text-xs text-[#5A606A]">{specLabel(s)}</dt>
+                <dd className="mt-0.5 text-sm font-medium leading-snug text-[#141518]">{specValue(p, s)}</dd>
+              </div>
+            );
+          })}
+        </dl>
       </div>
-      <h3 className="mt-2 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{p.name}</h3>
-      <div className="mt-2">
-        <p className="flex items-center gap-1 text-xs text-zinc-500"><Zap className="h-3 w-3 text-cyan-700 dark:text-cyan-400" /> Live market price index</p>
-        <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(p.price)}</p>
-        <Delta d={p.delta} />
-      </div>
-      <dl className="mt-3 grid grid-cols-2 gap-2">
-        {cfg.card.map((key) => {
-          const s = cfg.specs.find((x) => x.key === key);
-          return (
-            <div key={key} className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2">
-              <dt className="text-xs text-zinc-500">{specLabel(s)}</dt>
-              <dd className="mt-0.5 text-sm font-medium leading-snug text-zinc-900 dark:text-zinc-100">{specValue(p, s)}</dd>
-            </div>
-          );
-        })}
-      </dl>
-      <div className="mt-auto space-y-2 pt-4">
+      <div className="mt-5 space-y-2 pt-2">
         <button type="button" aria-pressed={inCompare} disabled={blocked} onClick={() => onCompare(p)} title={blocked ? `Compare up to ${MAX_COMPARE} items` : undefined}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${inCompare ? "border-emerald-600 dark:border-emerald-400 bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : blocked ? "cursor-not-allowed border-zinc-200 dark:border-zinc-800 text-zinc-600" : "border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300"}`}>
-          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "Added to comparison" : "Add to Side-by-Side Comparison"}
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all shadow-sm ${focusRing} ${inCompare ? "bg-[#FF5500] text-white hover:bg-[#e04b00]" : blocked ? "cursor-not-allowed bg-black/5 text-[#5A606A]" : "bg-white/80 text-[#141518] hover:bg-white"}`}>
+          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In side-by-side comparison" : "Add to Comparison"}
         </button>
-        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-500`}><FileText className="h-3.5 w-3.5" /> View Full Datasheet</button>
+        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full`}><FileText className="h-3.5 w-3.5 text-[#5A606A]" /> View Full Datasheet</button>
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "border-emerald-400/50 bg-emerald-400/10 text-emerald-700 dark:text-emerald-400" : "border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-emerald-400/60 hover:text-emerald-700 dark:hover:text-emerald-400"}`}>
-            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />} {inBuilder ? "In Preset Builder" : "Add to Preset Builder"}
+          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "text-[#FF5500]" : ""}`}>
+            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-[#FF5500]" /> : <Plus className="h-3.5 w-3.5" />} {inBuilder ? "In Builder" : "To Builder"}
           </button>
           <button
             type="button"
@@ -220,13 +222,13 @@ function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet,
               type: "direct_buy",
               specs: p.specs,
             })}
-            className="inline-flex items-center justify-center gap-1 rounded-lg bg-cyan-500 dark:bg-emerald-500 px-2 py-2 text-xs font-semibold text-black transition-all hover:bg-emerald-600 dark:hover:bg-emerald-400"
+            className="btn-signal inline-flex items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold shadow-sm"
           >
             Check Out Now
           </button>
         </div>
         {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
-          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-cyan-700 dark:hover:text-cyan-300`}><Zap className="h-3.5 w-3.5" /> Check upgrade potential</button>
+          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}><Zap className="h-3.5 w-3.5 text-[#FF5500]" /> Check upgrade potential</button>
         )}
       </div>
     </article>
@@ -515,40 +517,40 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const closeSheet = useCallback(() => setSheetId(null), []);
   const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < categoryBounds[cat].max;
 
-  const field = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 ${focusRing}`;
+  const field = `w-full rounded-xl bg-white/80 px-3.5 py-2.5 text-sm text-[#141518] shadow-sm outline-none transition-all focus:ring-2 focus:ring-[#FF5500]/30`;
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
+    <div className="min-h-screen bg-[#F4F4F2] text-[#141518] antialiased">
+      <header className="glass-floating border-b border-black/[0.04]">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Hardware Library</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#FF5500] text-white shadow-sm"><Cpu className="h-5 w-5" /></span>
+          <span className="text-lg font-semibold tracking-tight text-[#141518]">ViciTech</span>
+          <span className="badge-certified">Hardware Library</span>
         </div>
       </header>
 
       <main className={`mx-auto max-w-7xl px-4 py-10 sm:px-6 ${barVisible ? "pb-32" : ""}`}>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl">Hardware &amp; Peripheral Library</h1>
-        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
-        {inventoryError && <p role="status" className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">{inventoryError} Showing the curated catalog instead.</p>}
+        <h1 className="font-serif italic text-3xl font-normal tracking-tight text-[#141518] sm:text-4xl">Hardware &amp; Peripheral Library</h1>
+        <p className="mt-3 max-w-2xl text-[#5A606A] leading-relaxed">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
+        {inventoryError && <p role="status" className="mt-4 rounded-xl bg-white p-4 text-sm text-[#FF5500] shadow-sm">{inventoryError} Showing the curated catalog instead.</p>}
 
         {/* Category tabs */}
-        <div role="tablist" aria-label="Hardware categories" className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div role="tablist" aria-label="Hardware categories" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {CAT_ORDER.map((k) => {
             const c = CATS[k];
             const Icon = c.icon;
             const on = cat === k;
             return (
               <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="library-panel" onClick={() => setCat(k)}
-                className={`rounded-xl border p-4 text-left transition-all ${focusRing} ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 shadow-[0_0_22px_-6px_rgba(34,211,238,0.6)]" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
+                className={`card-unibody card-unibody-hover relative flex flex-col justify-between rounded-2xl p-5 text-left border-none transition-all duration-200 hover:-translate-y-1 ${focusRing} ${on ? "selected-indicator" : "opacity-85 hover:opacity-100"}`}>
                 <span className="flex items-center justify-between gap-2">
-                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${on ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-10 w-10 place-items-center rounded-xl shadow-sm transition-all ${on ? "bg-[#FF5500] text-white" : "bg-white text-[#141518]"}`}><Icon className="h-5 w-5" /></span>
                   <span className="flex items-center gap-1.5">
-                    {compare[k].length > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600/15 dark:bg-emerald-400/15 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-300"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
-                    <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs tabular-nums text-zinc-600 dark:text-zinc-400">{tabCounts[k]}</span>
+                    {compare[k].length > 0 && <span className="badge-certified"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
+                    <span className="rounded-full bg-white px-2.5 py-0.5 text-xs tabular-nums text-[#5A606A] shadow-sm font-medium">{tabCounts[k]}</span>
                   </span>
                 </span>
-                <span className={`mt-3 block text-sm font-semibold ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-900 dark:text-zinc-100"}`}>{c.label}</span>
-                <span className="mt-1 block text-xs text-zinc-500">{c.focus}</span>
+                <span className={`mt-4 block text-base font-semibold ${on ? "text-[#141518]" : "text-[#141518]"}`}>{c.label}</span>
+                <span className="mt-1 block text-xs text-[#5A606A]">{c.focus}</span>
               </button>
             );
           })}
@@ -556,90 +558,90 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
         {/* Filters */}
         <section id="library-panel" role="tabpanel" aria-labelledby={`tab-${cat}`}>
-          <div className="mt-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-4">
+          <div className="card-unibody mt-6 rounded-2xl p-6 border-none shadow-sm">
             <div className="relative">
               <label htmlFor="lib-search" className="sr-only">Search all hardware categories</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5A606A]" />
               <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search every category: brand, chipset, RTX, DDR5, wireless" className={`${field} py-3 pl-12`} />
             </div>
-            <div className="mt-4 grid gap-4 md:grid-cols-4">
+            <div className="mt-5 grid gap-4 md:grid-cols-4">
               <div>
-                <p className="mb-1.5 text-sm text-zinc-700 dark:text-zinc-300">Condition</p>
-                <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 p-1">
+                <p className="mb-1.5 text-sm font-medium text-[#141518]">Condition</p>
+                <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-xl bg-white/70 p-1 shadow-sm">
                   {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"], ["used", "Used"]].map(([v, label]) => (
-                    <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`rounded-md px-1 py-1.5 text-xs ${focusRing} ${f.cond === v ? "bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>{label}</button>
+                    <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`rounded-lg px-1 py-1.5 text-xs font-medium transition-all ${focusRing} ${f.cond === v ? "bg-[#FF5500] text-white shadow-sm" : "text-[#5A606A] hover:text-[#141518]"}`}>{label}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <label htmlFor="f-brand" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Brand</label>
+                <label htmlFor="f-brand" className="mb-1.5 block text-sm font-medium text-[#141518]">Brand</label>
                 <select id="f-brand" value={f.brand} onChange={(e) => setFilter("brand", e.target.value)} className={field}>
                   <option value="all">All brands</option>{categoryOptions[cat].brands.map((b) => <option key={b}>{b}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="f-type" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">{cfg.typeLabel}</label>
+                <label htmlFor="f-type" className="mb-1.5 block text-sm font-medium text-[#141518]">{cfg.typeLabel}</label>
                 <select id="f-type" value={f.type} onChange={(e) => setFilter("type", e.target.value)} className={field}>
                   <option value="all">All</option>{categoryOptions[cat].types.map((t) => <option key={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="f-price" className="mb-1.5 flex justify-between text-sm text-zinc-700 dark:text-zinc-300"><span>Max price</span><span className="tabular-nums text-cyan-700 dark:text-cyan-300">{idr(f.max)}</span></label>
-                <input id="f-price" type="range" min={categoryBounds[cat].min} max={categoryBounds[cat].max} step={STEP} value={Math.min(f.max, categoryBounds[cat].max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 w-full accent-cyan-400" />
+                <label htmlFor="f-price" className="mb-1.5 flex justify-between text-sm font-medium text-[#141518]"><span>Max price</span><span className="tabular-nums text-[#FF5500]">{idr(f.max)}</span></label>
+                <input id="f-price" type="range" min={categoryBounds[cat].min} max={categoryBounds[cat].max} step={STEP} value={Math.min(f.max, categoryBounds[cat].max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 w-full accent-[#FF5500]" />
               </div>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-              <p className="flex items-center gap-2 text-zinc-500"><SlidersHorizontal className="h-4 w-4" /> Filters for {cfg.short}. Search covers every category.</p>
-              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`rounded text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Reset filters</button>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm pt-2 border-t border-black/[0.04]">
+              <p className="flex items-center gap-2 text-[#5A606A]"><SlidersHorizontal className="h-4 w-4" /> Filters for {cfg.short}. Search covers every category.</p>
+              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`rounded text-xs font-semibold text-[#FF5500] hover:underline disabled:text-[#5A606A] ${focusRing}`}>Reset filters</button>
             </div>
           </div>
 
-          <p className="mt-4 text-sm text-zinc-500" aria-live="polite">Showing {visible.length} of {products.filter((p) => p.cat === cat).length} in {cfg.short}</p>
+          <p className="mt-6 text-sm text-[#5A606A]" aria-live="polite">Showing <span className="font-semibold text-[#141518]">{visible.length}</span> of {products.filter((p) => p.cat === cat).length} in {cfg.short}</p>
 
           {visible.length ? (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {visible.map((p) => (
                 <ProductCard key={p.id} p={p} inCompare={compare[cat].includes(p.id)} compareFull={compare[cat].length >= MAX_COMPARE} inBuilder={builder.includes(p.id)}
                   onCompare={toggleCompare} onSheet={setSheetId} onBuilder={toggleBuilder} onUpgrade={onCheckUpgrade} />
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700 p-10 text-center">
-              <p className="text-zinc-900 dark:text-zinc-100">No {cfg.short.toLowerCase()} match these filters.</p>
+            <div className="card-unibody mt-4 rounded-2xl p-10 text-center border-none">
+              <p className="text-[#141518] font-medium">No {cfg.short.toLowerCase()} match these filters.</p>
               {tokens.length > 0 && otherHits.length > 0 && (
-                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-[#5A606A]">
                   Your search has matches in:
-                  {otherHits.map((k) => <button key={k} type="button" onClick={() => setCat(k)} className={`rounded-full border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>{CATS[k].short} ({tabCounts[k]})</button>)}
+                  {otherHits.map((k) => <button key={k} type="button" onClick={() => setCat(k)} className={`card-unibody card-unibody-hover rounded-full px-3 py-1 text-xs text-[#141518] font-medium border-none shadow-sm ${focusRing}`}>{CATS[k].short} ({tabCounts[k]})</button>)}
                 </p>
               )}
-              <button type="button" onClick={resetFilters} className={`mt-4 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>Reset filters</button>
+              <button type="button" onClick={resetFilters} className={`mt-4 rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>Reset filters</button>
             </div>
           )}
         </section>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample catalog, prices and specifications.</footer>
+      <footer className="border-t border-black/[0.04] py-6 text-center text-xs text-[#5A606A]">ViciTech Engine v1.0. Sample catalog, prices and specifications.</footer>
 
       {barVisible && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur">
+        <div className="fixed inset-x-0 bottom-0 z-30 glass-floating border-t border-black/[0.04] shadow-lg">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
-              {selected.length > 0 && <span className="shrink-0 text-xs text-zinc-500">Comparing {cfg.short}:</span>}
+              {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-[#5A606A]">Comparing {cfg.short}:</span>}
               {selected.map((p) => (
-                <span key={p.id} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-1 pl-3 pr-1.5 text-xs text-zinc-800 dark:text-zinc-200">
+                <span key={p.id} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white py-1 pl-3 pr-1.5 text-xs text-[#141518] shadow-sm font-medium">
                   <span className="max-w-[10rem] truncate">{p.name}</span>
-                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`rounded-full p-0.5 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`rounded-full p-0.5 text-[#5A606A] hover:bg-black/5 hover:text-[#141518] ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                 </span>
               ))}
-              {selected.length === 1 && <span className="shrink-0 text-xs text-zinc-500">Pick one more {cfg.short.toLowerCase()} to compare</span>}
+              {selected.length === 1 && <span className="shrink-0 text-xs text-[#5A606A]">Pick one more {cfg.short.toLowerCase()} to compare</span>}
             </div>
             {builder.length > 0 && (
-              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400 hover:bg-emerald-400/10 ${focusRing}`}>
-                <Plus className="h-4 w-4" /> Preset Builder list ({builder.length})
+              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>
+                <Plus className="h-4 w-4 text-[#FF5500]" /> Preset Builder list ({builder.length})
               </button>
             )}
             {selected.length > 0 && (
-              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ${focusRing} ${selected.length >= 2 ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300" : "cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-500"}`}>
+              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`btn-signal inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm ${focusRing} ${selected.length < 2 ? "opacity-50 cursor-not-allowed" : ""}`}>
                 <ArrowRightLeft className="h-4 w-4" /> Compare now
               </button>
             )}
@@ -648,8 +650,8 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
       )}
 
       {sheet && <Datasheet p={sheet} inCompare={compare[sheet.cat].includes(sheet.id)} compareFull={compare[sheet.cat].length >= MAX_COMPARE} inBuilder={builder.includes(sheet.id)} onCompare={toggleCompare} onBuilder={toggleBuilder} onClose={closeSheet} />}
-      {compareOpen && <CompareModal items={selected} cat={cat} diffOnly={diffOnly} setDiffOnly={setDiffOnly} onRemove={toggleCompare} onClose={closePanel} />}
-      {panel === "builder" && <BuilderList items={builderItems} onRemove={toggleBuilder} onClear={() => setBuilder([])} onClose={closePanel} onOpenBuilder={onOpenBuilder} />}
+      {compareOpen && <CompareModal items={selected} cat={cat} diffOnly={diffOnly} setDiffOnly={setDiffOnly} onRemove={toggleCompare} onClear={clearCompare} onClose={() => setCompareOpen(false)} />}
+      {panel === "builder" && <BuilderList items={builderItems} onRemove={toggleBuilder} onClear={clearBuilder} onClose={() => setPanel(null)} />}
     </div>
   );
 }

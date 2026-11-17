@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Component, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Search, Bell, ShieldCheck, Layers, Zap,
-  Gauge, Swords, User, Building2, GraduationCap, Menu, X, ArrowRight, CheckCircle2,
+  Gauge, Swords, User, Building2, GraduationCap, Menu, X, ArrowRight, CheckCircle2, ChevronDown,
 } from "lucide-react";
 
 import HardwareLibrary from "./modules/HardwareLibrary";
@@ -16,14 +16,13 @@ import VersusArena from "./modules/VersusArena";
 import AccountDashboard from "./modules/AccountDashboard";
 import CommunityHub from "./modules/CommunityHub";
 import CyberSuite from "./CyberSuite";
-import ThemeToggle from "../ThemeToggle";
 import AuthNavigation from "./auth/AuthNavigation";
 import { supabase } from "@/lib/supabase";
 import { getUserDisplayName, getUserInitials } from "@/lib/supabase/profile";
 import { PENDING_CHECKOUT_STORAGE_KEY, useCheckout } from "@/context/CheckoutContext";
 
 /*
-  ViciTech master shell. One top bar, one tab bar and one footer wrap every module, and each module keeps its
+  ViciTech master shell. One floating top bar (its logo opens the navigation pill) and one footer wrap every module, and each module keeps its
   state while you switch tabs (visited modules stay mounted and are only hidden with [hidden] { display: none !important; }).
 
   Module map                           Component
@@ -103,14 +102,14 @@ const COMMANDS = [
 const SERIAL_RE = /^VICI-[A-Z]{3}-\d{4}-\d{4}$/;
 
 const EVENT_TYPES = {
-  qc: { icon: ShieldCheck, target: ["qc"], tone: "text-emerald-400" },
-  order: { icon: Sliders, target: ["builder"], tone: "text-cyan-400" },
-  tradein: { icon: RefreshCw, target: ["tradein"], tone: "text-emerald-400" },
-  price: { icon: Layers, target: ["library", "catalog"], tone: "text-cyan-400" },
-  upgrade: { icon: Zap, target: ["library", "upgrade"], tone: "text-amber-400" },
-  bottleneck: { icon: Gauge, target: ["bottleneck"], tone: "text-amber-400" },
-  versus: { icon: Swords, target: ["versus"], tone: "text-cyan-400" },
-  community: { icon: MessageSquare, target: ["community"], tone: "text-cyan-400" },
+  qc: { icon: ShieldCheck, target: ["qc"] },
+  order: { icon: Sliders, target: ["builder"] },
+  tradein: { icon: RefreshCw, target: ["tradein"] },
+  price: { icon: Layers, target: ["library", "catalog"] },
+  upgrade: { icon: Zap, target: ["library", "upgrade"] },
+  bottleneck: { icon: Gauge, target: ["bottleneck"] },
+  versus: { icon: Swords, target: ["versus"] },
+  community: { icon: MessageSquare, target: ["community"] },
 };
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 const GENERATORS = [
@@ -129,13 +128,11 @@ const seedEvents = () => {
     .map(([type, text, s], i) => ({ id: i, type, text, at: now - s * 1000 }));
 };
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70";
-const iconBtn = `relative grid h-9 w-9 place-items-center rounded-lg border border-zinc-200 text-zinc-700 transition-colors duration-200 hover:border-zinc-300 hover:text-emerald-700 dark:border-zinc-800 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-emerald-300 ${focusRing}`;
-const panel = "absolute right-0 top-full z-50 mt-2 rounded-xl border border-zinc-200 bg-white/95 shadow-xl shadow-zinc-300/30 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 dark:shadow-black/50";
-const CSS = `
-@keyframes vt-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.vt-in{animation:vt-in .28s ease-out both}
-@media (prefers-reduced-motion:reduce){.vt-in{animation:none}}`;
+// Surface, motion and focus styles live in app/globals.css so the server and the client render
+// identical markup (an inline <style> tag here caused a hydration mismatch).
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
+const iconBtn = `vt-chip relative grid h-9 w-9 place-items-center rounded-full text-ink ${focusRing}`;
+const panel = "vt-metal vt-pop absolute right-0 top-full z-50 mt-3 origin-top-right rounded-3xl";
 
 /* ───────────────────────── Hooks ───────────────────────── */
 
@@ -161,50 +158,66 @@ function useOverlay(open, onClose) {
   }, [open, onClose]);
 }
 
-function useCountUp(target, ms = 1200) {
-  const [v, setV] = useState(0);
+// Slides a bar away while the page scrolls down and brings it back on any upward scroll.
+function useHideOnScroll({ delta = 10, top = 80 } = {}) {
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return setV(target);
-    let raf;
-    const t0 = performance.now();
-    const tick = (t) => {
-      const p = Math.min(1, (t - t0) / ms);
-      setV(target * (1 - (1 - p) ** 3));
-      if (p < 1) raf = requestAnimationFrame(tick);
+    let last = window.scrollY;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = Math.max(0, window.scrollY);
+      if (y <= top) { setHidden(false); last = y; return; }
+      if (Math.abs(y - last) < delta) return;
+      setHidden(y > last);
+      last = y;
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms]);
-  return v;
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(frame); };
+  }, [delta, top]);
+  return hidden;
 }
 
 /* ───────────────────────── Top bar ───────────────────────── */
 
-const Dot = () => <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)]" />;
+const Dot = () => <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-signal" aria-hidden="true" />;
+
+/* States where each kind of data comes from, instead of inventing latencies or "online" badges. */
+const DATA_SOURCES = [
+  { name: "Supabase", detail: "Accounts, orders and presets", source: "Live" },
+  { name: "IoT telemetry", detail: "ESP32 ingest endpoint", source: "Live" },
+  { name: "QC test profiles", detail: "Burn-in and 15-point checks", source: "Simulated" },
+  { name: "Hardware catalog", detail: "Prices, specs and scores", source: "Sample" },
+];
 
 function StatusMenu() {
   const [open, setOpen] = useState(false);
-  const [lat, setLat] = useState({ db: 42, mqtt: 18 });
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);
   useDismiss(open, close, ref);
-  useEffect(() => {
-    const id = setInterval(() => setLat({ db: 35 + Math.round(Math.random() * 30), mqtt: 10 + Math.round(Math.random() * 20) }), 3000);
-    return () => clearInterval(id);
-  }, []);
   return (
     <div ref={ref} className="relative hidden shrink-0 items-center gap-2 text-xs xl:flex">
-      <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex items-center gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:border-zinc-200 dark:hover:border-zinc-700 ${focusRing}`}>
-        <span className="flex items-center gap-1.5"><Dot /> Database OK</span>
-        <span className="flex items-center gap-1.5"><Dot /> IoT Broker Online</span>
+      <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`vt-chip flex items-center gap-2 rounded-full px-3.5 py-2 text-xs text-ink ${focusRing}`}>
+        <Dot /> Data sources
       </button>
       {open && (
-        <div className={`${panel} w-72 p-4 text-sm`}>
-          <p className="font-medium text-zinc-900 dark:text-zinc-100">System status</p>
-          {[["Supabase database", "OK", lat.db], ["IoT MQTT broker", "Online", lat.mqtt]].map(([name, state, ms]) => (
-            <div key={name} className="mt-3 flex items-center justify-between gap-3"><span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Dot /> {name}</span><span className="text-xs tabular-nums text-zinc-500">{state}, {ms} ms</span></div>
-          ))}
-          <p className="mt-3 text-xs text-zinc-600">Connected to Supabase with live local state resilience.</p>
+        <div className={`${panel} w-80 p-4 text-sm`}>
+          <p className="font-medium text-ink">Where the data comes from</p>
+          <ul className="mt-3 space-y-3">
+            {DATA_SOURCES.map((row) => (
+              <li key={row.name} className="flex items-start justify-between gap-3">
+                <span className="min-w-0">
+                  <span className="block text-sm text-ink">{row.name}</span>
+                  <span className="block text-xs text-pewter">{row.detail}</span>
+                </span>
+                <span className={`vt-tag shrink-0 ${row.source === "Live" ? "vt-tag-signal" : ""}`}>{row.source}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 border-t border-black/[0.06] pt-3 text-xs leading-relaxed text-pewter">
+            Sample and simulated values are labelled wherever they appear. A simulated QC profile is never a physical sensor reading.
+          </p>
         </div>
       )}
     </div>
@@ -220,24 +233,27 @@ function NotificationsMenu({ notifs, setNotifs, onNavigate }) {
   return (
     <div ref={ref} className="relative">
       <button type="button" aria-label={`Notifications, ${unread} unread`} aria-expanded={open} onClick={() => setOpen((v) => !v)} className={iconBtn}>
-        <Bell className="h-4 w-4" />
-        {unread > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-emerald-600 dark:bg-emerald-400 px-1 text-[10px] font-bold text-white dark:text-zinc-950">{unread}</span>}
+        <Bell className="h-4 w-4" aria-hidden="true" />
+        {unread > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-signal px-1 text-[10px] font-bold text-white">{unread}</span>}
       </button>
       {open && (
-        <div className={`${panel} w-[min(22rem,calc(100vw-2rem))]`}>
-          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Notifications</p>
-            <button type="button" disabled={!unread} onClick={() => setNotifs((l) => l.map((n) => ({ ...n, unread: false })))} className={`rounded text-xs text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 disabled:text-zinc-600 ${focusRing}`}>Mark all as read</button>
+        <div className={`${panel} w-[min(22rem,calc(100vw-2rem))] p-1.5`}>
+          <div className="flex items-center justify-between px-3 pb-2 pt-3">
+            <p className="text-sm font-medium text-ink">Notifications</p>
+            <button type="button" disabled={!unread} onClick={() => setNotifs((l) => l.map((n) => ({ ...n, unread: false })))} className={`rounded text-xs text-signal-deep hover:underline disabled:text-faint ${focusRing}`}>Mark all as read</button>
           </div>
-          <ul className="max-h-80 divide-y divide-zinc-800 overflow-y-auto">
+          <ul className="max-h-80 space-y-0.5 overflow-y-auto">
             {notifs.map((n) => {
               const Icon = BY_ID[n.target[0]]?.icon || Bell;
               return (
                 <li key={n.id}>
-                  <button type="button" onClick={() => { setNotifs((l) => l.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); setOpen(false); onNavigate(...n.target); }} className={`flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white dark:hover:bg-zinc-900 ${focusRing}`}>
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" />
-                    <span className="min-w-0 flex-1"><span className={`block text-sm ${n.unread ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-600 dark:text-zinc-400"}`}>{n.text}</span><span className="text-xs text-zinc-500">{n.ago}</span></span>
-                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-label="Unread" />}
+                  <button type="button" onClick={() => { setNotifs((l) => l.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); setOpen(false); onNavigate(...n.target); }} className={`flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-black/[0.04] ${focusRing}`}>
+                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">
+                      <span className={`block text-sm leading-snug ${n.unread ? "font-medium text-ink" : "text-pewter"}`}>{n.text}</span>
+                      <span className="text-xs text-faint">{n.ago}</span>
+                    </span>
+                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal" aria-label="Unread" />}
                   </button>
                 </li>
               );
@@ -258,19 +274,25 @@ function RoleMenu({ role, setRole, user }) {
   const displayName = getUserDisplayName(user);
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-expanded={open} aria-label={`Profile and workspace role menu, ${displayName}, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`flex max-w-[180px] items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 py-1 pl-1 pr-2 hover:border-zinc-200 dark:hover:border-zinc-700 ${focusRing}`}>
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-emerald-600/15 dark:bg-emerald-400/15 text-xs font-semibold text-cyan-700 dark:text-cyan-300">{getUserInitials(user)}</span>
-        <span className="hidden min-w-0 flex-1 text-left xl:block"><span className="block truncate text-xs font-medium leading-tight text-zinc-900 dark:text-zinc-100" title={displayName}>{displayName}</span><span className="block truncate text-[11px] leading-tight text-zinc-500" title={r.label}>{r.label}</span></span>
+      <button type="button" aria-expanded={open} aria-label={`Profile and workspace role menu, ${displayName}, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`vt-chip flex max-w-[180px] items-center gap-2 rounded-full py-1 pl-1 pr-3 ${focusRing}`}>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-signal text-[11px] font-semibold text-white">{getUserInitials(user)}</span>
+        <span className="hidden min-w-0 flex-1 text-left xl:block">
+          <span className="block truncate text-xs font-medium leading-tight text-ink" title={displayName}>{displayName}</span>
+          <span className="block truncate text-[11px] leading-tight text-pewter" title={r.label}>{r.label}</span>
+        </span>
       </button>
       {open && (
         <div className={`${panel} w-72 p-2`}>
-          <p className="px-2 py-1.5 text-xs text-zinc-500">Switch role</p>
+          <p className="px-2 py-1.5 text-xs text-pewter">Switch workspace role</p>
           <div role="radiogroup" aria-label="Role">
             {Object.entries(ROLES).map(([k, v]) => {
               const I = v.icon;
+              const selected = role === k;
               return (
-                <button key={k} type="button" role="radio" aria-checked={role === k} onClick={() => { setRole(k); setOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm ${focusRing} ${role === k ? "bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300" : "text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-900"}`}>
-                  <I className="h-4 w-4" /> {v.label} {role === k && <CheckCircle2 className="ml-auto h-4 w-4 text-emerald-700 dark:text-emerald-400" />}
+                <button key={k} type="button" role="radio" aria-checked={selected} onClick={() => { setRole(k); setOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition-colors ${focusRing} ${selected ? "bg-signal text-white font-medium" : "text-ink hover:bg-black/[0.04]"}`}>
+                  <I className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate">{v.label}</span>
+                  {selected && <CheckCircle2 className="h-4 w-4 shrink-0 text-white" aria-hidden="true" />}
                 </button>
               );
             })}
@@ -281,58 +303,41 @@ function RoleMenu({ role, setRole, user }) {
   );
 }
 
-function Navbar({ role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
-  return (
-    <div className="border-b border-zinc-200 bg-white/85 text-zinc-900 backdrop-blur-md transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-950/90 dark:text-zinc-100">
-      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 overflow-x-auto px-4 py-2 sm:px-6">
-        <button type="button" aria-label="Open menu" onClick={onMenu} className={`${iconBtn} shrink-0 md:hidden`}><Menu className="h-4 w-4" /></button>
-        <button type="button" onClick={() => onNavigate("home")} aria-label="ViciTech home" className={`flex shrink-0 items-center gap-2.5 rounded-lg ${focusRing}`}>
-          <span className="relative grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-emerald-950">
-            <Cpu className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_8px_2px_rgba(16,185,129,0.65)] ring-2 ring-white dark:ring-zinc-950" />
-            </span>
-          </span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-        </button>
-        <div className="hidden shrink-0 justify-center md:flex">
-          <button type="button" onClick={onSearch} className={`flex w-40 shrink-0 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-500 transition-colors duration-200 hover:border-zinc-300 md:w-60 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 ${focusRing}`}>
-            <Search className="h-4 w-4 shrink-0" /> <span className="min-w-0 flex-1 truncate">Search modules, serials, guides</span>
-            <kbd className="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[11px] text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400">Ctrl + K</kbd>
-          </button>
-        </div>
-        <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} shrink-0 md:hidden`}><Search className="h-4 w-4" /></button>
-        <StatusMenu />
-        {user && (
-          <div className="hidden shrink-0 items-center gap-2 md:flex">
-            <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
-            <RoleMenu role={role} setRole={setRole} user={user} />
-          </div>
-        )}
-        <AuthNavigation onAuthState={onAuthState} onNotify={onNotify} onNavigate={onNavigate} onSignOut={onSignOut} />
-        <ThemeToggle className="h-9 w-9 shrink-0 rounded-lg" />
-      </div>
-    </div>
-  );
-}
+/*
+  TabBar is the floating navigation pill. The Navbar logo toggles it. The pill lists the six primary destinations;
+  the other modules stay reachable from Home, the footer, the mobile drawer and the command bar (Ctrl + K).
+  Module entries resolve their icon from NAV; an entry with an `href` is a real route and never shows as active.
+*/
+const PILL_ITEMS = [
+  { id: "home", label: "Home Base" },
+  { id: "library", label: "Library Parts" },
+  { id: "builder", label: "Preset Builder" },
+  { id: "tradein", label: "Trade-In" },
+  { id: "qc", label: "IoT QC Consumer" },
+  { id: "qc-admin", label: "Admin QC Portal", href: "/qc-panel", icon: ShieldCheck },
+];
+const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-center text-[11px] font-medium leading-tight transition-colors duration-200 focus-visible:ring-offset-2 lg:flex-row lg:gap-2 lg:whitespace-nowrap lg:rounded-full lg:px-3.5 lg:py-2.5 lg:text-sm ${focusRing}`;
 
-function TabBar({ active, onNavigate }) {
+function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape }) {
+  if (!open) return null;
   return (
-    <nav aria-label="Primary" className="hidden border-b border-zinc-200 bg-white/85 backdrop-blur-md transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-950/90 md:block">
-      <ul className="no-scrollbar mx-auto flex max-w-7xl flex-nowrap gap-1.5 overflow-x-auto whitespace-nowrap px-4 py-2.5 sm:px-6">
-        {NAV.map((m) => {
-          const on = active === m.id;
-          const Icon = m.icon;
+    <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
+      <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
+        {PILL_ITEMS.map((it) => {
+          const Icon = it.icon || BY_ID[it.id].icon;
+          const on = active === it.id;
+          const tone = on
+            ? "bg-signal text-white shadow-signal"
+            : "text-pewter hover:bg-black/[0.05] hover:text-ink";
           return (
-            <li key={m.id}>
-              {m.id === "qc" ? (
-                <Link href="/qc-panel" title={m.label} className={`flex items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-colors duration-200 ${focusRing} border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100`}>
-                  <Icon className="h-4 w-4" /> {m.short}
+            <li key={it.id}>
+              {it.href ? (
+                <Link href={it.href} onClick={onClose} className={`${pillItem} ${tone}`}>
+                  <Icon className="h-4 w-4 shrink-0" /> {it.label}
                 </Link>
               ) : (
-                <button type="button" title={m.label} aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "border-emerald-500/40 bg-emerald-500/10 font-medium text-emerald-800 dark:text-emerald-300" : "border-transparent text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"}`}>
-                <Icon className="h-4 w-4" /> {m.short}
+                <button type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(it.id)} className={`${pillItem} ${tone}`}>
+                  <Icon className="h-4 w-4 shrink-0" /> {it.label}
                 </button>
               )}
             </li>
@@ -343,16 +348,70 @@ function TabBar({ active, onNavigate }) {
   );
 }
 
+function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const hidden = useHideOnScroll();
+  const logoRef = useRef(null);
+  const pillRef = useRef(null);
+  // The logo and the pill count as one region, so clicking the logo again toggles instead of close-then-reopen
+  const trayRef = useRef({ contains: (node) => Boolean(logoRef.current?.contains(node) || pillRef.current?.contains(node)) });
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const toggleMenu = useCallback(() => setMenuOpen((v) => !v), []);
+  const focusLogo = useCallback(() => logoRef.current?.focus(), []);
+  const go = useCallback((...target) => { setMenuOpen(false); onNavigate(...target); }, [onNavigate]);
+  useDismiss(menuOpen, closeMenu, trayRef);
+  // Close the pill when the bar slides away or the view changes from anywhere else (palette, notifications, back button)
+  useEffect(() => { setMenuOpen(false); }, [hidden, active]);
+
+  return (
+    <header data-hidden={hidden} className="vt-nav pointer-events-none sticky top-0 z-40 px-3 pb-2 pt-3 sm:px-5">
+      <div className="vt-metal pointer-events-auto relative mx-auto flex h-14 w-full max-w-shell items-center gap-2 rounded-full px-2 text-ink sm:gap-3 sm:px-2.5">
+        <button type="button" aria-label="Open menu" onClick={onMenu} className={`${iconBtn} shrink-0 md:hidden`}>
+          <Menu className="h-4 w-4" aria-hidden="true" />
+        </button>
+        <button ref={logoRef} type="button" aria-label="ViciTech navigation" aria-expanded={menuOpen} aria-controls="vt-nav-pill" onClick={toggleMenu} className={`flex shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors duration-200 sm:pr-3 ${menuOpen ? "bg-black/[0.06]" : "hover:bg-black/[0.04]"} ${focusRing}`}>
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-signal text-white shadow-signal"><Cpu className="h-[18px] w-[18px]" aria-hidden="true" /></span>
+          <span className="hidden text-base font-semibold tracking-tight text-ink sm:block">ViciTech</span>
+          <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 text-pewter transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`} />
+        </button>
+        <TabBar open={menuOpen} id="vt-nav-pill" navRef={pillRef} active={active} onNavigate={go} onClose={closeMenu} onEscape={focusLogo} />
+
+        <div className="flex min-w-0 flex-1 justify-center">
+          <button type="button" onClick={onSearch} aria-keyshortcuts="Control+K Meta+K" className={`vt-well hidden w-full max-w-md items-center gap-2.5 rounded-full py-2 pl-3.5 pr-2 text-left text-sm text-pewter hover:text-ink md:flex ${focusRing}`}>
+            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate">Search modules, serials, guides</span>
+            <kbd className="rounded-full bg-black/[0.06] px-2 py-0.5 font-sans text-[11px] text-pewter">Ctrl K</kbd>
+          </button>
+        </div>
+        <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} shrink-0 md:hidden`}>
+          <Search className="h-4 w-4" aria-hidden="true" />
+        </button>
+
+        <StatusMenu />
+        {user && (
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
+            <RoleMenu role={role} setRole={setRole} user={user} />
+          </div>
+        )}
+        <AuthNavigation onAuthState={onAuthState} onNotify={onNotify} onNavigate={onNavigate} onSignOut={onSignOut} />
+      </div>
+    </header>
+  );
+}
+
 /* ───────────────────────── Overlays ───────────────────────── */
 
 function MobileDrawer({ open, onClose, active, onNavigate, role, user }) {
   useOverlay(open, onClose);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 md:hidden" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" onClick={(e) => e.stopPropagation()} className="flex h-full w-80 max-w-[85vw] flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <span className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span> ViciTech</span>
+    <div className="fixed inset-0 z-[60] bg-black/60 md:hidden backdrop-blur-sm" onClick={onClose}>
+      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" onClick={(e) => e.stopPropagation()} className="flex h-full w-80 max-w-[85vw] flex-col bg-paper shadow-2xl">
+        <div className="flex items-center justify-between border-b border-black/[0.06] p-4">
+          <span className="flex items-center gap-2 font-semibold text-ink">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-signal text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span> ViciTech
+          </span>
           <button type="button" aria-label="Close menu" onClick={onClose} className={iconBtn}><X className="h-4 w-4" /></button>
         </div>
         <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -361,23 +420,32 @@ function MobileDrawer({ open, onClose, active, onNavigate, role, user }) {
             const Icon = m.icon;
             return (
               m.id === "qc" ? (
-                <Link key={m.id} href="/qc-panel" onClick={onClose} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left ${focusRing} border-transparent hover:bg-white dark:hover:bg-zinc-900`}>
-                  <Icon className="h-5 w-5 shrink-0 text-zinc-500" />
-                  <span><span className="block text-sm text-zinc-800 dark:text-zinc-200">{m.short}</span><span className="block text-xs text-zinc-500">Public rig tracking · Admin portal available to admins</span></span>
+                <Link key={m.id} href="/qc-panel" onClick={onClose} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-black/[0.04] ${focusRing}`}>
+                  <Icon className="h-5 w-5 shrink-0 text-pewter" aria-hidden="true" />
+                  <span>
+                    <span className="block text-sm text-ink">{m.short}</span>
+                    <span className="block text-xs text-pewter">Public tracking & diagnostics panel</span>
+                  </span>
                 </Link>
               ) : (
-                <button key={m.id} type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent hover:bg-white dark:hover:bg-zinc-900"}`}>
-                <Icon className={`h-5 w-5 shrink-0 ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-500"}`} />
-                <span><span className={`block text-sm ${on ? "font-medium text-cyan-700 dark:text-cyan-300" : "text-zinc-800 dark:text-zinc-200"}`}>{m.short}</span><span className="block text-xs text-zinc-500">{m.sub}</span></span>
+                <button key={m.id} type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${focusRing} ${on ? "bg-signal text-white" : "text-pewter hover:bg-black/[0.04] hover:text-ink"}`}>
+                  <Icon className={`h-5 w-5 shrink-0 ${on ? "text-white" : "text-pewter"}`} aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className={`block text-sm font-medium ${on ? "text-white" : "text-ink"}`}>{m.short}</span>
+                    <span className={`block text-xs leading-snug ${on ? "text-white/80" : "text-pewter"}`}>{m.sub}</span>
+                  </span>
                 </button>
               )
             );
           })}
         </nav>
-        <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 p-4 text-xs text-zinc-600 dark:text-zinc-400">
-          <p className="flex items-center gap-2"><Dot /> Database OK</p>
-          <p className="flex items-center gap-2"><Dot /> IoT Broker Online</p>
-          {user && <p className="truncate pt-1 text-zinc-500">Signed in as {user.email || getUserDisplayName(user)}</p>}
+        <div className="border-t border-black/[0.06] p-4">
+          {user ? (
+            <p className="truncate text-xs text-pewter">Signed in as {user.email || getUserDisplayName(user)}</p>
+          ) : (
+            <p className="text-xs leading-relaxed text-pewter">Signed out. Sign in from the top bar to reach your orders and presets.</p>
+          )}
+          <p className="mt-2 flex items-center gap-2 text-xs text-faint"><Dot /> Sample data in the catalog</p>
         </div>
       </aside>
     </div>
@@ -409,29 +477,29 @@ function CommandPalette({ open, onClose, onSelect }) {
     else if (e.key === "Enter" && items[idx]) { e.preventDefault(); onSelect(items[idx]); }
   };
   return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/70 p-4 pt-[12vh]" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()} className="w-full max-w-xl overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl shadow-black/60">
-        <div className="flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 px-4">
-          <Search className="h-4 w-4 text-zinc-500" />
-          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Search modules, actions or a serial number" aria-label="Search" autoComplete="off" spellCheck={false} className="h-12 flex-1 bg-transparent text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 focus:outline-none" />
-          <kbd className="rounded border border-zinc-200 dark:border-zinc-700 px-1.5 py-0.5 text-[11px] text-zinc-500">Esc</kbd>
+    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/45 p-4 pt-[12vh] backdrop-blur-sm" onMouseDown={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()} className="vt-metal w-full max-w-xl overflow-hidden rounded-2xl">
+        <div className="flex items-center gap-3 border-b border-black/[0.06] px-4">
+          <Search className="h-4 w-4 shrink-0 text-pewter" aria-hidden="true" />
+          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Search modules, actions or a serial number" aria-label="Search" autoComplete="off" spellCheck={false} className="h-12 flex-1 bg-transparent text-sm text-ink placeholder:text-faint focus:outline-none" />
+          <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 text-[11px] text-pewter">Esc</kbd>
         </div>
         <ul role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto p-2">
-          {items.length === 0 && <li className="px-3 py-6 text-center text-sm text-zinc-500">No matches. Try “gpu”, “upgrade” or a serial like VICI-SRV-2026-9042.</li>}
+          {items.length === 0 && <li className="px-3 py-6 text-center text-sm text-pewter">No matches. Try “gpu”, “upgrade” or a serial like VICI-SRV-2026-9042.</li>}
           {items.map((it, i) => {
             const Icon = BY_ID[it.module]?.icon || Layers;
             return (
               <li key={it.label} role="option" aria-selected={i === idx}>
-                <button type="button" onMouseEnter={() => setIdx(i)} onClick={() => onSelect(it)} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left ${i === idx ? "bg-emerald-600/10 dark:bg-emerald-400/10" : ""}`}>
-                  <Icon className={`h-4 w-4 shrink-0 ${i === idx ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-500"}`} />
-                  <span className="flex-1 text-sm text-zinc-900 dark:text-zinc-100">{it.label}</span>
-                  <span className="hidden text-xs text-zinc-500 sm:block">{it.hint}</span>
+                <button type="button" onMouseEnter={() => setIdx(i)} onClick={() => onSelect(it)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${i === idx ? "bg-signal-wash text-signal-deep" : "text-ink hover:bg-black/[0.04]"}`}>
+                  <Icon className={`h-4 w-4 shrink-0 ${i === idx ? "text-signal" : "text-pewter"}`} aria-hidden="true" />
+                  <span className="flex-1 truncate text-sm font-medium">{it.label}</span>
+                  <span className="hidden shrink-0 text-xs text-pewter sm:block">{it.hint}</span>
                 </button>
               </li>
             );
           })}
         </ul>
-        <p className="border-t border-zinc-200 dark:border-zinc-800 px-4 py-2 text-xs text-zinc-600">Up and down to move, Enter to open, Esc to close.</p>
+        <p className="border-t border-black/[0.06] px-4 py-2.5 text-xs text-pewter">Arrow keys to move, Enter to open, Esc to close.</p>
       </div>
     </div>
   );
@@ -445,22 +513,25 @@ function ToastHost({ toast, onDone }) {
   }, [toast, onDone]);
   if (!toast) return null;
   return (
-    <div role="status" className="vt-in fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-xl border border-emerald-400/30 bg-white dark:bg-zinc-950 p-3.5 text-sm text-emerald-700 dark:text-emerald-300 shadow-2xl shadow-black/60">
-      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> <span>{toast.msg}</span>
+    <div role="status" className="vt-in vt-metal fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-2xl p-4 text-sm text-ink">
+      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
+      <span className="font-medium leading-snug">{toast.msg}</span>
     </div>
   );
 }
 
 /* ───────────────────────── Home dashboard ───────────────────────── */
 
-function Stat({ icon: Icon, target, format, label, onClick }) {
-  const v = useCountUp(target);
+function Stat({ icon: Icon, value, label, onClick }) {
   return (
     <li>
-      <button type="button" onClick={onClick} className={`flex w-full items-center gap-4 p-4 text-left transition-colors duration-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/40 ${focusRing}`}>
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"><Icon className="h-5 w-5" /></span>
-        <span><span className="block text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{format(v)}</span><span className="block text-sm text-zinc-600 dark:text-zinc-400">{label}</span></span>
-        <ArrowRight className="ml-auto h-4 w-4 text-zinc-500 dark:text-zinc-500" />
+      <button type="button" onClick={onClick} className={`vt-card vt-card-hover flex w-full items-center gap-4 rounded-2xl p-5 text-left ${focusRing}`}>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-signal-wash text-signal"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="vt-num block text-2xl font-semibold text-ink">{value}</span>
+          <span className="block text-sm leading-snug text-pewter">{label}</span>
+        </span>
+        <ArrowRight className="h-4 w-4 shrink-0 text-faint" aria-hidden="true" />
       </button>
     </li>
   );
@@ -485,23 +556,28 @@ function ActivityFeed({ onNavigate }) {
   }, []);
   const ago = (at) => { const s = Math.max(0, Math.floor((now - at) / 1000)); return s < 5 ? "just now" : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)} min ago`; };
   return (
-    <section aria-labelledby="feed-title" className="rounded-xl border border-zinc-200 bg-white/80 p-5 transition-colors duration-200 dark:border-zinc-800 dark:bg-zinc-900/50" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 id="feed-title" className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Zap className="h-5 w-5 text-emerald-700 dark:text-emerald-400" /> Live activity</h2>
-        <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs ${paused ? "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300"}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${paused ? "bg-zinc-400" : "bg-emerald-500 motion-safe:animate-pulse"}`} /> {paused ? "Paused" : "Live"}
-        </span>
+    <section aria-labelledby="feed-title" className="vt-card rounded-2xl p-6" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 id="feed-title" className="flex items-center gap-2 text-base font-semibold text-ink">
+            <Zap className="h-4 w-4 text-signal" aria-hidden="true" /> Activity stream
+          </h2>
+          <p className="mt-1 text-xs leading-relaxed text-pewter">
+            Illustrative events generated in your browser. Not live customer activity.
+          </p>
+        </div>
+        <span className={`vt-tag shrink-0 ${paused ? "" : "vt-tag-signal"}`}>{paused ? "Paused" : "Sample"}</span>
       </div>
-      <ul className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-800">
+      <ul className="mt-4 divide-y divide-black/[0.06]">
         {events.map((e) => {
           const t = EVENT_TYPES[e.type] || EVENT_TYPES.price;
           const Icon = t.icon;
           return (
             <li key={e.id} className="vt-in">
-              <button type="button" onClick={() => onNavigate(...t.target)} className={`flex w-full items-start gap-3 py-2.5 text-left transition-colors duration-200 hover:text-emerald-700 dark:hover:text-emerald-300 ${focusRing}`}>
-                <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${t.tone}`} />
-                <span className="min-w-0 flex-1 text-sm text-zinc-800 dark:text-zinc-200">{e.text}</span>
-                <span className="shrink-0 text-xs tabular-nums text-zinc-500">{ago(e.at)}</span>
+              <button type="button" onClick={() => onNavigate(...t.target)} className={`flex w-full items-start gap-3 py-3 text-left transition-colors hover:text-signal-deep ${focusRing}`}>
+                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
+                <span className="min-w-0 flex-1 text-sm leading-snug text-ink">{e.text}</span>
+                <span className="vt-num shrink-0 text-xs text-faint">{ago(e.at)}</span>
               </button>
             </li>
           );
@@ -513,10 +589,11 @@ function ActivityFeed({ onNavigate }) {
 
 function HomeDashboard({ role, onNavigate }) {
   const r = ROLES[role] || ROLES.b2c;
+  // Sample program figures — illustrative only, and labelled as such in the section header.
   const stats = [
-    { icon: Cpu, target: 1240, format: (v) => `${Math.round(v).toLocaleString("en-US")}+`, label: "Units Benchmarked", go: ["library", "catalog"] },
-    { icon: RefreshCw, target: 15.4, format: (v) => `${v.toFixed(1)} Tons`, label: "E-Waste Saved", go: ["tradein"] },
-    { icon: ShieldCheck, target: 99.8, format: (v) => `${v.toFixed(1)}%`, label: "QC Pass Rate", go: ["qc"] },
+    { icon: Cpu, value: "1,240+", label: "Units benchmarked", go: ["library", "catalog"] },
+    { icon: RefreshCw, value: "15.4 t", label: "E-waste diverted", go: ["tradein"] },
+    { icon: ShieldCheck, value: "99.8%", label: "QC pass rate", go: ["qc"] },
   ];
   const quick = [
     ["Check max upgrade potential", "library", "upgrade"],
@@ -526,44 +603,57 @@ function HomeDashboard({ role, onNavigate }) {
   ];
   return (
     <>
-      <section className="border-b border-zinc-200 transition-colors duration-200 dark:border-zinc-800" aria-labelledby="home-title">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-16">
+      <section className="border-b border-black/[0.06] pb-12" aria-labelledby="home-title">
+        <div className="mx-auto grid max-w-shell gap-10 px-4 py-14 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-20">
           <div className="lg:col-span-3">
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-800 dark:text-emerald-300"><Layers className="h-3.5 w-3.5" /> Circular IT economy platform</p>
-            <h1 id="home-title" className="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl lg:text-5xl">Welcome to the ViciTech home base</h1>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-zinc-600 dark:text-zinc-400">{r.greeting} Trade in, build, verify, analyze and compare hardware in one connected ecosystem.</p>
+            <p className="vt-eyebrow flex items-center gap-2">
+              <Layers className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> Circular IT economy
+            </p>
+            <h1 id="home-title" className="vt-display mt-5 max-w-2xl text-4xl italic text-ink sm:text-5xl lg:text-6xl">
+              One place to research, plan and buy trusted hardware.
+            </h1>
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-pewter">{r.greeting} Trade in, build, verify, analyse and compare hardware in one connected ecosystem.</p>
           </div>
-          <ul className="divide-y divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white/80 transition-colors duration-200 dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900/40 lg:col-span-2" aria-label="Executive summary">
-            {stats.map((s) => <Stat key={s.label} {...s} onClick={() => onNavigate(...s.go)} />)}
-          </ul>
+          <div className="lg:col-span-2">
+            <ul className="grid gap-3" aria-label="Program summary">
+              {stats.map((s) => <Stat key={s.label} {...s} onClick={() => onNavigate(...s.go)} />)}
+            </ul>
+            <p className="mt-3 text-xs leading-relaxed text-faint">Sample program figures shown for illustration, not measured customer results.</p>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-6 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-shell gap-8 px-4 py-12 sm:px-6 lg:grid-cols-3">
         <section aria-labelledby="launch-title" className="lg:col-span-2">
-          <h2 id="launch-title" className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Quick launcher</h2>
+          <h2 id="launch-title" className="text-xl font-semibold tracking-tight text-ink">Start anywhere</h2>
           <div className="mt-3 flex flex-wrap gap-2" aria-label="Quick actions">
-            {quick.map(([label, ...go]) => <button key={label} type="button" onClick={() => onNavigate(...go)} className={`rounded-full border border-zinc-300 px-3 py-1.5 text-xs text-zinc-700 transition-colors duration-200 hover:border-emerald-500/60 hover:text-emerald-800 dark:border-zinc-700 dark:text-zinc-300 dark:hover:text-emerald-300 ${focusRing}`}>{label}</button>)}
+            {quick.map(([label, ...go]) => (
+              <button key={label} type="button" onClick={() => onNavigate(...go)} className={`vt-chip rounded-full px-4 py-1.5 text-xs font-medium text-ink transition-transform hover:-translate-y-0.5 ${focusRing}`}>{label}</button>
+            ))}
           </div>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {MODULES.map((m, i) => {
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {MODULES.map((m) => {
               const Icon = m.icon;
               const rec = r.rec?.includes(m.id);
               return (
-                <button key={m.id} type="button" onClick={() => onNavigate(m.id)} className={`group flex flex-col rounded-xl border p-5 text-left transition-all duration-200 ${focusRing} ${rec ? "border-emerald-500/35 bg-emerald-500/5" : "border-zinc-200 bg-white/80 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:border-zinc-700"} hover:shadow-[0_0_24px_-8px_rgba(16,185,129,0.28)]`}>
+                <button key={m.id} type="button" onClick={() => onNavigate(m.id)} className={`vt-card vt-card-hover group relative flex flex-col justify-between rounded-2xl p-6 text-left ${focusRing} ${rec ? "selected-indicator" : ""}`}>
                   <span className="flex items-start justify-between gap-3">
-                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-zinc-100 text-emerald-700 transition-colors duration-200 group-hover:bg-emerald-500 group-hover:text-emerald-950 dark:bg-zinc-800 dark:text-emerald-300"><Icon className="h-5 w-5" /></span>
-                    {rec && <span className="rounded-full border border-emerald-500/30 px-2 py-0.5 text-xs text-emerald-800 dark:text-emerald-300">Recommended for {r.label}</span>}
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-signal-wash text-signal transition-colors duration-200 group-hover:bg-signal group-hover:text-white">
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    {rec && <span className="vt-tag vt-tag-signal">Recommended</span>}
                   </span>
-                  <span className="mt-4 font-semibold text-zinc-900 dark:text-zinc-50">{m.label}</span>
-                  <span className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{m.blurb}</span>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-400">Open module <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></span>
+                  <span className="mt-4 block text-lg font-semibold leading-snug text-ink">{m.label}</span>
+                  <span className="mt-1.5 block text-sm leading-relaxed text-pewter">{m.blurb}</span>
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink transition-colors group-hover:text-signal-deep">
+                    Open module <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                  </span>
                 </button>
               );
             })}
           </div>
         </section>
-        <div className="lg:sticky lg:top-40 lg:self-start"><ActivityFeed onNavigate={onNavigate} /></div>
+        <div className="lg:sticky lg:top-28 lg:self-start"><ActivityFeed onNavigate={onNavigate} /></div>
       </div>
       <CyberSuite />
     </>
@@ -579,13 +669,13 @@ function Chromeless({ active = true, children }) {
 
 function SubTabs({ label, items, value, onChange }) {
   return (
-    <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6">
-      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-1.5">
+    <div className="mx-auto max-w-shell px-4 pt-8 sm:px-6">
+      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-full bg-white/70 p-1.5 shadow-sm">
         {items.map(([id, text, Icon]) => {
           const on = value === id;
           return (
-            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition-all ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-700 dark:text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
-              <Icon className="h-4 w-4" /> {text}
+            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "bg-signal text-white font-medium" : "text-pewter hover:bg-white hover:text-ink"}`}>
+              <Icon className="h-4 w-4" aria-hidden="true" /> {text}
             </button>
           );
         })}
@@ -608,10 +698,10 @@ class ModuleErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-red-500/30 bg-white p-6 text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100">
+        <section role="alert" className="vt-card mx-auto my-8 max-w-3xl rounded-2xl p-6 text-ink">
           <h2 className="text-lg font-semibold">This module could not be displayed</h2>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">The rest of ViciTech OS is still available. Reload the module or choose another section.</p>
-          <button type="button" onClick={() => this.setState({ hasError: false })} className="mt-4 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 transition-colors hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500">
+          <p className="mt-2 text-sm leading-relaxed text-pewter">The rest of ViciTech is still available. Retry the module or choose another section.</p>
+          <button type="button" onClick={() => this.setState({ hasError: false })} className="vt-btn vt-btn-primary mt-4">
             Retry module
           </button>
         </section>
@@ -625,9 +715,9 @@ class ModuleErrorBoundary extends Component {
 const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
   if (typeof Comp !== "function") {
     return (
-      <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-amber-500/30 bg-white p-6 text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-zinc-100">
+      <section role="alert" className="vt-card mx-auto my-8 max-w-3xl rounded-2xl p-6 text-ink">
         <h2 className="text-lg font-semibold">This module is unavailable</h2>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Its component is not configured. Choose another section or check the module imports.</p>
+        <p className="mt-2 text-sm leading-relaxed text-pewter">Its component is not configured. Choose another section or check the module imports.</p>
       </section>
     );
   }
@@ -659,31 +749,45 @@ const LibraryModule = memo(function LibraryModule({ C, view, onView, deviceId, o
 /* ───────────────────────── Footer ───────────────────────── */
 
 function Footer({ onNavigate }) {
-  const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["IoT MQTT", Activity]];
-  const link = `rounded text-sm text-zinc-600 transition-colors duration-200 hover:text-emerald-700 dark:text-zinc-400 dark:hover:text-emerald-300 ${focusRing}`;
+  const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["ESP32 telemetry", Activity]];
+  const link = `rounded text-sm text-pewter transition-colors duration-200 hover:text-ink ${focusRing}`;
   return (
-    <footer className="mt-10 border-t border-zinc-200 transition-colors duration-200 dark:border-zinc-800">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-4">
+    <footer className="mt-20 border-t border-black/[0.08]">
+      <div className="mx-auto grid max-w-shell gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
-          <p className="flex items-center gap-2 font-semibold"><span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500 text-emerald-950"><Cpu className="h-5 w-5" /></span> ViciTech</p>
-          <p className="mt-3 max-w-sm text-sm text-zinc-600 dark:text-zinc-400">A circular IT economy platform: hardware trade-ins, IoT-verified quality, AI bottleneck analysis, smart presets with JIT buffers, and a community knowledge hub.</p>
-          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tech stack">
-            {stack.map(([name, Icon]) => <li key={name} className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 px-3 py-1 text-xs text-zinc-700 dark:border-zinc-800 dark:text-zinc-300"><Icon className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" /> {name}</li>)}
+          <p className="flex items-center gap-2 text-base font-semibold text-ink">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-signal text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span> ViciTech
+          </p>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-pewter">
+            Hardware research, trade-ins, verified quality control and lifecycle tracking in one circular IT ecosystem.
+          </p>
+          <ul className="mt-5 flex flex-wrap gap-2" aria-label="Tech stack">
+            {stack.map(([name, Icon]) => (
+              <li key={name} className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-xs text-pewter shadow-sm">
+                <Icon className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> {name}
+              </li>
+            ))}
           </ul>
         </div>
         <nav aria-label="Modules">
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Modules</p>
-          <ul className="mt-3 space-y-2">{MODULES.map((m) => <li key={m.id}><button type="button" onClick={() => onNavigate(m.id)} className={link}>{m.short}</button></li>)}</ul>
+          <p className="vt-eyebrow">Modules</p>
+          <ul className="mt-3 space-y-2">
+            {MODULES.map((m) => <li key={m.id}><button type="button" onClick={() => onNavigate(m.id)} className={link}>{m.short}</button></li>)}
+          </ul>
         </nav>
         <div>
-          <p className="flex items-center gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200"><ShieldCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Compliance &amp; Standards</p>
-          <ul className="mt-3 space-y-2">{["NIST 800-88 data sanitization", "15-point IoT QC protocol", "JIT dynamic buffer policy", "Refurbished grading standards"].map((t) => <li key={t}><a href="#" onClick={(e) => e.preventDefault()} className={link}>{t}</a></li>)}</ul>
+          <p className="vt-eyebrow flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> Standards</p>
+          <ul className="mt-3 space-y-2">
+            {["NIST 800-88 data sanitization", "15-point QC protocol", "JIT dynamic buffer policy", "Refurbished grading"].map((t) => (
+              <li key={t} className="text-sm leading-relaxed text-pewter">{t}</li>
+            ))}
+          </ul>
         </div>
       </div>
-      <div className="border-t border-zinc-200 dark:border-zinc-800">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-zinc-500 sm:px-6">
-          <p>© {new Date().getFullYear()} ViciTech OS. All rights reserved.</p>
-          <p>Production-ready build with Supabase persistence and live keep-alive tab switching.</p>
+      <div className="border-t border-black/[0.06]">
+        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-faint sm:px-6">
+          <p>© {new Date().getFullYear()} ViciTech. All rights reserved.</p>
+          <p>Catalog prices, specs and scores are sample data.</p>
         </div>
       </div>
     </footer>
@@ -944,13 +1048,8 @@ export default function ViciTechApp({
   }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 antialiased transition-colors duration-200 dark:bg-zinc-950 dark:text-zinc-100">
-      <style>{CSS}</style>
-
-      <div className="sticky top-0 z-40">
-        <Navbar role={role} setRole={setRole} user={authState.user} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onAuthState={updateAuthState} onSignOut={handleSignOut} />
-        <TabBar active={active} onNavigate={navigate} />
-      </div>
+    <div className="flex min-h-screen flex-col bg-[#F4F4F2] text-[#141518] font-sans antialiased">
+      <Navbar active={active} role={role} setRole={setRole} user={authState.user} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onAuthState={updateAuthState} onSignOut={handleSignOut} />
 
       <main className="flex-1">
         {active === "home" && <div className="vt-in"><HomeDashboard role={role} onNavigate={navigate} /></div>}

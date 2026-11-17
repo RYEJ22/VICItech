@@ -15,7 +15,7 @@ const later = (d) => new Date(Date.now() + d * DAY);
 const addMonths = (d, m) => { const x = new Date(d); x.setMonth(x.getMonth() + m); return x; };
 const fmtDate = (d) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(d);
 const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
 const sum = (list, f) => list.reduce((s, x) => s + f(x), 0);
 
 async function sha256Hex(text) {
@@ -99,12 +99,12 @@ function focusCards(userPresets, isLoading) {
 
 /* ───────────────────────── Small UI ───────────────────────── */
 
-const card = "rounded-xl border border-zinc-800 bg-zinc-900/50";
-const btn = `inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`;
-const ghost = `${btn} border border-zinc-700 text-zinc-200 hover:border-cyan-400/60 hover:text-cyan-300`;
-const inputCls = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 ${focusRing}`;
+const card = "rounded-2xl border border-black/[0.07] bg-white shadow-[0_8px_24px_rgba(20,21,24,0.035)]";
+const btn = `inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`;
+const ghost = `${btn} border border-black/10 text-[#30343A] hover:border-[#FF5500]/35 hover:text-[#C94300]`;
+const inputCls = `w-full rounded-xl border border-black/10 bg-white px-3.5 py-3 text-sm text-[#141518] placeholder:text-[#777C83] ${focusRing}`;
 const Chip = ({ tone = "zinc", children }) => {
-  const t = { zinc: "border-zinc-700 text-zinc-300", cyan: "border-cyan-400/30 bg-cyan-400/10 text-cyan-300", emerald: "border-emerald-400/30 bg-emerald-400/10 text-emerald-400", amber: "border-amber-400/30 bg-amber-400/10 text-amber-300" }[tone];
+  const t = { zinc: "border-black/10 text-[#5A606A]", cyan: "border-[#FF5500]/20 bg-[#FF5500]/[0.06] text-[#A83A00]", emerald: "border-emerald-600/20 bg-emerald-50 text-emerald-800", amber: "border-amber-600/20 bg-amber-50 text-amber-800" }[tone];
   return <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${t}`}>{children}</span>;
 };
 
@@ -118,7 +118,7 @@ function Stepper({ steps, done, current = true }) {
           const complete = i < done, now = i === done && current;
           return (
             <li key={s} className="flex items-start gap-2 text-sm">
-              {complete ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> : now ? <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" /> : <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded-full border border-zinc-200 dark:border-zinc-700" />}
+              {complete ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-700" /> : now ? <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" /> : <span className="mt-1 h-3.5 w-3.5 shrink-0 rounded-full border border-zinc-200 dark:border-black/10" />}
               <span className={complete ? "text-zinc-800 dark:text-zinc-200" : now ? "font-medium text-amber-700 dark:text-amber-300" : "text-zinc-500"}>{s}{now && <span className="block text-xs font-normal text-zinc-500">In progress</span>}</span>
             </li>
           );
@@ -131,9 +131,9 @@ function Stepper({ steps, done, current = true }) {
 function Switch({ on, onChange, label, hint }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
-      <div><p className="text-sm text-zinc-900 dark:text-zinc-100">{label}</p><p className="text-xs text-zinc-500">{hint}</p></div>
+      <div><p className="text-sm text-zinc-900 dark:text-[#141518]">{label}</p><p className="text-xs text-zinc-500">{hint}</p></div>
       <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${focusRing} ${on ? "bg-emerald-400" : "bg-zinc-100 dark:bg-zinc-700"}`}>
-        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white dark:bg-zinc-950 transition-all ${on ? "left-[1.375rem]" : "left-0.5"}`} />
+        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white dark:bg-white transition-all ${on ? "left-[1.375rem]" : "left-0.5"}`} />
       </button>
     </div>
   );
@@ -152,19 +152,19 @@ function RoleSwitcher({ role, onChange }) {
   const Cur = ROLES[role].icon;
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex w-full items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 sm:w-72 ${focusRing}`}>
-        <Cur className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /><span className="flex-1 text-left">{ROLES[role].label}</span><ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      <button type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`flex w-full items-center gap-2 rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2 text-sm text-zinc-900 dark:text-[#141518] hover:border-emerald-600/60 dark:hover:border-emerald-400/60 sm:w-72 ${focusRing}`}>
+        <Cur className="h-4 w-4 text-[#A83A00] dark:text-[#A83A00]" /><span className="flex-1 text-left">{ROLES[role].label}</span><ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <ul role="listbox" aria-label="Switch role" className="absolute right-0 top-full z-20 mt-2 w-full min-w-[18rem] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-1.5 shadow-2xl shadow-black/50">
+        <ul role="listbox" aria-label="Switch role" className="absolute right-0 top-full z-20 mt-2 w-full min-w-[18rem] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-white p-1.5 shadow-2xl shadow-black/50">
           {Object.entries(ROLES).map(([k, r]) => {
             const I = r.icon;
             return (
               <li key={k} role="option" aria-selected={k === role}>
                 <button type="button" onClick={() => { onChange(k); setOpen(false); }} className={`flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left ${focusRing} ${k === role ? "bg-emerald-600/10 dark:bg-emerald-400/10" : "hover:bg-white dark:hover:bg-zinc-900"}`}>
-                  <I className="mt-0.5 h-4 w-4 shrink-0 text-cyan-700 dark:text-cyan-400" />
-                  <span><span className="block text-sm text-zinc-900 dark:text-zinc-100">{r.label}</span><span className="block text-xs text-zinc-500">{r.focus}</span></span>
-                  {k === role && <CheckCircle2 className="ml-auto mt-0.5 h-4 w-4 text-emerald-700 dark:text-emerald-400" />}
+                  <I className="mt-0.5 h-4 w-4 shrink-0 text-[#A83A00] dark:text-[#A83A00]" />
+                  <span><span className="block text-sm text-zinc-900 dark:text-[#141518]">{r.label}</span><span className="block text-xs text-zinc-500">{r.focus}</span></span>
+                  {k === role && <CheckCircle2 className="ml-auto mt-0.5 h-4 w-4 text-emerald-700 dark:text-emerald-700" />}
                 </button>
               </li>
             );
@@ -188,13 +188,13 @@ function OrdersTab({ liveOrders = [], isLoading, error, onNavigate, onOpenQc }) 
     return (
       <section className={`${card} overflow-hidden p-6 sm:p-8`}>
         <div className="mx-auto max-w-xl text-center">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300 shadow-[0_0_32px_-12px_rgba(34,211,238,0.65)]">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-[#FF5500]/20 bg-[#FF5500]/[0.06] text-[#A83A00] shadow-[0_8px_24px_rgba(255,85,0,0.08)]">
             <Cpu className="h-7 w-7" />
           </span>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Garage status</p>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-[#A83A00] dark:text-[#A83A00]">Garage status</p>
           <h3 className="mt-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">No active orders yet.</h3>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">Start building your custom rig in Preset Builder!</p>
-          <button type="button" onClick={() => onNavigate?.("builder")} className={`${btn} mt-5 border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-800 dark:text-cyan-200 hover:bg-emerald-600/15 dark:hover:bg-emerald-400/15`}>
+          <button type="button" onClick={() => onNavigate?.("builder")} className={`${btn} mt-5 border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-[#8B3100] dark:text-[#8B3100] hover:bg-emerald-600/15 dark:hover:bg-emerald-400/15`}>
             <Plus className="h-4 w-4" /> Open Preset Builder
           </button>
         </div>
@@ -221,7 +221,7 @@ function OrdersTab({ liveOrders = [], isLoading, error, onNavigate, onOpenQc }) 
             </div>
             <p className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(total)}</p>
           </div>
-          {o.serial_number && <button type="button" onClick={() => onOpenQc?.(o.serial_number)} className={`${ghost} mt-4 py-1.5 text-cyan-700 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200`}><Activity className="h-4 w-4" /> Inspect in IoT QC</button>}
+          {o.serial_number && <button type="button" onClick={() => onOpenQc?.(o.serial_number)} className={`${ghost} mt-4 py-1.5 text-[#A83A00] dark:text-[#A83A00] hover:text-[#8B3100] dark:hover:text-[#8B3100]`}><Activity className="h-4 w-4" /> Inspect in IoT QC</button>}
         </article>
       );
       })}
@@ -252,17 +252,17 @@ function TradeTab({ d, store, onOffer, onNavigate }) {
                 <h3 className="mt-1.5 font-semibold text-zinc-900 dark:text-zinc-50">{t.title}</h3>
                 <p className="text-xs text-zinc-500">{t.units} x {t.equipment.toLowerCase()}, {t.condition.toLowerCase()}, submitted {fmtDate(ago(t.submitted))}</p>
               </div>
-              <div className="text-right"><p className="text-xs text-zinc-500">Estimated buyback</p><p className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(t.low)} to {idr(t.high)}</p></div>
+              <div className="text-right"><p className="text-xs text-zinc-500">Estimated buyback</p><p className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-700">{idr(t.low)} to {idr(t.high)}</p></div>
             </div>
             <div className="mt-4"><Stepper steps={TRADE_STAGES} done={decision === "declined" ? t.stage : eff} current={decision !== "declined" && eff < 5} /></div>
             {offerOpen && (
               <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3">
-                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Final offer: {idr(t.offer)}</p><p className="text-xs text-zinc-600 dark:text-zinc-400">Based on the Hub Bandung inspection. Accept to start the payout.</p></div>
+                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-emerald-700 dark:text-emerald-800">Final offer: {idr(t.offer)}</p><p className="text-xs text-zinc-600 dark:text-zinc-400">Based on the Hub Bandung inspection. Accept to start the payout.</p></div>
                 <button type="button" onClick={() => onOffer(t.id, "accepted")} className={`${btn} bg-emerald-400 font-semibold text-zinc-950 hover:bg-emerald-300`}>Accept offer</button>
                 <button type="button" onClick={() => onOffer(t.id, "declined")} className={ghost}>Decline</button>
               </div>
             )}
-            {decision === "accepted" && <p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> Offer of {idr(t.offer)} accepted. Payout is being processed.</p>}
+            {decision === "accepted" && <p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Offer of {idr(t.offer)} accepted. Payout is being processed.</p>}
             {decision === "declined" && <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">You declined this offer. The request is closed.</p>}
           </article>
         );
@@ -311,7 +311,7 @@ function PresetsTab({ userPresets = [], isLoading, onExport, onReconfigure, canR
                 <div className="flex items-center gap-2">
                   <Chip tone="cyan">{p.kind}</Chip>
                   {p.isUserSaved && (
-                    <span className="rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-700 dark:text-cyan-300">
+                    <span className="rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#A83A00] dark:text-[#A83A00]">
                       User Saved Preset
                     </span>
                   )}
@@ -322,7 +322,7 @@ function PresetsTab({ userPresets = [], isLoading, onExport, onReconfigure, canR
               </div>
               <p className="text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(unit * p.units)}</p>
             </div>
-            <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} className={`mt-3 inline-flex items-center gap-1.5 rounded text-sm text-cyan-700 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}>
+            <button type="button" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)} className={`mt-3 inline-flex items-center gap-1.5 rounded text-sm text-[#A83A00] dark:text-[#A83A00] hover:text-[#A83A00] dark:hover:text-[#A83A00] ${focusRing}`}>
               <ChevronDown className={`h-4 w-4 transition-transform ${open === p.id ? "rotate-180" : ""}`} /> {open === p.id ? "Hide parts" : "View parts"}
             </button>
             {open === p.id && (
@@ -331,7 +331,7 @@ function PresetsTab({ userPresets = [], isLoading, onExport, onReconfigure, canR
               </dl>
             )}
             <div className="mt-4 flex flex-wrap gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-3">
-              <button type="button" onClick={() => onExport(p)} className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><FileText className="h-4 w-4" /> Export PDF Proposal</button>
+              <button type="button" onClick={() => onExport(p)} className={`${btn} bg-[#FF5500] font-medium text-white hover:bg-[#E94B00]`}><FileText className="h-4 w-4" /> Export PDF Proposal</button>
               <button type="button" disabled={!canReconfigure} title={canReconfigure ? undefined : "Connect the Preset Builder to enable this"} onClick={() => onReconfigure(p)} className={ghost}><Sliders className="h-4 w-4" /> Re-configure in Builder</button>
             </div>
           </article>
@@ -353,7 +353,7 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
   const c = d.certs.find((x) => x.serial === selected) || d.certs[0];
   const left = daysLeft(c);
   const total = c.months * 30;
-  const tone = left === null ? "text-zinc-400" : left <= 0 ? "text-red-400" : left <= 60 ? "text-amber-400" : "text-emerald-400";
+  const tone = left === null ? "text-zinc-400" : left <= 0 ? "text-red-400" : left <= 60 ? "text-amber-400" : "text-emerald-700";
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-5">
@@ -362,9 +362,9 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
             const dl = daysLeft(x);
             return (
               <li key={x.serial}>
-                <button type="button" aria-pressed={x.serial === c.serial} onClick={() => setSelected(x.serial)} className={`w-full rounded-xl border p-3 text-left ${focusRing} ${x.serial === c.serial ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
-                  <span className="block text-xs tabular-nums text-cyan-700 dark:text-cyan-300">{x.serial}</span>
-                  <span className="block text-sm text-zinc-900 dark:text-zinc-100">{x.name}</span>
+                <button type="button" aria-pressed={x.serial === c.serial} onClick={() => setSelected(x.serial)} className={`w-full rounded-xl border p-3 text-left ${focusRing} ${x.serial === c.serial ? "border-[#FF5500]/25 bg-[#FF5500]/[0.06]" : "border-zinc-200 bg-white/70 hover:border-zinc-300"}`}>
+                  <span className="block text-xs tabular-nums text-[#A83A00] dark:text-[#A83A00]">{x.serial}</span>
+                  <span className="block text-sm text-zinc-900 dark:text-[#141518]">{x.name}</span>
                   <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-zinc-500">{x.units} {x.units > 1 ? "units" : "unit"}{x.assignee && <>, {x.assignee}</>}
                     {dl === null ? <Chip>Warranty starts on delivery</Chip> : dl <= 0 ? <Chip tone="amber">Warranty ended</Chip> : <Chip tone={dl <= 60 ? "amber" : "emerald"}>{dl} days of warranty left</Chip>}
                   </span>
@@ -376,20 +376,20 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
 
         <section className={`${card} p-5 xl:col-span-3`} aria-label="Certificate details">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{c.name}</h3><p className="text-sm tabular-nums text-cyan-700 dark:text-cyan-300">{c.serial}{c.units > 1 ? ` and ${c.units - 1} more serials in this batch` : ""}</p></div>
+            <div><h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{c.name}</h3><p className="text-sm tabular-nums text-[#A83A00] dark:text-[#A83A00]">{c.serial}{c.units > 1 ? ` and ${c.units - 1} more serials in this batch` : ""}</p></div>
             <Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> 15 of 15 Pass</Chip>
           </div>
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-            {[["Tested", fmtDate(ago(c.tested))], ["Technician sign-off", `${c.techId}, ${c.tech}`], ["Units covered", c.units], [role === "b2s" ? "Lab or room" : "Assigned to", c.assignee || "You"]].map(([k, v]) => <div key={k} className="rounded-lg bg-white/60 dark:bg-zinc-950/60 p-2.5"><dt className="text-xs text-zinc-500">{k}</dt><dd className="text-zinc-900 dark:text-zinc-100">{v}</dd></div>)}
+            {[["Tested", fmtDate(ago(c.tested))], ["Technician sign-off", `${c.techId}, ${c.tech}`], ["Units covered", c.units], [role === "b2s" ? "Lab or room" : "Assigned to", c.assignee || "You"]].map(([k, v]) => <div key={k} className="rounded-lg bg-white/60 dark:bg-white/60 p-2.5"><dt className="text-xs text-zinc-500">{k}</dt><dd className="text-zinc-900 dark:text-[#141518]">{v}</dd></div>)}
           </dl>
           <div className="mt-4">
             <div className="flex justify-between text-sm"><span className="text-zinc-600 dark:text-zinc-400">Warranty</span><span className={tone}>{left === null ? "Starts when the order is delivered" : left <= 0 ? "Ended" : `${left} days left, ends ${fmtDate(warrantyEnd(c))}`}</span></div>
             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full ${left !== null && left <= 60 ? "bg-amber-400" : "bg-emerald-400"}`} style={{ width: `${left === null ? 100 : Math.max(0, Math.min(100, (left / total) * 100))}%` }} /></div>
           </div>
           <h4 className="mb-2 mt-5 text-sm font-medium text-zinc-700 dark:text-zinc-300">15-point inspection</h4>
-          <ul className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">{CHECKS.map((k) => <li key={k} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" /> {k}</li>)}</ul>
+          <ul className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">{CHECKS.map((k) => <li key={k} className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-700" /> {k}</li>)}</ul>
           <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" onClick={() => onReport(c)} className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><FileText className="h-4 w-4" /> Download report (PDF)</button>
+            <button type="button" onClick={() => onReport(c)} className={`${btn} bg-[#FF5500] font-medium text-white hover:bg-[#E94B00]`}><FileText className="h-4 w-4" /> Download report (PDF)</button>
             <button type="button" onClick={() => onLink(c)} className={ghost}>Copy verification link</button>
           </div>
         </section>
@@ -403,9 +403,9 @@ function CertsTab({ d, role, store, selected, setSelected, onReport, onLink, onD
               const done = store.done[id];
               return (
                 <li key={id} className="flex flex-wrap items-center gap-3 py-2.5 text-sm">
-                  <span className="min-w-0 flex-1"><span className={`block ${done ? "text-zinc-500 line-through" : "text-zinc-900 dark:text-zinc-100"}`}>{title}</span><span className="text-xs text-zinc-500">{where}, due {fmtDate(later(due))}</span></span>
+                  <span className="min-w-0 flex-1"><span className={`block ${done ? "text-zinc-500 line-through" : "text-zinc-900 dark:text-[#141518]"}`}>{title}</span><span className="text-xs text-zinc-500">{where}, due {fmtDate(later(due))}</span></span>
                   {!done && due <= 14 && <Chip tone="amber">Due in {due} days</Chip>}
-                  <button type="button" aria-pressed={!!done} onClick={() => onDone(id)} className={`${ghost} py-1.5`}>{done ? <><CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Done</> : "Mark done"}</button>
+                  <button type="button" aria-pressed={!!done} onClick={() => onDone(id)} className={`${ghost} py-1.5`}>{done ? <><CheckCircle2 className="h-4 w-4 text-emerald-700 dark:text-emerald-700" /> Done</> : "Mark done"}</button>
                 </li>
               );
             })}
@@ -441,7 +441,7 @@ function ApiKeys({ role, rs, patch, flash }) {
   const [fresh, setFresh] = useState(null);
   const [err, setErr] = useState("");
   if (role === "b2c") {
-    return <p className="mt-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-700 p-4 text-sm text-zinc-600 dark:text-zinc-400">API keys for automated procurement are available on B2B and B2S accounts. Switch the role to try the generator.</p>;
+    return <p className="mt-3 rounded-lg border border-dashed border-zinc-200 dark:border-black/10 p-4 text-sm text-zinc-600 dark:text-zinc-400">API keys for automated procurement are available on B2B and B2S accounts. Switch the role to try the generator.</p>;
   }
   const create = (e) => {
     e.preventDefault();
@@ -457,14 +457,14 @@ function ApiKeys({ role, rs, patch, flash }) {
       <form onSubmit={create} className="space-y-3">
         <input aria-label="API key name" value={name} onChange={(e) => { setName(e.target.value); setErr(""); }} placeholder="Key name, e.g. ERP procurement hook" className={inputCls} />
         <fieldset className="flex flex-wrap gap-2"><legend className="sr-only">Scopes</legend>
-          {SCOPES.map((s) => { const on = scopes.includes(s); return <label key={s} className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300" : "border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"}`}><input type="checkbox" className="sr-only" checked={on} onChange={() => setScopes((l) => (on ? l.filter((x) => x !== s) : [...l, s]))} />{s}</label>; })}
+          {SCOPES.map((s) => { const on = scopes.includes(s); return <label key={s} className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${on ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/10 dark:bg-emerald-400/10 text-[#A83A00] dark:text-[#A83A00]" : "border-zinc-200 dark:border-black/10 text-zinc-600 dark:text-zinc-400"}`}><input type="checkbox" className="sr-only" checked={on} onChange={() => setScopes((l) => (on ? l.filter((x) => x !== s) : [...l, s]))} />{s}</label>; })}
         </fieldset>
-        <div className="flex flex-wrap items-center gap-3"><button type="submit" className={`${btn} bg-emerald-600 dark:bg-emerald-400 font-medium text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300`}><Plus className="h-4 w-4" /> Generate API key</button>{err && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{err}</p>}</div>
+        <div className="flex flex-wrap items-center gap-3"><button type="submit" className={`${btn} bg-[#FF5500] font-medium text-white hover:bg-[#E94B00]`}><Plus className="h-4 w-4" /> Generate API key</button>{err && <p role="alert" className="text-sm text-red-700 dark:text-red-400">{err}</p>}</div>
       </form>
       {fresh && (
         <div className="rounded-lg border border-amber-400/30 bg-amber-400/10 p-3" role="status">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Copy this key now. It will not be shown again.</p>
-          <code className="mt-2 block break-all rounded bg-white dark:bg-zinc-950 p-2 text-xs text-emerald-700 dark:text-emerald-300">{fresh}</code>
+          <code className="mt-2 block break-all rounded bg-white dark:bg-white p-2 text-xs text-emerald-700 dark:text-emerald-800">{fresh}</code>
           <div className="mt-2 flex gap-2"><button type="button" onClick={copy} className={`${ghost} py-1.5`}>Copy key</button><button type="button" onClick={() => setFresh(null)} className={`${ghost} py-1.5`}>I saved it</button></div>
         </div>
       )}
@@ -472,7 +472,7 @@ function ApiKeys({ role, rs, patch, flash }) {
         {rs.keys.length === 0 && <li className="p-3 text-sm text-zinc-500">No keys yet.</li>}
         {rs.keys.map((k) => (
           <li key={k.id} className="flex flex-wrap items-center gap-3 p-3 text-sm">
-            <span className="min-w-0 flex-1"><span className="block text-zinc-900 dark:text-zinc-100">{k.name}</span><span className="text-xs text-zinc-500">vt_live_••••{k.last4}, created {fmtDate(k.created)}, {k.scopes.join(", ")}</span></span>
+            <span className="min-w-0 flex-1"><span className="block text-zinc-900 dark:text-[#141518]">{k.name}</span><span className="text-xs text-zinc-500">vt_live_••••{k.last4}, created {fmtDate(k.created)}, {k.scopes.join(", ")}</span></span>
             <button type="button" onClick={() => patch((s) => ({ ...s, keys: s.keys.filter((x) => x.id !== k.id) }))} className={`${ghost} py-1.5`}>Revoke</button>
           </li>
         ))}
@@ -632,7 +632,7 @@ function ProfileIdentity({ user }) {
       <form onSubmit={saveProfile} className="mt-4 space-y-4">
         <label className="block text-sm text-zinc-700 dark:text-zinc-300">
           Username
-          <span className="mt-1.5 flex items-center rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 focus-within:border-emerald-600/60 dark:focus-within:border-emerald-400/60">
+          <span className="mt-1.5 flex items-center rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 focus-within:border-emerald-600/60 dark:focus-within:border-emerald-400/60">
             <span className="text-zinc-500">@</span>
             <input
               type="text"
@@ -644,7 +644,7 @@ function ProfileIdentity({ user }) {
               pattern="[a-z0-9]{3,20}"
               required
               aria-describedby="username-help"
-              className="w-full bg-transparent px-2 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none"
+              className="w-full bg-transparent px-2 py-2.5 text-zinc-900 dark:text-[#141518] outline-none"
             />
           </span>
           <span id="username-help" className="mt-1 block text-xs text-zinc-500">3–20 lowercase letters or numbers. Usernames must be unique.</span>
@@ -659,7 +659,7 @@ function ProfileIdentity({ user }) {
             autoComplete="name"
             maxLength={80}
             required
-            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2.5 text-zinc-900 dark:text-[#141518] outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
           />
         </label>
         <label className="block text-sm text-zinc-700 dark:text-zinc-300">
@@ -670,7 +670,7 @@ function ProfileIdentity({ user }) {
             value={avatarUrl}
             onChange={(event) => setAvatarUrl(event.target.value)}
             placeholder="https://example.com/avatar.png"
-            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+            className="mt-1.5 w-full rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2.5 text-zinc-900 dark:text-[#141518] outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
           />
         </label>
         <label className="block text-sm text-zinc-700 dark:text-zinc-300">
@@ -681,13 +681,13 @@ function ProfileIdentity({ user }) {
             onChange={(event) => setBio(event.target.value)}
             maxLength={500}
             rows={3}
-            className="mt-1.5 w-full resize-y rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
+            className="mt-1.5 w-full resize-y rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2.5 text-zinc-900 dark:text-[#141518] outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60"
           />
         </label>
         <button type="submit" disabled={isSaving} className={`${ghost} disabled:cursor-wait disabled:opacity-60`}>
           {isSaving ? "Saving profile…" : "Save profile"}
         </button>
-        {message && <p role="status" aria-live="polite" className="text-sm text-cyan-800 dark:text-cyan-200">{message}</p>}
+        {message && <p role="status" aria-live="polite" className="text-sm text-[#8B3100] dark:text-[#8B3100]">{message}</p>}
       </form>
     </section>
   );
@@ -714,8 +714,8 @@ function SettingsTab({ role, rs, patch, flash, user }) {
             return (
               <li key={a.id} className={`flex items-start gap-3 rounded-lg border p-3 ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/5 dark:bg-emerald-400/5" : "border-zinc-200 dark:border-zinc-800"}`}>
                 <button type="button" role="radio" aria-checked={on} aria-label={`Use ${a.label} as default`} onClick={() => patch((s) => ({ ...s, defaultAddr: a.id }))} className={`mt-1 h-4 w-4 shrink-0 rounded-full border ${focusRing} ${on ? "border-emerald-600 dark:border-emerald-400 bg-emerald-600 dark:bg-emerald-400" : "border-zinc-200 dark:border-zinc-600"}`} />
-                <div className="min-w-0 flex-1 text-sm"><p className="text-zinc-900 dark:text-zinc-100">{a.label} {on && <Chip tone="cyan">Default</Chip>}</p><p className="text-xs text-zinc-500">{a.line}, {a.city}</p></div>
-                {!on && <button type="button" aria-label={`Remove ${a.label}`} onClick={() => patch((s) => ({ ...s, addresses: s.addresses.filter((x) => x.id !== a.id) }))} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>}
+                <div className="min-w-0 flex-1 text-sm"><p className="text-zinc-900 dark:text-[#141518]">{a.label} {on && <Chip tone="cyan">Default</Chip>}</p><p className="text-xs text-zinc-500">{a.line}, {a.city}</p></div>
+                {!on && <button type="button" aria-label={`Remove ${a.label}`} onClick={() => patch((s) => ({ ...s, addresses: s.addresses.filter((x) => x.id !== a.id) }))} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-[#141518] ${focusRing}`}><X className="h-4 w-4" /></button>}
               </li>
             );
           })}
@@ -724,7 +724,7 @@ function SettingsTab({ role, rs, patch, flash, user }) {
       </section>
 
       <section className={`${card} p-5`} aria-labelledby="api-title">
-        <h3 id="api-title" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50"><Settings className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Enterprise integration</h3>
+        <h3 id="api-title" className="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-50"><Settings className="h-4 w-4 text-[#A83A00] dark:text-[#A83A00]" /> Enterprise integration</h3>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">Create API keys so your ERP or procurement tool can place pre-orders and read QC certificates.</p>
         <ApiKeys role={role} rs={rs} patch={patch} flash={flash} />
       </section>
@@ -742,11 +742,11 @@ function Sidebar({ orders, presets, ordersLoading, ordersError, presetsLoading }
         <dl className="mt-4 space-y-3">
           <div className="flex items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <dt className="text-sm text-zinc-600 dark:text-zinc-400">Orders</dt>
-            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{ordersLoading ? "Loading" : ordersError ? "Unavailable" : orders.length}</dd>
+            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-[#141518]">{ordersLoading ? "Loading" : ordersError ? "Unavailable" : orders.length}</dd>
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-sm text-zinc-600 dark:text-zinc-400">Saved presets</dt>
-            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{presetsLoading ? "Loading" : presets.length}</dd>
+            <dd className="font-semibold tabular-nums text-zinc-900 dark:text-[#141518]">{presetsLoading ? "Loading" : presets.length}</dd>
           </div>
         </dl>
         <p className="mt-4 text-xs leading-relaxed text-zinc-500">Order totals and saved presets reflect records associated with your account.</p>
@@ -900,12 +900,12 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
   const initials = getUserInitials(user);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
+    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
+      <header className="border-b border-black/[0.06] bg-[#F6F5F2]/90">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">My Account</span>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
+          <span className="font-serif text-xl font-semibold tracking-tight">ViciTech</span>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#5A606A]">My Account</span>
         </div>
       </header>
 
@@ -913,9 +913,9 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
         {/* Profile header */}
         <section className={`${card} p-5`} aria-label="Profile">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-emerald-600/40 dark:border-emerald-400/40 bg-emerald-600/10 dark:bg-emerald-400/10 text-xl font-semibold text-cyan-700 dark:text-cyan-300" aria-hidden="true">{initials}</span>
+            <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[#FF5500]/20 bg-[#FF5500]/[0.06] text-xl font-semibold text-[#A83A00]" aria-hidden="true">{initials}</span>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{profile.name}</h1><Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> Signed in</Chip></div>
+              <div className="flex flex-wrap items-center gap-2"><h1 className="font-serif text-3xl font-semibold tracking-tight text-[#141518]">{profile.name}</h1><Chip tone="emerald"><ShieldCheck className="h-3 w-3" /> Signed in</Chip></div>
               <p className="text-sm text-zinc-600 dark:text-zinc-400">{profile.email}</p>
               {profile.org && <p className="text-xs text-zinc-500">{profile.org}</p>}
             </div>
@@ -932,7 +932,7 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
             const I = f.icon;
             return (
               <button key={f.label} type="button" onClick={() => f.tab === "community" ? onNavigate?.("community") : setTab(f.tab)} className={`${card} flex items-center gap-3 p-4 text-left transition-colors hover:border-emerald-600/50 dark:hover:border-emerald-400/50 ${focusRing}`}>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-cyan-700 dark:text-cyan-400"><I className="h-5 w-5" /></span>
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[#A83A00] dark:text-[#A83A00]"><I className="h-5 w-5" /></span>
                 <span className="min-w-0"><span className="block text-xs text-zinc-500">{f.label}</span><span className="block text-lg font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{f.value}</span><span className="block truncate text-xs text-zinc-500">{f.sub}</span></span>
               </button>
             );
@@ -941,12 +941,12 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <div className="min-w-0 space-y-4 lg:col-span-2">
-            <div role="tablist" aria-label="Account sections" onKeyDown={onTabKey} className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-1.5">
+            <div role="tablist" aria-label="Account sections" onKeyDown={onTabKey} className="flex gap-1 overflow-x-auto rounded-2xl border border-black/[0.06] bg-white/80 p-1.5">
               {tabs.map((t) => {
                 const I = t.icon, on = tab === t.id;
                 return (
                   <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-label={t.label} title={t.label} aria-selected={on} aria-controls="account-panel" tabIndex={on ? 0 : -1} onClick={() => setTab(t.id)}
-                    className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 py-2 text-sm transition-all ${focusRing} ${on ? "border-emerald-600/50 dark:border-emerald-400/50 bg-emerald-600/10 dark:bg-emerald-400/10 font-medium text-cyan-700 dark:text-cyan-300 shadow-[0_0_18px_-4px_rgba(34,211,238,0.6)]" : "border-transparent text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100"}`}>
+                    className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border px-3 py-2 text-sm transition-all ${focusRing} ${on ? "border-[#FF5500]/20 bg-[#FF5500]/[0.06] font-medium text-[#A83A00]" : "border-transparent text-zinc-600 hover:bg-[#F6F5F2] hover:text-zinc-900"}`}>
                     <I className="h-4 w-4" /> {t.short}
                     {t.count !== undefined && <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-1.5 text-xs tabular-nums text-zinc-700 dark:text-zinc-300">{t.count}</span>}
                   </button>
@@ -954,7 +954,7 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
               })}
             </div>
 
-            <div aria-live="polite" className="min-h-0">{toast && <p className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4 shrink-0" /> {toast}</p>}</div>
+            <div aria-live="polite" className="min-h-0">{toast && <p className="flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-700 dark:text-emerald-800"><CheckCircle2 className="h-4 w-4 shrink-0" /> {toast}</p>}</div>
 
             <section id="account-panel" role="tabpanel" aria-labelledby={`tab-${tab}`}>
               <h2 className="mb-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">{tabs.find((t) => t.id === tab).label}</h2>
@@ -969,7 +969,7 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
         </div>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Account records are scoped to your signed-in profile.</footer>
+      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">ViciTech Engine v1.0. Account records are scoped to your signed-in profile.</footer>
     </div>
   );
 }
@@ -977,7 +977,7 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
 export default function AccountDashboard({ user, isAuthLoading, onNavigate, ...props }) {
   if (isAuthLoading) {
     return (
-      <main className="grid min-h-[60vh] place-items-center bg-white dark:bg-zinc-950 px-4 text-zinc-700 dark:text-zinc-300">
+      <main className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 text-zinc-700">
         <p role="status" className="text-sm">Checking your ViciTech account…</p>
       </main>
     );
@@ -985,10 +985,10 @@ export default function AccountDashboard({ user, isAuthLoading, onNavigate, ...p
 
   if (!user) {
     return (
-      <main className="grid min-h-[60vh] place-items-center bg-white dark:bg-zinc-950 px-4 py-12 text-zinc-900 dark:text-zinc-100">
-        <section className="w-full max-w-lg rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 p-8 text-center shadow-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Account access</p>
-          <h1 className="mt-3 text-2xl font-semibold">Sign in to view your account</h1>
+      <main className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 py-12 text-[#141518]">
+        <section className="w-full max-w-lg rounded-3xl border border-black/[0.06] bg-white p-8 text-center shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A83A00]">Account access</p>
+          <h1 className="mt-3 font-serif text-3xl font-semibold">Sign in to view your account</h1>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
             Your orders, saved presets, and QC certificates are only available after you sign in.
             Use the Sign In button in the navigation bar to continue.
@@ -996,7 +996,7 @@ export default function AccountDashboard({ user, isAuthLoading, onNavigate, ...p
           <button
             type="button"
             onClick={() => onNavigate?.("home")}
-            className="mt-6 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="mt-6 rounded-lg border border-zinc-200 dark:border-black/10 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             Return home
           </button>

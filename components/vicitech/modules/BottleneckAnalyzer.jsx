@@ -168,14 +168,14 @@ function autoFix(cfg) {
 
 /* ───────────────────────── UI pieces ───────────────────────── */
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
-const selectCls = `w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 ${focusRing}`;
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
+const selectCls = `w-full rounded-xl border border-black/10 bg-white px-3.5 py-3 text-sm text-[#141518] shadow-sm ${focusRing}`;
 const SEV = [
-  { label: "Balanced system", text: "text-emerald-400", stroke: "stroke-emerald-400", chip: "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" },
-  { label: "Slight bottleneck (acceptable)", text: "text-amber-400", stroke: "stroke-amber-400", chip: "border-amber-400/30 bg-amber-400/10 text-amber-400" },
-  { label: "High bottleneck", text: "text-red-400", stroke: "stroke-red-400", chip: "border-red-400/30 bg-red-400/10 text-red-400" },
+  { label: "Balanced system", text: "text-emerald-700", stroke: "stroke-emerald-500", chip: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
+  { label: "Slight bottleneck (acceptable)", text: "text-amber-700", stroke: "stroke-amber-500", chip: "border-amber-600/20 bg-amber-50 text-amber-800" },
+  { label: "High bottleneck", text: "text-rose-700", stroke: "stroke-rose-500", chip: "border-rose-600/20 bg-rose-50 text-rose-800" },
 ];
-const STATUS = { ok: ["text-emerald-400", CheckCircle2, "OK"], warn: ["text-amber-400", AlertTriangle, "Tight"], critical: ["text-red-400", AlertTriangle, "Insufficient"] };
+const STATUS = { ok: ["text-emerald-700", CheckCircle2, "OK"], warn: ["text-amber-700", AlertTriangle, "Tight"], critical: ["text-rose-700", AlertTriangle, "Insufficient"] };
 const HINT = {
   CPU: "The GPU waits on the CPU for frames. A faster CPU, or a target that loads the GPU harder, uses the GPU fully.",
   GPU: "The CPU has headroom to spare. For more performance, upgrade the GPU or lower the resolution or settings.",
@@ -188,11 +188,11 @@ function MeterGauge({ pct, sev }) {
   const frac = Math.min(pct, 50) / 50; // 25% sits at the midpoint so the 10% and 25% zone borders stay readable
   return (
     <svg viewBox="0 0 200 116" className="mx-auto w-full max-w-xs" role="img" aria-label={`Bottleneck ${pct} percent, ${SEV[sev].label}`}>
-      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" strokeWidth="14" strokeLinecap="round" className="stroke-zinc-800" />
+      <path d="M20 100 A80 80 0 0 1 180 100" fill="none" strokeWidth="14" strokeLinecap="round" className="stroke-black/10" />
       <path d="M20 100 A80 80 0 0 1 180 100" fill="none" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${len * frac} ${len}`} className={`${SEV[sev].stroke} transition-all duration-500`} />
-      <line x1="43.4" y1="58.8" x2="27.2" y2="47.1" strokeWidth="2" className="stroke-zinc-950" />
-      <line x1="100" y1="30" x2="100" y2="10" strokeWidth="2" className="stroke-zinc-950" />
-      <text x="100" y="94" textAnchor="middle" fontSize="34" fontWeight="600" className="fill-zinc-50">{pct}%</text>
+      <line x1="43.4" y1="58.8" x2="27.2" y2="47.1" strokeWidth="2" className="stroke-[#F6F5F2]" />
+      <line x1="100" y1="30" x2="100" y2="10" strokeWidth="2" className="stroke-[#F6F5F2]" />
+      <text x="100" y="94" textAnchor="middle" fontSize="34" fontWeight="600" className="fill-[#141518]">{pct}%</text>
     </svg>
   );
 }
@@ -201,11 +201,11 @@ function LoadBar({ label, value, limiting }) {
   return (
     <div>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-zinc-700 dark:text-zinc-300">{label} load {limiting && <span className="ml-1 rounded bg-emerald-600/15 dark:bg-emerald-400/15 px-1.5 py-0.5 text-xs text-cyan-700 dark:text-cyan-300">limiting</span>}</span>
-        <span className="tabular-nums text-zinc-900 dark:text-zinc-100">{value}%</span>
+        <span className="text-[#5A606A]">{label} load {limiting && <span className="ml-1 rounded-full bg-[#FF5500]/10 px-2 py-0.5 text-xs font-medium text-[#C94300]">limiting</span>}</span>
+        <span className="tabular-nums font-medium text-[#141518]">{value}%</span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
-        <div className={`h-full rounded-full transition-all duration-500 ${limiting ? "bg-emerald-600 dark:bg-emerald-400" : value >= 85 ? "bg-emerald-400" : "bg-amber-400"}`} style={{ width: `${Math.min(100, value)}%` }} />
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-black/[0.07]">
+        <div className={`h-full rounded-full transition-all duration-500 ${limiting ? "bg-[#FF5500]" : value >= 85 ? "bg-emerald-500" : "bg-amber-500"}`} style={{ width: `${Math.min(100, value)}%` }} />
       </div>
     </div>
   );
@@ -213,22 +213,22 @@ function LoadBar({ label, value, limiting }) {
 
 function PerfCard({ icon: Icon, title, sub, active, children }) {
   return (
-    <section className={`rounded-xl border p-4 ${active ? "border-emerald-600/60 dark:border-emerald-400/60 bg-emerald-600/5 dark:bg-emerald-400/5 ring-1 ring-cyan-400/30" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50"}`}>
-      <h3 className="flex items-center gap-2 text-sm font-medium text-zinc-800 dark:text-zinc-200"><Icon className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> {title}
-        {active && <span className="ml-auto rounded-full bg-emerald-600/15 dark:bg-emerald-400/15 px-2 py-0.5 text-xs font-normal text-cyan-700 dark:text-cyan-300">Selected</span>}
+    <section className={`rounded-2xl border p-5 ${active ? "border-[#FF5500]/30 bg-[#FF5500]/[0.035] ring-1 ring-[#FF5500]/10" : "border-black/[0.07] bg-white/70"}`}>
+      <h3 className="flex items-center gap-2 text-sm font-semibold text-[#141518]"><Icon className="h-4 w-4 text-[#FF5500]" /> {title}
+        {active && <span className="ml-auto rounded-full bg-[#FF5500]/10 px-2.5 py-1 text-[11px] font-medium text-[#C94300]">Selected</span>}
       </h3>
-      <p className="text-xs text-zinc-500">{sub}</p>
+      <p className="text-xs text-[#777C83]">{sub}</p>
       {children}
     </section>
   );
 }
-const Row = ({ k, v, className = "text-zinc-900 dark:text-zinc-100" }) => <div className="flex justify-between gap-3 py-1 text-sm"><dt className="text-zinc-500">{k}</dt><dd className={`text-right tabular-nums ${className}`}>{v}</dd></div>;
-const Big = ({ value, unit, tag }) => <p className="mt-3"><span className="text-3xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</span> <span className="text-sm text-zinc-600 dark:text-zinc-400">{unit}</span>{tag && <span className="ml-2 text-xs text-cyan-700 dark:text-cyan-300">{tag}</span>}</p>;
+const Row = ({ k, v, className = "text-[#141518]" }) => <div className="flex justify-between gap-3 py-1 text-sm"><dt className="text-[#777C83]">{k}</dt><dd className={`text-right tabular-nums ${className}`}>{v}</dd></div>;
+const Big = ({ value, unit, tag }) => <p className="mt-3"><span className="font-serif text-3xl font-semibold tabular-nums tracking-tight text-[#141518]">{value}</span> <span className="text-sm text-[#5A606A]">{unit}</span>{tag && <span className="ml-2 text-xs font-medium text-[#C94300]">{tag}</span>}</p>;
 
 function Field({ id, label, icon: Icon, children }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">{Icon && <Icon className="h-4 w-4 text-cyan-700 dark:text-cyan-400" />} {label}</label>
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-2 text-sm font-medium text-[#30343A]">{Icon && <Icon className="h-4 w-4 text-[#FF5500]" />} {label}</label>
       {children}
     </div>
   );
@@ -346,27 +346,30 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Bottleneck Analyzer</span>
+    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
+      <header className="border-b border-black/[0.06] bg-[#F6F5F2]/90">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 sm:px-6">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white shadow-sm"><Cpu className="h-5 w-5" /></span>
+          <span className="font-serif text-xl font-semibold tracking-tight">Bottleneck Analyzer</span>
+          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#5A606A] shadow-sm">Planning model</span>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl"><Gauge className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Bottleneck &amp; Performance Scaling Analyzer</h1>
-        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">Pair a CPU, GPU and RAM with your target workload to see which part limits performance, what frame rates to expect and whether your PSU and cooler keep up.</p>
-        <p className="mt-2 flex max-w-2xl gap-2 text-xs text-zinc-500"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Results come from a simplified scoring model, not live benchmarks. Treat them as a planning guide.</p>
-        {catalogError && <p role="status" className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">{catalogError} Showing the curated analyzer data instead.</p>}
+        <div className="max-w-4xl">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Build with confidence</p>
+          <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[#141518] sm:text-5xl">Find the balance in your build.</h1>
+          <p className="mt-4 max-w-2xl leading-relaxed text-[#5A606A]">Pair a CPU, GPU and RAM with your target workload to see which part limits performance, what frame rates to expect and whether your PSU and cooler keep up.</p>
+          <p className="mt-3 flex max-w-2xl gap-2 text-xs leading-relaxed text-[#777C83]"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#FF5500]" /> Results come from a simplified scoring model, not live benchmarks. Treat them as a planning guide.</p>
+        </div>
+        {catalogError && <p role="status" className="mt-3 rounded-2xl border border-amber-600/20 bg-amber-50 px-4 py-3 text-sm text-amber-800">{catalogError} Showing the curated analyzer data instead.</p>}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-5">
           {/* Input panel */}
-          <section aria-labelledby="cfg-title" className="space-y-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5 lg:col-span-2 lg:self-start">
+          <section aria-labelledby="cfg-title" className="space-y-5 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-2 lg:self-start">
             <div className="flex items-center justify-between">
-              <h2 id="cfg-title" className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Hardware pairing</h2>
-              <button type="button" onClick={() => { setCfg(DEFAULT_CFG); setNote(""); }} className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-zinc-600 dark:text-zinc-400 hover:text-cyan-700 dark:hover:text-cyan-300 ${focusRing}`}><RefreshCw className="h-4 w-4" /> Reset</button>
+              <h2 id="cfg-title" className="font-serif text-xl font-semibold text-[#141518]">Hardware pairing</h2>
+              <button type="button" onClick={() => { setCfg(DEFAULT_CFG); setNote(""); }} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm text-[#5A606A] hover:bg-black/[0.04] hover:text-[#C94300] ${focusRing}`}><RefreshCw className="h-4 w-4" /> Reset</button>
             </div>
 
             <Field id="cpu" label="CPU" icon={Cpu}>
@@ -382,21 +385,21 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
             </Field>
 
             <fieldset>
-              <legend className="mb-1.5 flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"><Activity className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Target resolution and workload</legend>
+              <legend className="mb-2 flex items-center gap-2 text-sm font-medium text-[#30343A]"><Activity className="h-4 w-4 text-[#FF5500]" /> Target resolution and workload</legend>
               <div role="radiogroup" aria-label="Target resolution and workload" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 {Object.values(WORKLOADS).map((x) => {
                   const on = cfg.workload === x.id;
                   return (
-                    <button key={x.id} type="button" role="radio" aria-checked={on} onClick={() => update({ workload: x.id })} className={`rounded-lg border p-3 text-left transition-colors ${focusRing} ${on ? "border-emerald-600/70 dark:border-emerald-400/70 bg-emerald-600/10 dark:bg-emerald-400/10" : "border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 hover:border-zinc-200 dark:hover:border-zinc-700"}`}>
-                      <span className={`block text-sm font-medium ${on ? "text-cyan-700 dark:text-cyan-300" : "text-zinc-800 dark:text-zinc-200"}`}>{x.label}</span>
-                      <span className="block text-xs text-zinc-500">{x.sub}</span>
+                    <button key={x.id} type="button" role="radio" aria-checked={on} onClick={() => update({ workload: x.id })} className={`rounded-2xl border p-3.5 text-left transition-colors ${focusRing} ${on ? "border-[#FF5500]/35 bg-[#FF5500]/[0.045]" : "border-black/[0.07] bg-[#F6F5F2]/60 hover:border-black/15"}`}>
+                      <span className={`block text-sm font-medium ${on ? "text-[#C94300]" : "text-[#30343A]"}`}>{x.label}</span>
+                      <span className="block text-xs text-[#777C83]">{x.sub}</span>
                     </button>
                   );
                 })}
               </div>
             </fieldset>
 
-            <div className="grid gap-4 border-t border-zinc-200 dark:border-zinc-800 pt-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div className="grid gap-4 border-t border-black/[0.06] pt-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <Field id="psu" label="Power supply" icon={Zap}>
                 <select id="psu" value={cfg.psu} onChange={(e) => update({ psu: e.target.value })} className={selectCls}>{PSUS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select>
               </Field>
@@ -405,39 +408,39 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
               </Field>
             </div>
 
-            <div aria-live="polite">{note && <p className="flex gap-2 rounded-lg border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 p-3 text-sm text-cyan-800 dark:text-cyan-200"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {note}</p>}</div>
-            <p className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 pt-3 text-sm"><span className="text-zinc-500">Selected parts subtotal</span><span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{idr(a.total)}</span></p>
-            <p className="text-xs text-zinc-600">Excludes motherboard, case and storage.</p>
+            <div aria-live="polite">{note && <p className="flex gap-2 rounded-2xl border border-[#FF5500]/20 bg-[#FF5500]/[0.05] p-3 text-sm text-[#8B3100]"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {note}</p>}</div>
+            <p className="flex justify-between border-t border-black/[0.06] pt-3 text-sm"><span className="text-[#777C83]">Selected parts subtotal</span><span className="font-semibold tabular-nums text-[#141518]">{idr(a.total)}</span></p>
+            <p className="text-xs text-[#777C83]">Excludes motherboard, case and storage.</p>
           </section>
 
           {/* Results */}
           <div className="space-y-6 lg:col-span-3">
-            <section aria-labelledby="meter-title" className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
-              <h2 id="meter-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Gauge className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Bottleneck meter</h2>
+            <section aria-labelledby="meter-title" className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
+              <h2 id="meter-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]"><Gauge className="h-5 w-5 text-[#FF5500]" /> Bottleneck meter</h2>
               <div className="mt-2 grid items-center gap-6 md:grid-cols-2">
                 <div>
                   <MeterGauge pct={a.pct} sev={a.sev} />
                   <p className={`mt-1 text-center text-sm font-medium ${sev.text}`}>{sev.label}</p>
-                  <ul className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-zinc-500">
-                    <li><span className="text-emerald-700 dark:text-emerald-400">0 to 10%</span> balanced</li><li><span className="text-amber-700 dark:text-amber-400">11 to 25%</span> slight</li><li><span className="text-red-700 dark:text-red-400">Over 25%</span> high</li>
+                  <ul className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-[#777C83]">
+                    <li><span className="text-emerald-700">0 to 10%</span> balanced</li><li><span className="text-amber-700">11 to 25%</span> slight</li><li><span className="text-rose-700">Over 25%</span> high</li>
                   </ul>
                 </div>
                 <div className="space-y-4">
                   <p className={`flex gap-2 rounded-lg border p-3 text-sm ${sev.chip}`}>{a.sev === 0 ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />} {message}</p>
-                  {a.pct > 10 && <p className="text-xs text-zinc-600 dark:text-zinc-400">{HINT[a.limiter]}</p>}
+                  {a.pct > 10 && <p className="text-xs leading-relaxed text-[#5A606A]">{HINT[a.limiter]}</p>}
                   <div className="space-y-3">
-                    <h3 className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300"><Activity className="h-4 w-4 text-cyan-700 dark:text-cyan-400" /> Load under {w.label}</h3>
+                    <h3 className="flex items-center gap-2 text-sm font-medium text-[#30343A]"><Activity className="h-4 w-4 text-[#FF5500]" /> Load under {w.label}</h3>
                     <LoadBar label="CPU" value={a.loads.cpu} limiting={cpuSide} />
                     {w.kind === "server" ? <LoadBar label="RAM" value={a.loads.other} limiting={!cpuSide} /> : <LoadBar label="GPU" value={a.loads.other} limiting={!cpuSide} />}
-                    {w.kind === "server" && <p className="text-xs text-zinc-500">The GPU is not used by this workload.</p>}
+                    {w.kind === "server" && <p className="text-xs text-[#777C83]">The GPU is not used by this workload.</p>}
                   </div>
                 </div>
               </div>
-              <p className="mt-4 border-t border-zinc-200 dark:border-zinc-800 pt-3 text-sm text-zinc-600 dark:text-zinc-400">Projected result: <span className="font-semibold text-zinc-900 dark:text-zinc-50">{headline}</span></p>
+              <p className="mt-4 border-t border-black/[0.06] pt-4 text-sm text-[#5A606A]">Projected result: <span className="font-semibold text-[#141518]">{headline}</span></p>
             </section>
 
             <section aria-labelledby="perf-title">
-              <h2 id="perf-title" className="mb-3 flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><BarChart2 className="h-5 w-5 text-cyan-700 dark:text-cyan-400" /> Estimated performance</h2>
+              <h2 id="perf-title" className="mb-3 flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]"><BarChart2 className="h-5 w-5 text-[#FF5500]" /> Estimated performance</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <PerfCard icon={Zap} title="Esports FPS" sub="1080p low and medium" active={w.id === "esports"}>
                   <Big value={perf.esports} unit="FPS" tag={fpsTag(perf.esports)} />
@@ -449,54 +452,54 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
                 </PerfCard>
                 <PerfCard icon={BarChart2} title="Workstation / 4K render index" sub="Higher is faster, 100 is a top-tier system" active={w.id === "render"}>
                   <Big value={perf.render} unit="index" />
-                  <dl className="mt-2"><Row k="10-minute 4K export" v={`about ${perf.exportMin} min`} /><Row k="GPU memory" v={a.gpu.vram ? `${a.gpu.vram} GB VRAM` : "Shared with RAM"} className={a.gpu.vram && a.gpu.vram < 8 ? "text-amber-700 dark:text-amber-400" : "text-zinc-900 dark:text-zinc-100"} /><Row k="CBT server capacity" v={`about ${perf.clients} clients`} /></dl>
+                  <dl className="mt-2"><Row k="10-minute 4K export" v={`about ${perf.exportMin} min`} /><Row k="GPU memory" v={a.gpu.vram ? `${a.gpu.vram} GB VRAM` : "Shared with RAM"} className={a.gpu.vram && a.gpu.vram < 8 ? "text-amber-700" : "text-[#141518]"} /><Row k="CBT server capacity" v={`about ${perf.clients} clients`} /></dl>
                 </PerfCard>
                 <PerfCard icon={Zap} title="Thermal and power draw" sub="PSU and cooler check at the selected workload">
                   {[["Power", `${power.draw} W of ${a.psu.w} W`, power], ["Cooling", `${cooling.heat} W of ${a.cooler.cap} W`, cooling]].map(([k, v, s]) => {
                     const [tone, Icon, text] = STATUS[s.status];
                     return (
                       <div key={k} className="mt-3">
-                        <div className="flex items-center justify-between text-sm"><span className={`flex items-center gap-1.5 ${tone}`}><Icon className="h-4 w-4" /> {k}: {text}</span><span className="tabular-nums text-zinc-700 dark:text-zinc-300">{v}</span></div>
-                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full ${s.status === "ok" ? "bg-emerald-400" : s.status === "warn" ? "bg-amber-400" : "bg-red-400"}`} style={{ width: `${Math.min(100, Math.round(s.load * 100))}%` }} /></div>
+                        <div className="flex items-center justify-between text-sm"><span className={`flex items-center gap-1.5 ${tone}`}><Icon className="h-4 w-4" /> {k}: {text}</span><span className="tabular-nums text-[#5A606A]">{v}</span></div>
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/[0.07]"><div className={`h-full rounded-full ${s.status === "ok" ? "bg-emerald-500" : s.status === "warn" ? "bg-amber-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, Math.round(s.load * 100))}%` }} /></div>
                       </div>
                     );
                   })}
-                  <p className="mt-3 text-xs text-zinc-500">Suggested: {power.rec.name} PSU, {cooling.rec.name.toLowerCase()} or better.</p>
+                  <p className="mt-3 text-xs text-[#777C83]">Suggested: {power.rec.name} PSU, {cooling.rec.name.toLowerCase()} or better.</p>
                 </PerfCard>
               </div>
             </section>
 
-            <section aria-labelledby="rec-title" className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
+            <section aria-labelledby="rec-title" className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 id="rec-title" className="flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-zinc-50"><Sparkles className="h-5 w-5 text-amber-700 dark:text-amber-400" /> Smart rebalancing</h2>
-                <button type="button" onClick={swap} disabled={!fix.steps.length} className={`inline-flex items-center gap-2 rounded-lg bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-500 ${focusRing}`}>
+                <h2 id="rec-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]"><Sparkles className="h-5 w-5 text-[#FF5500]" /> Smart rebalancing</h2>
+                <button type="button" onClick={swap} disabled={!fix.steps.length} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E94B00] disabled:cursor-not-allowed disabled:bg-black/10 disabled:text-[#777C83] ${focusRing}`}>
                   <RefreshCw className="h-4 w-4" /> One-Click Swap to Preset
                 </button>
               </div>
               {fix.steps.length > 0 ? (
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">The swap will {fix.steps.join(", ")}. Bottleneck {a.pct}% to {fixed.pct}%, parts {fmtDelta(fixed.total - a.total)}.</p>
+                <p className="mt-2 text-sm text-[#5A606A]">The swap will {fix.steps.join(", ")}. Bottleneck {a.pct}% to {fixed.pct}%, parts {fmtDelta(fixed.total - a.total)}.</p>
               ) : (
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Nothing to swap: this setup needs no hardware changes for {w.label}.</p>
+                <p className="mt-2 text-sm text-[#5A606A]">Nothing to swap: this setup needs no hardware changes for {w.label}.</p>
               )}
               {recs.length > 0 ? (
                 <ul className="mt-4 space-y-2">
                   {recs.map((r) => (
-                    <li key={r.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/30 bg-amber-400/5 p-3">
-                      <ArrowUpRight className="h-5 w-5 shrink-0 text-amber-700 dark:text-amber-400" />
-                      <div className="min-w-0 flex-1 basis-56"><p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{r.title}</p><p className="text-xs text-zinc-600 dark:text-zinc-400">{r.detail}</p></div>
-                      <button type="button" onClick={() => apply(r)} className={`rounded-lg border border-amber-400/40 px-3 py-1.5 text-sm text-amber-700 dark:text-amber-300 hover:bg-amber-400/10 ${focusRing}`}>Apply</button>
+                    <li key={r.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#FF5500]/15 bg-[#FF5500]/[0.035] p-4">
+                      <ArrowUpRight className="h-5 w-5 shrink-0 text-[#FF5500]" />
+                      <div className="min-w-0 flex-1 basis-56"><p className="text-sm font-medium text-[#141518]">{r.title}</p><p className="text-xs text-[#5A606A]">{r.detail}</p></div>
+                      <button type="button" onClick={() => apply(r)} className={`rounded-full border border-[#FF5500]/25 px-4 py-2 text-sm font-medium text-[#C94300] hover:bg-[#FF5500]/[0.07] ${focusRing}`}>Apply</button>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> No upgrades needed. This pairing is well balanced and your PSU and cooler keep up.</p>
+                <p className="mt-4 flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" /> No upgrades needed. This pairing is well balanced and your PSU and cooler keep up.</p>
               )}
             </section>
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample parts, prices and scoring model.</footer>
+      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">ViciTech Engine v1.0. Sample parts, prices and scoring model.</footer>
     </div>
   );
 }

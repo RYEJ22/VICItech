@@ -286,99 +286,100 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
 
   if (isAuthLoading) {
     return (
-      <section role="status" className="mx-auto flex min-h-64 max-w-3xl items-center justify-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
-        <LoaderCircle className="h-5 w-5 animate-spin text-cyan-700 dark:text-cyan-300" /> Checking your ViciTech session…
+      <section role="status" className="mx-auto flex min-h-64 max-w-3xl items-center justify-center gap-3 text-sm text-[#5A606A]">
+        <LoaderCircle className="h-5 w-5 animate-spin text-[#FF5500]" /> Checking your ViciTech session…
       </section>
     );
   }
 
   if (!userId) {
     return (
-      <section className="mx-auto max-w-3xl rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8 text-center">
-        <MessageSquare className="mx-auto h-10 w-10 text-cyan-700 dark:text-cyan-300" />
-        <h1 className="mt-4 text-2xl font-semibold">Sign in to your messages</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Direct messages are private and available to signed-in ViciTech members.</p>
+      <section className="mx-auto max-w-3xl rounded-3xl border border-black/[0.06] bg-white p-8 text-center shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
+        <MessageSquare className="mx-auto h-10 w-10 text-[#FF5500]" />
+        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-[#141518]">Sign in to your messages</h1>
+        <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">Direct messages are private and available to signed-in ViciTech members.</p>
       </section>
     );
   }
 
   if (!isLoading && !profileReady) {
     return (
-      <section className="mx-auto max-w-3xl rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8">
-        <h1 className="text-xl font-semibold">Finish setting up your profile</h1>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Save a unique username in Account Settings before starting direct messages.</p>
+      <section className="mx-auto max-w-3xl rounded-3xl border border-black/[0.06] bg-white p-8 shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#141518]">Finish setting up your profile</h1>
+        <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">Save a unique username in Account Settings before starting direct messages.</p>
         {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
       </section>
     );
   }
 
   return (
-    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/40 dark:bg-zinc-900/40 md:flex-row">
-      <aside className={`w-full border-b border-zinc-200 dark:border-zinc-800 md:w-80 md:shrink-0 md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
-        <div className="border-b border-zinc-200 dark:border-zinc-800 p-5">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-[0_16px_48px_rgba(20,21,24,0.06)] md:flex-row">
+      <aside className={`min-h-[58vh] w-full border-b border-black/[0.06] bg-white md:min-h-0 md:w-80 md:shrink-0 md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
+        <div className="border-b border-black/[0.06] px-5 py-5">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A83A00]">
             <MessageSquare className="h-4 w-4" /> Inbox
-            <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] tracking-normal ${realtimeStatus === "connected" ? "text-emerald-700 dark:text-emerald-300" : realtimeStatus === "error" ? "text-red-700 dark:text-red-300" : "text-zinc-500"}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-emerald-400" : realtimeStatus === "error" ? "bg-red-400" : "bg-zinc-500"}`} />
-              {realtimeStatus === "connected" ? "Live" : realtimeStatus === "error" ? "Offline" : "Connecting"}
+            <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-emerald-700" : realtimeStatus === "error" ? "text-red-700" : "text-[#777C83]"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-emerald-500" : realtimeStatus === "error" ? "bg-red-500" : "bg-[#A3A6AA]"}`} />
+              {realtimeStatus === "connected" ? "Connected" : realtimeStatus === "error" ? "Offline" : "Connecting"}
             </span>
           </p>
-          <h1 className="mt-2 text-xl font-semibold">Direct messages</h1>
+          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[#141518]">Direct messages</h1>
+          <p className="mt-1 text-xs leading-relaxed text-[#777C83]">Private conversations with ViciTech members.</p>
         </div>
-        <div className="max-h-[65vh] overflow-y-auto p-2 md:max-h-[620px]">
+        <div className="max-h-[38vh] overflow-y-auto p-2 md:max-h-[620px]">
           {isLoading ? (
             <p className="flex items-center gap-2 p-4 text-sm text-zinc-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading conversations…</p>
           ) : conversations.length ? conversations.map((item) => {
             const profile = profiles[item?.userId];
             if (!item?.userId || !profile) return null;
             return (
-              <button key={item.userId} type="button" onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition ${selectedId === item.userId ? "bg-emerald-600/10 dark:bg-emerald-400/10 ring-1 ring-cyan-400/30" : "hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60"}`}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-sm font-semibold text-cyan-800 dark:text-cyan-200">{profileInitial(profile)}</span>}
+              <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-[#FF5500]/[0.06] ring-1 ring-[#FF5500]/20" : "hover:bg-[#F6F5F2]"}`}>
+                {profile.avatar_url ? <img src={profile.avatar_url} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FF5500]/[0.08] text-sm font-semibold text-[#A83A00]">{profileInitial(profile)}</span>}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{displayName(profile)}</span>
-                  <span className="block truncate text-xs text-zinc-500">{item.latest?.content || `@${profile.username || "member"}`}</span>
+                  <span className="block truncate text-sm font-semibold text-[#141518]">{displayName(profile)}</span>
+                  <span className="mt-0.5 block truncate text-xs text-[#777C83]">{item.latest?.content || `@${profile.username || "member"}`}</span>
                 </span>
-                {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-emerald-600 dark:bg-emerald-400 px-1 text-[11px] font-semibold text-white dark:text-zinc-950">{item.unread}</span>}
+                {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#FF5500] px-1 text-[11px] font-semibold text-white">{item.unread}</span>}
               </button>
             );
           }) : !error ? <p className="p-4 text-sm text-zinc-500">No conversations yet. Visit a public profile to send a message.</p> : null}
         </div>
       </aside>
 
-      <div className={`flex min-h-[60vh] min-w-0 flex-1 flex-col ${!selectedId ? "hidden md:flex" : ""}`}>
+      <div className={`flex min-h-[58vh] min-w-0 flex-1 flex-col bg-[#FCFBF9] md:min-h-0 ${!selectedId ? "hidden md:flex" : ""}`}>
         {selectedId && selectedProfile ? (
           <>
-            <header className="flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 sm:px-5">
-              <button type="button" aria-label="Back to conversations" onClick={() => setSelectedId("")} className="rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
-              {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="grid h-10 w-10 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 font-semibold text-cyan-800 dark:text-cyan-200">{profileInitial(selectedProfile)}</span>}
+            <header className="flex items-center gap-3 border-b border-black/[0.06] bg-white px-4 py-3.5 sm:px-6">
+              <button type="button" aria-label="Back to conversations" onClick={() => setSelectedId("")} className="rounded-full p-2 text-[#5A606A] transition-colors hover:bg-[#F6F5F2] hover:text-[#141518] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
+              {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-[#FF5500]/[0.08] font-semibold text-[#A83A00]">{profileInitial(selectedProfile)}</span>}
               <span className="min-w-0">
-                <span className="block truncate font-medium text-zinc-900 dark:text-zinc-100">{displayName(selectedProfile)}</span>
-                <span className="block text-xs text-zinc-500">@{selectedProfile.username || "member"}</span>
+                <span className="block truncate text-sm font-semibold text-[#141518]">{displayName(selectedProfile)}</span>
+                <span className="block text-xs text-[#777C83]">@{selectedProfile.username || "member"}</span>
               </span>
             </header>
-            <div className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-5" aria-live="polite">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
               {messages.length ? messages.map((message) => {
                 if (!message?.id || typeof message.content !== "string") return null;
                 const own = message.sender_id === userId;
                 return (
                   <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
-                    <article className={`max-w-[85%] rounded-2xl px-4 py-2.5 sm:max-w-[70%] ${own ? "rounded-br-md bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "rounded-bl-md border border-zinc-200 dark:border-zinc-700 bg-slate-800 text-zinc-900 dark:text-zinc-100"}`}>
-                      <p className="whitespace-pre-wrap break-words text-sm">{message.content}</p>
-                      <p className={`mt-1 text-right text-[10px] ${own ? "text-zinc-800/70" : "text-zinc-600 dark:text-zinc-400"}`}>{formatMessageTime(message.created_at)}</p>
+                    <article className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-[#FF5500] text-white" : "rounded-bl-md border border-black/[0.06] bg-white text-[#30343A]"}`}>
+                      <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.content}</p>
+                      <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/75" : "text-[#777C83]"}`}>{formatMessageTime(message.created_at)}</p>
                     </article>
                   </div>
                 );
               }) : <p className="py-12 text-center text-sm text-zinc-500">No messages yet. Send a hello to start the conversation.</p>}
               <div ref={bottomRef} />
             </div>
-            <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-zinc-200 dark:border-zinc-800 p-3 sm:p-4">
+            <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-black/[0.06] bg-white p-3 sm:gap-3 sm:p-4">
               <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
                   event.currentTarget.form?.requestSubmit();
                 }
-              }} maxLength={4000} rows={1} placeholder="Write a message…" aria-label="Message" className="max-h-36 min-h-11 flex-1 resize-y rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-3 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/50 dark:focus:border-emerald-400/50" />
-              <button type="submit" disabled={!draft.trim() || isSending} aria-label="Send message" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950 hover:bg-emerald-500 dark:hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-40">
+              }} maxLength={4000} rows={1} placeholder="Write a message…" aria-label="Message" className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-black/10 bg-[#F6F5F2] px-4 py-3 text-sm text-[#141518] outline-none transition-colors placeholder:text-[#777C83] focus:border-[#FF5500]/50 focus:ring-2 focus:ring-[#FF5500]/10" />
+              <button type="submit" disabled={!draft.trim() || isSending} aria-label="Send message" className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FF5500] text-white shadow-sm transition-colors hover:bg-[#E94B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40">
                 {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </button>
             </form>
@@ -386,8 +387,9 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         ) : (
           <div className="grid flex-1 place-items-center p-8 text-center">
             <div>
-              <UserRound className="mx-auto h-10 w-10 text-zinc-600" />
-              <p className="mt-3 text-sm text-zinc-500">Select a conversation to view messages.</p>
+              <UserRound className="mx-auto h-10 w-10 text-[#FF5500]/70" />
+              <p className="mt-3 font-serif text-lg font-medium text-[#30343A]">Your conversations live here.</p>
+              <p className="mt-1 text-sm text-[#777C83]">Select a thread to read and reply.</p>
             </div>
           </div>
         )}
