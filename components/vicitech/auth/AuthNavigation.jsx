@@ -138,34 +138,39 @@ export default function AuthNavigation({ onAuthState, onNotify, onNavigate, onSi
               More
             </summary>
             <div className="absolute right-0 top-full z-50 mt-2 grid min-w-44 gap-1 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-2 shadow-2xl shadow-black/50">
-              {typeof user?.user_metadata?.username === "string" && user.user_metadata.username && (
-                <Link
-                  href={`/profile/${encodeURIComponent(user.user_metadata.username)}`}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
-                >
-                  <UserRound className="h-4 w-4" /> Profile
-                </Link>
-              )}
-              <Link
-                href="/messages"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
-              >
-                <MessageSquare className="h-4 w-4" /> Messages
-              </Link>
-              <button
-                type="button"
-                onClick={() => onNavigate?.("account")}
-                className="rounded-lg px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
-              >
-                Account
-              </button>
-              <Link
-                href="/qc-panel"
-                className="rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
-              >
-                IoT QC
-              </Link>
-            </div>
+  {typeof user?.user_metadata?.username === "string" && user.user_metadata.username && (
+    <Link
+      href={`/profile/${encodeURIComponent(user.user_metadata.username)}`}
+      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
+    >
+      <UserRound className="h-4 w-4" /> Profile
+    </Link>
+  )}
+  <Link
+    href="/messages"
+    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
+  >
+    <MessageSquare className="h-4 w-4" /> Messages
+  </Link>
+  <button
+    type="button"
+    onClick={() => onNavigate?.("account")}
+    className="rounded-lg px-3 py-2 text-left text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100"
+  >
+    Account
+  </button>
+  
+  {/* HANYA MUNCUL JIKA ADMIN */}
+  {user?.app_metadata?.role === "admin" && (
+    <Link
+      href="/qc-panel"
+      className="rounded-lg px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 transition hover:bg-white dark:hover:bg-zinc-900 hover:text-cyan-800 dark:hover:text-cyan-200"
+    >
+      IoT QC Portal
+    </Link>
+  )}
+</div>
+
           </details>
           {user?.app_metadata?.role === "admin" && (
             <Link
