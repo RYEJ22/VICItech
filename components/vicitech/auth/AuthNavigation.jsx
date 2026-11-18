@@ -170,7 +170,7 @@ export default function AuthNavigation({ onAuthState, onNotify, onNavigate, onSi
     </Link>
   )}
 </div>
-
+  
           </details>
           {user?.app_metadata?.role === "admin" && (
             <Link
