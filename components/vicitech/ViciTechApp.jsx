@@ -374,6 +374,14 @@ function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, on
   // Close the pill when the bar slides away or the view changes from anywhere else (palette, notifications, back button)
   useEffect(() => { setMenuOpen(false); }, [hidden, active]);
 
+  const visibleItems = PILL_ITEMS.filter((it) => {
+    // Kalau menu butuh admin, pastikan role persis string "admin"
+    if (it.adminOnly) {
+      return role && typeof role === "string" && role.toLowerCase() === "admin";
+    }
+    return true;
+  });
+  
   return (
     <header data-hidden={hidden} className="vt-nav pointer-events-none sticky top-0 z-40 px-3 pb-2 pt-3 sm:px-5">
       <div className="vt-metal pointer-events-auto relative mx-auto flex h-14 w-full max-w-shell items-center gap-2 rounded-full px-2 text-ink sm:gap-3 sm:px-2.5">
