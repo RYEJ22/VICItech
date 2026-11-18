@@ -6,11 +6,13 @@ import { Menu, X, Zap } from "lucide-react";
 import { useState } from "react";
 
 const SHELL_OWNED_ROUTES = ["/", "/messages"];
+
+// Tambahkan properti adminOnly: true untuk menu yang khusus admin/QC
 const NAV_ITEMS = [
-  { href: "/", label: "Home", shortLabel: "Home" },
-  { href: "/qc-panel", label: "QC Panel", shortLabel: "QC" },
-  { href: "/marketplace", label: "Marketplace", shortLabel: "Market" },
-  { href: "/community", label: "Community", shortLabel: "Community" },
+  { href: "/", label: "Home", shortLabel: "Home", adminOnly: false },
+  { href: "/qc-panel", label: "QC Panel", shortLabel: "QC", adminOnly: true }, // <-- Diatur khusus admin
+  { href: "/marketplace", label: "Marketplace", shortLabel: "Market", adminOnly: false },
+  { href: "/community", label: "Community", shortLabel: "Community", adminOnly: false },
 ] as const;
 
 function isShellOwnedRoute(pathname: string) {
@@ -26,11 +28,23 @@ function isActiveRoute(pathname: string | null, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Navbar() {
+interface NavbarProps {
+  userRole?: string; // Tambahkan props role user (misal: 'member' atau 'admin')
+}
+
+export default function Navbar({ userRole = 'member' }: NavbarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (pathname && isShellOwnedRoute(pathname)) return null;
+
+  // Filter menu: Jika item adminOnly bernilai true, pastikan userRole adalah 'admin'
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly) {
+      return userRole === 'admin';
+    }
+    return true;
+  });
 
   return (
     <header className="sticky top-0 z-50 glass-floating text-[#141518]">
@@ -49,7 +63,7 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          {NAV_ITEMS.map(({ href, label, shortLabel }) => {
+          {filteredNavItems.map(({ href, label, shortLabel }) => {
             const active = isActiveRoute(pathname, href);
             return (
               <Link
@@ -85,7 +99,7 @@ export default function Navbar() {
       {mobileOpen && (
         <div id="mobile-primary-navigation" className="glass-floating p-3 shadow-lg sm:hidden">
           <nav aria-label="Mobile navigation" className="mx-auto grid max-w-7xl gap-1">
-            {NAV_ITEMS.map(({ href, label }) => {
+            {filteredNavItems.map(({ href, label }) => {
               const active = isActiveRoute(pathname, href);
               return (
                 <Link
