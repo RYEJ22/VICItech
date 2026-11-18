@@ -320,17 +320,17 @@ const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.
 
 function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
   if (!open) return null;
-
-  // Saring menu: kalau adminOnly true, pastikan role user adalah 'admin'
+  
+  // Saring menu: Hapus Admin QC Portal jika role bukan 'admin'
   const visibleItems = PILL_ITEMS.filter((it) => {
     if (it.adminOnly) return role === "admin";
     return true;
   });
 
-  // Ganti mapping render menu dari PILL_ITEMS menjadi visibleItems di bawahnya...
   return (
     <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
       <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
+        {/* PERHATIKAN: Gunakan visibleItems, bukan PILL_ITEMS di sini! */}
         {visibleItems.map((it) => {
           const Icon = it.icon || BY_ID[it.id].icon;
           const on = active === it.id;
@@ -355,6 +355,7 @@ function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role 
     </nav>
   );
 }
+
 function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const hidden = useHideOnScroll();
