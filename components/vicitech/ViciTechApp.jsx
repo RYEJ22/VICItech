@@ -320,13 +320,16 @@ const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.
 
 function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
   if (!open) return null;
-  
-  // Saring menu: Hapus Admin QC Portal jika role bukan 'admin'
+
+  // CEK APA ISI ROLE YANG DITERIMA DI BROWSER CONSOLE:
+  console.log("Current active role in TabBar:", role);
+
   const visibleItems = PILL_ITEMS.filter((it) => {
     if (it.adminOnly) return role === "admin";
     return true;
   });
-
+  
+  // ... sisa kode di bawahnya
   return (
     <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
       <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
