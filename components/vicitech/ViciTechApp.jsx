@@ -314,16 +314,23 @@ const PILL_ITEMS = [
   { id: "builder", label: "Preset Builder" },
   { id: "tradein", label: "Trade-In" },
   { id: "qc", label: "IoT QC Consumer" },
-  { id: "qc-admin", label: "Admin QC Portal", href: "/qc-panel", icon: ShieldCheck },
+  { id: "qc-admin", label: "Admin QC Portal", href: "/qc-panel", icon: ShieldCheck, adminOnly: true },
 ];
 const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-center text-[11px] font-medium leading-tight transition-colors duration-200 focus-visible:ring-offset-2 lg:flex-row lg:gap-2 lg:whitespace-nowrap lg:rounded-full lg:px-3.5 lg:py-2.5 lg:text-sm ${focusRing}`;
 
-function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape }) {
+function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
   if (!open) return null;
+  
+  // Saring menu: kalau adminOnly true, pastikan role user adalah 'admin'
+  const visibleItems = PILL_ITEMS.filter((it) => {
+    if (it.adminOnly) return role === "admin";
+    return true;
+  });
+
   return (
     <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
       <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
-        {PILL_ITEMS.map((it) => {
+        {visibleItems.map((it) => {
           const Icon = it.icon || BY_ID[it.id].icon;
           const on = active === it.id;
           const tone = on
