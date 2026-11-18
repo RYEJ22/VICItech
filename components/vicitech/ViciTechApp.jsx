@@ -320,13 +320,14 @@ const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.
 
 function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
   if (!open) return null;
-  
+
   // Saring menu: kalau adminOnly true, pastikan role user adalah 'admin'
   const visibleItems = PILL_ITEMS.filter((it) => {
     if (it.adminOnly) return role === "admin";
     return true;
   });
 
+  // Ganti mapping render menu dari PILL_ITEMS menjadi visibleItems di bawahnya...
   return (
     <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
       <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
@@ -354,7 +355,6 @@ function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role 
     </nav>
   );
 }
-
 function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const hidden = useHideOnScroll();
@@ -381,7 +381,18 @@ function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, on
           <span className="hidden text-base font-semibold tracking-tight text-ink sm:block">ViciTech</span>
           <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 text-pewter transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`} />
         </button>
-        <TabBar open={menuOpen} id="vt-nav-pill" navRef={pillRef} active={active} onNavigate={go} onClose={closeMenu} onEscape={focusLogo} />
+        
+        {/* TabBar dengan tambahan props role={role} */}
+        <TabBar 
+          open={menuOpen} 
+          id="vt-nav-pill" 
+          navRef={pillRef} 
+          active={active} 
+          onNavigate={go} 
+          onClose={closeMenu} 
+          onEscape={focusLogo} 
+          role={role} 
+        />
 
         <div className="flex min-w-0 flex-1 justify-center">
           <button type="button" onClick={onSearch} aria-keyshortcuts="Control+K Meta+K" className={`vt-well hidden w-full max-w-md items-center gap-2.5 rounded-full py-2 pl-3.5 pr-2 text-left text-sm text-pewter hover:text-ink md:flex ${focusRing}`}>
