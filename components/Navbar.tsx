@@ -3,52 +3,143 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const SHELL_OWNED_ROUTES = ["/", "/messages"];
+export type UserRole = "guest" | "member" | "creator" | "admin";
 
-// Tambahkan properti adminOnly: true untuk menu yang khusus admin/QC
-const NAV_ITEMS = [
-  { href: "/", label: "Home", shortLabel: "Home", adminOnly: false },
-  { href: "/qc-panel", label: "QC Panel", shortLabel: "QC", adminOnly: true }, // <-- Diatur khusus admin
-  { href: "/marketplace", label: "Marketplace", shortLabel: "Market", adminOnly: false },
-  { href: "/community", label: "Community", shortLabel: "Community", adminOnly: false },
-] as const;
+interface NavItem {
+  href: string;
+  label: string;
+  shortLabel: string;
+  allowedRoles: readonly UserRole[];
+}
 
-function isShellOwnedRoute(pathname: string) {
+const SHELL_OWNED_ROUTES = ["/", "/messages"] as const;
+
+const NAV_ITEMS: readonly NavItem[] = [
+  {
+    href: "/",
+    label: "Home",
+    shortLabel: "Home",
+    allowedRoles: ["guest", "member", "creator", "admin"],
+  },
+  {
+    href: "/qc-panel",
+    label: "QC Panel",
+    shortLabel: "QC",
+    allowedRoles: ["admin"],
+  },
+  {
+    href: "/marketplace",
+    label: "Marketplace",
+    shortLabel: "Market",
+    allowedRoles: ["guest", "member", "creator", "admin"],
+  },
+  {
+    href: "/community",
+    label: "Community",
+    shortLabel: "Community",
+    allowedRoles: ["guest", "member", "creator", "admin"],
+  },
+];
+
+function isShellOwnedRoute(pathname: string): boolean {
   return (
-    SHELL_OWNED_ROUTES.includes(pathname) ||
+    SHELL_OWNED_ROUTES.includes(pathname as (typeof SHELL_OWNED_ROUTES)[number]) ||
     pathname.startsWith("/profile/") ||
     pathname.startsWith("/admin")
   );
 }
 
-function isActiveRoute(pathname: string | null, href: string) {
+function isActiveRoute(pathname: string | null, href: string): boolean {
   if (!pathname) return false;
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+  return href === "/"
+    ? pathname === "/"
+    : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 interface NavbarProps {
-  userRole?: string; // Tambahkan props role user (misal: 'member' atau 'admin')
+  initialRole?: UserRole;
 }
 
-export default function Navbar({ userRole = 'member' }: NavbarProps) {
+export default function Navbar({ initialRole = "guest" }: NavbarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [role, setRole] = useState<UserRole>(initialRole);
+  
+  const supabase = useMemo(
+    () =>
+      createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function syncUserRole() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        if (isMounted) setRole("guest");
+        return;
+      }
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
+
+      if (isMounted) {
+        if (!error && profile?.role) {
+          setRole(profile.role as UserRole);
+        } else {
+          setRole("member");
+        }
+      }
+    }
+
+    syncUserRole();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      if (!session) {
+        setRole("guest");
+      } else {
+        syncUserRole();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  const visibleNavItems = useMemo(
+    () => NAV_ITEMS.filter((item) => item.allowedRoles.includes(role)),
+    [role]
+  );
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   if (pathname && isShellOwnedRoute(pathname)) return null;
 
-  // Filter menu: Jika item adminOnly bernilai true, pastikan userRole adalah 'admin'
-  const filteredNavItems = NAV_ITEMS.filter((item) => {
-    if (item.adminOnly) {
-      return userRole === 'admin';
-    }
-    return true;
-  });
-
   return (
     <header className="sticky top-0 z-50 glass-floating text-[#141518]">
-      <nav aria-label="Main navigation" className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6">
+      <nav
+        aria-label="Main navigation"
+        className="relative mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6"
+      >
         <Link
           href="/"
           onClick={() => setMobileOpen(false)}
@@ -63,7 +154,7 @@ export default function Navbar({ userRole = 'member' }: NavbarProps) {
         </Link>
 
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          {filteredNavItems.map(({ href, label, shortLabel }) => {
+          {visibleNavItems.map(({ href, label, shortLabel }) => {
             const active = isActiveRoute(pathname, href);
             return (
               <Link
@@ -83,6 +174,7 @@ export default function Navbar({ userRole = 'member' }: NavbarProps) {
             );
           })}
         </div>
+
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
@@ -96,10 +188,14 @@ export default function Navbar({ userRole = 'member' }: NavbarProps) {
           </button>
         </div>
       </nav>
+
       {mobileOpen && (
-        <div id="mobile-primary-navigation" className="glass-floating p-3 shadow-lg sm:hidden">
+        <div
+          id="mobile-primary-navigation"
+          className="glass-floating p-3 shadow-lg sm:hidden"
+        >
           <nav aria-label="Mobile navigation" className="mx-auto grid max-w-7xl gap-1">
-            {filteredNavItems.map(({ href, label }) => {
+            {visibleNavItems.map(({ href, label }) => {
               const active = isActiveRoute(pathname, href);
               return (
                 <Link
