@@ -320,22 +320,26 @@ const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.
 
 function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
   if (!open) return null;
+  
+  // Normalisasi role: ubah jadi string kecil, atau ambil properti role-nya jika berupa objek
+  const currentRole = typeof role === "object" && role !== null ? role.role : role;
+  const normalizedRole = typeof currentRole === "string" ? currentRole.trim().toLowerCase() : "";
 
-  // CEK APA ISI ROLE YANG DITERIMA DI BROWSER CONSOLE:
-  console.log("Current active role in TabBar:", role);
+  console.log("Role terdeteksi:", normalizedRole); // Cek F12 Console browser untuk pastikan
 
   const visibleItems = PILL_ITEMS.filter((it) => {
-    if (it.adminOnly) return role === "admin";
+    if (it.adminOnly) {
+      // Hanya muncul jika role setelah dinormalisasi benar-benar "admin"
+      return normalizedRole === "admin";
+    }
     return true;
   });
-  
-  // ... sisa kode di bawahnya
+
   return (
     <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
       <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
-        {/* PERHATIKAN: Gunakan visibleItems, bukan PILL_ITEMS di sini! */}
         {visibleItems.map((it) => {
-          const Icon = it.icon || BY_ID[it.id].icon;
+          const Icon = it.icon || BY_ID[it.id]?.icon;
           const on = active === it.id;
           const tone = on
             ? "bg-signal text-white shadow-signal"
@@ -381,7 +385,7 @@ function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, on
     }
     return true;
   });
-  
+
   return (
     <header data-hidden={hidden} className="vt-nav pointer-events-none sticky top-0 z-40 px-3 pb-2 pt-3 sm:px-5">
       <div className="vt-metal pointer-events-auto relative mx-auto flex h-14 w-full max-w-shell items-center gap-2 rounded-full px-2 text-ink sm:gap-3 sm:px-2.5">
