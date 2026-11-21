@@ -1,0 +1,91 @@
+Dibuat otomatis dari docs/ai/ oleh scripts/sync-ai-rules.sh. Jangan edit file ini; edit sumbernya.
+
+# CORE_CONTEXT: ViciTech
+
+## Project Purpose
+ViciTech is a Circular IT Economy, community, and hardware marketplace platform for Indonesian users that unifies hardware research, compatibility analysis, PC builds, trade-ins, and QC-verified marketplaces (anti-zonk).
+- **Hardware Library & Tools:** Component catalog, preset builder, bottleneck & upgrade analyzer, comparison arena.
+- **QC & Circular IT:** Verified Quality Control profiles (live ESP32 telemetry vs. admin simulated profiles), trade-in portal, and device lifecycle tracking.
+- **Community & LFG:** Multi-category feed (hardware, gaming, dev, creative, meme), media uploads, royalty-free audio backsound, and one-click gaming LFG (Looking For Group / mabar).
+- **Market & Partners:** Curated PC builds, laptops, smartphones, components with Creator Verdict badges, plus verified local component stores and service centers with maps.
+- **Messages & Notifications:** Real-time direct messaging (DM) and interactive notifications.
+- **End Goal:** Production-ready demo for competition judges and business partners with realistic data. Monetization via curated PC builds and verified hardware.
+
+## Visual Identity (Details in `DESIGN.md`)
+- **Theme:** Clean Editorial Light-Mode (`#FAF9F6` Warm Alabaster) with vibrant tech orange accents (`#EA580C`), warm neutral borders, and editorial serif headers.
+- **Data Transparency:** Strictly distinguish `Live ESP32`, `Simulated`, and `Sample` data badges across the UI.
+
+## Tech Stack
+- Next.js App Router, TypeScript strict.
+- Supabase: Auth (`@supabase/ssr`), Postgres + RLS, Storage, Realtime.
+- Input validation: Zod.
+- Database types: Supabase generated types in `types/database.types.ts`.
+- Styling: Tailwind CSS utilities for layout and type scale; CSS Modules (`*.module.css`) for keyframes, gradients, and token mapping. Follow the tokens in `DESIGN.md`.
+- Icons: `lucide-react` (single library).
+- Imports use the `@/*` alias for the project root (confirm in `tsconfig.json`).
+
+Read `package.json` before assuming versions of Next.js (the LCP image prop is `priority` or `preload` depending on the version), Tailwind (v3 or v4), shadcn/ui, Zod, or the package manager. Confirm with the user if different. Do not add dependencies without permission.
+
+## Standard Folder Structure
+```
+app/
+  page.tsx                  # Welcome / Home shell (/)
+  community/
+  market/                   # + [category]/ and product/[slug]/
+  partners/
+  messages/
+  post/[id]/
+  admin/products/
+  api/                      # Webhooks and external endpoints only
+  error.tsx  not-found.tsx
+components/                 # ui/ = primitives, features/<feature>/ = feature-specific (see CODING_STANDARDS Section 13)
+lib/                        # supabase/{client,server}.ts, validation/, utils.ts
+hooks/                      # reusable browser-state hooks (use-prefers-reduced-motion, use-page-visibility)
+types/                      # database.types.ts (Supabase generated)
+supabase/                   # migrations/, tests/
+docs/                       # ROADMAP.md, ai/ (CORE_CONTEXT, CODING_STANDARDS, WORKFLOW_SKILLS, PATTERNS)
+PRODUCT.md  DESIGN.md
+```
+
+## Data & Access Control (Target; verify against actual schema)
+| Table | Read | Write |
+|---|---|---|
+| profiles | Public | UPDATE owner only; row created via `handle_new_user` trigger |
+| community_posts | Public | INSERT/UPDATE/DELETE owner only |
+| messages | Conversation participants only | Participants only; sender = `auth.uid()` |
+| notifications | Recipient only (`user_id`) | Created by triggers; recipient updates `is_read` only |
+| products | Public | ViciTech admins only |
+| partners | Public | ViciTech admins only (confirm) |
+
+Storage: `post-media` (public read, authenticated upload only, size limits enforced). `audio-tracks` (public read, admin write; confirm).
+
+## Architectural Constraints (Never Violate)
+1. Default to Server Components. Place `'use client'` only on the smallest leaf components requiring interactivity, state, or browser APIs.
+2. Perform first-party mutations via Server Actions. Use Route Handlers only for webhooks, external endpoints, and streaming.
+3. Enforce authorization on the server (layouts, pages, actions) and via RLS. Use Middleware only for session refresh and optimistic redirects.
+4. Modify database schemas strictly via SQL migrations. Every exposed table must have RLS enabled.
+5. Keep secrets and `service_role` keys strictly on the server.
+6. Design mobile-first for `360px` to `414px` viewports. Zero horizontal overflow allowed.
+7. Treat `DESIGN.md` as the single source of truth for all visual and UI decisions.
+8. Execute one module at a time according to the Definition of Done in `docs/ROADMAP.md`.
+9. Write all user-facing UI text in natural Indonesian (keeping standard technical terms like GPU, RAM, FPS in English).
+10. Use generated types from `types/database.types.ts` for all database queries and mutations. Regenerate after every migration.
+11. Wrap mandatory atomic multi-table writes in a single Postgres function (RPC) rather than sequential queries in Server Actions.
+
+## Roadmap Summary (Details in `docs/ROADMAP.md`)
+1. **Phase 1:** Auth & cache hardening, global navigation, real-time notifications, welcome page.
+2. **Phase 2:** Multi-category feed, media uploads, audio backsound, gaming LFG.
+3. **Phase 3:** Catalog schema, `/market` storefront, product details, preset setups & creator verdicts.
+4. **Phase 4:** YouTube embeds, partner directory & Google Maps, social share & dynamic OG tags.
+5. **Phase 5:** RLS security audit, performance & mobile optimization, data seeding & demo readiness.
+
+## How to Start Work
+1. Read this file, `CODING_STANDARDS.md`, and only the active module section in `docs/ROADMAP.md`.
+2. Present a brief implementation plan before writing code.
+3. Verify output against the module's Definition of Done.
+
+## Standar Kode dan SOP Kerja (Wajib Dibaca)
+- Sebelum menulis kode, migration, atau Server Action, baca aturan lengkap di `docs/ai/CODING_STANDARDS.md`.
+- Untuk tugas spesifik (desain, Supabase RLS, audit keamanan, Figma-to-code, debugging, refactoring, copy, rilis), baca SOP relevan di `docs/ai/WORKFLOW_SKILLS.md`.
+- Detail spesifikasi modul dan Definition of Done ada di `docs/ROADMAP.md`.
+- Untuk kode referensi pola berulang, baca bagian yang ditunjuk SOP di `docs/ai/PATTERNS.md`.

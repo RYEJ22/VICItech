@@ -1,0 +1,110 @@
+/*
+ * `--hero-surface` and `--hero-ink` are defined by the parent Hero (space-separated RGB
+ * channels). The fallbacks keep the slider usable on its own until DESIGN.md has tokens.
+ */
+.root {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.layers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--hero-fade-ms, 1600ms) ease-in-out;
+}
+
+.slideActive {
+  z-index: 2;
+  opacity: 1;
+}
+
+.slidePrevious {
+  z-index: 1;
+}
+
+.zoom {
+  position: absolute;
+  inset: 0;
+}
+
+.zoomRunning {
+  will-change: transform;
+  animation: heroKenBurns var(--hero-zoom-ms, 8600ms) linear both;
+}
+
+.root[data-paused='true'] .zoomRunning {
+  animation-play-state: paused;
+}
+
+.image {
+  object-fit: cover;
+}
+
+@keyframes heroKenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(var(--hero-zoom-scale, 1.12));
+  }
+}
+
+.pauseButton {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 1px solid rgb(var(--hero-ink, 23 23 23) / 0.15);
+  border-radius: 9999px;
+  background: rgb(var(--hero-surface, 250 249 246) / 0.92);
+  color: rgb(var(--hero-ink, 23 23 23));
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 150ms ease-out;
+}
+
+.pauseButton:hover {
+  background: rgb(var(--hero-surface, 250 249 246));
+}
+
+.pauseButton:focus-visible {
+  outline: 2px solid rgb(var(--hero-ink, 23 23 23));
+  outline-offset: 2px;
+}
+
+.pauseIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Belt and braces: also disables motion before JavaScript runs. */
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    transition: none;
+  }
+
+  .zoomRunning {
+    animation: none;
+    will-change: auto;
+  }
+
+  .pauseButton {
+    transition: none;
+  }
+}

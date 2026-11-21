@@ -155,7 +155,7 @@ export default function PublicProfilePage({ username, user, isAuthLoading }) {
             <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:pb-7">
               <div className="-mt-14 flex min-w-0 items-end gap-4 sm:-mt-16">
                 {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-24 w-24 shrink-0 rounded-full border-4 border-white bg-white object-cover shadow-sm sm:h-28 sm:w-28" />
+                  <img src={profile.avatar_url} alt="" width={112} height={112} loading="lazy" decoding="async" className="h-24 w-24 shrink-0 rounded-full border-4 border-white bg-white object-cover shadow-sm sm:h-28 sm:w-28" />
                 ) : (
                   <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-4 border-white bg-[#FF5500]/[0.08] text-3xl font-semibold text-[#A83A00] shadow-sm sm:h-28 sm:w-28">
                     {(name.trim().charAt(0) || "V").toUpperCase()}

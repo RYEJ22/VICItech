@@ -11,9 +11,12 @@ function getCleanRedirectUrl(request) {
 function getRedirectUrl(request, status, message) {
   const requestedPath = request.nextUrl.searchParams.get("next");
   const origin = request.nextUrl.origin;
-  let redirectUrl = new URL("/", origin);
+  const defaultPath = status === "success" ? "/community" : "/";
+  let redirectUrl = new URL(defaultPath, origin);
   if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
-    const candidateUrl = new URL(requestedPath, origin);
+    const resolvedTarget =
+      status === "success" && requestedPath === "/" ? "/community" : requestedPath;
+    const candidateUrl = new URL(resolvedTarget, origin);
     if (candidateUrl.origin === origin) redirectUrl = candidateUrl;
   }
   redirectUrl.searchParams.set("auth", status);

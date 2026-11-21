@@ -1,36 +1,39 @@
-"use client";
+'use client';
 
-import { AnimatePresence, motion, type HTMLMotionProps } from "framer-motion";
-import { AlertTriangle, CheckCircle2, LoaderCircle, type LucideIcon } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { AnimatePresence, motion, type HTMLMotionProps } from 'framer-motion';
+import { CheckCircle2 } from 'lucide-react';
+import { useEffect, useRef, type ReactElement, type ReactNode } from 'react';
+import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 
 export interface CyberToastMessage {
-  message: string;
-  tone: "success" | "error" | "info";
+  readonly message: string;
+  readonly tone: 'success' | 'error' | 'info';
 }
 
-interface CyberButtonProps extends Omit<HTMLMotionProps<"button">, "ref"> {
-  variant?: "primary" | "secondary";
-  children: ReactNode;
+interface CyberButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
+  readonly variant?: 'primary' | 'secondary';
+  readonly children: ReactNode;
 }
 
 export function CyberButton({
-  variant = "primary",
-  className = "",
-  type = "button",
+  variant = 'primary',
+  className = '',
+  type = 'button',
   children,
   ...props
-}: CyberButtonProps) {
-  const styles = variant === "primary"
-    ? "bg-[#FF5500] text-white hover:bg-[#e04b00] shadow-[0_4px_16px_rgba(255,85,0,0.25)] border-none"
-    : "bg-white/80 text-[#141518] hover:bg-white shadow-sm border-none";
+}: CyberButtonProps): ReactElement {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const styles =
+    variant === 'primary'
+      ? 'bg-accent-primary text-primary font-semibold hover:bg-accent-hover hover:text-accent-foreground shadow-sm border-none'
+      : 'bg-surface text-primary font-medium hover:bg-subtle border border-default shadow-sm';
 
   return (
     <motion.button
-      whileTap={{ scale: 0.98 }}
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 420, damping: 24 }}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-45 ${styles} ${className}`}
+      whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+      whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+      transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16, ease: 'easeOut' }}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45 ${styles} ${className}`}
       type={type}
       {...props}
     >
@@ -39,62 +42,28 @@ export function CyberButton({
   );
 }
 
-const BADGE_STYLES = {
-  passed: {
-    label: "Certified Pass",
-    icon: CheckCircle2,
-    style: "bg-[#FF5500]/10 text-[#FF5500] border border-[#FF5500]/20",
-  },
-  testing: {
-    label: "Stress-Testing",
-    icon: LoaderCircle,
-    style: "bg-black/5 text-[#5A606A] border border-black/10",
-  },
-  failed: {
-    label: "Inspection Alert",
-    icon: AlertTriangle,
-    style: "bg-red-500/10 text-red-600 border border-red-500/20",
-  },
-} satisfies Record<string, { label: string; icon: LucideIcon; style: string }>;
-
-export function QCStatusBadge({
-  status,
-  className = "",
-}: {
-  status: "passed" | "testing" | "failed";
-  className?: string;
-}) {
-  const config = BADGE_STYLES[status] || BADGE_STYLES.passed;
-  const Icon = config.icon;
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${config.style} ${className}`}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      <span>{config.label}</span>
-    </span>
-  );
-}
-
 export function CyberToast({
   toast,
   onDismiss,
 }: {
-  toast: CyberToastMessage | null;
-  onDismiss: () => void;
-}) {
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  readonly toast: CyberToastMessage | null;
+  readonly onDismiss: () => void;
+}): ReactElement {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!toast) return;
+    if (!toast) return undefined;
 
-    timerRef.current = setTimeout(() => {
+    timerRef.current = window.setTimeout(() => {
       onDismiss();
     }, 4500);
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     };
   }, [toast, onDismiss]);
 
@@ -102,15 +71,14 @@ export function CyberToast({
     <AnimatePresence>
       {toast && (
         <motion.div
-          initial={{ opacity: 0, y: 16, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="fixed bottom-6 right-6 z-50 flex max-w-sm items-center gap-3 rounded-2xl glass-floating p-4 shadow-2xl text-[#141518]"
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: prefersReducedMotion ? 0 : 0.2, ease: 'easeOut' } }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8, transition: { duration: 0.15, ease: 'easeIn' } }}
+          className="fixed bottom-20 right-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-default bg-surface p-4 text-primary shadow-xl md:bottom-6 md:right-6"
           role="status"
         >
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-[#FF5500]/10 text-[#FF5500]">
-            <CheckCircle2 className="h-4 w-4" />
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
+            <CheckCircle2 className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           </span>
           <p className="text-sm font-medium leading-snug">{toast.message}</p>
         </motion.div>

@@ -1,11 +1,15 @@
-/** @type {import('next').Next.config} */
+/** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
   typescript: {
-    // Mengabaikan error TypeScript saat proses build di Vercel
     ignoreBuildErrors: true,
   },
   eslint: {
-    // Mengabaikan error ESLint saat build
     ignoreDuringBuilds: true,
   },
 };

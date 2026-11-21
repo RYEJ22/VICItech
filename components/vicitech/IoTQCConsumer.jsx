@@ -28,7 +28,10 @@ function Stat({ icon: Icon, label, value, detail, color = "text-[#FF5500]", leve
       <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</p>
       {gaugeLevel !== null && (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(gaugeLevel)} aria-label={`${label} gauge`}>
-          <div className="h-full rounded-full bg-[#FF5500] transition-all" style={{ width: `${gaugeLevel}%` }} />
+          <div
+            className="h-full w-full origin-left rounded-full bg-[#FF5500] transition-transform duration-300 motion-reduce:transition-none"
+            style={{ transform: `scaleX(${gaugeLevel / 100})` }}
+          />
         </div>
       )}
       <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{detail}</p>
@@ -196,7 +199,7 @@ export default function IoTQCConsumer({ initialSerial }) {
 
     client
       .from("telemetry_logs")
-      .select("*")
+      .select("id, serial_number, order_id, cpu_temp_c, gpu_temp_c, fan_rpm, voltage_stability, stability_score, stress_test_status, burnin_hours, source, created_at")
       .eq("serial_number", serial)
       .order("created_at", { ascending: false })
       .limit(1)

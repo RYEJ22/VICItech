@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, LoaderCircle, LockKeyhole } from "lucide-react";
-import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
+import { AlertCircle, CheckCircle2, LoaderCircle, LockKeyhole, RotateCcw } from "lucide-react";
+import { forceResetAuthSession, getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { verifyAdminRole } from "@/lib/supabase/admin-auth";
+import { isExpiredOrInvalidTokenError } from "@/lib/supabase/profile";
 
 function safeNextPath(value: string | null): string {
   return value?.startsWith("/") && !value.startsWith("//") && !value.includes("\\")
@@ -22,8 +23,26 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  const handleForceResetSession = async () => {
+    setIsResetting(true);
+    setErrorMessage("");
+    setStatusMessage("");
+    try {
+      await forceResetAuthSession();
+      setPassword("");
+      setStatusMessage("Cache sesi admin dan token kedaluwarsa telah dibersihkan. Silakan login kembali.");
+      router.refresh();
+    } catch (error: unknown) {
+      setErrorMessage(`Gagal mereset sesi: ${getErrorMessage(error, "Unknown error")}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -52,7 +71,11 @@ export default function AdminLoginPage() {
         const hasNoSession =
           error.name === "AuthSessionMissingError" ||
           /auth session missing/i.test(error.message || "");
-        if (!hasNoSession) {
+        if (isExpiredOrInvalidTokenError(error) && !hasNoSession) {
+          await forceResetAuthSession(supabase);
+          if (!active) return;
+          setErrorMessage("Sesi admin kedaluwarsa dan cache lokal telah dibersihkan. Silakan login kembali.");
+        } else if (!hasNoSession) {
           setErrorMessage(`Could not verify your session: ${error.message}`);
         }
       } else if (data.user) {
@@ -129,66 +152,81 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="relative grid min-h-[calc(100vh-81px)] place-items-center overflow-hidden px-4 py-12">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(8,145,178,0.16),transparent_45%),radial-gradient(ellipse_at_bottom_left,rgba(16,185,129,0.08),transparent_40%)]" />
-      <section className="relative w-full max-w-md rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 p-6 shadow-2xl shadow-black/50 backdrop-blur sm:p-8">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 text-cyan-700 dark:text-cyan-300">
-          <LockKeyhole className="h-5 w-5" />
+    <main className="relative grid min-h-[calc(100vh-81px)] place-items-center overflow-hidden bg-canvas px-4 pb-24 pt-12 md:pb-12">
+      <section className="relative w-full max-w-md rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-8">
+        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-default bg-accent-subtle text-accent-primary">
+          <LockKeyhole className="h-5 w-5" strokeWidth={1.75} />
         </div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-400">Restricted access</p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Login Admin</h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-          Sign in with an administrator account to access ViciTech operations.
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+          Login Admin
+        </h1>
+        <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
+          Masuk dengan akun administrator terverifikasi untuk mengelola operasi QC dan katalog ViciTech.
         </p>
 
         {isCheckingSession ? (
-          <p role="status" className="mt-6 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <LoaderCircle className="h-4 w-4 animate-spin" /> Checking your session…
+          <p role="status" className="mt-6 flex items-center gap-2 text-sm text-secondary">
+            <LoaderCircle className="h-4 w-4 animate-spin" /> Memeriksa sesi aktif…
           </p>
         ) : (
           <form onSubmit={submitLogin} className="mt-6 space-y-4">
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</span>
+              <span className="text-sm font-medium text-primary">Email</span>
               <input
                 type="email"
                 autoComplete="username"
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                disabled={isSubmitting}
-                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
+                disabled={isSubmitting || isResetting}
+                className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50"
                 placeholder="admin@example.com"
               />
             </label>
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</span>
+              <span className="text-sm font-medium text-primary">Password</span>
               <input
                 type="password"
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                disabled={isSubmitting}
-                className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:border-emerald-600/60 dark:focus:border-emerald-400/60 focus:ring-2 focus:ring-cyan-400/10 disabled:opacity-50"
-                placeholder="Your password"
+                disabled={isSubmitting || isResetting}
+                className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50"
+                placeholder="Kata sandi admin"
               />
             </label>
             {errorMessage && (
-              <p role="alert" className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-800 dark:text-red-200">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <p role="alert" className="flex items-start gap-2 rounded-lg border border-status-danger/30 bg-status-danger/10 p-3 text-sm text-primary">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-danger" strokeWidth={1.75} />
                 <span>{errorMessage}</span>
+              </p>
+            )}
+            {statusMessage && (
+              <p role="status" className="flex items-start gap-2 rounded-lg border border-status-live/30 bg-status-live/10 p-3 text-sm text-primary">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-live" strokeWidth={1.75} />
+                <span>{statusMessage}</span>
               </p>
             )}
             <button
               type="submit"
-              disabled={isSubmitting || !isSupabaseAuthConfigured}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 dark:bg-emerald-400 px-4 py-3 text-sm font-semibold text-white dark:text-zinc-950 transition hover:bg-emerald-500 dark:hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isSubmitting || isResetting || !isSupabaseAuthConfigured}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}
               Login sebagai Admin
             </button>
+            <button
+              type="button"
+              onClick={handleForceResetSession}
+              disabled={isSubmitting || isResetting}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2 text-xs font-medium text-secondary transition hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:opacity-50"
+            >
+              {isResetting ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />}
+              Force Logout / Reset Session
+            </button>
             {!isSupabaseAuthConfigured && (
-              <p className="text-xs text-amber-700 dark:text-amber-300">Set the Supabase public URL and anon key to enable admin sign in.</p>
+              <p className="text-xs text-status-sample">Set the Supabase public URL and anon key to enable admin sign in.</p>
             )}
           </form>
         )}

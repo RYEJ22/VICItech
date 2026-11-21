@@ -8,8 +8,10 @@ import { verifyAdminRole } from "@/lib/supabase/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 25;
 const STATS_PAGE_SIZE = 1000;
+const ADMIN_ORDER_COLUMNS =
+  "id, user_id, order_type, items, total_price, customer_info, status, created_at, order_number, user_role, product_name, base_price, jit_buffer, order_summary, serial_number";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type AdminClientResult =
@@ -24,6 +26,20 @@ function isOrderStatus(value: unknown): value is OrderStatus {
 }
 
 async function getOrderStats(supabase: SupabaseClient): Promise<AdminOrderStats> {
+  const { data: rpcRows, error: rpcError } = await supabase.rpc("get_admin_order_stats");
+  if (!rpcError && Array.isArray(rpcRows) && rpcRows.length > 0) {
+    const first = rpcRows[0] as {
+      total_orders?: number | string | null;
+      total_revenue?: number | string | null;
+      pending_qc_count?: number | string | null;
+    };
+    return {
+      totalOrders: Number(first.total_orders) || 0,
+      totalRevenue: Number(first.total_revenue) || 0,
+      pendingQcCount: Number(first.pending_qc_count) || 0,
+    };
+  }
+
   let total = 0;
   let revenueCents = 0;
   let pendingQcCount = 0;
@@ -103,7 +119,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const [{ data, error, count }, stats] = await Promise.all([
       supabase
         .from("orders")
-        .select("*", { count: "exact" })
+        .select(ADMIN_ORDER_COLUMNS, { count: "exact" })
         .order("created_at", { ascending: false })
         .range(start, start + PAGE_SIZE - 1),
       getOrderStats(supabase),

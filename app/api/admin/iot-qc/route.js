@@ -7,6 +7,10 @@ import { verifyAdminRole } from "@/lib/supabase/admin-auth";
 export const dynamic = "force-dynamic";
 
 const SERIAL_PATTERN = /^VICI-[A-Z]{3}-\d{4}-\d{4}$/;
+const QC_LOG_COLUMNS =
+  "id, serial_number, device_name, status, burnin_hours, score, created_at, order_id, stress_test_status, cpu_temp_c, gpu_temp_c, stability_score, shipping_status, certificate_id, shipped_at, updated_at";
+const TELEMETRY_LOG_COLUMNS =
+  "id, serial_number, order_id, cpu_temp_c, gpu_temp_c, fan_rpm, voltage_stability, stability_score, stress_test_status, burnin_hours, source, created_at";
 
 async function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52,25 +56,28 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("qc_logs")
-      .select("*")
+      .select(QC_LOG_COLUMNS)
       .order("created_at", { ascending: false })
       .limit(25);
     if (error) {
-      return NextResponse.json({ error: `Could not load QC units: ${error.message}` }, { status: 500 });
+      console.error("[ViciTech OS] Could not load QC units:", error);
+      return NextResponse.json({ error: "Could not load QC units." }, { status: 500 });
     }
 
     const serials = (data || []).map((unit) => unit.serial_number).filter(Boolean);
     const [telemetryResult, ordersResult] = await Promise.all([
       serials.length
-        ? supabase.from("telemetry_logs").select("*").in("serial_number", serials).order("created_at", { ascending: false }).limit(200)
+        ? supabase.from("telemetry_logs").select(TELEMETRY_LOG_COLUMNS).in("serial_number", serials).order("created_at", { ascending: false }).limit(200)
         : Promise.resolve({ data: [], error: null }),
       supabase.from("orders").select("id, order_number, serial_number, product_name, total_price, status, created_at").order("created_at", { ascending: false }).limit(100),
     ]);
     if (telemetryResult.error) {
-      return NextResponse.json({ error: `Could not load telemetry: ${telemetryResult.error.message}` }, { status: 500 });
+      console.error("[ViciTech OS] Could not load telemetry:", telemetryResult.error);
+      return NextResponse.json({ error: "Could not load telemetry logs." }, { status: 500 });
     }
     if (ordersResult.error) {
-      return NextResponse.json({ error: `Could not load orders: ${ordersResult.error.message}` }, { status: 500 });
+      console.error("[ViciTech OS] Could not load orders:", ordersResult.error);
+      return NextResponse.json({ error: "Could not load orders." }, { status: 500 });
     }
     const latestBySerial = new Map();
     for (const entry of telemetryResult.data || []) {
@@ -112,11 +119,12 @@ export async function POST(request) {
       }
       const { data: existingUnit, error: existingError } = await supabase
         .from("qc_logs")
-        .select("*")
+        .select(QC_LOG_COLUMNS)
         .eq("order_id", order.order_number)
         .maybeSingle();
       if (existingError) {
-        return NextResponse.json({ error: `Could not check the QC registry: ${existingError.message}` }, { status: 500 });
+        console.error("[ViciTech OS] Could not check QC registry:", existingError);
+        return NextResponse.json({ error: "Could not check the QC registry." }, { status: 500 });
       }
 
       let unit = existingUnit;
@@ -133,14 +141,15 @@ export async function POST(request) {
               stress_test_status: "Pending",
               shipping_status: "In Production",
             })
-            .select("*")
+            .select(QC_LOG_COLUMNS)
             .single();
           if (!error) {
             unit = data;
             break;
           }
           if (error.code !== "23505" || attempt === 4) {
-            return NextResponse.json({ error: `Could not register the QC unit: ${error.message}` }, { status: 500 });
+            console.error("[ViciTech OS] Could not register QC unit:", error);
+            return NextResponse.json({ error: "Could not register the QC unit." }, { status: 500 });
           }
         }
       }
@@ -150,7 +159,8 @@ export async function POST(request) {
         .update({ serial_number: unit.serial_number, status: "In Production" })
         .eq("id", order.id);
       if (orderUpdateError) {
-        return NextResponse.json({ error: `QC unit was registered but the order could not be linked: ${orderUpdateError.message}` }, { status: 500 });
+        console.error("[ViciTech OS] Could not link order to QC unit:", orderUpdateError);
+        return NextResponse.json({ error: "QC unit was registered but the order could not be linked." }, { status: 500 });
       }
       return NextResponse.json({ unit: { ...unit, telemetry: null }, order_id: order.id, action });
     }
@@ -163,11 +173,12 @@ export async function POST(request) {
 
     const { data: current, error: lookupError } = await supabase
       .from("qc_logs")
-      .select("*")
+      .select(QC_LOG_COLUMNS)
       .eq("serial_number", serial)
       .maybeSingle();
     if (lookupError) {
-      return NextResponse.json({ error: `Could not load QC unit: ${lookupError.message}` }, { status: 500 });
+      console.error("[ViciTech OS] Could not load QC unit:", lookupError);
+      return NextResponse.json({ error: "Could not load QC unit." }, { status: 500 });
     }
     if (action === "mark_shipped" && (!current || current.status !== "Pass" || !current.certificate_id)) {
       return NextResponse.json(
@@ -244,10 +255,11 @@ export async function POST(request) {
     const { data: unit, error } = await supabase
       .from("qc_logs")
       .upsert(update, { onConflict: "serial_number" })
-      .select("*")
+      .select(QC_LOG_COLUMNS)
       .single();
     if (error) {
-      return NextResponse.json({ error: `QC operation failed: ${error.message}` }, { status: 500 });
+      console.error("[ViciTech OS] QC upsert failed:", error);
+      return NextResponse.json({ error: "QC operation failed." }, { status: 500 });
     }
 
     if (action === "simulate_payload") {
@@ -266,10 +278,11 @@ export async function POST(request) {
       const { data: telemetryEntry, error: telemetryError } = await supabase
         .from("telemetry_logs")
         .insert(telemetry)
-        .select("*")
+        .select(TELEMETRY_LOG_COLUMNS)
         .single();
       if (telemetryError) {
-        return NextResponse.json({ error: `QC state updated but telemetry could not be recorded: ${telemetryError.message}` }, { status: 500 });
+        console.error("[ViciTech OS] Telemetry recording failed:", telemetryError);
+        return NextResponse.json({ error: "QC state updated but telemetry could not be recorded." }, { status: 500 });
       }
       if (unit.order_id) {
         const { error: orderUpdateError } = await supabase
@@ -277,7 +290,8 @@ export async function POST(request) {
           .update({ status: "IoT Stress-Testing" })
           .eq("order_number", unit.order_id);
         if (orderUpdateError) {
-          return NextResponse.json({ error: `Telemetry was recorded but order status could not be synchronized: ${orderUpdateError.message}` }, { status: 500 });
+          console.error("[ViciTech OS] Order sync after telemetry failed:", orderUpdateError);
+          return NextResponse.json({ error: "Telemetry was recorded but order status could not be synchronized." }, { status: 500 });
         }
       }
       return NextResponse.json({ unit: { ...unit, telemetry: telemetryEntry }, telemetry: telemetryEntry, action });
@@ -294,7 +308,8 @@ export async function POST(request) {
         .update({ status: orderStatus })
         .eq("order_number", unit.order_id);
       if (orderUpdateError) {
-        return NextResponse.json({ error: `QC state updated but order status could not be synchronized: ${orderUpdateError.message}` }, { status: 500 });
+        console.error("[ViciTech OS] Order sync after QC update failed:", orderUpdateError);
+        return NextResponse.json({ error: "QC state updated but order status could not be synchronized." }, { status: 500 });
       }
     }
 

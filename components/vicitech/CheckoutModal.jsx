@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Github, LoaderCircle, ShieldCheck, X } from "lucide-react";
 import { createOrder, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
-export const PENDING_CHECKOUT_STORAGE_KEY = "vicitech_pending_checkout";
+import { PENDING_CHECKOUT_STORAGE_KEY } from "@/lib/checkout/constants";
+
+export { PENDING_CHECKOUT_STORAGE_KEY };
 
 const idr = (value) => new Intl.NumberFormat("id-ID", {
   style: "currency",

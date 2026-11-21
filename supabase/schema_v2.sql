@@ -95,7 +95,10 @@ create table if not exists public.community_posts (
 
 create index if not exists community_posts_created_at_idx on public.community_posts (created_at desc);
 
-create or replace function public.handle_new_user()
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
+create or replace function private.handle_new_user()
 returns trigger
 language plpgsql
 security definer
@@ -105,6 +108,8 @@ declare
   email_prefix text;
   base_username text;
   candidate_username text;
+  resolved_full_name text;
+  resolved_display_name text;
   suffix integer := 0;
 begin
   email_prefix := split_part(coalesce(new.email, ''), '@', 1);
@@ -112,20 +117,30 @@ begin
     coalesce(nullif(regexp_replace(lower(email_prefix), '[^a-z0-9]+', '', 'g'), ''), 'user'),
     20
   );
+  if char_length(base_username) < 3 then
+    base_username := left(base_username || '_' || substr(replace(new.id::text, '-', ''), 1, 8), 20);
+  end if;
   candidate_username := base_username;
+
+  resolved_full_name := coalesce(
+    nullif(btrim(new.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'name'), '')
+  );
+  resolved_display_name := coalesce(
+    nullif(btrim(new.raw_user_meta_data ->> 'display_name'), ''),
+    resolved_full_name,
+    nullif(btrim(new.raw_user_meta_data ->> 'preferred_username'), ''),
+    nullif(email_prefix, ''),
+    'ViciTech member'
+  );
 
   loop
     insert into public.profiles (id, username, full_name, display_name, role)
     values (
       new.id,
       candidate_username,
-      nullif(btrim(new.raw_user_meta_data ->> 'full_name'), ''),
-      coalesce(
-        nullif(btrim(new.raw_user_meta_data ->> 'full_name'), ''),
-        nullif(btrim(new.raw_user_meta_data ->> 'name'), ''),
-        nullif(email_prefix, ''),
-        'ViciTech member'
-      ),
+      resolved_full_name,
+      resolved_display_name,
       case when new.raw_app_meta_data ->> 'role' = 'admin' then 'admin' else 'user' end
     )
     on conflict do nothing;
@@ -145,10 +160,28 @@ begin
 end;
 $$;
 
+revoke all on function private.handle_new_user() from public, anon, authenticated;
+
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute function public.handle_new_user();
+  for each row execute function private.handle_new_user();
+
+alter table public.profiles enable row level security;
+grant select on public.profiles to anon, authenticated;
+grant insert, update, delete on public.profiles to authenticated;
+drop policy if exists "profiles_select_public" on public.profiles;
+create policy "profiles_select_public" on public.profiles
+  for select to anon, authenticated using (true);
+drop policy if exists "profiles_insert_owner" on public.profiles;
+create policy "profiles_insert_owner" on public.profiles
+  for insert to authenticated with check ((select auth.uid()) = id);
+drop policy if exists "profiles_update_owner" on public.profiles;
+create policy "profiles_update_owner" on public.profiles
+  for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
+drop policy if exists "profiles_delete_owner" on public.profiles;
+create policy "profiles_delete_owner" on public.profiles
+  for delete to authenticated using ((select auth.uid()) = id);
 
 alter table public.orders enable row level security;
 grant select, insert, update, delete on public.orders to authenticated;

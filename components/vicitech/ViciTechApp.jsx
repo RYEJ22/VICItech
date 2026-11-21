@@ -1,32 +1,90 @@
 "use client";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Component, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
-  LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Search, Bell, ShieldCheck, Layers, Zap,
-  Gauge, Swords, User, Building2, GraduationCap, Menu, X, ArrowRight, CheckCircle2, ChevronDown,
+  LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, ShieldCheck, Layers, Zap,
+  Gauge, Swords, User, Building2, GraduationCap, ArrowRight, CheckCircle2, ShoppingBag, Pause, Play,
 } from "lucide-react";
 
-import HardwareLibrary from "./modules/HardwareLibrary";
-import UpgradeAnalyzer from "./modules/UpgradeAnalyzer";
-import PresetBuilder from "./modules/PresetBuilder";
-import TradeInPortal from "./modules/TradeInPortal";
-import IotQcEngine from "./modules/IotQcEngine";
-import BottleneckAnalyzer from "./modules/BottleneckAnalyzer";
-import VersusArena from "./modules/VersusArena";
-import AccountDashboard from "./modules/AccountDashboard";
-import CommunityHub from "./modules/CommunityHub";
-import CyberSuite from "./CyberSuite";
-import AuthNavigation from "./auth/AuthNavigation";
+function ModuleLoadingSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Memuat modul ViciTech"
+      className="mx-auto max-w-shell space-y-4 px-4 py-10 sm:px-6"
+    >
+      <div className="h-8 w-56 animate-pulse rounded-lg bg-subtle" />
+      <div className="h-4 w-96 max-w-full animate-pulse rounded-md bg-subtle" />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="h-44 animate-pulse rounded-xl border border-default bg-surface" />
+        <div className="h-44 animate-pulse rounded-xl border border-default bg-surface" />
+        <div className="h-44 animate-pulse rounded-xl border border-default bg-surface" />
+      </div>
+    </div>
+  );
+}
+
+const HardwareLibrary = dynamic(() => import("./modules/HardwareLibrary"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const UpgradeAnalyzer = dynamic(() => import("./modules/UpgradeAnalyzer"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const PresetBuilder = dynamic(() => import("./modules/PresetBuilder"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const TradeInPortal = dynamic(() => import("./modules/TradeInPortal"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const IotQcEngine = dynamic(() => import("./modules/IotQcEngine"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const BottleneckAnalyzer = dynamic(() => import("./modules/BottleneckAnalyzer"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const VersusArena = dynamic(() => import("./modules/VersusArena"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const AccountDashboard = dynamic(() => import("./modules/AccountDashboard"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const CommunityHub = dynamic(() => import("./modules/CommunityHub"), {
+  loading: () => <ModuleLoadingSkeleton />,
+});
+const CyberSuite = dynamic(() => import("./CyberSuite"), {
+  ssr: false,
+  loading: () => (
+    <div className="mx-auto max-w-shell px-4 py-8 sm:px-6" aria-hidden="true">
+      <div className="h-56 animate-pulse rounded-2xl border border-default bg-surface" />
+    </div>
+  ),
+});
+const WorkspaceCommandPalette = dynamic(() => import("./WorkspaceCommandPalette"), {
+  ssr: false,
+});
+import { EditorialShowcase } from "@/components/features/editorial-showcase/editorial-showcase";
+import {
+  MARKET_FILTERS,
+  MARKET_PREVIEW_ITEMS,
+} from "@/components/features/route-preview/route-preview-content";
+import { RoutePreviewExplorer } from "@/components/features/route-preview/route-preview-drawer";
 import { supabase } from "@/lib/supabase";
-import { getUserDisplayName, getUserInitials } from "@/lib/supabase/profile";
+import { forceResetAuthSession, getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
+import { fetchOrEnsureUserProfile, isExpiredOrInvalidTokenError } from "@/lib/supabase/profile";
 import { PENDING_CHECKOUT_STORAGE_KEY, useCheckout } from "@/context/CheckoutContext";
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
+import { usePageVisibility } from "@/hooks/use-page-visibility";
 
 /*
-  ViciTech master shell. One floating top bar (its logo opens the navigation pill) and one footer wrap every module, and each module keeps its
-  state while you switch tabs (visited modules stay mounted and are only hidden with [hidden] { display: none !important; }).
+  ViciTech workspace container. Wrapped by the single global Navbar in app/layout.tsx.
+  Visited modules stay mounted with [hidden] { display: none !important; } for keep-alive state.
 
   Module map                           Component
-  library   > catalog                  HardwareLibrary      (categorized library: phones, laptops, PCs, accessories)
+  market    > ready                    Marketplace All / Ready Stock showcase
+            > catalog                  HardwareLibrary      (phones, laptops, PCs, accessories)
             > upgrade                  UpgradeAnalyzer      (max RAM, NVMe slots, upgrade planner)
   builder                              PresetBuilder        (B2S / B2B / B2C configurator with live price, wattage, and JIT 5% buffer)
   tradein                              TradeInPortal        (buyback form and certified refurbished gallery)
@@ -35,57 +93,68 @@ import { PENDING_CHECKOUT_STORAGE_KEY, useCheckout } from "@/context/CheckoutCon
   versus                               VersusArena          (head-to-head comparison and verdict)
   account                              AccountDashboard     (orders, trade-ins, presets, certificates vault, settings)
   community                            CommunityHub         (build showcases, guides and Q&A feed)
-
-  Each module renders its own header and footer so it also works standalone. The shell hides those
-  (see `Chromeless`) and supplies the shared chrome. The URL hash mirrors the active view: #library/upgrade, #builder, #community.
-  Pass `components` to swap any module, e.g. with next/dynamic: <ViciTechApp components={{ qc: QcDynamic }} />.
 */
 
 /* ───────────────────────── Navigation model ───────────────────────── */
 
 const MODULES = [
-  { id: "library", label: "Hardware Library & Upgrade Analyzer", short: "Library", sub: "Phones, laptops, PCs, accessories and max upgrade potential", blurb: "Browse every hardware category, compare specs and see how far a laptop or PC can be upgraded.", icon: Layers, views: [["catalog", "Hardware Library", Layers], ["upgrade", "Max Upgrade Analyzer", Zap]] },
-  { id: "builder", label: "Smart Preset Builder", short: "Preset Builder", sub: "One-click configurator for B2S, B2B and B2C", blurb: "Start from a curated build, swap parts and watch price and power draw update live with JIT buffer.", icon: Sliders },
-  { id: "tradein", label: "Circular Trade-In & Buyback", short: "Trade-In", sub: "Asset buyback and refurbished gallery", blurb: "Value retired equipment in bulk and buy certified refurbished hardware with savings shown up front.", icon: RefreshCw },
-  { id: "qc", label: "IoT QC & Telemetry Engine", short: "IoT QC", sub: "Telemetry and digital QC certificates", blurb: "Look up a serial number to see burn-in telemetry, the 15-point check and its certificate.", icon: Activity },
-  { id: "bottleneck", label: "AI Bottleneck Analyzer", short: "Bottleneck AI", sub: "CPU, GPU, RAM and workload pairing", blurb: "Find the part holding a build back, estimate FPS and get rebalancing advice.", icon: Gauge },
-  { id: "versus", label: "Versus Arena", short: "Versus Arena", sub: "Head-to-head comparison with a verdict", blurb: "Put two PCs, laptops or phones side by side and see who wins on specs and value.", icon: Swords },
-  { id: "account", label: "Account Dashboard", short: "Account", sub: "Orders, certificates, presets and role management", blurb: "Track orders, trade-ins, QC certificate vault and customize system roles.", icon: User },
-  { id: "community", label: "Community & Knowledge Hub", short: "Community", sub: "Build showcases, guides and Q&A feed", blurb: "Share custom PC builds, learn lab setup guides, and ask technicians questions.", icon: MessageSquare },
+  {
+    id: "market",
+    label: "Market & Hardware Library",
+    short: "Market",
+    sub: "Rakitan siap pakai, katalog spesifikasi & analisis potensi upgrade",
+    blurb: "Jelajahi paket rakitan terkurasi atau bandingkan spesifikasi teknis dan batas upgrade RAM/NVMe.",
+    icon: ShoppingBag,
+    views: [
+      ["ready", "All / Ready Stock", ShoppingBag],
+      ["catalog", "Hardware Library & Specs", Layers],
+      ["upgrade", "Max Upgrade Analyzer", Zap],
+    ],
+  },
+  { id: "builder", label: "Smart Preset Builder", short: "Preset Builder", sub: "Konfigurator rakitan untuk B2S, B2B, dan B2C", blurb: "Mulai dari preset teruji, ganti komponen, dan pantau estimasi daya serta harga lengkap dengan JIT buffer.", icon: Sliders },
+  { id: "tradein", label: "Circular Trade-In & Buyback", short: "Trade-In", sub: "Tukar tambah aset IT dan etalase unit refurbished", blurb: "Hitung nilai buyback perangkat lama dan pilih unit refurbished bersertifikat QC.", icon: RefreshCw },
+  { id: "qc", label: "IoT QC & Telemetry Engine", short: "IoT QC", sub: "Telemetri burn-in dan sertifikat QC digital", blurb: "Masukkan nomor seri untuk memeriksa log suhu burn-in, 15 titik inspeksi, dan sertifikat unit.", icon: Activity },
+  { id: "bottleneck", label: "AI Bottleneck Analyzer", short: "Bottleneck AI", sub: "Kalkulasi keseimbangan CPU, GPU, RAM, dan beban kerja", blurb: "Temukan komponen yang menahan performa, estimasi FPS, dan saran penyeimbangan rakitan.", icon: Gauge },
+  { id: "versus", label: "Versus Arena", short: "Versus Arena", sub: "Perbandingan spesifikasi dua perangkat berdampingan", blurb: "Bandingkan dua PC, laptop, atau smartphone secara langsung berdasarkan spesifikasi dan nilai pakai.", icon: Swords },
+  { id: "account", label: "Account Dashboard", short: "Account", sub: "Pesanan, brankas sertifikat QC, preset, dan profil", blurb: "Lacak status pesanan, pengajuan trade-in, arsip sertifikat QC, serta pengaturan akun.", icon: User },
+  { id: "community", label: "Community & Knowledge Hub", short: "Community", sub: "Showcase rakitan, panduan lab, dan forum tanya jawab", blurb: "Bagikan rakitan PC, pelajari panduan instalasi lab sekolah, dan diskusikan solusi teknis.", icon: MessageSquare },
 ];
 const HOME = { id: "home", label: "Home", short: "Home", sub: "Ecosystem overview", icon: LayoutDashboard };
 const NAV = [HOME, ...MODULES];
 const BY_ID = Object.fromEntries(NAV.map((m) => [m.id, m]));
-const DEFAULT_VIEWS = { library: "catalog" };
+const DEFAULT_VIEWS = { market: "ready" };
 const validView = (id, v) => BY_ID[id]?.views?.some(([k]) => k === v);
 
-const ROLES = {
-  b2c: { label: "B2C Member / Creator", icon: User, greeting: "Compare parts, plan a build and share it with the community.", rec: ["bottleneck", "versus", "community"] },
-  b2b: { label: "B2B Enterprise Admin", icon: Building2, greeting: "Fleet overview for your organization: certify, order and track.", rec: ["qc", "tradein", "account"] },
-  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, greeting: "Equip labs, track warranties and keep every seat exam-ready.", rec: ["builder", "tradein", "qc"] },
-};
+function normalizeModuleTarget(id, viewOrData) {
+  if (id === "library") {
+    const nextView = viewOrData === "upgrade" ? "upgrade" : "catalog";
+    return ["market", nextView];
+  }
+  if (id === "account" && viewOrData === "community") {
+    return ["community", undefined];
+  }
+  return [id, viewOrData];
+}
 
-const SEED_NOTIFS = {
-  b2c: [
-    { id: 1, text: "Pre-order VT-PO-2026-0412 entered IoT stress testing", target: ["qc"], ago: "5 h ago", unread: true },
-    { id: 2, text: "Price drop: RTX 4060 is lower this week", target: ["library", "catalog"], ago: "1 d ago", unread: true },
-    { id: 3, text: "Your build post received 12 new upvotes", target: ["community"], ago: "2 d ago", unread: false },
-  ],
-  b2b: [
-    { id: 1, text: "Offer ready for trade-in VT-TI-2026-0149", target: ["account"], ago: "3 h ago", unread: true },
-    { id: 2, text: "Tax invoice INV-2026-0377 is pending", target: ["account"], ago: "2 d ago", unread: true },
-    { id: 3, text: "Batch VICI-LTP-2026-0950 warranty ends soon", target: ["qc"], ago: "4 d ago", unread: false },
-  ],
-  b2s: [
-    { id: 1, text: "CBT lab order VT-PO-2026-0402 passed IoT stress testing", target: ["qc"], ago: "7 h ago", unread: true },
-    { id: 2, text: "Maintenance task due in 6 days: exam-day power test", target: ["account"], ago: "1 d ago", unread: true },
-    { id: 3, text: "Spare units shipped to your school lab", target: ["tradein"], ago: "5 d ago", unread: false },
-  ],
+function QueryParamSync({ onSync }) {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
+  const view = searchParams.get("view");
+  useEffect(() => {
+    onSync(tab, view);
+  }, [tab, view, onSync]);
+  return null;
+}
+
+const ROLES = {
+  b2c: { label: "B2C Member / Creator", icon: User, greeting: "Bandingkan komponen, susun rakitan, dan bagikan hasilnya ke komunitas.", rec: ["bottleneck", "versus", "community"] },
+  b2b: { label: "B2B Enterprise Admin", icon: Building2, greeting: "Kelola pengadaan perangkat organisasi, verifikasi sertifikat QC, dan pantau pesanan unit.", rec: ["qc", "tradein", "account"] },
+  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, greeting: "Siapkan perangkat lab sekolah dan ujian CBT lengkap dengan jaminan QC terverifikasi.", rec: ["builder", "tradein", "qc"] },
 };
 
 const ACTIONS = [
-  { label: "Compare two GPUs", module: "library", view: "catalog", keys: "gpu graphics card rtx compare specs" },
-  { label: "Check max RAM and NVMe slots of a laptop", module: "library", view: "upgrade", keys: "upgrade ram nvme slot max laptop pc" },
+  { label: "Compare two GPUs", module: "market", view: "catalog", keys: "gpu graphics card rtx compare specs" },
+  { label: "Check max RAM and NVMe slots of a laptop", module: "market", view: "upgrade", keys: "upgrade ram nvme slot max laptop pc" },
   { label: "Start the CBT Labkom preset", module: "builder", keys: "cbt lab school b2s preset" },
   { label: "Build an enterprise workstation", module: "builder", keys: "office b2b workstation" },
   { label: "Get a trade-in valuation", module: "tradein", keys: "sell buyback estimate value" },
@@ -105,8 +174,8 @@ const EVENT_TYPES = {
   qc: { icon: ShieldCheck, target: ["qc"] },
   order: { icon: Sliders, target: ["builder"] },
   tradein: { icon: RefreshCw, target: ["tradein"] },
-  price: { icon: Layers, target: ["library", "catalog"] },
-  upgrade: { icon: Zap, target: ["library", "upgrade"] },
+  price: { icon: Layers, target: ["market", "catalog"] },
+  upgrade: { icon: Zap, target: ["market", "upgrade"] },
   bottleneck: { icon: Gauge, target: ["bottleneck"] },
   versus: { icon: Swords, target: ["versus"] },
   community: { icon: MessageSquare, target: ["community"] },
@@ -122,422 +191,15 @@ const GENERATORS = [
   () => ["versus", `Versus Arena: ${pick(["Galaxy S24 Ultra vs Xiaomi 14T Pro", "ThinkPad T14 vs Latitude 7440", "B2C rig vs Esports rig"])}`],
   () => ["community", `New build showcase posted by ${pick(["Bagas", "Nadia", "Dewi"])}`],
 ];
-const seedEvents = () => {
-  const now = Date.now();
-  return [["qc", "New QC Pass: VICI-SRV-2026-9042", 8], ["order", "Preset Order Submitted for CBT Lab Tasikmalaya", 41], ["bottleneck", "Bottleneck scan: i5-12400F + RTX 4060 at 1080p", 80], ["upgrade", "Upgrade check: ThinkPad T14 can reach 48 GB RAM", 120], ["tradein", "Trade-In valuation requested: 40 laptops", 190]]
-    .map(([type, text, s], i) => ({ id: i, type, text, at: now - s * 1000 }));
-};
+const seedEvents = () =>
+  [["qc", "New QC Pass: VICI-SRV-2026-9042", 8], ["order", "Preset Order Submitted for CBT Lab Tasikmalaya", 41], ["bottleneck", "Bottleneck scan: i5-12400F + RTX 4060 at 1080p", 80], ["upgrade", "Upgrade check: ThinkPad T14 can reach 48 GB RAM", 120], ["tradein", "Trade-In valuation requested: 40 laptops", 190]]
+    .map(([type, text, elapsedSec], i) => ({ id: i, type, text, elapsedSec }));
 
 // Surface, motion and focus styles live in app/globals.css so the server and the client render
 // identical markup (an inline <style> tag here caused a hydration mismatch).
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper";
-const iconBtn = `vt-chip relative grid h-9 w-9 place-items-center rounded-full text-ink ${focusRing}`;
-const panel = "vt-metal vt-pop absolute right-0 top-full z-50 mt-3 origin-top-right rounded-3xl";
 
-/* ───────────────────────── Hooks ───────────────────────── */
-
-function useDismiss(open, onClose, ref) {
-  useEffect(() => {
-    if (!open) return;
-    const down = (e) => ref.current && !ref.current.contains(e.target) && onClose();
-    const key = (e) => e.key === "Escape" && onClose();
-    document.addEventListener("pointerdown", down);
-    document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("pointerdown", down); document.removeEventListener("keydown", key); };
-  }, [open, onClose, ref]);
-}
-
-function useOverlay(open, onClose) {
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    const key = (e) => e.key === "Escape" && onClose();
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", key);
-    return () => { document.body.style.overflow = prev; document.removeEventListener("keydown", key); };
-  }, [open, onClose]);
-}
-
-// Slides a bar away while the page scrolls down and brings it back on any upward scroll.
-function useHideOnScroll({ delta = 10, top = 80 } = {}) {
-  const [hidden, setHidden] = useState(false);
-  useEffect(() => {
-    let last = window.scrollY;
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const y = Math.max(0, window.scrollY);
-      if (y <= top) { setHidden(false); last = y; return; }
-      if (Math.abs(y - last) < delta) return;
-      setHidden(y > last);
-      last = y;
-    };
-    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => { window.removeEventListener("scroll", onScroll); cancelAnimationFrame(frame); };
-  }, [delta, top]);
-  return hidden;
-}
-
-/* ───────────────────────── Top bar ───────────────────────── */
-
-const Dot = () => <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-signal" aria-hidden="true" />;
-
-/* States where each kind of data comes from, instead of inventing latencies or "online" badges. */
-const DATA_SOURCES = [
-  { name: "Supabase", detail: "Accounts, orders and presets", source: "Live" },
-  { name: "IoT telemetry", detail: "ESP32 ingest endpoint", source: "Live" },
-  { name: "QC test profiles", detail: "Burn-in and 15-point checks", source: "Simulated" },
-  { name: "Hardware catalog", detail: "Prices, specs and scores", source: "Sample" },
-];
-
-function StatusMenu() {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const close = useCallback(() => setOpen(false), []);
-  useDismiss(open, close, ref);
-  return (
-    <div ref={ref} className="relative hidden shrink-0 items-center gap-2 text-xs xl:flex">
-      <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`vt-chip flex items-center gap-2 rounded-full px-3.5 py-2 text-xs text-ink ${focusRing}`}>
-        <Dot /> Data sources
-      </button>
-      {open && (
-        <div className={`${panel} w-80 p-4 text-sm`}>
-          <p className="font-medium text-ink">Where the data comes from</p>
-          <ul className="mt-3 space-y-3">
-            {DATA_SOURCES.map((row) => (
-              <li key={row.name} className="flex items-start justify-between gap-3">
-                <span className="min-w-0">
-                  <span className="block text-sm text-ink">{row.name}</span>
-                  <span className="block text-xs text-pewter">{row.detail}</span>
-                </span>
-                <span className={`vt-tag shrink-0 ${row.source === "Live" ? "vt-tag-signal" : ""}`}>{row.source}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 border-t border-black/[0.06] pt-3 text-xs leading-relaxed text-pewter">
-            Sample and simulated values are labelled wherever they appear. A simulated QC profile is never a physical sensor reading.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function NotificationsMenu({ notifs, setNotifs, onNavigate }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const close = useCallback(() => setOpen(false), []);
-  useDismiss(open, close, ref);
-  const unread = useMemo(() => notifs.filter((n) => n.unread).length, [notifs]);
-  return (
-    <div ref={ref} className="relative">
-      <button type="button" aria-label={`Notifications, ${unread} unread`} aria-expanded={open} onClick={() => setOpen((v) => !v)} className={iconBtn}>
-        <Bell className="h-4 w-4" aria-hidden="true" />
-        {unread > 0 && <span className="absolute -right-1 -top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-signal px-1 text-[10px] font-bold text-white">{unread}</span>}
-      </button>
-      {open && (
-        <div className={`${panel} w-[min(22rem,calc(100vw-2rem))] p-1.5`}>
-          <div className="flex items-center justify-between px-3 pb-2 pt-3">
-            <p className="text-sm font-medium text-ink">Notifications</p>
-            <button type="button" disabled={!unread} onClick={() => setNotifs((l) => l.map((n) => ({ ...n, unread: false })))} className={`rounded text-xs text-signal-deep hover:underline disabled:text-faint ${focusRing}`}>Mark all as read</button>
-          </div>
-          <ul className="max-h-80 space-y-0.5 overflow-y-auto">
-            {notifs.map((n) => {
-              const Icon = BY_ID[n.target[0]]?.icon || Bell;
-              return (
-                <li key={n.id}>
-                  <button type="button" onClick={() => { setNotifs((l) => l.map((x) => (x.id === n.id ? { ...x, unread: false } : x))); setOpen(false); onNavigate(...n.target); }} className={`flex w-full items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-black/[0.04] ${focusRing}`}>
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
-                    <span className="min-w-0 flex-1">
-                      <span className={`block text-sm leading-snug ${n.unread ? "font-medium text-ink" : "text-pewter"}`}>{n.text}</span>
-                      <span className="text-xs text-faint">{n.ago}</span>
-                    </span>
-                    {n.unread && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-signal" aria-label="Unread" />}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RoleMenu({ role, setRole, user }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const close = useCallback(() => setOpen(false), []);
-  useDismiss(open, close, ref);
-  const r = ROLES[role];
-  const displayName = getUserDisplayName(user);
-  return (
-    <div ref={ref} className="relative">
-      <button type="button" aria-expanded={open} aria-label={`Profile and workspace role menu, ${displayName}, ${r.label}`} onClick={() => setOpen((v) => !v)} className={`vt-chip flex max-w-[180px] items-center gap-2 rounded-full py-1 pl-1 pr-3 ${focusRing}`}>
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-signal text-[11px] font-semibold text-white">{getUserInitials(user)}</span>
-        <span className="hidden min-w-0 flex-1 text-left xl:block">
-          <span className="block truncate text-xs font-medium leading-tight text-ink" title={displayName}>{displayName}</span>
-          <span className="block truncate text-[11px] leading-tight text-pewter" title={r.label}>{r.label}</span>
-        </span>
-      </button>
-      {open && (
-        <div className={`${panel} w-72 p-2`}>
-          <p className="px-2 py-1.5 text-xs text-pewter">Switch workspace role</p>
-          <div role="radiogroup" aria-label="Role">
-            {Object.entries(ROLES).map(([k, v]) => {
-              const I = v.icon;
-              const selected = role === k;
-              return (
-                <button key={k} type="button" role="radio" aria-checked={selected} onClick={() => { setRole(k); setOpen(false); }} className={`flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-sm transition-colors ${focusRing} ${selected ? "bg-signal text-white font-medium" : "text-ink hover:bg-black/[0.04]"}`}>
-                  <I className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="min-w-0 flex-1 truncate">{v.label}</span>
-                  {selected && <CheckCircle2 className="h-4 w-4 shrink-0 text-white" aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/*
-  TabBar is the floating navigation pill. The Navbar logo toggles it. The pill lists the six primary destinations;
-  the other modules stay reachable from Home, the footer, the mobile drawer and the command bar (Ctrl + K).
-  Module entries resolve their icon from NAV; an entry with an `href` is a real route and never shows as active.
-*/
-const PILL_ITEMS = [
-  { id: "home", label: "Home Base" },
-  { id: "library", label: "Library Parts" },
-  { id: "builder", label: "Preset Builder" },
-  { id: "tradein", label: "Trade-In" },
-  { id: "qc", label: "IoT QC Consumer" },
-  { id: "qc-admin", label: "Admin QC Portal", href: "/qc-panel", icon: ShieldCheck, adminOnly: true },
-];
-const pillItem = `flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-2xl px-2 py-3 text-center text-[11px] font-medium leading-tight transition-colors duration-200 focus-visible:ring-offset-2 lg:flex-row lg:gap-2 lg:whitespace-nowrap lg:rounded-full lg:px-3.5 lg:py-2.5 lg:text-sm ${focusRing}`;
-
-function TabBar({ open, id, navRef, active, onNavigate, onClose, onEscape, role }) {
-  if (!open) return null;
-  
-  // Normalisasi role: ubah jadi string kecil, atau ambil properti role-nya jika berupa objek
-  const currentRole = typeof role === "object" && role !== null ? role.role : role;
-  const normalizedRole = typeof currentRole === "string" ? currentRole.trim().toLowerCase() : "";
-
-  console.log("Role terdeteksi:", normalizedRole); // Cek F12 Console browser untuk pastikan
-
-  const visibleItems = PILL_ITEMS.filter((it) => {
-    if (it.adminOnly) {
-      // Hanya muncul jika role setelah dinormalisasi benar-benar "admin"
-      return normalizedRole === "admin";
-    }
-    return true;
-  });
-
-  return (
-    <nav ref={navRef} id={id} aria-label="Primary" onKeyDown={(e) => e.key === "Escape" && onEscape()} className="vt-metal vt-pop absolute inset-x-0 top-full z-50 mx-auto mt-3 w-[min(26rem,calc(100vw-1.5rem))] origin-top rounded-[1.75rem] p-1.5 lg:w-max lg:rounded-full">
-      <ul className="grid grid-cols-3 gap-1 lg:flex lg:gap-0.5">
-        {visibleItems.map((it) => {
-          const Icon = it.icon || BY_ID[it.id]?.icon;
-          const on = active === it.id;
-          const tone = on
-            ? "bg-signal text-white shadow-signal"
-            : "text-pewter hover:bg-black/[0.05] hover:text-ink";
-          return (
-            <li key={it.id}>
-              {it.href ? (
-                <Link href={it.href} onClick={onClose} className={`${pillItem} ${tone}`}>
-                  <Icon className="h-4 w-4 shrink-0" /> {it.label}
-                </Link>
-              ) : (
-                <button type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(it.id)} className={`${pillItem} ${tone}`}>
-                  <Icon className="h-4 w-4 shrink-0" /> {it.label}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
-}
-
-function Navbar({ active, role, setRole, user, notifs, setNotifs, onNavigate, onSearch, onMenu, onNotify, onAuthState, onSignOut }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const hidden = useHideOnScroll();
-  const logoRef = useRef(null);
-  const pillRef = useRef(null);
-  // The logo and the pill count as one region, so clicking the logo again toggles instead of close-then-reopen
-  const trayRef = useRef({ contains: (node) => Boolean(logoRef.current?.contains(node) || pillRef.current?.contains(node)) });
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
-  const toggleMenu = useCallback(() => setMenuOpen((v) => !v), []);
-  const focusLogo = useCallback(() => logoRef.current?.focus(), []);
-  const go = useCallback((...target) => { setMenuOpen(false); onNavigate(...target); }, [onNavigate]);
-  useDismiss(menuOpen, closeMenu, trayRef);
-  // Close the pill when the bar slides away or the view changes from anywhere else (palette, notifications, back button)
-  useEffect(() => { setMenuOpen(false); }, [hidden, active]);
-
-  const visibleItems = PILL_ITEMS.filter((it) => {
-    // Kalau menu butuh admin, pastikan role persis string "admin"
-    if (it.adminOnly) {
-      return role && typeof role === "string" && role.toLowerCase() === "admin";
-    }
-    return true;
-  });
-
-  return (
-    <header data-hidden={hidden} className="vt-nav pointer-events-none sticky top-0 z-40 px-3 pb-2 pt-3 sm:px-5">
-      <div className="vt-metal pointer-events-auto relative mx-auto flex h-14 w-full max-w-shell items-center gap-2 rounded-full px-2 text-ink sm:gap-3 sm:px-2.5">
-        <button type="button" aria-label="Open menu" onClick={onMenu} className={`${iconBtn} shrink-0 md:hidden`}>
-          <Menu className="h-4 w-4" aria-hidden="true" />
-        </button>
-        <button ref={logoRef} type="button" aria-label="ViciTech navigation" aria-expanded={menuOpen} aria-controls="vt-nav-pill" onClick={toggleMenu} className={`flex shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors duration-200 sm:pr-3 ${menuOpen ? "bg-black/[0.06]" : "hover:bg-black/[0.04]"} ${focusRing}`}>
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-signal text-white shadow-signal"><Cpu className="h-[18px] w-[18px]" aria-hidden="true" /></span>
-          <span className="hidden text-base font-semibold tracking-tight text-ink sm:block">ViciTech</span>
-          <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 text-pewter transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`} />
-        </button>
-        
-        {/* TabBar dengan tambahan props role={role} */}
-        <TabBar 
-          open={menuOpen} 
-          id="vt-nav-pill" 
-          navRef={pillRef} 
-          active={active} 
-          onNavigate={go} 
-          onClose={closeMenu} 
-          onEscape={focusLogo} 
-          role={role} 
-        />
-
-        <div className="flex min-w-0 flex-1 justify-center">
-          <button type="button" onClick={onSearch} aria-keyshortcuts="Control+K Meta+K" className={`vt-well hidden w-full max-w-md items-center gap-2.5 rounded-full py-2 pl-3.5 pr-2 text-left text-sm text-pewter hover:text-ink md:flex ${focusRing}`}>
-            <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="min-w-0 flex-1 truncate">Search modules, serials, guides</span>
-            <kbd className="rounded-full bg-black/[0.06] px-2 py-0.5 font-sans text-[11px] text-pewter">Ctrl K</kbd>
-          </button>
-        </div>
-        <button type="button" aria-label="Search" onClick={onSearch} className={`${iconBtn} shrink-0 md:hidden`}>
-          <Search className="h-4 w-4" aria-hidden="true" />
-        </button>
-
-        <StatusMenu />
-        {user && (
-          <div className="hidden shrink-0 items-center gap-2 md:flex">
-            <NotificationsMenu notifs={notifs} setNotifs={setNotifs} onNavigate={onNavigate} />
-            <RoleMenu role={role} setRole={setRole} user={user} />
-          </div>
-        )}
-        <AuthNavigation onAuthState={onAuthState} onNotify={onNotify} onNavigate={onNavigate} onSignOut={onSignOut} />
-      </div>
-    </header>
-  );
-}
-
-/* ───────────────────────── Overlays ───────────────────────── */
-
-function MobileDrawer({ open, onClose, active, onNavigate, role, user }) {
-  useOverlay(open, onClose);
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-[60] bg-black/60 md:hidden backdrop-blur-sm" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label="Navigation menu" onClick={(e) => e.stopPropagation()} className="flex h-full w-80 max-w-[85vw] flex-col bg-paper shadow-2xl">
-        <div className="flex items-center justify-between border-b border-black/[0.06] p-4">
-          <span className="flex items-center gap-2 font-semibold text-ink">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-signal text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span> ViciTech
-          </span>
-          <button type="button" aria-label="Close menu" onClick={onClose} className={iconBtn}><X className="h-4 w-4" /></button>
-        </div>
-        <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto p-3">
-          {NAV.map((m) => {
-            const on = active === m.id;
-            const Icon = m.icon;
-            return (
-              m.id === "qc" ? (
-                <Link key={m.id} href="/qc-panel" onClick={onClose} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-black/[0.04] ${focusRing}`}>
-                  <Icon className="h-5 w-5 shrink-0 text-pewter" aria-hidden="true" />
-                  <span>
-                    <span className="block text-sm text-ink">{m.short}</span>
-                    <span className="block text-xs text-pewter">Public tracking & diagnostics panel</span>
-                  </span>
-                </Link>
-              ) : (
-                <button key={m.id} type="button" aria-current={on ? "page" : undefined} onClick={() => onNavigate(m.id)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${focusRing} ${on ? "bg-signal text-white" : "text-pewter hover:bg-black/[0.04] hover:text-ink"}`}>
-                  <Icon className={`h-5 w-5 shrink-0 ${on ? "text-white" : "text-pewter"}`} aria-hidden="true" />
-                  <span className="min-w-0">
-                    <span className={`block text-sm font-medium ${on ? "text-white" : "text-ink"}`}>{m.short}</span>
-                    <span className={`block text-xs leading-snug ${on ? "text-white/80" : "text-pewter"}`}>{m.sub}</span>
-                  </span>
-                </button>
-              )
-            );
-          })}
-        </nav>
-        <div className="border-t border-black/[0.06] p-4">
-          {user ? (
-            <p className="truncate text-xs text-pewter">Signed in as {user.email || getUserDisplayName(user)}</p>
-          ) : (
-            <p className="text-xs leading-relaxed text-pewter">Signed out. Sign in from the top bar to reach your orders and presets.</p>
-          )}
-          <p className="mt-2 flex items-center gap-2 text-xs text-faint"><Dot /> Sample data in the catalog</p>
-        </div>
-      </aside>
-    </div>
-  );
-}
-
-function CommandPalette({ open, onClose, onSelect }) {
-  const [q, setQ] = useState("");
-  const [idx, setIdx] = useState(0);
-  const inputRef = useRef(null);
-  useOverlay(open, onClose);
-  useEffect(() => {
-    if (!open) return;
-    setQ(""); setIdx(0);
-    inputRef.current?.focus();
-  }, [open]);
-
-  const items = useMemo(() => {
-    const serial = q.trim().toUpperCase();
-    const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const found = COMMANDS.filter((c) => tokens.every((t) => `${c.label} ${c.keys} ${c.hint}`.toLowerCase().includes(t)));
-    return SERIAL_RE.test(serial) ? [{ label: `Look up ${serial}`, hint: "Opens the IoT QC & Telemetry Engine", module: "qc" }, ...found] : found;
-  }, [q]);
-
-  if (!open) return null;
-  const onKeyDown = (e) => {
-    if (e.key === "ArrowDown") { e.preventDefault(); setIdx((i) => (items.length ? (i + 1) % items.length : 0)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setIdx((i) => (items.length ? (i - 1 + items.length) % items.length : 0)); }
-    else if (e.key === "Enter" && items[idx]) { e.preventDefault(); onSelect(items[idx]); }
-  };
-  return (
-    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/45 p-4 pt-[12vh] backdrop-blur-sm" onMouseDown={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Command palette" onMouseDown={(e) => e.stopPropagation()} className="vt-metal w-full max-w-xl overflow-hidden rounded-2xl">
-        <div className="flex items-center gap-3 border-b border-black/[0.06] px-4">
-          <Search className="h-4 w-4 shrink-0 text-pewter" aria-hidden="true" />
-          <input ref={inputRef} value={q} onChange={(e) => { setQ(e.target.value); setIdx(0); }} onKeyDown={onKeyDown} placeholder="Search modules, actions or a serial number" aria-label="Search" autoComplete="off" spellCheck={false} className="h-12 flex-1 bg-transparent text-sm text-ink placeholder:text-faint focus:outline-none" />
-          <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 text-[11px] text-pewter">Esc</kbd>
-        </div>
-        <ul role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto p-2">
-          {items.length === 0 && <li className="px-3 py-6 text-center text-sm text-pewter">No matches. Try “gpu”, “upgrade” or a serial like VICI-SRV-2026-9042.</li>}
-          {items.map((it, i) => {
-            const Icon = BY_ID[it.module]?.icon || Layers;
-            return (
-              <li key={it.label} role="option" aria-selected={i === idx}>
-                <button type="button" onMouseEnter={() => setIdx(i)} onClick={() => onSelect(it)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${i === idx ? "bg-signal-wash text-signal-deep" : "text-ink hover:bg-black/[0.04]"}`}>
-                  <Icon className={`h-4 w-4 shrink-0 ${i === idx ? "text-signal" : "text-pewter"}`} aria-hidden="true" />
-                  <span className="flex-1 truncate text-sm font-medium">{it.label}</span>
-                  <span className="hidden shrink-0 text-xs text-pewter sm:block">{it.hint}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="border-t border-black/[0.06] px-4 py-2.5 text-xs text-pewter">Arrow keys to move, Enter to open, Esc to close.</p>
-      </div>
-    </div>
-  );
-}
+/* ───────────────────────── Feedback toast ───────────────────────── */
 
 function ToastHost({ toast, onDone }) {
   useEffect(() => {
@@ -556,62 +218,97 @@ function ToastHost({ toast, onDone }) {
 
 /* ───────────────────────── Home dashboard ───────────────────────── */
 
-function Stat({ icon: Icon, value, label, onClick }) {
+function DataSourceLink({ badgeClass, badgeLabel, title, detail, onClick }) {
   return (
     <li>
-      <button type="button" onClick={onClick} className={`vt-card vt-card-hover flex w-full items-center gap-4 rounded-2xl p-5 text-left ${focusRing}`}>
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-signal-wash text-signal"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`flex min-h-11 w-full items-start justify-between gap-3 rounded-xl border border-default bg-surface p-3.5 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+      >
         <span className="min-w-0 flex-1">
-          <span className="vt-num block text-2xl font-semibold text-ink">{value}</span>
-          <span className="block text-sm leading-snug text-pewter">{label}</span>
+          <span className={badgeClass}>{badgeLabel}</span>
+          <span className="mt-2 block text-sm font-semibold text-primary">{title}</span>
+          <span className="mt-0.5 block text-xs leading-relaxed text-secondary">{detail}</span>
         </span>
-        <ArrowRight className="h-4 w-4 shrink-0 text-faint" aria-hidden="true" />
+        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
       </button>
     </li>
   );
 }
 
 function ActivityFeed({ onNavigate }) {
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const isPageVisible = usePageVisibility();
   const [events, setEvents] = useState(seedEvents);
-  const [now, setNow] = useState(Date.now());
-  const [paused, setPaused] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
+  const [hoverPaused, setHoverPaused] = useState(false);
   const uid = useRef(100);
+  const isRunning = !prefersReducedMotion && !userPaused && !hoverPaused && isPageVisible;
+
   useEffect(() => {
-    if (paused) return;
-    const id = setInterval(() => {
+    if (!isRunning) return undefined;
+    const id = window.setInterval(() => {
       const [type, text] = pick(GENERATORS)();
-      setEvents((l) => [{ id: ++uid.current, type, text, at: Date.now() }, ...l].slice(0, 7));
-    }, 3500);
-    return () => clearInterval(id);
-  }, [paused]);
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const ago = (at) => { const s = Math.max(0, Math.floor((now - at) / 1000)); return s < 5 ? "just now" : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)} min ago`; };
+      setEvents((list) =>
+        [
+          { id: ++uid.current, type, text, elapsedSec: 0 },
+          ...list.map((item) => ({ ...item, elapsedSec: item.elapsedSec + 4 })),
+        ].slice(0, 7)
+      );
+    }, 4000);
+    return () => window.clearInterval(id);
+  }, [isRunning]);
+
+  const ago = (s) => (s < 5 ? "just now" : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)} min ago`);
   return (
-    <section aria-labelledby="feed-title" className="vt-card rounded-2xl p-6" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <section
+      aria-labelledby="feed-title"
+      className="rounded-xl border border-default bg-surface p-6 shadow-sm"
+      onMouseEnter={() => setHoverPaused(true)}
+      onMouseLeave={() => setHoverPaused(false)}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 id="feed-title" className="flex items-center gap-2 text-base font-semibold text-ink">
-            <Zap className="h-4 w-4 text-signal" aria-hidden="true" /> Activity stream
-          </h2>
-          <p className="mt-1 text-xs leading-relaxed text-pewter">
-            Illustrative events generated in your browser. Not live customer activity.
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 id="feed-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+              <Zap className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" /> Aliran aktivitas
+            </h2>
+            <span className="vt-badge-sample">{!isRunning ? "Dijeda · Contoh" : "Contoh"}</span>
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-secondary">
+            Simulasi aktivitas di browser sebagai ilustrasi alur kerja, bukan data transaksi pelanggan langsung.
           </p>
         </div>
-        <span className={`vt-tag shrink-0 ${paused ? "" : "vt-tag-signal"}`}>{paused ? "Paused" : "Sample"}</span>
+        <button
+          type="button"
+          onClick={() => setUserPaused((current) => !current)}
+          aria-pressed={userPaused}
+          aria-label={userPaused ? "Putar aliran aktivitas" : "Jeda aliran aktivitas"}
+          title={userPaused ? "Putar aliran aktivitas" : "Jeda aliran aktivitas"}
+          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition-colors hover:bg-canvas ${focusRing}`}
+        >
+          {userPaused || prefersReducedMotion ? (
+            <Play className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+          ) : (
+            <Pause className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+          )}
+        </button>
       </div>
-      <ul className="mt-4 divide-y divide-black/[0.06]">
+      <ul className="mt-4 divide-y divide-default">
         {events.map((e) => {
           const t = EVENT_TYPES[e.type] || EVENT_TYPES.price;
           const Icon = t.icon;
           return (
             <li key={e.id} className="vt-in">
-              <button type="button" onClick={() => onNavigate(...t.target)} className={`flex w-full items-start gap-3 py-3 text-left transition-colors hover:text-signal-deep ${focusRing}`}>
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
-                <span className="min-w-0 flex-1 text-sm leading-snug text-ink">{e.text}</span>
-                <span className="vt-num shrink-0 text-xs text-faint">{ago(e.at)}</span>
+              <button
+                type="button"
+                onClick={() => onNavigate(...t.target)}
+                className={`flex min-h-11 w-full items-start gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span className="min-w-0 flex-1 text-sm leading-snug text-primary">{e.text}</span>
+                <span className="tabular-nums shrink-0 font-mono text-xs text-secondary">{ago(e.elapsedSec)}</span>
               </button>
             </li>
           );
@@ -621,74 +318,195 @@ function ActivityFeed({ onNavigate }) {
   );
 }
 
-function HomeDashboard({ role, onNavigate }) {
+function HomeDashboard({ role, onRoleChange, onNavigate }) {
   const r = ROLES[role] || ROLES.b2c;
-  // Sample program figures — illustrative only, and labelled as such in the section header.
-  const stats = [
-    { icon: Cpu, value: "1,240+", label: "Units benchmarked", go: ["library", "catalog"] },
-    { icon: RefreshCw, value: "15.4 t", label: "E-waste diverted", go: ["tradein"] },
-    { icon: ShieldCheck, value: "99.8%", label: "QC pass rate", go: ["qc"] },
+  const featuredModules = MODULES.filter((m) => r.rec?.includes(m.id));
+  const otherModules = MODULES.filter((m) => !r.rec?.includes(m.id));
+  const primaryTarget = r.rec?.[0] || "builder";
+  const primaryModule = BY_ID[primaryTarget] || BY_ID.builder;
+
+  const dataTransparency = [
+    {
+      badgeClass: "vt-badge-live",
+      badgeLabel: "Live ESP32 Telemetry",
+      title: "IoT QC & Burn-In Sensor",
+      detail: "Pembacaan suhu CPU/GPU, voltase, dan stabilitas aktual dari smart bench.",
+      go: ["qc"],
+    },
+    {
+      badgeClass: "vt-badge-simulated",
+      badgeLabel: "Simulated QC Profile",
+      title: "Profil Simulasi Admin",
+      detail: "Skenario uji terkalibrasi yang dipisahkan secara eksplisit dari sensor fisik.",
+      go: ["qc"],
+    },
+    {
+      badgeClass: "vt-badge-sample",
+      badgeLabel: "Sample Catalog",
+      title: "Library Hardware & Trade-In",
+      detail: "Spesifikasi acuan, estimasi harga, dan simulasi upgrade untuk riset awal.",
+      go: ["market", "catalog"],
+    },
   ];
   const quick = [
-    ["Check max upgrade potential", "library", "upgrade"],
-    ["Find a bottleneck", "bottleneck"],
-    ["Look up a serial number", "qc"],
-    ["Browse community builds", "community"],
+    ["Cek batas maksimal upgrade", "market", "upgrade"],
+    ["Hitung bottleneck CPU & GPU", "bottleneck"],
+    ["Cek nomor seri QC", "qc"],
+    ["Lihat rakitan komunitas", "community"],
   ];
   return (
     <>
-      <section className="border-b border-black/[0.06] pb-12" aria-labelledby="home-title">
-        <div className="mx-auto grid max-w-shell gap-10 px-4 py-14 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-20">
+      <section className="border-b border-default pb-12" aria-labelledby="home-title">
+        <div className="mx-auto grid max-w-shell gap-10 px-4 py-12 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-16">
           <div className="lg:col-span-3">
-            <p className="vt-eyebrow flex items-center gap-2">
-              <Layers className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> Circular IT economy
-            </p>
-            <h1 id="home-title" className="vt-display mt-5 max-w-2xl text-4xl italic text-ink sm:text-5xl lg:text-6xl">
-              One place to research, plan and buy trusted hardware.
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="vt-badge-sample">{r.label}</span>
+              <span className="text-xs font-medium text-secondary">Ruang Kerja Circular IT</span>
+            </div>
+            <h1 id="home-title" className="vt-display mt-5 max-w-2xl text-4xl text-primary [text-wrap:balance] sm:text-5xl lg:text-6xl">
+              Satu ruang kerja untuk riset, rakit, dan verifikasi perangkat keras.
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-pewter">{r.greeting} Trade in, build, verify, analyse and compare hardware in one connected ecosystem.</p>
+            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-secondary">
+              {r.greeting} Tukar tambah, rakit preset, periksa telemetri QC, dan bandingkan spesifikasi dalam satu ekosistem.
+            </p>
+            <div className="mt-5 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Workspace role">
+              {Object.entries(ROLES).map(([roleKey, meta]) => {
+                const selected = role === roleKey;
+                const RoleIcon = meta.icon;
+                return (
+                  <button
+                    key={roleKey}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => onRoleChange?.(roleKey)}
+                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition ${focusRing} ${
+                      selected
+                        ? "bg-primary font-semibold text-surface"
+                        : "border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
+                    }`}
+                  >
+                    <RoleIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                    <span>{meta.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => onNavigate(primaryTarget)}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}
+              >
+                <span>Buka {primaryModule.short}</span>
+                <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("market", "catalog")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle ${focusRing}`}
+              >
+                <span>Jelajahi Market &amp; Library</span>
+              </button>
+            </div>
           </div>
           <div className="lg:col-span-2">
-            <ul className="grid gap-3" aria-label="Program summary">
-              {stats.map((s) => <Stat key={s.label} {...s} onClick={() => onNavigate(...s.go)} />)}
-            </ul>
-            <p className="mt-3 text-xs leading-relaxed text-faint">Sample program figures shown for illustration, not measured customer results.</p>
+            <div className="rounded-xl border border-default bg-canvas p-4 sm:p-5">
+              <p className="text-xs font-semibold text-primary">Transparansi Sumber Data</p>
+              <ul className="mt-3 grid gap-2.5" aria-label="Sumber data dan verifikasi">
+                {dataTransparency.map((item) => (
+                  <DataSourceLink key={item.badgeLabel} {...item} onClick={() => onNavigate(...item.go)} />
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
 
       <div className="mx-auto grid max-w-shell gap-8 px-4 py-12 sm:px-6 lg:grid-cols-3">
-        <section aria-labelledby="launch-title" className="lg:col-span-2">
-          <h2 id="launch-title" className="text-xl font-semibold tracking-tight text-ink">Start anywhere</h2>
-          <div className="mt-3 flex flex-wrap gap-2" aria-label="Quick actions">
-            {quick.map(([label, ...go]) => (
-              <button key={label} type="button" onClick={() => onNavigate(...go)} className={`vt-chip rounded-full px-4 py-1.5 text-xs font-medium text-ink transition-transform hover:-translate-y-0.5 ${focusRing}`}>{label}</button>
-            ))}
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {MODULES.map((m) => {
-              const Icon = m.icon;
-              const rec = r.rec?.includes(m.id);
-              return (
-                <button key={m.id} type="button" onClick={() => onNavigate(m.id)} className={`vt-card vt-card-hover group relative flex flex-col justify-between rounded-2xl p-6 text-left ${focusRing} ${rec ? "selected-indicator" : ""}`}>
-                  <span className="flex items-start justify-between gap-3">
-                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-signal-wash text-signal transition-colors duration-200 group-hover:bg-signal group-hover:text-white">
-                      <Icon className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    {rec && <span className="vt-tag vt-tag-signal">Recommended</span>}
-                  </span>
-                  <span className="mt-4 block text-lg font-semibold leading-snug text-ink">{m.label}</span>
-                  <span className="mt-1.5 block text-sm leading-relaxed text-pewter">{m.blurb}</span>
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink transition-colors group-hover:text-signal-deep">
-                    Open module <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                  </span>
+        <section aria-labelledby="launch-title" className="space-y-8 lg:col-span-2">
+          <div>
+            <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+              Prioritas untuk peran Anda
+            </h2>
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Quick actions">
+              {quick.map(([label, ...go]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => onNavigate(...go)}
+                  className={`inline-flex min-h-11 items-center rounded-full border border-default bg-surface px-4 py-2 text-xs font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
+                >
+                  {label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              {featuredModules.map((m) => {
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => onNavigate(m.id)}
+                    className={`group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-5 text-left transition hover:border-accent-primary/50 ${focusRing}`}
+                  >
+                    <div>
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-surface text-accent-primary shadow-sm transition group-hover:bg-accent-primary group-hover:text-primary">
+                          <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                        </span>
+                        <span className="rounded-md bg-surface px-2 py-0.5 text-[11px] font-semibold text-primary">
+                          Direkomendasikan
+                        </span>
+                      </span>
+                      <span className="mt-4 block font-serif text-lg font-semibold leading-snug text-primary">
+                        {m.short}
+                      </span>
+                      <span className="mt-1.5 block text-xs leading-relaxed text-secondary">
+                        {m.blurb}
+                      </span>
+                    </div>
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:text-accent-primary">
+                      Buka modul <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-serif text-lg font-semibold tracking-tight text-primary">
+              Direktori modul lainnya
+            </h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {otherModules.map((m) => {
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => onNavigate(m.id)}
+                    className={`group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary transition group-hover:bg-accent-primary group-hover:text-primary">
+                      <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-semibold text-primary">{m.label}</span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">{m.sub}</span>
+                    </span>
+                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-secondary transition-transform group-hover:translate-x-0.5 group-hover:text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </section>
         <div className="lg:sticky lg:top-28 lg:self-start"><ActivityFeed onNavigate={onNavigate} /></div>
       </div>
+      <EditorialShowcase onNavigate={onNavigate} />
       <CyberSuite />
     </>
   );
@@ -708,7 +526,7 @@ function SubTabs({ label, items, value, onChange }) {
         {items.map(([id, text, Icon]) => {
           const on = value === id;
           return (
-            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "bg-signal text-white font-medium" : "text-pewter hover:bg-white hover:text-ink"}`}>
+            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "bg-signal text-white font-medium" : "text-pewter hover:bg-white hover:text-ink"}`}>
               <Icon className="h-4 w-4" aria-hidden="true" /> {text}
             </button>
           );
@@ -763,20 +581,156 @@ const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
   );
 });
 
-const LibraryModule = memo(function LibraryModule({ C, view, onView, deviceId, onDevice, onNavigate, onOpenBuilder }) {
+const MarketModule = memo(function MarketModule({
+  C,
+  view,
+  onView,
+  deviceId,
+  onDevice,
+  onNavigate,
+  onOpenBuilder,
+}) {
+  const isLibraryView = view === "catalog" || view === "upgrade";
+
   return (
-    <>
-      <SubTabs label="Hardware library views" items={BY_ID.library.views} value={view} onChange={onView} />
+    <div>
+      <section className="border-b border-default bg-surface">
+        <div className="mx-auto max-w-shell px-4 py-6 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <span className="vt-badge-sample">Market &amp; Hardware Library</span>
+              <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
+                {isLibraryView
+                  ? "Hardware Library, Specs & Upgrade Potential"
+                  : "Curated Market & Ready-Stock Ecosystem"}
+              </h1>
+            </div>
+
+            {/* Unified Segmented Switcher */}
+            <div
+              role="tablist"
+              aria-label="Market mode switcher"
+              className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={!isLibraryView}
+                onClick={() => onView("ready")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
+                  !isLibraryView
+                    ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                    : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                }`}
+              >
+                <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <span>All / Ready Stock</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isLibraryView}
+                onClick={() => onView("catalog")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
+                  isLibraryView
+                    ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                    : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                }`}
+              >
+                <Layers className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <span>Hardware Library &amp; Specs</span>
+              </button>
+            </div>
+          </div>
+
+          {isLibraryView && (
+            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Hardware library tools">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "catalog"}
+                onClick={() => onView("catalog")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                  view === "catalog"
+                    ? "bg-primary text-surface"
+                    : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                }`}
+              >
+                <Layers className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span>Catalog &amp; Compare Specs</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "upgrade"}
+                onClick={() => onView("upgrade")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                  view === "upgrade"
+                    ? "bg-primary text-surface"
+                    : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                }`}
+              >
+                <Zap className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span>Max Upgrade Analyzer</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {view === "ready" && (
+        <div className="mx-auto max-w-shell space-y-8 px-4 py-8 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-default bg-surface p-5 shadow-sm">
+            <p className="max-w-[68ch] text-sm leading-relaxed text-secondary">
+              Pilih paket rakitan siap pakai, unit refurbished QC-pass, atau buka tab{" "}
+              <strong className="font-semibold text-primary">Hardware Library &amp; Specs</strong> untuk
+              membandingkan spesifikasi lengkap CPU, GPU, laptop, dan smartphone.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onView("catalog")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary transition hover:bg-canvas ${focusRing}`}
+              >
+                <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span>Buka Library &amp; Specs</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("builder")}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}
+              >
+                <Sliders className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <span>Buka Preset Builder</span>
+              </button>
+            </div>
+          </div>
+
+          <RoutePreviewExplorer
+            kind="market"
+            filters={MARKET_FILTERS}
+            items={MARKET_PREVIEW_ITEMS}
+            badgeText="Ready Stock · Sample"
+            drawerTitle="Etalase Market & Filter Kategori"
+            drawerDescription="Jelajahi paket rakitan terkurasi atau pindah ke tab Hardware Library & Specs untuk melihat perbandingan teknis hingga 4 perangkat."
+            searchPlaceholder="Cari preset PC, ThinkPad QC, smartphone, atau komponen…"
+          />
+        </div>
+      )}
+
       <Chromeless active={view === "catalog"}>
         <C.catalog
           onOpenBuilder={onOpenBuilder}
-          onCheckUpgrade={(id) => { onDevice(id); onView("upgrade"); }}
+          onCheckUpgrade={(id) => {
+            onDevice(id);
+            onView("upgrade");
+          }}
         />
       </Chromeless>
       <Chromeless active={view === "upgrade"}>
         <C.upgrade deviceId={deviceId} onDeviceChange={onDevice} onNavigate={onNavigate} />
       </Chromeless>
-    </>
+    </div>
   );
 });
 
@@ -837,35 +791,121 @@ const DEFAULT_COMPONENTS = {
 const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account", "community", "profile", "messages"];
 
 export default function ViciTechApp({
-  components,
+  components = undefined,
   initialRole = "b2c",
   initialModule = "home",
+  initialView = "",
   initialSerial = null,
   initialProfileUsername = "",
   initialMessageUsername = "",
-  homeUrl,
-  onSignOut,
+  homeUrl = undefined,
+  onSignOut = undefined,
 }) {
   const { triggerCheckout } = useCheckout();
   const C = useMemo(() => ({ ...DEFAULT_COMPONENTS, ...components }), [components]);
-  const [active, setActive] = useState(initialModule);
-  const [views, setViews] = useState(DEFAULT_VIEWS);
-  const [visited, setVisited] = useState(() => new Set(["home", initialModule]));
+  const [resolvedInitialModule] = normalizeModuleTarget(initialModule, initialView);
+  const resolvedInitialMarketView =
+    initialModule === "library"
+      ? validView("market", initialView) ? initialView : "catalog"
+      : validView("market", initialView) ? initialView : "ready";
+
+  const [active, setActive] = useState(resolvedInitialModule);
+  const [views, setViews] = useState(() => ({ ...DEFAULT_VIEWS, market: resolvedInitialMarketView }));
+  const [visited, setVisited] = useState(() => new Set(["home", resolvedInitialModule]));
   const [role, setRole] = useState(initialRole);
-  const [authState, setAuthState] = useState({ user: null, session: null, isLoading: true });
-  const [notifsByRole, setNotifsByRole] = useState(SEED_NOTIFS);
+  const [authState, setAuthState] = useState({ user: null, profile: null, session: null, isLoading: true });
   const [upgradeDevice, setUpgradeDevice] = useState("t14");
   const [builderConfig, setBuilderConfig] = useState(null);
   const [qcSerial, setQcSerial] = useState(initialSerial);
   const [palette, setPalette] = useState(false);
-  const [drawer, setDrawer] = useState(false);
   const [toast, setToast] = useState(null);
 
   const notify = useCallback((msg) => setToast({ msg, n: Date.now() }), []);
   const updateAuthState = useCallback((nextAuthState) => {
-    setAuthState(nextAuthState);
+    const resolvedProfile = nextAuthState?.profile ?? null;
+    const baseUser = nextAuthState?.user ?? null;
+    setAuthState({
+      ...nextAuthState,
+      profile: resolvedProfile,
+      user: baseUser ? { ...baseUser, profile: resolvedProfile } : null,
+    });
   }, []);
   const clearToast = useCallback(() => setToast(null), []);
+
+  useEffect(() => {
+    if (!isSupabaseAuthConfigured) {
+      setAuthState({ user: null, profile: null, session: null, isLoading: false });
+      return undefined;
+    }
+
+    let client;
+    try {
+      client = getSupabaseBrowserClient();
+    } catch {
+      setAuthState({ user: null, profile: null, session: null, isLoading: false });
+      return undefined;
+    }
+    if (!client) {
+      setAuthState({ user: null, profile: null, session: null, isLoading: false });
+      return undefined;
+    }
+
+    let cancelled = false;
+    const syncSession = async (session) => {
+      if (cancelled) return;
+      if (!session?.user) {
+        setAuthState({ user: null, profile: null, session: null, isLoading: false });
+        return;
+      }
+      try {
+        const { profile: resolvedProfile, error: profileError } =
+          await fetchOrEnsureUserProfile(client, session.user);
+        if (cancelled) return;
+        if (profileError && isExpiredOrInvalidTokenError(profileError)) {
+          await forceResetAuthSession(client);
+          if (!cancelled) {
+            setAuthState({ user: null, profile: null, session: null, isLoading: false });
+          }
+          return;
+        }
+        updateAuthState({
+          user: session.user,
+          profile: resolvedProfile ?? null,
+          session,
+          isLoading: false,
+        });
+      } catch (error) {
+        if (cancelled) return;
+        if (isExpiredOrInvalidTokenError(error)) {
+          await forceResetAuthSession(client);
+          setAuthState({ user: null, profile: null, session: null, isLoading: false });
+          return;
+        }
+        updateAuthState({ user: session.user, profile: null, session, isLoading: false });
+      }
+    };
+
+    client.auth.getSession().then(({ data }) => syncSession(data?.session ?? null));
+    const { data: subscriptionData } = client.auth.onAuthStateChange((_event, nextSession) => {
+      syncSession(nextSession ?? null);
+    });
+
+    return () => {
+      cancelled = true;
+      subscriptionData?.subscription?.unsubscribe();
+    };
+  }, [updateAuthState]);
+
+  useEffect(() => {
+    const handleAuthBroadcast = (event) => {
+      if (event instanceof CustomEvent && event.detail) {
+        updateAuthState(event.detail);
+      }
+    };
+    window.addEventListener("vicitech:auth-state", handleAuthBroadcast);
+    return () => window.removeEventListener("vicitech:auth-state", handleAuthBroadcast);
+  }, [updateAuthState]);
+
   useEffect(() => {
     const handleOrderCreated = (event) => {
       if (event.detail?.id) {
@@ -875,6 +915,7 @@ export default function ViciTechApp({
     window.addEventListener("vicitech:order_created", handleOrderCreated);
     return () => window.removeEventListener("vicitech:order_created", handleOrderCreated);
   }, [notify]);
+
   const handleSignOut = useCallback(async () => {
     if (!supabase) {
       notify("Supabase authentication is not configured.");
@@ -887,6 +928,7 @@ export default function ViciTechApp({
         notify(`Sign out failed: ${error.message}`);
         return;
       }
+      await forceResetAuthSession(supabase);
     } catch (error) {
       notify(`Sign out failed: ${error.message}`);
       return;
@@ -900,6 +942,7 @@ export default function ViciTechApp({
     }
     notify("You have been signed out.");
   }, [notify, onSignOut]);
+
   useEffect(() => {
     try {
       const saved = window.sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY);
@@ -923,16 +966,12 @@ export default function ViciTechApp({
     setVisited((v) => (v.has(id) ? v : new Set(v).add(id)));
   }, []);
 
-  const navigate = useCallback((id, viewOrData) => {
+  const navigate = useCallback((rawId, rawViewOrData) => {
+    let [id, viewOrData] = normalizeModuleTarget(rawId, rawViewOrData);
+
     if (id === "home" && homeUrl && window.location.pathname !== homeUrl) {
       window.location.assign(homeUrl);
       return;
-    }
-
-    // Map legacy account/community to top-level community
-    if (id === "account" && viewOrData === "community") {
-      id = "community";
-      viewOrData = undefined;
     }
 
     // Direct serial lookup hand-off to IoT QC Engine
@@ -958,18 +997,35 @@ export default function ViciTechApp({
 
     const v = validView(id, viewOrData) ? viewOrData : undefined;
     show(id, v);
-    setDrawer(false);
     setPalette(false);
     const hash = `#${id}${v ? `/${v}` : ""}`;
     if (window.location.hash !== hash) window.history.pushState(null, "", hash);
+    window.dispatchEvent(new CustomEvent("vicitech:module-change", { detail: { module: id, view: v } }));
     window.scrollTo(0, 0);
   }, [show, notify, homeUrl]);
+
+  const handleQuerySync = useCallback((tab, view) => {
+    if (window.location.hash) return;
+    if (tab) {
+      const [normId, normView] = normalizeModuleTarget(tab, view);
+      if (BY_ID[normId]) {
+        show(normId, validView(normId, normView) ? normView : undefined);
+        return;
+      }
+    }
+    if (resolvedInitialModule === "market") {
+      const marketView = view === "library" ? "catalog" : view;
+      if (validView("market", marketView)) {
+        show("market", marketView);
+      }
+    }
+  }, [show, resolvedInitialModule]);
 
   // The URL hash mirrors the active view (deep links and the back button)
   useEffect(() => {
     const read = () => {
-      if (["qc", "profile", "messages"].includes(initialModule)) {
-        show(initialModule);
+      if (["qc", "profile", "messages"].includes(resolvedInitialModule)) {
+        show(resolvedInitialModule);
         if (window.location.hash) {
           window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
         }
@@ -977,39 +1033,75 @@ export default function ViciTechApp({
       }
       const rawHash = window.location.hash.slice(1);
       if (!rawHash) {
-        if (initialModule === "home") show("home");
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const tab = params.get("tab");
+          const view = params.get("view");
+          if (tab) {
+            const [normId, normView] = normalizeModuleTarget(tab, view);
+            if (BY_ID[normId]) {
+              show(normId, validView(normId, normView) ? normView : undefined);
+              return;
+            }
+          }
+          if (resolvedInitialModule === "market") {
+            const marketView = view === "library" ? "catalog" : view;
+            show("market", validView("market", marketView) ? marketView : resolvedInitialMarketView);
+            return;
+          }
+        }
+        if (resolvedInitialModule === "home") show("home");
+        else if (BY_ID[resolvedInitialModule]) show(resolvedInitialModule);
         return;
       }
-      let [id, view] = rawHash.split("/");
-      if (id === "account" && view === "community") {
-        id = "community";
-        view = undefined;
-      }
+      const [rawId, rawView] = rawHash.split("/");
+      const [id, view] = normalizeModuleTarget(rawId, rawView);
       if (!BY_ID[id]) return show("home");
       show(id, validView(id, view) ? view : undefined);
     };
     read();
     window.addEventListener("hashchange", read);
-    return () => window.removeEventListener("hashchange", read);
-  }, [show, initialModule]);
+    window.addEventListener("popstate", read);
+    return () => {
+      window.removeEventListener("hashchange", read);
+      window.removeEventListener("popstate", read);
+    };
+  }, [show, resolvedInitialModule, resolvedInitialMarketView]);
 
   useEffect(() => {
     if (BY_ID[active]) {
       document.title = `${BY_ID[active].label} | ViciTech OS`;
     }
-  }, [active]);
+    window.dispatchEvent(new CustomEvent("vicitech:module-change", { detail: { module: active, view: views[active] } }));
+  }, [active, views]);
 
-  // Ctrl+K / Cmd+K toggles the command palette
+  // Global Navbar events: Cmd/Ctrl+K command palette + in-app module navigation
   useEffect(() => {
-    const key = (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPalette((v) => !v); } };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, []);
+    const handleOpenPalette = (event) => {
+      event.preventDefault();
+      setPalette((v) => !v);
+    };
+    const handleNavigateModule = (event) => {
+      if (event instanceof CustomEvent && event.detail?.module) {
+        navigate(event.detail.module, event.detail.view);
+      }
+    };
+    window.addEventListener("vicitech:open-command-palette", handleOpenPalette);
+    window.addEventListener("vicitech:navigate-module", handleNavigateModule);
+    return () => {
+      window.removeEventListener("vicitech:open-command-palette", handleOpenPalette);
+      window.removeEventListener("vicitech:navigate-module", handleNavigateModule);
+    };
+  }, [navigate]);
 
   const closePalette = useCallback(() => setPalette(false), []);
-  const closeDrawer = useCallback(() => setDrawer(false), []);
-  const libView = useCallback((v) => navigate("library", v), [navigate]);
-  const setNotifs = useCallback((fn) => setNotifsByRole((s) => ({ ...s, [role]: fn(s[role] || []) })), [role]);
+  const handlePaletteSelect = useCallback((it) => navigate(it.module, it.view), [navigate]);
+  const marketView = useCallback((v) => navigate("market", v), [navigate]);
+  const handleMarketOpenBuilder = useCallback((items) => {
+    setBuilderConfig({ items });
+    notify("Selected hardware sent to Preset Builder.");
+    navigate("builder");
+  }, [navigate, notify]);
 
   // Cross-module prop hand-offs
   const extras = useMemo(() => ({
@@ -1082,26 +1174,69 @@ export default function ViciTechApp({
   }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F4F4F2] text-[#141518] font-sans antialiased">
-      <Navbar active={active} role={role} setRole={setRole} user={authState.user} notifs={notifsByRole[role] || []} setNotifs={setNotifs} onNavigate={navigate} onSearch={() => setPalette(true)} onMenu={() => setDrawer(true)} onNotify={notify} onAuthState={updateAuthState} onSignOut={handleSignOut} />
+    <div className="flex min-h-screen flex-col bg-canvas text-primary font-sans antialiased">
+      <Suspense fallback={null}>
+        <QueryParamSync onSync={handleQuerySync} />
+      </Suspense>
 
       <main className="flex-1">
-        {active === "home" && <div className="vt-in"><HomeDashboard role={role} onNavigate={navigate} /></div>}
+        {active === "home" && (
+          <div className="vt-in">
+            <HomeDashboard role={role} onRoleChange={setRole} onNavigate={navigate} />
+          </div>
+        )}
 
-        {visited.has("library") && (
-          <div hidden={active !== "library"}>
-            <LibraryModule
+        {(active === "tradein" || active === "qc") && resolvedInitialModule !== "qc" && (
+          <div className="border-b border-default bg-surface">
+            <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+              <div>
+                <p className="text-xs font-semibold text-primary">Trade-In &amp; IoT QC Workspace</p>
+                <p className="text-xs text-secondary">Beralih antara estimasi buyback sirkular dan engine inspeksi serial IoT.</p>
+              </div>
+              <div role="tablist" aria-label="Trade-In and QC switcher" className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={active === "tradein"}
+                  onClick={() => navigate("tradein")}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-xs transition-colors ${focusRing} ${
+                    active === "tradein"
+                      ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                      : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                  }`}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                  <span>Circular Trade-In &amp; Buyback</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={active === "qc"}
+                  onClick={() => navigate("qc")}
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-xs transition-colors ${focusRing} ${
+                    active === "qc"
+                      ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                      : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                  }`}
+                >
+                  <Activity className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                  <span>IoT QC &amp; Telemetry Engine</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {visited.has("market") && (
+          <div hidden={active !== "market"}>
+            <MarketModule
               C={C}
-              view={views.library}
-              onView={libView}
+              view={views.market}
+              onView={marketView}
               deviceId={upgradeDevice}
               onDevice={setUpgradeDevice}
               onNavigate={navigate}
-              onOpenBuilder={(items) => {
-                setBuilderConfig({ items });
-                notify("Selected hardware sent to Preset Builder.");
-                navigate("builder");
-              }}
+              onOpenBuilder={handleMarketOpenBuilder}
             />
           </div>
         )}
@@ -1111,8 +1246,15 @@ export default function ViciTechApp({
       </main>
 
       <Footer onNavigate={navigate} />
-      <MobileDrawer open={drawer} onClose={closeDrawer} active={active} onNavigate={navigate} role={role} user={authState.user} />
-      <CommandPalette open={palette} onClose={closePalette} onSelect={(it) => navigate(it.module, it.view)} />
+      {palette && (
+        <WorkspaceCommandPalette
+          onClose={closePalette}
+          onSelect={handlePaletteSelect}
+          commands={COMMANDS}
+          byId={BY_ID}
+          serialRe={SERIAL_RE}
+        />
+      )}
       <ToastHost toast={toast} onDone={clearToast} />
     </div>
   );

@@ -13,9 +13,10 @@ module.exports = {
       fontFamily: {
         sans: ["var(--font-poppins)", "Poppins", "Arial", "sans-serif"],
         serif: ["var(--font-serif)", "Georgia", "Times New Roman", "serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
-        // ViciTech palette — the only colours the product uses.
+        // ViciTech palette — legacy shell aliases & DESIGN.md semantic tokens.
         paper: {
           DEFAULT: "#F4F4F2",
           deep: "#ECEDE9",
@@ -33,6 +34,28 @@ module.exports = {
           wash: "rgba(255,85,0,0.10)",
         },
         brick: "#B3261E",
+        // DESIGN.md semantic tokens.
+        canvas: "var(--bg-canvas)",
+        surface: "var(--bg-surface)",
+        subtle: "var(--bg-subtle)",
+        primary: "var(--text-primary)",
+        secondary: "var(--text-secondary)",
+        default: "var(--border-default)",
+        border: {
+          DEFAULT: "var(--border-default)",
+        },
+        accent: {
+          primary: "var(--accent-primary)",
+          hover: "var(--accent-hover)",
+          subtle: "var(--accent-subtle)",
+          foreground: "var(--accent-foreground)",
+        },
+        status: {
+          live: "var(--status-live)",
+          simulated: "var(--status-simulated)",
+          sample: "var(--status-sample)",
+          danger: "var(--status-danger)",
+        },
       },
       borderRadius: {
         "4xl": "1.75rem",

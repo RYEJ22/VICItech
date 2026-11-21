@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
   CheckCircle2, ShieldCheck, Zap, Plus, FileText, Check, X,
 } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { listHardwareComponents } from "@/lib/hardware/components";
 
 /* ───────────────────────── Category config ───────────────────────── */
 
 const MAX_COMPARE = 4;
+const ITEMS_PER_PAGE = 24;
 const num = (n) => new Intl.NumberFormat("id-ID").format(n);
 const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 const grade = (v) => (v >= 95 ? "A+" : v >= 90 ? "A" : v >= 80 ? "B" : "C");
@@ -121,14 +123,14 @@ const BOUNDS = Object.fromEntries(CAT_ORDER.map((k) => {
 }));
 /* ───────────────────────── Helpers ───────────────────────── */
 
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60";
 const specLabel = (s) => s.short || s.label;
 const specValue = (p, s) => (s.fmt ? s.fmt(p.specs[s.key]) : p.specs[s.key]);
 const iconOf = (p) => (p.cat === "pc" && p.type !== "Desktop" ? Cpu : CATS[p.cat].icon);
 const perfPerMillion = (p) => p.specs.perf / (p.price / 1e6);
 const newFilters = () => Object.fromEntries(CAT_ORDER.map((k) => [k, { cond: "all", brand: "all", type: "all", max: BOUNDS[k].max }]));
 
-function Overlay({ label, onClose, side = "right", children }) {
+function Overlay({ label, onClose, wide = false, children }) {
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     const prev = document.body.style.overflow;
@@ -136,11 +138,18 @@ function Overlay({ label, onClose, side = "right", children }) {
     document.body.style.overflow = "hidden";
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [onClose]);
-  const right = side === "right";
   return (
-    <div className={`fixed inset-0 z-50 flex bg-black/70 ${right ? "justify-end" : "items-end justify-center sm:items-center sm:p-6"}`} onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}
-        className={right ? "flex h-full w-full max-w-md flex-col border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950" : "flex max-h-[92vh] w-full max-w-5xl flex-col rounded-t-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sm:rounded-2xl"}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 md:items-stretch md:justify-end" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        onClick={(e) => e.stopPropagation()}
+        className={`flex max-h-[88svh] w-full flex-col rounded-t-2xl border-t border-default bg-surface pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl md:h-full md:max-h-full md:rounded-none md:border-l md:border-t-0 md:pb-0 ${wide ? "md:max-w-3xl" : "md:max-w-md"}`}
+      >
+        <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
+          <span className="h-1 w-10 rounded-full bg-default" />
+        </div>
         {children}
       </div>
     </div>
@@ -149,9 +158,14 @@ function Overlay({ label, onClose, side = "right", children }) {
 
 function OverlayHeader({ title, subtitle, onClose }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5">
-      <div><h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{title}</h2>{subtitle && <p className="text-sm text-zinc-600 dark:text-zinc-400">{subtitle}</p>}</div>
-      <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+    <div className="flex items-start justify-between gap-4 border-b border-default px-5 pb-4 pt-3 md:p-5">
+      <div className="min-w-0">
+        <h2 className="font-serif text-lg font-semibold text-primary">{title}</h2>
+        {subtitle && <p className="mt-0.5 text-sm text-secondary">{subtitle}</p>}
+      </div>
+      <button type="button" onClick={onClose} aria-label="Close" className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas ${focusRing}`}>
+        <X className="h-5 w-5" strokeWidth={1.75} />
+      </button>
     </div>
   );
 }
@@ -171,12 +185,12 @@ const Delta = ({ d }) => <span className="text-xs tabular-nums text-[#5A606A]">{
 
 /* ───────────────────────── Product card ───────────────────────── */
 
-function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet, onBuilder, onUpgrade }) {
+const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet, onBuilder, onUpgrade }) {
   const { triggerCheckout } = useCheckout();
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
-  const secondary = `inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/80 px-2 py-2 text-xs font-medium text-[#141518] shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 ${focusRing}`;
+  const secondary = `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/80 px-2.5 py-2 text-xs font-medium text-[#141518] shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 ${focusRing}`;
   return (
     <article className={`card-unibody card-unibody-hover relative flex flex-col justify-between rounded-2xl p-5 border-none transition-all duration-200 hover:-translate-y-1 ${inCompare ? "selected-indicator" : ""}`}>
       <div>
@@ -206,7 +220,7 @@ function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet,
       </div>
       <div className="mt-5 space-y-2 pt-2">
         <button type="button" aria-pressed={inCompare} disabled={blocked} onClick={() => onCompare(p)} title={blocked ? `Compare up to ${MAX_COMPARE} items` : undefined}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all shadow-sm ${focusRing} ${inCompare ? "bg-[#FF5500] text-white hover:bg-[#e04b00]" : blocked ? "cursor-not-allowed bg-black/5 text-[#5A606A]" : "bg-white/80 text-[#141518] hover:bg-white"}`}>
+          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all shadow-sm ${focusRing} ${inCompare ? "bg-[#FF5500] text-white hover:bg-[#e04b00]" : blocked ? "cursor-not-allowed bg-black/5 text-[#5A606A]" : "bg-white/80 text-[#141518] hover:bg-white"}`}>
           {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In side-by-side comparison" : "Add to Comparison"}
         </button>
         <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full`}><FileText className="h-3.5 w-3.5 text-[#5A606A]" /> View Full Datasheet</button>
@@ -222,7 +236,7 @@ function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet,
               type: "direct_buy",
               specs: p.specs,
             })}
-            className="btn-signal inline-flex items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold shadow-sm"
+            className="btn-signal inline-flex min-h-11 items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold shadow-sm"
           >
             Check Out Now
           </button>
@@ -233,7 +247,7 @@ function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet,
       </div>
     </article>
   );
-}
+});
 
 /* ───────────────────────── Overlays ───────────────────────── */
 
@@ -268,11 +282,11 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
           {p.cond === "refurb" ? "Recertified units pass the 15-point inspection and ship with a 12-month ViciTech warranty." : p.cond === "used" ? "Pre-owned component; inspect the listed specifications and condition before purchase." : "Sealed unit with the manufacturer's official warranty."}
         </p>
       </div>
-      <div className="grid gap-2 border-t border-zinc-200 dark:border-zinc-800 p-5 sm:grid-cols-2">
-        <button type="button" onClick={() => onCompare(p)} disabled={compareFull && !inCompare} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${inCompare ? "bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950" : "border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60"}`}>
+      <div className="grid gap-2 border-t border-default p-5 sm:grid-cols-2">
+        <button type="button" onClick={() => onCompare(p)} disabled={compareFull && !inCompare} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${inCompare ? "bg-accent-primary font-semibold text-primary" : "border border-default bg-surface text-primary hover:bg-subtle"}`}>
           {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In comparison" : "Add to comparison"}
         </button>
-        <button type="button" onClick={() => onBuilder(p.id)} className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${inBuilder ? "bg-emerald-400 text-zinc-950" : "border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:border-emerald-400/60"}`}>
+        <button type="button" onClick={() => onBuilder(p.id)} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${inBuilder ? "bg-accent-subtle font-semibold text-primary border border-accent-primary/40" : "border border-default bg-surface text-primary hover:bg-subtle"}`}>
           {inBuilder ? <CheckCircle2 className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {inBuilder ? "In Preset Builder" : "Add to Preset Builder"}
         </button>
       </div>
@@ -280,7 +294,7 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
   );
 }
 
-function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClose }) {
+function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, onClose }) {
   const cfg = CATS[cat];
   const hasPerf = cfg.specs.some((s) => s.key === "perf");
   const rows = useMemo(() => {
@@ -305,41 +319,48 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClose }) 
   const shown = diffOnly ? rows.filter((r) => !r.same) : rows;
 
   return (
-    <Overlay label="Side-by-side comparison" onClose={onClose} side="center">
-      <OverlayHeader title={`Compare ${cfg.short}`} subtitle="Green cells mark the best value in each row." onClose={onClose} />
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 px-5 py-3 text-sm">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-zinc-600 dark:text-zinc-400">
-          {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-emerald-700 dark:text-emerald-400">{p.name}</span></p>)}
+    <Overlay label="Side-by-side comparison" onClose={onClose} wide>
+      <OverlayHeader title={`Compare ${cfg.short}`} subtitle="Best spec values are highlighted in each row." onClose={onClose} />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-default px-5 py-3 text-sm">
+        <div className="flex flex-wrap gap-x-6 gap-y-1 text-secondary">
+          {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-primary">{p.name}</span></p>)}
         </div>
-        <label className="flex cursor-pointer items-center gap-2 text-zinc-700 dark:text-zinc-300">
-          <input type="checkbox" checked={diffOnly} onChange={(e) => setDiffOnly(e.target.checked)} className="h-4 w-4 accent-cyan-400" /> Show differences only
-        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 text-primary">
+            <input type="checkbox" checked={diffOnly} onChange={(e) => setDiffOnly(e.target.checked)} className="h-4 w-4 accent-accent-primary" /> Show differences only
+          </label>
+          {onClear && (
+            <button type="button" onClick={onClear} className={`min-h-11 rounded-lg border border-default bg-subtle px-3 py-1.5 text-xs font-medium text-primary hover:bg-canvas ${focusRing}`}>
+              Clear all
+            </button>
+          )}
+        </div>
       </div>
-      <div className="overflow-auto">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+      <div className="flex-1 overflow-auto">
+        <table className="w-full min-w-[600px] border-collapse text-sm">
           <thead>
             <tr>
-              <th className="w-44 p-3 sm:pl-5" />
+              <th className="w-40 p-3 sm:pl-5" />
               {items.map((p) => (
                 <th key={p.id} className="p-3 text-left align-top font-normal">
                   <div className="flex items-start justify-between gap-2">
-                    <div><p className="font-semibold text-zinc-900 dark:text-zinc-50">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
-                    <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p)} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+                    <div><p className="font-semibold text-primary">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
+                    <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-zinc-500">These items have identical specifications.</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-secondary">These items have identical specifications.</td></tr>}
             {shown.map((r) => (
-              <tr key={r.key} className="border-t border-zinc-200 dark:border-zinc-800">
-                <th scope="row" className="p-3 text-left font-normal text-zinc-600 dark:text-zinc-400 sm:pl-5">{r.label}</th>
+              <tr key={r.key} className="border-t border-default">
+                <th scope="row" className="p-3 text-left font-normal text-secondary sm:pl-5">{r.label}</th>
                 {items.map((p, i) => {
                   const win = r.best !== null && r.vals[i] === r.best;
                   return (
-                    <td key={p.id} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-700 dark:text-emerald-400" : r.same ? "text-zinc-500" : "text-zinc-800 dark:text-zinc-200"}`}>
-                      <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0" aria-label="Best in row" />}{r.show(r.vals[i])}</span>
+                    <td key={p.id} className={`p-3 align-top tabular-nums ${win ? "bg-accent-subtle font-semibold text-primary" : r.same ? "text-secondary" : "text-primary"}`}>
+                      <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-label="Best in row" />}{r.show(r.vals[i])}</span>
                     </td>
                   );
                 })}
@@ -369,22 +390,53 @@ function BuilderList({ items, onRemove, onClear, onClose, onOpenBuilder }) {
               <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
                 <div className="min-w-0 flex-1"><p className="truncate text-sm text-zinc-900 dark:text-zinc-100">{p.name}</p><p className="text-xs text-zinc-500">{CATS[p.cat].short}, {p.brand}</p></div>
                 <span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">{idr(p.price)}</span>
-                <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p.id)} className={`rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-4 w-4" /></button>
+                <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p.id)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 p-5">
-        <p className="flex justify-between text-base font-semibold"><span className="text-zinc-700 dark:text-zinc-300">Total</span><span className="tabular-nums text-emerald-700 dark:text-emerald-400">{idr(total)}</span></p>
-        {copied && <p role="status" className="text-xs text-emerald-700 dark:text-emerald-400">{copied}</p>}
-        {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`w-full rounded-lg bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 disabled:opacity-40 ${focusRing}`}>Open Preset Builder</button>}
+      <div className="space-y-2 border-t border-default p-5">
+        <p className="flex justify-between text-base font-semibold"><span className="text-secondary">Total</span><span className="tabular-nums text-primary">{idr(total)}</span></p>
+        {copied && <p role="status" className="text-xs text-status-live">{copied}</p>}
+        {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`min-h-11 w-full rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground disabled:opacity-40 ${focusRing}`}>Open Preset Builder</button>}
         <div className="flex gap-2">
-          <button type="button" disabled={!items.length} onClick={copy} className={`flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 hover:border-zinc-500 disabled:opacity-40 ${focusRing}`}>Copy list</button>
-          <button type="button" disabled={!items.length} onClick={onClear} className={`flex-1 rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-2.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 disabled:opacity-40 ${focusRing}`}>Clear all</button>
+          <button type="button" disabled={!items.length} onClick={copy} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}>Copy list</button>
+          <button type="button" disabled={!items.length} onClick={onClear} className={`min-h-11 flex-1 rounded-lg border border-default px-4 py-2.5 text-sm text-secondary hover:bg-subtle hover:text-primary disabled:opacity-40 ${focusRing}`}>Clear all</button>
         </div>
       </div>
     </Overlay>
+  );
+}
+
+function FilterControls({ cfg, f, options, bounds, setFilter, fieldClass }) {
+  return (
+    <>
+      <div>
+        <p className="mb-1.5 text-sm font-medium text-primary">Condition</p>
+        <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-xl bg-white/70 p-1 shadow-sm">
+          {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"], ["used", "Used"]].map(([v, label]) => (
+            <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`min-h-11 rounded-lg px-1 py-1.5 text-xs font-medium transition-all ${focusRing} ${f.cond === v ? "bg-[#FF5500] text-white shadow-sm" : "text-[#5A606A] hover:text-[#141518]"}`}>{label}</button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label htmlFor={`f-brand-${cfg.short}`} className="mb-1.5 block text-sm font-medium text-primary">Brand</label>
+        <select id={`f-brand-${cfg.short}`} value={f.brand} onChange={(e) => setFilter("brand", e.target.value)} className={`${fieldClass} min-h-11`}>
+          <option value="all">All brands</option>{options.brands.map((b) => <option key={b}>{b}</option>)}
+        </select>
+      </div>
+      <div>
+        <label htmlFor={`f-type-${cfg.short}`} className="mb-1.5 block text-sm font-medium text-primary">{cfg.typeLabel}</label>
+        <select id={`f-type-${cfg.short}`} value={f.type} onChange={(e) => setFilter("type", e.target.value)} className={`${fieldClass} min-h-11`}>
+          <option value="all">All</option>{options.types.map((t) => <option key={t}>{t}</option>)}
+        </select>
+      </div>
+      <div>
+        <label htmlFor={`f-price-${cfg.short}`} className="mb-1.5 flex justify-between text-sm font-medium text-primary"><span>Max price</span><span className="tabular-nums text-[#FF5500]">{idr(f.max)}</span></label>
+        <input id={`f-price-${cfg.short}`} type="range" min={bounds.min} max={bounds.max} step={STEP} value={Math.min(f.max, bounds.max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 h-8 w-full accent-[#FF5500]" />
+      </div>
+    </>
   );
 }
 
@@ -395,11 +447,14 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const [inventoryError, setInventoryError] = useState("");
   const [cat, setCat] = useState("phones");
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 250);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(newFilters);
   const [compare, setCompare] = useState({ phones: [], laptops: [], pc: [], peripherals: [] });
   const [builder, setBuilder] = useState([]);
   const [sheetId, setSheetId] = useState(null);
   const [panel, setPanel] = useState(null); // "compare" | "builder" | null
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [diffOnly, setDiffOnly] = useState(false);
 
   useEffect(() => {
@@ -481,7 +536,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
   const cfg = CATS[cat];
   const f = filters[cat];
-  const tokens = useMemo(() => query.trim().toLowerCase().split(/\s+/).filter(Boolean), [query]);
+  const tokens = useMemo(() => debouncedQuery.trim().toLowerCase().split(/\s+/).filter(Boolean), [debouncedQuery]);
 
   // Search runs across every category, so each tab shows how many matches it holds
   const searched = useMemo(() => products.filter((p) => tokens.every((t) => p.hay.includes(t))), [products, tokens]);
@@ -490,7 +545,17 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
     () => searched.filter((p) => p.cat === cat && (f.cond === "all" || p.cond === f.cond) && (f.brand === "all" || p.brand === f.brand) && (f.type === "all" || p.type === f.type) && p.price <= f.max),
     [searched, cat, f]
   );
+  const totalPages = Math.max(1, Math.ceil(visible.length / ITEMS_PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedVisible = useMemo(() => {
+    const start = (safePage - 1) * ITEMS_PER_PAGE;
+    return visible.slice(start, start + ITEMS_PER_PAGE);
+  }, [safePage, visible]);
   const otherHits = CAT_ORDER.filter((k) => k !== cat && tabCounts[k] > 0);
+
+  useEffect(() => {
+    setPage(1);
+  }, [cat, debouncedQuery, f]);
 
   const selected = compare[cat].map((id) => productById[id]).filter(Boolean);
   const builderItems = builder.map((id) => productById[id]).filter(Boolean);
@@ -500,36 +565,36 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
   useEffect(() => { if (panel === "compare" && selected.length < 2) setPanel(null); }, [panel, selected.length]);
 
-  const setFilter = (key, value) => setFilters((all) => ({ ...all, [cat]: { ...all[cat], [key]: value } }));
-  const resetFilters = () => {
+  const setFilter = useCallback(
+    (key, value) => setFilters((all) => ({ ...all, [cat]: { ...all[cat], [key]: value } })),
+    [cat],
+  );
+  const resetFilters = useCallback(() => {
     setQuery("");
     setFilters((all) => ({
       ...all,
       [cat]: { ...newFilters()[cat], max: categoryBounds[cat].max },
     }));
-  };
+  }, [cat, categoryBounds]);
   const toggleCompare = useCallback((p) => setCompare((c) => {
     const ids = c[p.cat];
     return { ...c, [p.cat]: ids.includes(p.id) ? ids.filter((i) => i !== p.id) : ids.length >= MAX_COMPARE ? ids : [...ids, p.id] };
   }), []);
   const toggleBuilder = useCallback((id) => setBuilder((l) => (l.includes(id) ? l.filter((i) => i !== id) : [...l, id])), []);
+  const clearCompare = useCallback(() => {
+    setCompare((c) => ({ ...c, [cat]: [] }));
+    setPanel(null);
+  }, [cat]);
+  const clearBuilder = useCallback(() => setBuilder([]), []);
   const closePanel = useCallback(() => setPanel(null), []);
   const closeSheet = useCallback(() => setSheetId(null), []);
   const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < categoryBounds[cat].max;
 
   const field = `w-full rounded-xl bg-white/80 px-3.5 py-2.5 text-sm text-[#141518] shadow-sm outline-none transition-all focus:ring-2 focus:ring-[#FF5500]/30`;
   return (
-    <div className="min-h-screen bg-[#F4F4F2] text-[#141518] antialiased">
-      <header className="glass-floating border-b border-black/[0.04]">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#FF5500] text-white shadow-sm"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight text-[#141518]">ViciTech</span>
-          <span className="badge-certified">Hardware Library</span>
-        </div>
-      </header>
-
-      <main className={`mx-auto max-w-7xl px-4 py-10 sm:px-6 ${barVisible ? "pb-32" : ""}`}>
-        <h1 className="font-serif italic text-3xl font-normal tracking-tight text-[#141518] sm:text-4xl">Hardware &amp; Peripheral Library</h1>
+    <div className="bg-[#F4F4F2] text-[#141518] antialiased">
+      <div className={`mx-auto max-w-7xl px-4 py-8 sm:px-6 ${barVisible ? "pb-36 md:pb-24" : "pb-16 md:pb-10"}`}>
+        <h2 className="font-serif text-3xl font-normal tracking-tight text-[#141518] sm:text-4xl">Hardware &amp; Peripheral Library</h2>
         <p className="mt-3 max-w-2xl text-[#5A606A] leading-relaxed">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
         {inventoryError && <p role="status" className="mt-4 rounded-xl bg-white p-4 text-sm text-[#FF5500] shadow-sm">{inventoryError} Showing the curated catalog instead.</p>}
 
@@ -541,7 +606,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
             const on = cat === k;
             return (
               <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="library-panel" onClick={() => setCat(k)}
-                className={`card-unibody card-unibody-hover relative flex flex-col justify-between rounded-2xl p-5 text-left border-none transition-all duration-200 hover:-translate-y-1 ${focusRing} ${on ? "selected-indicator" : "opacity-85 hover:opacity-100"}`}>
+                className={`card-unibody card-unibody-hover relative flex min-h-11 flex-col justify-between rounded-2xl p-5 text-left border-none transition-all duration-200 hover:-translate-y-1 ${focusRing} ${on ? "selected-indicator" : "opacity-85 hover:opacity-100"}`}>
                 <span className="flex items-center justify-between gap-2">
                   <span className={`grid h-10 w-10 place-items-center rounded-xl shadow-sm transition-all ${on ? "bg-[#FF5500] text-white" : "bg-white text-[#141518]"}`}><Icon className="h-5 w-5" /></span>
                   <span className="flex items-center gap-1.5">
@@ -549,7 +614,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
                     <span className="rounded-full bg-white px-2.5 py-0.5 text-xs tabular-nums text-[#5A606A] shadow-sm font-medium">{tabCounts[k]}</span>
                   </span>
                 </span>
-                <span className={`mt-4 block text-base font-semibold ${on ? "text-[#141518]" : "text-[#141518]"}`}>{c.label}</span>
+                <span className="mt-4 block text-base font-semibold text-[#141518]">{c.label}</span>
                 <span className="mt-1 block text-xs text-[#5A606A]">{c.focus}</span>
               </button>
             );
@@ -558,53 +623,68 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
         {/* Filters */}
         <section id="library-panel" role="tabpanel" aria-labelledby={`tab-${cat}`}>
-          <div className="card-unibody mt-6 rounded-2xl p-6 border-none shadow-sm">
-            <div className="relative">
-              <label htmlFor="lib-search" className="sr-only">Search all hardware categories</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5A606A]" />
-              <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search every category: brand, chipset, RTX, DDR5, wireless" className={`${field} py-3 pl-12`} />
+          <div className="card-unibody mt-6 rounded-2xl p-4 sm:p-6 border-none shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <label htmlFor="lib-search" className="sr-only">Search all hardware categories</label>
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5A606A]" />
+                <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search every category: brand, chipset, RTX, DDR5" className={`${field} min-h-11 py-2.5 pl-12`} />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(true)}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-default bg-surface px-3.5 py-2 text-sm font-medium text-primary shadow-sm md:hidden ${focusRing}`}
+              >
+                <SlidersHorizontal className="h-4 w-4 text-accent-primary" />
+                <span>Filter</span>
+                {filtersActive && <span aria-hidden="true" className="h-2 w-2 rounded-full bg-accent-primary" />}
+              </button>
             </div>
-            <div className="mt-5 grid gap-4 md:grid-cols-4">
-              <div>
-                <p className="mb-1.5 text-sm font-medium text-[#141518]">Condition</p>
-                <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-xl bg-white/70 p-1 shadow-sm">
-                  {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"], ["used", "Used"]].map(([v, label]) => (
-                    <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`rounded-lg px-1 py-1.5 text-xs font-medium transition-all ${focusRing} ${f.cond === v ? "bg-[#FF5500] text-white shadow-sm" : "text-[#5A606A] hover:text-[#141518]"}`}>{label}</button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label htmlFor="f-brand" className="mb-1.5 block text-sm font-medium text-[#141518]">Brand</label>
-                <select id="f-brand" value={f.brand} onChange={(e) => setFilter("brand", e.target.value)} className={field}>
-                  <option value="all">All brands</option>{categoryOptions[cat].brands.map((b) => <option key={b}>{b}</option>)}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="f-type" className="mb-1.5 block text-sm font-medium text-[#141518]">{cfg.typeLabel}</label>
-                <select id="f-type" value={f.type} onChange={(e) => setFilter("type", e.target.value)} className={field}>
-                  <option value="all">All</option>{categoryOptions[cat].types.map((t) => <option key={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="f-price" className="mb-1.5 flex justify-between text-sm font-medium text-[#141518]"><span>Max price</span><span className="tabular-nums text-[#FF5500]">{idr(f.max)}</span></label>
-                <input id="f-price" type="range" min={categoryBounds[cat].min} max={categoryBounds[cat].max} step={STEP} value={Math.min(f.max, categoryBounds[cat].max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 w-full accent-[#FF5500]" />
-              </div>
+            <div className="mt-5 hidden gap-4 md:grid md:grid-cols-4">
+              <FilterControls cfg={cfg} f={f} options={categoryOptions[cat]} bounds={categoryBounds[cat]} setFilter={setFilter} fieldClass={field} />
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm pt-2 border-t border-black/[0.04]">
               <p className="flex items-center gap-2 text-[#5A606A]"><SlidersHorizontal className="h-4 w-4" /> Filters for {cfg.short}. Search covers every category.</p>
-              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`rounded text-xs font-semibold text-[#FF5500] hover:underline disabled:text-[#5A606A] ${focusRing}`}>Reset filters</button>
+              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`min-h-11 rounded px-2 text-xs font-semibold text-[#FF5500] hover:underline disabled:text-[#5A606A] ${focusRing}`}>Reset filters</button>
             </div>
           </div>
 
           <p className="mt-6 text-sm text-[#5A606A]" aria-live="polite">Showing <span className="font-semibold text-[#141518]">{visible.length}</span> of {products.filter((p) => p.cat === cat).length} in {cfg.short}</p>
 
-          {visible.length ? (
-            <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {visible.map((p) => (
-                <ProductCard key={p.id} p={p} inCompare={compare[cat].includes(p.id)} compareFull={compare[cat].length >= MAX_COMPARE} inBuilder={builder.includes(p.id)}
-                  onCompare={toggleCompare} onSheet={setSheetId} onBuilder={toggleBuilder} onUpgrade={onCheckUpgrade} />
-              ))}
-            </div>
+          {paginatedVisible.length ? (
+            <>
+              <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {paginatedVisible.map((p) => (
+                  <ProductCard key={p.id} p={p} inCompare={compare[cat].includes(p.id)} compareFull={compare[cat].length >= MAX_COMPARE} inBuilder={builder.includes(p.id)}
+                    onCompare={toggleCompare} onSheet={setSheetId} onBuilder={toggleBuilder} onUpgrade={onCheckUpgrade} />
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-black/[0.06] bg-white px-4 py-3 text-sm shadow-sm">
+                  <p className="text-xs text-[#5A606A]">
+                    Halaman <span className="font-mono font-semibold text-[#141518]">{safePage}</span> / <span className="font-mono">{totalPages}</span>
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setPage((current) => Math.max(1, current - 1))}
+                      className={`min-h-10 rounded-xl border border-black/10 bg-[#F6F5F2] px-3.5 py-1.5 text-xs font-medium text-[#141518] hover:bg-white disabled:opacity-40 ${focusRing}`}
+                    >
+                      Sebelumnya
+                    </button>
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                      className={`min-h-10 rounded-xl border border-black/10 bg-[#F6F5F2] px-3.5 py-1.5 text-xs font-medium text-[#141518] hover:bg-white disabled:opacity-40 ${focusRing}`}
+                    >
+                      Berikutnya
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="card-unibody mt-4 rounded-2xl p-10 text-center border-none">
               <p className="text-[#141518] font-medium">No {cfg.short.toLowerCase()} match these filters.</p>
@@ -618,30 +698,28 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
             </div>
           )}
         </section>
-      </main>
-
-      <footer className="border-t border-black/[0.04] py-6 text-center text-xs text-[#5A606A]">ViciTech Engine v1.0. Sample catalog, prices and specifications.</footer>
+      </div>
 
       {barVisible && (
-        <div className="fixed inset-x-0 bottom-0 z-30 glass-floating border-t border-black/[0.04] shadow-lg">
+        <div className="fixed inset-x-0 bottom-16 z-30 glass-floating border-t border-black/[0.04] shadow-lg md:bottom-0">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
               {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-[#5A606A]">Comparing {cfg.short}:</span>}
               {selected.map((p) => (
-                <span key={p.id} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white py-1 pl-3 pr-1.5 text-xs text-[#141518] shadow-sm font-medium">
+                <span key={p.id} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-white pl-3.5 pr-1 text-xs text-[#141518] shadow-sm font-medium">
                   <span className="max-w-[10rem] truncate">{p.name}</span>
-                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`rounded-full p-0.5 text-[#5A606A] hover:bg-black/5 hover:text-[#141518] ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-[#5A606A] hover:bg-black/5 hover:text-[#141518] ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                 </span>
               ))}
               {selected.length === 1 && <span className="shrink-0 text-xs text-[#5A606A]">Pick one more {cfg.short.toLowerCase()} to compare</span>}
             </div>
             {builder.length > 0 && (
-              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>
+              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>
                 <Plus className="h-4 w-4 text-[#FF5500]" /> Preset Builder list ({builder.length})
               </button>
             )}
             {selected.length > 0 && (
-              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`btn-signal inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm ${focusRing} ${selected.length < 2 ? "opacity-50 cursor-not-allowed" : ""}`}>
+              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`btn-signal inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm ${focusRing} ${selected.length < 2 ? "opacity-50 cursor-not-allowed" : ""}`}>
                 <ArrowRightLeft className="h-4 w-4" /> Compare now
               </button>
             )}
@@ -649,9 +727,21 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
         </div>
       )}
 
+      {mobileFiltersOpen && (
+        <Overlay label={`Filter ${cfg.short}`} onClose={() => setMobileFiltersOpen(false)}>
+          <OverlayHeader title={`Filter ${cfg.label}`} subtitle="Sesuaikan kondisi, merek, tipe, dan batas harga" onClose={() => setMobileFiltersOpen(false)} />
+          <div className="flex-1 space-y-4 overflow-y-auto p-5">
+            <FilterControls cfg={cfg} f={f} options={categoryOptions[cat]} bounds={categoryBounds[cat]} setFilter={setFilter} fieldClass={field} />
+          </div>
+          <div className="flex gap-2 border-t border-default p-4">
+            <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary disabled:opacity-40 ${focusRing}`}>Reset</button>
+            <button type="button" onClick={() => setMobileFiltersOpen(false)} className={`min-h-11 flex-1 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}>Lihat {visible.length} Item</button>
+          </div>
+        </Overlay>
+      )}
       {sheet && <Datasheet p={sheet} inCompare={compare[sheet.cat].includes(sheet.id)} compareFull={compare[sheet.cat].length >= MAX_COMPARE} inBuilder={builder.includes(sheet.id)} onCompare={toggleCompare} onBuilder={toggleBuilder} onClose={closeSheet} />}
-      {compareOpen && <CompareModal items={selected} cat={cat} diffOnly={diffOnly} setDiffOnly={setDiffOnly} onRemove={toggleCompare} onClear={clearCompare} onClose={() => setCompareOpen(false)} />}
-      {panel === "builder" && <BuilderList items={builderItems} onRemove={toggleBuilder} onClear={clearBuilder} onClose={() => setPanel(null)} />}
+      {compareOpen && <CompareModal items={selected} cat={cat} diffOnly={diffOnly} setDiffOnly={setDiffOnly} onRemove={toggleCompare} onClear={clearCompare} onClose={closePanel} />}
+      {panel === "builder" && <BuilderList items={builderItems} onRemove={toggleBuilder} onClear={clearBuilder} onClose={closePanel} onOpenBuilder={onOpenBuilder} />}
     </div>
   );
 }

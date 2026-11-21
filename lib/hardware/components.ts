@@ -42,6 +42,9 @@ export type HardwareComponentInput = Omit<
   "id" | "created_at" | "updated_at"
 >;
 
+const HARDWARE_COMPONENT_COLUMNS =
+  "id, name, brand, category, architecture, base_price, stock_quantity, condition, specs, performance_score, is_active, created_at, updated_at";
+
 export async function listHardwareComponents(options: { activeOnly?: boolean } = {}): Promise<HardwareComponent[]> {
   const supabase = getSupabaseBrowserClient();
   const pageSize = 500;
@@ -50,7 +53,7 @@ export async function listHardwareComponents(options: { activeOnly?: boolean } =
   for (let from = 0; ; from += pageSize) {
     let query = supabase
       .from("hardware_components")
-      .select("*")
+      .select(HARDWARE_COMPONENT_COLUMNS)
       .order("name", { ascending: true })
       .range(from, from + pageSize - 1);
     if (options.activeOnly) query = query.eq("is_active", true);
@@ -69,7 +72,7 @@ export async function getHardwareComponent(id: string): Promise<HardwareComponen
   const supabase = getSupabaseBrowserClient();
   const { data, error } = await supabase
     .from("hardware_components")
-    .select("*")
+    .select(HARDWARE_COMPONENT_COLUMNS)
     .eq("id", id)
     .single();
 
@@ -82,7 +85,7 @@ export async function createHardwareComponent(input: HardwareComponentInput): Pr
   const { data, error } = await supabase
     .from("hardware_components")
     .insert(input)
-    .select("*")
+    .select(HARDWARE_COMPONENT_COLUMNS)
     .single();
 
   if (error) throw new Error(`Could not add hardware component: ${error.message}`);
@@ -98,7 +101,7 @@ export async function updateHardwareComponent(
     .from("hardware_components")
     .update(input)
     .eq("id", id)
-    .select("*")
+    .select(HARDWARE_COMPONENT_COLUMNS)
     .single();
 
   if (error) throw new Error(`Could not update hardware component: ${error.message}`);

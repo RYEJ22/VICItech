@@ -1,10 +1,25 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
-  CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X,
+  CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle,
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { sanitizeSingleLineText, sanitizeUserText } from "@/lib/validation/sanitize-text";
+import {
+  MEDIA_ACCEPT_ATTRIBUTE,
+  MAX_IMAGE_ATTACHMENTS,
+  formatMediaFileSize,
+  uploadMediaFile,
+  validateMediaFile,
+} from "@/lib/storage/uploadMedia";
+
+const MediaLightbox = dynamic(
+  () => import("@/components/vicitech/MediaLightbox").then((mod) => mod.MediaLightbox),
+  { ssr: false },
+);
 
 /* ───────────────────────── Static config & sample data ───────────────────────── */
 
@@ -23,6 +38,17 @@ const feedCategory = { build_showcase: "build", general: "guide", troubleshootin
 
 function mapDatabasePost(row) {
   const category = feedCategory[row.category] || "guide";
+  const rawUrls = Array.isArray(row.media_urls)
+    ? row.media_urls.filter((url) => typeof url === "string" && url.trim().length > 0)
+    : [];
+  const mediaType =
+    row.media_type === "video" || row.media_type === "image"
+      ? row.media_type
+      : rawUrls.some((url) => /\.(mp4|webm)(\?|$)/i.test(url))
+        ? "video"
+        : rawUrls.length > 0
+          ? "image"
+          : null;
   return {
     id: row.id,
     // Penulis = pemilik baris (user_id), bukan "you". Postingan user lain tidak lagi dianggap milik akun yang sedang login.
@@ -34,6 +60,8 @@ function mapDatabasePost(row) {
     likes: Number(row.likes_count) || 0,
     liked: false,
     comments: [],
+    mediaUrls: rawUrls,
+    mediaType,
   };
 }
 
@@ -94,6 +122,9 @@ const SEED_POSTS = [
   mk("p7", "dewi", "guide", 5800, "Best Refurbished Laptops under 5 Million IDR",
     "Shortlist for student and admin laptops: look for business-class models like the ThinkPad T480 or Latitude 7280, battery health above 85% and an SSD. Always ask for the inspection summary. #ThinkPadGradeA #Refurbished #BudgetLab",
     175, [["fajar", 5700, "Is Grade A cosmetic wear a problem for classroom use?"], ["dewi", 5600, "Not at all. It only affects the shell, and the 15-point check covers function."]]),
+  mk("p8", "sari", "guide", 5100, "Checklist Jaringan & UPS untuk 30 Unit PC Ujian CBT",
+    "Pembagian beban UPS dan switch gigabit agar sesi ujian serentak bebas drop tegangan maupun RTO. #CBTSetup #UPS #LabSekolah",
+    144, [["hendra", 5000, "Checklist pembagian jalur MCB ini sangat membantu tim teknisi sekolah kami."]]),
   mk("p9", "fajar", "qa", 600, "Is a 350 W PSU enough for an i5-12400 with a GTX 1650?",
     "We are speccing 20 office PCs and want to add a low-profile GPU to some. The Preset Builder shows about 150 W for the base build. Any reason to go bigger? #PSU #i512400",
     24, [["rizky", 540, "A 450 W Bronze unit gives you headroom and better efficiency. Check the load meter in the Preset Builder."], ["fajar", 500, "Thanks, switching to 450 W."]]),
@@ -212,32 +243,106 @@ function Composer({ onPublish }) {
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState("build");
   const [body, setBody] = useState("");
-  const [attached, setAttached] = useState(false);
+  const [attachedSpecs, setAttachedSpecs] = useState(false);
+  const [stagedMedia, setStagedMedia] = useState([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishStage, setPublishStage] = useState("");
+  const fileInputRef = useRef(null);
+  const stagedMediaRef = useRef([]);
+  stagedMediaRef.current = stagedMedia;
 
+  const isPublishing = Boolean(publishStage);
   const tags = useMemo(() => [...new Set(body.match(TAG_RE) ?? [])], [body]);
+
   useEffect(() => {
-    if (!notice) return;
+    if (!notice) return undefined;
     const t = setTimeout(() => setNotice(""), 3500);
     return () => clearTimeout(t);
   }, [notice]);
 
+  useEffect(() => {
+    return () => {
+      stagedMediaRef.current.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    };
+  }, []);
+
+  const handleFilesSelected = (event) => {
+    const fileList = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!fileList.length) return;
+
+    setError("");
+    const currentList = [...stagedMedia];
+
+    for (const file of fileList) {
+      const validation = validateMediaFile(file);
+      if (!validation.ok) {
+        setError(validation.error);
+        return;
+      }
+
+      if (currentList.some((item) => item.mediaType !== validation.mediaType)) {
+        setError("Pilih hingga 4 foto ATAU 1 video per postingan (tidak dapat dicampur).");
+        return;
+      }
+
+      if (validation.mediaType === "video" && currentList.length >= 1) {
+        setError("Maksimal 1 video yang dapat dilampirkan dalam satu postingan.");
+        return;
+      }
+
+      if (validation.mediaType === "image" && currentList.length >= MAX_IMAGE_ATTACHMENTS) {
+        setError(`Maksimal ${MAX_IMAGE_ATTACHMENTS} foto dapat dilampirkan dalam satu postingan.`);
+        return;
+      }
+
+      currentList.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        mediaType: validation.mediaType,
+        name: file.name,
+        size: file.size,
+      });
+    }
+
+    setStagedMedia(currentList);
+  };
+
+  const removeStagedMedia = (id) => {
+    setStagedMedia((current) => {
+      const removed = current.find((item) => item.id === id);
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      return current.filter((item) => item.id !== id);
+    });
+  };
+
   const publish = async () => {
     if (title.trim().length < 5) return setError("Give your post a title of at least 5 characters.");
     if (body.trim().length < 10) return setError("Add a few details (at least 10 characters) so others can help.");
-    setIsPublishing(true);
+    setPublishStage(stagedMedia.length ? "uploading" : "saving");
     setError("");
     try {
-      const published = await onPublish({ title: title.trim(), body: body.trim(), cat, attached });
+      const published = await onPublish({
+        title: title.trim(),
+        body: body.trim(),
+        cat,
+        attachedSpecs,
+        mediaFiles: stagedMedia,
+        onStageChange: setPublishStage,
+      });
       if (!published) return;
-      setTitle(""); setBody(""); setAttached(false);
+      stagedMedia.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      setTitle("");
+      setBody("");
+      setAttachedSpecs(false);
+      setStagedMedia([]);
       setNotice("Your post is live at the top of the feed.");
     } catch (publishError) {
       setError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
     } finally {
-      setIsPublishing(false);
+      setPublishStage("");
     }
   };
 
@@ -249,50 +354,155 @@ function Composer({ onPublish }) {
       </h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Post title</label>
+          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-700">Post title</label>
           <input id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="e.g. Quiet 4K editing rig under Rp 40 juta" className={field} />
         </div>
         <div>
-          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Category</label>
+          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-700">Category</label>
           <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
             {POSTABLE.map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
           </select>
         </div>
       </div>
       <div className="mt-3">
-        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-700 dark:text-zinc-300">Details</label>
+        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-700">Details</label>
         <textarea id="post-body" rows={4} value={body} onChange={(e) => { setBody(e.target.value); setError(""); }} placeholder={PROMPTS[cat]} className={`${field} resize-y`} />
         {tags.length > 0 && (
           <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
             <Tag className="h-3.5 w-3.5" /> Tags detected:
-            {tags.map((t) => <span key={t} className="rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[#A83A00] dark:text-[#A83A00]">{t}</span>)}
+            {tags.map((t) => <span key={t} className="rounded bg-[#FF5500]/10 px-1.5 py-0.5 text-[#A83A00]">{t}</span>)}
           </p>
         )}
       </div>
 
-      {attached && (
-        <div className="mt-3 flex gap-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-white/60 p-3">
-          <div className="grid h-16 w-24 shrink-0 place-items-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500"><ImageIcon className="h-6 w-6" /></div>
-          <div className="min-w-0 flex-1 text-sm">
-            <p className="text-zinc-900 dark:text-[#141518]">attached-photo.jpg <span className="text-xs text-zinc-500">(simulated)</span></p>
-            <p className="text-xs text-zinc-500">Sample spec sheet: {ATTACH_SPECS.map(([, v]) => v).join(", ")}</p>
-            {cat !== "build" && <p className="mt-1 text-xs text-zinc-500">The spec breakdown only appears on Build Showcases.</p>}
+      {stagedMedia.length > 0 && (
+        <div className="mt-3 space-y-2 rounded-2xl border border-black/[0.08] bg-[#FAF9F6] p-3">
+          <div className="flex items-center justify-between text-xs font-medium text-[#5A606A]">
+            <span>
+              {stagedMedia[0]?.mediaType === "video"
+                ? "Lampiran Video Siap Diunggah"
+                : `${stagedMedia.length}/${MAX_IMAGE_ATTACHMENTS} Foto Siap Diunggah`}
+            </span>
           </div>
-          <button type="button" aria-label="Remove attachment" onClick={() => setAttached(false)} className={`h-fit rounded p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-[#141518] ${focusRing}`}><X className="h-4 w-4" /></button>
+          {stagedMedia[0]?.mediaType === "video" ? (
+            <div className="relative overflow-hidden rounded-xl border border-black/10 bg-[#141518]">
+              <video
+                src={stagedMedia[0].previewUrl}
+                controls
+                muted
+                playsInline
+                preload="metadata"
+                className="max-h-60 w-full object-contain"
+              />
+              <div className="flex items-center justify-between gap-2 bg-white px-3 py-2 text-xs text-[#5A606A]">
+                <span className="truncate font-mono">{stagedMedia[0].name} ({formatMediaFileSize(stagedMedia[0].size)})</span>
+                <button
+                  type="button"
+                  onClick={() => removeStagedMedia(stagedMedia[0].id)}
+                  disabled={isPublishing}
+                  aria-label="Hapus video lampiran"
+                  className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-black/10 text-[#141518] hover:border-red-500/40 hover:text-red-700 ${focusRing}`}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              {stagedMedia.map((item) => (
+                <div key={item.id} className="group relative overflow-hidden rounded-xl border border-black/10 bg-white">
+                  <img
+                    src={item.previewUrl}
+                    alt={item.name}
+                    decoding="async"
+                    className="aspect-[4/3] w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeStagedMedia(item.id)}
+                    disabled={isPublishing}
+                    aria-label={`Hapus ${item.name}`}
+                    className={`absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#141518]/80 text-white hover:bg-red-600 ${focusRing}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <p className="truncate px-2 py-1 font-mono text-[10px] text-[#5A606A]">
+                    {formatMediaFileSize(item.size)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button type="button" onClick={() => setAttached(true)} disabled={attached} className={`inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-black/10 px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-[#A83A00] dark:hover:text-[#A83A00] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}>
-          <ImageIcon className="h-4 w-4" /> {attached ? "Attached" : "Attach image or spec sheet"}
+      {attachedSpecs && (
+        <div className="mt-3 flex gap-3 rounded-xl border border-black/[0.08] bg-[#FAF9F6] p-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-[#FF5500]"><Cpu className="h-5 w-5" /></div>
+          <div className="min-w-0 flex-1 text-sm">
+            <p className="font-medium text-[#141518]">Spec Sheet Sample Build</p>
+            <p className="text-xs text-[#5A606A]">{ATTACH_SPECS.map(([, v]) => v).join(" · ")}</p>
+          </div>
+          <button type="button" aria-label="Hapus spec sheet" onClick={() => setAttachedSpecs(false)} className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[#5A606A] hover:text-[#141518] ${focusRing}`}><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={MEDIA_ACCEPT_ATTRIBUTE}
+          multiple
+          onChange={handleFilesSelected}
+          className="sr-only"
+          aria-label="Pilih foto atau video untuk postingan"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isPublishing}
+          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 bg-[#FAF9F6] px-3.5 py-2 text-sm font-medium text-[#141518] transition hover:border-[#FF5500]/50 hover:text-[#A83A00] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+        >
+          <ImageIcon className="h-4 w-4 text-[#FF5500]" />
+          <Video className="h-4 w-4 text-[#FF5500]" />
+          <span>Foto / Video</span>
         </button>
-        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
-          <Send className="h-4 w-4" /> {isPublishing ? "Publishing…" : "Publish Post"}
+
+        {cat === "build" && (
+          <button
+            type="button"
+            onClick={() => setAttachedSpecs((v) => !v)}
+            disabled={isPublishing}
+            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm transition ${focusRing} ${
+              attachedSpecs
+                ? "border-[#FF5500] bg-[#FF5500]/10 font-medium text-[#A83A00]"
+                : "border-black/10 bg-white text-[#5A606A] hover:text-[#141518]"
+            }`}
+          >
+            <Cpu className="h-4 w-4" />
+            <span>{attachedSpecs ? "Spec Sheet Terlampir" : "Tambah Spec Sheet"}</span>
+          </button>
+        )}
+
+        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full bg-[#FF5500] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
+          {isPublishing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          <span>
+            {publishStage === "uploading"
+              ? "Mengunggah media…"
+              : publishStage === "saving"
+                ? "Mempublikasikan…"
+                : "Publish Post"}
+          </span>
         </button>
       </div>
       <div aria-live="polite">
-        {error && <p className="mt-3 text-sm text-red-700 dark:text-red-400">{error}</p>}
-        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-700"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
+        {error && (
+          <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-50 p-3 text-sm text-red-700">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </p>
+        )}
+        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
       </div>
     </section>
   );
@@ -300,7 +510,7 @@ function Composer({ onPublish }) {
 
 /* ───────────────────────── Post card ───────────────────────── */
 
-function PostCard({ post, onLike, onComment, onTag, resolve }) {
+const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolve, onOpenMedia }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [shareNote, setShareNote] = useState("");
@@ -308,6 +518,9 @@ function PostCard({ post, onLike, onComment, onTag, resolve }) {
   const cat = CATEGORIES[post.cat] || CATEGORIES.all;
   const CatIcon = cat.icon;
   const authorProfile = author.href;
+  const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
+  const isVideoPost =
+    post.mediaType === "video" || mediaUrls.some((url) => /\.(mp4|webm)(\?|$)/i.test(url));
 
   useEffect(() => {
     if (!shareNote) return;
@@ -350,6 +563,59 @@ function PostCard({ post, onLike, onComment, onTag, resolve }) {
 
       <h3 className="mt-4 text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{post.title}</h3>
       <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"><RichText text={post.body} onTag={onTag} /></p>
+
+      {mediaUrls.length > 0 && (
+        isVideoPost ? (
+          <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-[#141518]">
+            <video
+              src={mediaUrls[0]}
+              controls
+              playsInline
+              preload="metadata"
+              className="max-h-[440px] w-full object-contain"
+            />
+          </div>
+        ) : mediaUrls.length === 1 ? (
+          <button
+            type="button"
+            onClick={() => onOpenMedia?.(mediaUrls, 0, post.title)}
+            aria-label={`Perbesar gambar dari ${post.title}`}
+            className={`mt-3 block w-full overflow-hidden rounded-2xl border border-black/[0.06] bg-[#FAF9F6] ${focusRing}`}
+          >
+            <img
+              src={mediaUrls[0]}
+              alt={post.title}
+              width={800}
+              height={600}
+              loading="lazy"
+              decoding="async"
+              className="max-h-[440px] w-full object-cover transition hover:opacity-95"
+            />
+          </button>
+        ) : (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {mediaUrls.map((url, idx) => (
+              <button
+                key={`${url}-${idx}`}
+                type="button"
+                onClick={() => onOpenMedia?.(mediaUrls, idx, post.title)}
+                aria-label={`Perbesar gambar ${idx + 1} dari ${post.title}`}
+                className={`overflow-hidden rounded-xl border border-black/[0.06] bg-[#FAF9F6] ${focusRing}`}
+              >
+                <img
+                  src={url}
+                  alt={`${post.title} (${idx + 1})`}
+                  width={480}
+                  height={360}
+                  loading="lazy"
+                  decoding="async"
+                  className="aspect-[4/3] w-full object-cover transition hover:opacity-95"
+                />
+              </button>
+            ))}
+          </div>
+        )
+      )}
 
       {post.attachment && (
         <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-white/60 px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
@@ -410,7 +676,7 @@ function PostCard({ post, onLike, onComment, onTag, resolve }) {
       )}
     </article>
   );
-}
+});
 
 /* ───────────────────────── Sidebar ───────────────────────── */
 
@@ -497,14 +763,25 @@ function useCurrentUser() {
   return [currentUser, setCurrentUser];
 }
 
+const FEED_PAGE_SIZE = 6;
+const SUPABASE_FETCH_STEP = 24;
+
 export default function CommunityHub({ onNavigate }) {
   const [posts, setPosts] = useState(SEED_POSTS);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(query, 250);
+  const [visibleLimit, setVisibleLimit] = useState(FEED_PAGE_SIZE);
+  const [dbFetchLimit, setDbFetchLimit] = useState(SUPABASE_FETCH_STEP);
   const [publishError, setPublishError] = useState("");
   const [currentUser, setCurrentUser] = useCurrentUser();
   const [profiles, setProfiles] = useState({});
+  const [lightbox, setLightbox] = useState(null);
   const requestedProfiles = useRef(new Set());
+
+  useEffect(() => {
+    setVisibleLimit(FEED_PAGE_SIZE);
+  }, [category, debouncedQuery]);
 
   // Ambil username penulis dari tabel `profiles` (kolom: id = auth user id, username).
   // Jika tabel/kolom berbeda atau RLS menolak, penulis tampil tanpa link, bukan dengan link yang salah.
@@ -528,6 +805,7 @@ export default function CommunityHub({ onNavigate }) {
     }
   }, [currentUser?.id, loadProfiles]);
 
+  // Data fetching (re-runs only when dbFetchLimit expands)
   useEffect(() => {
     let supabase;
     try {
@@ -541,9 +819,9 @@ export default function CommunityHub({ onNavigate }) {
     const loadPosts = async () => {
       const { data, error } = await supabase
         .from("community_posts")
-        .select("id, user_id, title, content, category, likes_count, created_at")
+        .select("id, user_id, title, content, category, media_urls, media_type, likes_count, created_at")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(0, dbFetchLimit - 1);
       if (error) {
         if (isActive) setPublishError(`Community posts could not be refreshed: ${error.message}`);
         return;
@@ -560,13 +838,27 @@ export default function CommunityHub({ onNavigate }) {
     };
 
     void loadPosts();
+    return () => {
+      isActive = false;
+    };
+  }, [loadProfiles, dbFetchLimit]);
+
+  // Realtime subscription (kept independent from pagination state so loading more never churns sockets)
+  useEffect(() => {
+    let supabase;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch {
+      return undefined;
+    }
+
     const channel = supabase
       .channel("community-posts-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "community_posts" }, ({ new: row }) => {
         if (!row?.id || !row?.title || !row?.content) return;
         const post = mapDatabasePost(row);
         void loadProfiles(supabase, [row.user_id]);
-        setPosts((current) => current.some((existing) => existing.id === post.id) ? current : [post, ...current]);
+        setPosts((current) => (current.some((existing) => existing.id === post.id) ? current : [post, ...current]));
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
@@ -575,7 +867,6 @@ export default function CommunityHub({ onNavigate }) {
       });
 
     return () => {
-      isActive = false;
       void supabase.removeChannel(channel);
     };
   }, [loadProfiles]);
@@ -583,7 +874,7 @@ export default function CommunityHub({ onNavigate }) {
   const counts = useMemo(() => Object.fromEntries(CAT_ORDER.map((k) => [k, k === "all" ? posts.length : posts.filter((p) => p.cat === k).length])), [posts]);
 
   const visible = useMemo(() => {
-    const q = query.trim().toLowerCase().replace(/^#/, "");
+    const q = debouncedQuery.trim().toLowerCase().replace(/^#/, "");
     return posts
       .filter((p) => category === "all" || p.cat === category)
       .filter((p) => {
@@ -592,7 +883,12 @@ export default function CommunityHub({ onNavigate }) {
         return hay.includes(q);
       })
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [posts, category, query, resolve]);
+  }, [posts, category, debouncedQuery, resolve]);
+
+  const paginatedPosts = useMemo(
+    () => visible.slice(0, visibleLimit),
+    [visible, visibleLimit],
+  );
 
   const topTags = useMemo(() => {
     const tally = {};
@@ -600,42 +896,88 @@ export default function CommunityHub({ onNavigate }) {
     return Object.entries(tally).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8);
   }, [posts]);
 
-  const patch = (id, fn) => setPosts((list) => list.map((p) => (p.id === id ? fn(p) : p)));
-  const like = (id) => patch(id, (p) => ({ ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) }));
-  const addComment = (id, text) => patch(id, (p) => ({ ...p, comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: currentUser?.id ?? "you", text, createdAt: Date.now() }] }));
+  const patch = useCallback((id, fn) => setPosts((list) => list.map((p) => (p.id === id ? fn(p) : p))), []);
+  const like = useCallback((id) => patch(id, (p) => ({ ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) })), [patch]);
+  const addComment = useCallback((id, text) => {
+    const cleanText = sanitizeUserText(text, 1000);
+    if (!cleanText) return;
+    patch(id, (p) => ({
+      ...p,
+      comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: currentUser?.id ?? "you", text: cleanText, createdAt: Date.now() }],
+    }));
+  }, [currentUser?.id, patch]);
 
-  const publish = async ({ title, body, cat, attached }) => {
+  const publish = async ({ title, body, cat, attachedSpecs, mediaFiles = [], onStageChange }) => {
     setPublishError("");
+    const cleanTitle = sanitizeSingleLineText(title, 200);
+    const cleanBody = sanitizeUserText(body, 4000);
+    if (!cleanTitle || !cleanBody) {
+      setPublishError("Enter a valid post title and body before publishing.");
+      return false;
+    }
     try {
       const client = getSupabaseBrowserClient();
       // Ambil user terbaru dari Auth server TEPAT sebelum insert.
       // Jangan memakai prop/state `user`: bisa tertinggal setelah login, logout, atau ganti akun.
       const { data: { user: activeUser }, error: authError } = await client.auth.getUser();
       if (authError) throw new Error(authError.message);
-      if (!activeUser) throw new Error("Sign in before publishing a community post.");
+      if (!activeUser) throw new Error("Silakan login terlebih dahulu sebelum mempublikasikan postingan.");
       setCurrentUser(activeUser); // tampilan ikut akun yang benar-benar dipakai untuk insert
 
-      const { data, error } = await client.from("community_posts").insert({
-        user_id: activeUser.id,
-        title,
-        content: body,
-        category: databaseCategory[cat],
-      }).select("id, user_id, title, content, category, likes_count, created_at").single();
-      if (error) throw new Error(error.message);
+      let mediaUrls = [];
+      let mediaType = null;
+      if (Array.isArray(mediaFiles) && mediaFiles.length > 0) {
+        onStageChange?.("uploading");
+        const uploaded = await Promise.all(
+          mediaFiles.map((item) =>
+            uploadMediaFile({ file: item.file, userId: activeUser.id, context: "community" }),
+          ),
+        );
+        mediaUrls = uploaded.map((item) => item.url);
+        mediaType = uploaded[0]?.mediaType ?? null;
+      }
 
-      const post = mapDatabasePost(data);
+      onStageChange?.("saving");
+      let savedRow = null;
+      const { data: rpcData, error: rpcError } = await client.rpc("publish_community_post", {
+        p_title: cleanTitle,
+        p_content: cleanBody,
+        p_category: databaseCategory[cat],
+        p_record_shared_build: cat === "build",
+        p_media_urls: mediaUrls,
+        p_media_type: mediaType,
+      });
+
+      if (!rpcError && rpcData) {
+        savedRow = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+      } else if (rpcError && rpcError.code !== "PGRST202" && rpcError.code !== "42883") {
+        throw new Error(rpcError.message);
+      } else {
+        const { data, error } = await client.from("community_posts").insert({
+          user_id: activeUser.id,
+          title: cleanTitle,
+          content: cleanBody,
+          category: databaseCategory[cat],
+          media_urls: mediaUrls,
+          media_type: mediaType,
+        }).select("id, user_id, title, content, category, media_urls, media_type, likes_count, created_at").single();
+        if (error) throw new Error(error.message);
+        savedRow = data;
+
+        if (cat === "build") {
+          const { error: buildError } = await client.from("shared_builds").insert({ user_id: activeUser.id, title: cleanTitle });
+          if (buildError) setPublishError(`Post published, but the shared-build summary could not be saved: ${buildError.message}`);
+        }
+      }
+
+      const post = mapDatabasePost(savedRow);
       void loadProfiles(client, [activeUser.id]);
-      if (attached) {
-        post.attachment = "attached-photo.jpg";
-        if (cat === "build") post.specs = ATTACH_SPECS;
+      if (attachedSpecs && cat === "build") {
+        post.specs = ATTACH_SPECS;
       }
       setPosts((list) => [post, ...list.filter((existing) => existing.id !== post.id)]);
       setCategory("all");
       setQuery("");
-      if (cat === "build") {
-        const { error: buildError } = await client.from("shared_builds").insert({ user_id: activeUser.id, title });
-        if (buildError) setPublishError(`Post published, but the shared-build summary could not be saved: ${buildError.message}`);
-      }
       return true;
     } catch (publishError) {
       setPublishError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
@@ -643,8 +985,12 @@ export default function CommunityHub({ onNavigate }) {
     }
   };
 
-  const searchTag = (tag) => { setCategory("all"); setQuery(tag); };
-  const clearFilters = () => { setCategory("all"); setQuery(""); };
+  const searchTag = useCallback((tag) => { setCategory("all"); setQuery(tag); }, []);
+  const clearFilters = useCallback(() => { setCategory("all"); setQuery(""); }, []);
+  const handleOpenMedia = useCallback((images, index, title) => {
+    setLightbox({ images, index, title });
+  }, []);
+  const closeLightbox = useCallback(() => setLightbox(null), []);
 
   return (
     <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
@@ -689,9 +1035,36 @@ export default function CommunityHub({ onNavigate }) {
               Showing {visible.length} {visible.length === 1 ? "post" : "posts"}{query.trim() ? ` for “${query.trim()}”` : ""}
             </p>
 
-            {visible.length ? (
+            {paginatedPosts.length ? (
               <div className="space-y-4">
-                {visible.map((p) => <PostCard key={p.id} post={p} onLike={like} onComment={addComment} onTag={searchTag} resolve={resolve} />)}
+                {paginatedPosts.map((p) => (
+                  <PostCard
+                    key={p.id}
+                    post={p}
+                    onLike={like}
+                    onComment={addComment}
+                    onTag={searchTag}
+                    resolve={resolve}
+                    onOpenMedia={handleOpenMedia}
+                  />
+                ))}
+                {visible.length > visibleLimit && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextVisible = visibleLimit + FEED_PAGE_SIZE;
+                        setVisibleLimit(nextVisible);
+                        if (nextVisible >= dbFetchLimit - 4) {
+                          setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
+                        }
+                      }}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-black/10 bg-white px-5 py-2.5 text-sm font-medium text-[#141518] transition hover:border-[#FF5500]/40 hover:bg-[#FF5500]/[0.04] ${focusRing}`}
+                    >
+                      Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-zinc-200 dark:border-black/10 p-10 text-center">
@@ -709,6 +1082,15 @@ export default function CommunityHub({ onNavigate }) {
       <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">
         ViciTech Engine v1.0. Sample community content.
       </footer>
+
+      {lightbox && (
+        <MediaLightbox
+          images={lightbox.images}
+          initialIndex={lightbox.index}
+          altPrefix={lightbox.title || "Foto postingan komunitas"}
+          onClose={closeLightbox}
+        />
+      )}
     </div>
   );
 }

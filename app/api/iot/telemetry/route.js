@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 const JSON_HEADERS = { "Cache-Control": "no-store" };
+const TELEMETRY_LOG_COLUMNS =
+  "id, serial_number, order_id, cpu_temp_c, gpu_temp_c, fan_rpm, voltage_stability, stability_score, stress_test_status, burnin_hours, source, created_at";
 
 function respond(body, status) {
   return NextResponse.json(body, { status, headers: JSON_HEADERS });
@@ -97,7 +99,7 @@ export async function POST(request) {
     const { data: telemetryEntry, error: insertError } = await supabase
       .from("telemetry_logs")
       .insert(telemetry)
-      .select("*")
+      .select(TELEMETRY_LOG_COLUMNS)
       .single();
     if (insertError) {
       console.error("[ViciTech OS] Telemetry insert failed:", insertError);

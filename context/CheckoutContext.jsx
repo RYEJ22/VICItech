@@ -1,7 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import CheckoutModal, { PENDING_CHECKOUT_STORAGE_KEY } from "@/components/vicitech/CheckoutModal";
+import { PENDING_CHECKOUT_STORAGE_KEY } from "@/lib/checkout/constants";
+
+const CheckoutModal = dynamic(() => import("@/components/vicitech/CheckoutModal"), {
+  ssr: false,
+});
 
 export { PENDING_CHECKOUT_STORAGE_KEY };
 
@@ -32,11 +37,13 @@ export function CheckoutProvider({ children }) {
   return (
     <CheckoutContext.Provider value={value}>
       {children}
-      <CheckoutModal
-        itemData={checkoutData}
-        isOpen={isOpen}
-        onClose={closeCheckout}
-      />
+      {isOpen ? (
+        <CheckoutModal
+          itemData={checkoutData}
+          isOpen={isOpen}
+          onClose={closeCheckout}
+        />
+      ) : null}
     </CheckoutContext.Provider>
   );
 }
