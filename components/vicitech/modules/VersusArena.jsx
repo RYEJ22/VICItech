@@ -1,446 +1,832 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
-  Swords, Scale, Cpu, Laptop, Smartphone, CheckCircle2, XCircle, Zap, ArrowRightLeft, Trophy, Sparkles,
-  Search, ShieldCheck, X,
+  ArrowRightLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  ChevronDown,
+  Cpu,
+  Gauge,
+  Laptop,
+  Layers,
+  Scale,
+  Search,
+  Smartphone,
+  Sparkles,
+  Swords,
+  Trophy,
+  X,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { listHardwareComponents } from "@/lib/hardware/components";
+import {
+  VERSUS_CATEGORIES,
+  VERSUS_CATEGORY_META,
+  VERSUS_PROFILES,
+  evaluateVersus,
+  formatVersusIdr,
+  getVersusScenarioDisplay,
+  mergeVersusCatalog,
+} from "@/lib/algorithms/versusEngine";
+import styles from "./versus-arena.module.css";
 
-/* ───────────────────────── Sample catalog (prices in IDR) ───────────────────────── */
-// perf is a ViciTech performance index (0-100). It drives the "performance per Rp 1 juta" value score.
-
-const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
-const num = (n) => new Intl.NumberFormat("id-ID").format(n);
-
-const pc = (id, name, cond, price, cpu, cores, threads, gpu, vram, ramType, ramMhz, ramGb, tdp, multi, gaming, bottleneck, thermal, perf) =>
-  ({ id, cat: "pc", brand: "ViciTech", name, cond, price, cpu, cores, threads, gpu, vram, ramType, ramMhz, ramGb, tdp, multi, gaming, bottleneck, thermal, perf });
-const laptop = (id, brand, name, cond, price, cpu, cpuScore, gpu, gpuScore, display, srgb, weight, wh, hours, health, perf) =>
-  ({ id, cat: "laptops", brand, name, cond, price, cpu, cpuScore, gpu, gpuScore, display, srgb, weight, wh, hours, health, perf });
-const phone = (id, brand, name, cond, price, chip, chipScore, hz, camera, mp, battery, charging, perf) =>
-  ({ id, cat: "phones", brand, name, cond, price, chip, chipScore, hz, camera, mp, battery, charging, perf });
-
-const PCS = [
-  pc("b2s", "B2S CBT Labkom Standard", "new", 5600000, "Intel Core i3-12100", 4, 8, "Integrated UHD 730", 0, "DDR4-3200", 3200, 8, 117, 38, 30, 8, 60, 34),
-  pc("b2b", "B2B Enterprise Office Workstation", "new", 9850000, "Intel Core i5-12400", 6, 12, "Integrated UHD 730", 0, "DDR4-3200", 3200, 16, 151, 52, 40, 6, 64, 48),
-  pc("b2c", "B2C Creator & Gaming Rig", "new", 29550000, "AMD Ryzen 7 7800X3D", 8, 16, "RTX 4070 Super 12 GB", 12, "DDR5-6000", 6000, 32, 431, 70, 94, 12, 52, 86),
-  pc("esports", "Esports 1080p Rig", "new", 12900000, "AMD Ryzen 5 7600", 6, 12, "RTX 4060 8 GB", 8, "DDR5-6000", 6000, 16, 292, 58, 76, 5, 62, 66),
-  pc("render", "4K Render Workstation", "new", 41000000, "AMD Ryzen 9 7950X", 16, 32, "RTX 4070 12 GB", 12, "DDR5-6000", 6000, 64, 541, 100, 82, 18, 22, 94),
-  pc("sff", "Refurbished Office SFF (OptiPlex 7090)", "refurb", 6300000, "Intel Core i7-10700", 8, 16, "Integrated UHD 630", 0, "DDR4-2933", 2933, 16, 98, 46, 38, 7, 58, 44),
-  pc("mini", "Refurbished Mini PC (EliteDesk 800 G6)", "refurb", 4900000, "Intel Core i5-10500T", 6, 12, "Integrated UHD 630", 0, "DDR4-2666", 2666, 16, 70, 40, 30, 6, 66, 36),
-];
-const LAPTOPS = [
-  laptop("t14", "Lenovo", "ThinkPad T14 Gen 4", "refurb", 9800000, "Ryzen 7 PRO 7840U", 68, "Radeon 780M (integrated)", 20, '14" 1920×1200 IPS', 100, 1.4, 52.5, 11, 96, 62),
-  laptop("lat7440", "Dell", "Latitude 7440", "new", 22400000, "Core i7-1365U", 58, "Intel Iris Xe (integrated)", 18, '14" 1920×1200 IPS', 100, 1.36, 58, 12, 100, 58),
-  laptop("elite840", "HP", "EliteBook 840 G9", "refurb", 8200000, "Core i5-1245U", 52, "Intel Iris Xe (integrated)", 18, '14" 1920×1200 IPS', 100, 1.4, 51, 10, 94, 52),
-  laptop("g14", "ASUS", "ROG Zephyrus G14", "new", 33500000, "Ryzen 9 8945HS", 84, "RTX 4070 8 GB", 70, '14" 2880×1800 OLED', 100, 1.5, 73, 9, 100, 84),
-  laptop("legion5", "Lenovo", "Legion Pro 5", "new", 29900000, "Core i7-14700HX", 82, "RTX 4060 8 GB", 52, '16" 2560×1600 165 Hz IPS', 100, 2.5, 80, 6, 100, 80),
-  laptop("prec5570", "Dell", "Precision 5570", "refurb", 25000000, "Core i7-12800H", 70, "RTX A1000 4 GB", 40, '15.6" 3840×2400 IPS, 100% Adobe RGB', 100, 1.84, 86, 8, 92, 70),
-  laptop("aspire5", "Acer", "Aspire 5 (15.6 inch)", "new", 8900000, "Core i5-1335U", 54, "Intel Iris Xe (integrated)", 18, '15.6" 1920×1080 IPS', 62, 1.7, 50, 8, 100, 48),
-];
-const PHONES = [
-  phone("s24u", "Samsung", "Galaxy S24 Ultra 12/256 GB", "new", 19500000, "Snapdragon 8 Gen 3 for Galaxy", 96, 120, "200 MP main, 50 MP 5× tele, 12 MP ultrawide, 10 MP 3× tele", 200, 5000, 45, 96),
-  phone("ip15p", "Apple", "iPhone 15 Pro 256 GB", "new", 18500000, "Apple A17 Pro", 95, 120, "48 MP main, 12 MP 3× tele, 12 MP ultrawide", 48, 3274, 27, 95),
-  phone("x14tp", "Xiaomi", "Xiaomi 14T Pro 12/256 GB", "new", 9500000, "Dimensity 9300+", 90, 144, "50 MP main, 50 MP 2.6× tele, 12 MP ultrawide", 50, 5000, 120, 88),
-  phone("px8a", "Google", "Pixel 8a 128 GB", "new", 8200000, "Google Tensor G3", 70, 120, "64 MP main, 13 MP ultrawide", 64, 4492, 18, 66),
-  phone("a55", "Samsung", "Galaxy A55 5G 8/256 GB", "new", 6500000, "Exynos 1480", 52, 120, "50 MP main, 12 MP ultrawide, 5 MP macro", 50, 5000, 25, 52),
-  phone("rn13", "Xiaomi", "Redmi Note 13 Pro+ 12/512 GB", "new", 5200000, "Dimensity 7200 Ultra", 56, 120, "200 MP main, 8 MP ultrawide, 2 MP macro", 200, 5000, 120, 56),
-  phone("ip13", "Apple", "iPhone 13 128 GB", "refurb", 7200000, "Apple A15 Bionic", 62, 60, "12 MP main, 12 MP ultrawide", 12, 3240, 20, 62),
-];
-
-/* ───────────────────────── Comparison rows and verdict cases ───────────────────────── */
-// A row with `rank` is scored; `better` says whether high or low wins. Rows without `rank` are shown only.
-
-const valueOf = (p) => p.perf / (p.price / 1e6);
-const PRICE_ROW = { key: "price", label: "Price (IDR)", rank: (p) => p.price, better: "low", show: (p) => idr(p.price) };
-const VALUE_ROW = { key: "value", label: "Performance per Rp 1 juta", rank: valueOf, better: "high", show: (p) => valueOf(p).toFixed(1) };
-const perfRow = { key: "perf", label: "Performance Index", rank: (p) => p.perf, better: "high", show: (p) => `${p.perf} / 100` };
-const gradeText = (p) => (p.cond === "new" ? "New (100%)" : `Recertified A+ (${p.health}% battery)`);
-
-const CATS = {
-  pc: {
-    label: "PC & Component Presets", sub: "Raw specs, preset price and bottleneck score", icon: Cpu, items: PCS,
-    line: (p) => `${p.cpu} with ${p.gpu}`,
-    rows: [
-      { key: "cpu", label: "CPU", show: (p) => p.cpu },
-      { key: "cores", label: "CPU Cores / Threads", rank: (p) => p.cores, better: "high", show: (p) => `${p.cores}C / ${p.threads}T` },
-      { key: "gpu", label: "GPU", show: (p) => p.gpu },
-      { key: "vram", label: "GPU VRAM", rank: (p) => p.vram, better: "high", show: (p) => (p.vram ? `${p.vram} GB` : "Shared memory") },
-      { key: "ram", label: "RAM Capacity", rank: (p) => p.ramGb, better: "high", show: (p) => `${p.ramGb} GB` },
-      { key: "ramSpeed", label: "RAM Speed", rank: (p) => p.ramMhz, better: "high", show: (p) => `${p.ramType} (${num(p.ramMhz)} MT/s)` },
-      { key: "tdp", label: "TDP (peak system draw)", rank: (p) => p.tdp, better: "low", show: (p) => `${p.tdp} W` },
-      { key: "multi", label: "Multi-core Score", rank: (p) => p.multi, better: "high", show: (p) => `${p.multi} / 100` },
-      { key: "gaming", label: "Gaming Score", rank: (p) => p.gaming, better: "high", show: (p) => `${p.gaming} / 100` },
-      { key: "bottleneck", label: "Bottleneck Score (lower is better)", abs: 100, rank: (p) => p.bottleneck, better: "low", show: (p) => `${p.bottleneck}%` },
-      { key: "thermal", label: "Thermal Headroom", abs: 100, rank: (p) => p.thermal, better: "high", show: (p) => `${p.thermal}%` },
-      perfRow,
-    ],
-    cases: [
-      { id: "work", label: "Heavy Workstation", keys: ["multi", "cores", "ram", "thermal"] },
-      { id: "game", label: "Gaming", keys: ["gaming", "vram", "bottleneck"] },
-      { id: "office", label: "Efficient Office Fleets", keys: ["tdp", "thermal", "bottleneck"] },
-      { id: "value", label: "Value for Money", keys: ["value"] },
-    ],
-  },
-  laptops: {
-    label: "Laptops & Mobile Workstations", sub: "CPU and GPU, display, weight, battery and grade", icon: Laptop, items: LAPTOPS,
-    line: (p) => `${p.cpu}, ${p.gpu}`,
-    rows: [
-      { key: "cpu", label: "CPU", rank: (p) => p.cpuScore, better: "high", show: (p) => p.cpu },
-      { key: "gpu", label: "GPU", rank: (p) => p.gpuScore, better: "high", show: (p) => p.gpu },
-      { key: "display", label: "Display", show: (p) => p.display },
-      { key: "srgb", label: "sRGB Coverage", abs: 100, rank: (p) => p.srgb, better: "high", show: (p) => `${p.srgb}%` },
-      { key: "weight", label: "Weight", rank: (p) => p.weight, better: "low", show: (p) => `${p.weight} kg` },
-      { key: "battery", label: "Battery Capacity", rank: (p) => p.wh, better: "high", show: (p) => `${p.wh} Wh` },
-      { key: "hours", label: "Battery Life (office use)", rank: (p) => p.hours, better: "high", show: (p) => `about ${p.hours} h` },
-      { key: "grade", label: "Condition / Refurbished Grade", abs: 100, rank: (p) => p.health, better: "high", show: gradeText },
-      perfRow,
-    ],
-    cases: [
-      { id: "mobile", label: "Mobile Productivity", keys: ["weight", "hours", "battery"] },
-      { id: "creative", label: "Creative Work", keys: ["srgb", "gpu", "cpu"] },
-      { id: "power", label: "Raw Performance", keys: ["cpu", "gpu", "perf"] },
-      { id: "value", label: "Value for Money", keys: ["value"] },
-    ],
-  },
-  phones: {
-    label: "Smartphones & Mobile Devices", sub: "Processor, display, camera, battery and charging", icon: Smartphone, items: PHONES,
-    line: (p) => p.chip,
-    rows: [
-      { key: "chip", label: "Processor", rank: (p) => p.chipScore, better: "high", show: (p) => p.chip },
-      { key: "hz", label: "Display Refresh Rate", rank: (p) => p.hz, better: "high", show: (p) => `${p.hz} Hz` },
-      { key: "camera", label: "Camera Setup", show: (p) => p.camera },
-      { key: "mp", label: "Main Camera Resolution", rank: (p) => p.mp, better: "high", show: (p) => `${p.mp} MP` },
-      { key: "battery", label: "Battery", rank: (p) => p.battery, better: "high", show: (p) => `${num(p.battery)} mAh` },
-      { key: "charging", label: "Fast Charging", rank: (p) => p.charging, better: "high", show: (p) => `${p.charging} W` },
-      perfRow,
-    ],
-    cases: [
-      { id: "photo", label: "Photography", keys: ["mp", "chip"] },
-      { id: "battery", label: "Battery & Charging", keys: ["battery", "charging"] },
-      { id: "perf", label: "Gaming & Performance", keys: ["chip", "hz", "perf"] },
-      { id: "value", label: "Value for Money", keys: ["value"] },
-    ],
-  },
-};
-const TAB_ORDER = ["pc", "laptops", "phones"];
-
-const PHRASE = {
-  cores: "more CPU cores", vram: "more VRAM", ram: "more RAM", ramSpeed: "faster memory", tdp: "lower power draw",
-  multi: "a higher multi-core score", gaming: "stronger gaming performance", bottleneck: "a more balanced CPU and GPU pairing",
-  thermal: "better thermal headroom", perf: "higher overall performance", price: "a lower price", value: "better performance per Rp 1 juta",
-  cpu: "a faster CPU", gpu: "a faster GPU", srgb: "wider sRGB coverage", weight: "a lighter build", battery: "a bigger battery",
-  hours: "longer battery life", grade: "a better condition grade", chip: "a faster processor", hz: "a smoother display",
-  mp: "a higher-resolution main camera", charging: "faster charging",
+const CATEGORY_ICONS = {
+  build: Layers,
+  cpu: Cpu,
+  gpu: Gauge,
+  laptop: Laptop,
+  smartphone: Smartphone,
 };
 
-/* ───────────────────────── Comparison engine ───────────────────────── */
+const SOURCE_BADGES = {
+  supabase_market: { cls: "vt-badge-sample", label: "Katalog Market" },
+  supabase_hardware: { cls: "vt-badge-sample", label: "Katalog Komponen" },
+  curated_sample: { cls: "vt-badge-sample", label: "Data Referensi" },
+};
 
-function evaluate(cat, a, b) {
-  const rows = [...CATS[cat].rows, PRICE_ROW, VALUE_ROW].map((r) => {
-    if (!r.rank) return { ...r, win: null, adv: 0, note: "" };
-    const va = r.rank(a), vb = r.rank(b);
-    const raw = r.abs ? (va - vb) / r.abs : Math.log((va + 1e-9) / (vb + 1e-9));
-    const adv = Math.max(-1.5, Math.min(1.5, r.better === "high" ? raw : -raw)); // positive favors Item A
-    const win = Math.abs(raw) < 0.01 ? null : adv > 0 ? "a" : "b";
-    const hi = Math.max(va, vb), lo = Math.min(va, vb);
-    const note = !win ? "" : r.abs ? `${r.better === "high" ? "+" : "-"}${Math.round(hi - lo)} pts` : lo === 0 ? "" : r.better === "high" ? `+${Math.round((hi / lo - 1) * 100)}%` : `-${Math.round((1 - lo / hi) * 100)}%`;
-    return { ...r, win, adv: win ? adv : 0, note };
-  });
+const MARGIN_BADGES = {
+  dominant: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  narrow: "border-amber-200 bg-amber-50 text-amber-800",
+  tie: "border-default bg-subtle text-primary",
+};
 
-  const ranked = rows.filter((r) => r.rank);
-  const wonA = ranked.filter((r) => r.win === "a").length;
-  const wonB = ranked.filter((r) => r.win === "b").length;
-  const valA = valueOf(a), valB = valueOf(b);
-  const leader = wonA !== wonB ? (wonA > wonB ? "a" : "b") : valA >= valB ? "a" : "b";
+const DEFAULT_MARKET_LINKS = {
+  build: "/market?category=pc-build",
+  cpu: "/market?tab=market&view=catalog",
+  gpu: "/market?tab=market&view=catalog",
+  laptop: "/market?category=laptop",
+  smartphone: "/market?category=smartphone",
+};
 
-  // One verdict line per use case: weighted by the rows that matter for it
-  const verdicts = CATS[cat].cases.map((c) => {
-    const picked = ranked.filter((r) => c.keys.includes(r.key));
-    const score = picked.reduce((s, r) => s + r.adv, 0) / picked.length;
-    if (Math.abs(score) < 0.04) return { ...c, tie: true };
-    const side = score > 0 ? "a" : "b";
-    const [w, l] = side === "a" ? [a, b] : [b, a];
-    const sorted = picked.filter((r) => (side === "a" ? r.adv : -r.adv) > 0).sort((x, y) => Math.abs(y.adv) - Math.abs(x.adv));
-    const strong = sorted.filter((r) => Math.abs(r.adv) >= 0.05).slice(0, 2);
-    const reasons = (strong.length ? strong : sorted.slice(0, 1)).map((r) => PHRASE[r.key]);
-    const diff = w.price - l.price;
-    const clause = diff > 0 ? `, despite costing ${idr(diff)} more` : diff < 0 ? `, and it costs ${idr(-diff)} less` : "";
-    return { ...c, side, text: `${w.name} due to ${reasons.join(" and ")}${clause}` };
-  });
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 
-  return { rows, wonA, wonB, ranked: ranked.length, valA, valB, leader, verdicts };
-}
+function ItemComparisonCard({ item, sideLabel, compositeScore, resolved, isWinner, Icon, buttonRef, onPick }) {
+  const sourceBadge = SOURCE_BADGES[item.source] ?? SOURCE_BADGES.curated_sample;
+  const smartphone = resolved.smartphone;
 
-/* ───────────────────────── UI pieces ───────────────────────── */
-
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
-const SIDES = { a: { label: "Item A", text: "text-[#C94300]", bar: "bg-[#FF5500]" }, b: { label: "Item B", text: "text-[#30343A]", bar: "bg-[#8B9199]" } };
-
-function CondBadge({ cond }) {
-  return cond === "refurb" ? (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
-  ) : (
-    <span className="inline-flex rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-2 py-0.5 text-xs text-[#C94300] dark:text-cyan-300">New</span>
-  );
-}
-
-function ItemCard({ item, side, leader, line, Icon, onChange }) {
-  const s = SIDES[side];
   return (
-    <article className={`relative rounded-3xl border p-5 shadow-[0_10px_32px_rgba(20,21,24,0.04)] ${leader ? "border-[#FF5500]/30 bg-white ring-1 ring-[#FF5500]/10" : "border-black/[0.07] bg-white/80"}`}>
-      <div className="flex items-center justify-between">
-        <span className={`text-sm font-medium ${s.text}`}>{s.label}</span>
-        {leader && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400"><Trophy className="h-3.5 w-3.5" /> Leads overall</span>}
-      </div>
-      <div className="mt-3 flex gap-3">
-        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-950/70 text-zinc-500" aria-hidden="true"><Icon className="h-7 w-7" /></div>
-        <div className="min-w-0">
-          <h3 className="font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{item.name}</h3>
-          <p className="text-xs text-zinc-500">{item.brand}, {line(item)}</p>
-          <div className="mt-1.5"><CondBadge cond={item.cond} /></div>
+    <article
+      className={`vt-card-interactive flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm ${
+        isWinner ? "border-accent-primary ring-1 ring-accent-primary/20" : "border-default"
+      }`}
+    >
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-secondary">
+              {sideLabel}
+            </span>
+            <span className={sourceBadge.cls}>{sourceBadge.label}</span>
+          </div>
+          {isWinner && (
+            <span className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+              <Trophy className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+              <span>Unggul</span>
+            </span>
+          )}
+        </div>
+
+        <div className="mt-4 flex items-start gap-3">
+          <span
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-default ${
+              isWinner ? "bg-accent-subtle text-accent-cta" : "bg-subtle text-secondary"
+            }`}
+            aria-hidden="true"
+          >
+            <Icon className="h-6 w-6" strokeWidth={1.75} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-serif text-lg font-semibold leading-snug text-primary [text-wrap:balance]">
+              {item.name}
+            </h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">{item.subtitle}</p>
+            <p className="mt-1.5 inline-block rounded-md border border-default bg-subtle px-2 py-0.5 text-[11px] font-medium text-secondary">
+              {item.conditionLabel}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-default pt-4">
+          <div>
+            <p className="text-xs text-secondary">Skor Komposit</p>
+            <p className="mt-0.5 flex items-baseline gap-1">
+              <AnimatedNumber
+                value={compositeScore}
+                format="number"
+                decimals={1}
+                className={`text-2xl font-semibold ${isWinner ? "text-accent-cta" : "text-primary"}`}
+              />
+              <span className="font-mono text-xs text-secondary">/ 100</span>
+            </p>
+          </div>
+          {smartphone ? (
+            <div>
+              <p className="text-xs text-secondary">Baterai &amp; Charging</p>
+              <p className="mt-0.5 flex flex-wrap items-baseline gap-1.5">
+                <AnimatedNumber
+                  value={smartphone.batteryMah}
+                  format="number"
+                  suffix=" mAh"
+                  className="text-base font-semibold text-primary"
+                />
+                <span className="text-xs text-secondary">/</span>
+                <AnimatedNumber
+                  value={smartphone.chargingWatt}
+                  format="number"
+                  suffix=" W"
+                  className="text-base font-semibold text-accent-cta"
+                />
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs text-secondary">Estimasi TDP</p>
+              <p className="mt-0.5 flex items-baseline gap-1">
+                <AnimatedNumber
+                  value={resolved.tdpWatts}
+                  format="number"
+                  suffix=" W"
+                  className="text-lg font-semibold text-primary"
+                />
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3">
+          <p className="text-xs text-secondary">Harga Katalog</p>
+          <p className="mt-0.5 text-xl font-semibold text-primary">
+            <AnimatedNumber value={resolved.priceIdr} format="currency" />
+          </p>
         </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        <AnimatedNumber value={item.price} format="currency" />
-      </p>
-      <button type="button" onClick={onChange} className={`vt-btn-tactile mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium text-[#30343A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}>
-        <Search className="h-4 w-4" /> Change {s.label}
+
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={onPick}
+        className={`vt-btn-tactile mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary hover:border-accent-primary/50 hover:bg-subtle ${focusRing}`}
+      >
+        <Search className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+        <span>Ganti {sideLabel}</span>
       </button>
     </article>
   );
 }
 
-function Picker({ cat, side, otherId, currentId, onPick, onClose }) {
-  const [q, setQ] = useState("");
-  const cfg = CATS[cat];
+function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId, onPick, onClose, triggerRef }) {
+  const [query, setQuery] = useState("");
+  const drawerRef = useRef(null);
+  const inputRef = useRef(null);
+
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    const prev = document.body.style.overflow;
-    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
-  }, [onClose]);
-  const tokens = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const list = cfg.items.filter((p) => tokens.every((t) => `${p.brand} ${p.name} ${cfg.line(p)}`.toLowerCase().includes(t)));
+    const rafId = window.requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key === "Tab" && drawerRef.current) {
+        const focusables = drawerRef.current.querySelectorAll(
+          'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus?.();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus?.();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+      triggerRef?.current?.focus?.();
+    };
+  }, [onClose, triggerRef]);
+
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const filtered = items.filter((item) =>
+    tokens.every((token) =>
+      `${item.brand} ${item.name} ${item.subtitle}`.toLowerCase().includes(token),
+    ),
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-6" onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label={`Choose ${SIDES[side].label}`} onClick={(e) => e.stopPropagation()} className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-t-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sm:rounded-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 p-4">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Choose {SIDES[side].label}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 md:items-stretch md:justify-end"
+      onClick={onClose}
+    >
+      <aside
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Pilih ${sideLabel} untuk ${categoryLabel}`}
+        onClick={(event) => event.stopPropagation()}
+        className="vt-pop flex max-h-[85vh] w-full flex-col rounded-t-2xl border-t border-default bg-surface shadow-2xl md:h-full md:max-h-none md:max-w-lg md:rounded-none md:rounded-l-xl md:border-l md:border-t-0"
+      >
+        <div className="flex justify-center pt-2.5 md:hidden" aria-hidden="true">
+          <span className="h-1.5 w-10 rounded-full bg-default" />
         </div>
-        <div className="relative border-b border-zinc-200 dark:border-zinc-800 p-3">
-          <label htmlFor="picker-search" className="sr-only">Search {cfg.label}</label>
-          <Search className="pointer-events-none absolute left-6 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-          <input id="picker-search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, brand or chip" className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-2.5 pl-10 pr-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 ${focusRing}`} />
+
+        <div className="flex items-center justify-between gap-3 border-b border-default px-5 py-4">
+          <div>
+            <h2 className="font-serif text-lg font-semibold text-primary">
+              Pilih {sideLabel}
+            </h2>
+            <p className="text-xs text-secondary">{categoryLabel}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup panel pemilih perangkat"
+            className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
+          >
+            <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+          </button>
         </div>
-        <ul className="flex-1 divide-y divide-zinc-800 overflow-y-auto">
-          {list.length === 0 && <li className="p-6 text-center text-sm text-zinc-500">No matches in this category.</li>}
-          {list.map((p) => {
-            const taken = p.id === otherId;
+
+        <div className="border-b border-default p-4">
+          <label htmlFor="versus-picker-search" className="sr-only">
+            Cari perangkat di kategori {categoryLabel}
+          </label>
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+            <input
+              ref={inputRef}
+              id="versus-picker-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Cari nama produk, merek, chipset, CPU, atau GPU..."
+              className={`min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+            />
+          </div>
+        </div>
+
+        <ul className="flex-1 divide-y divide-default overflow-y-auto p-2">
+          {filtered.length === 0 && (
+            <li className="p-6 text-center text-sm text-secondary">
+              Tidak ada perangkat yang cocok dengan kata kunci tersebut.
+            </li>
+          )}
+          {filtered.map((item) => {
+            const isOther = item.id === otherId;
+            const isCurrent = item.id === currentId;
             return (
-              <li key={p.id}>
-                <button type="button" disabled={taken} onClick={() => onPick(p.id)} className={`flex w-full items-center gap-3 px-4 py-3 text-left ${focusRing} ${taken ? "cursor-not-allowed opacity-40" : p.id === currentId ? "bg-emerald-600/10 dark:bg-emerald-400/10" : "hover:bg-white dark:hover:bg-zinc-900"}`}>
+              <li key={item.id}>
+                <button
+                  type="button"
+                  disabled={isOther}
+                  onClick={() => onPick(item.id)}
+                  className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors ${focusRing} ${
+                    isOther
+                      ? "cursor-not-allowed opacity-45"
+                      : isCurrent
+                        ? "bg-accent-subtle text-primary"
+                        : "hover:bg-subtle"
+                  }`}
+                >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-zinc-900 dark:text-zinc-100">{p.name}</span>
-                    <span className="block truncate text-xs text-zinc-500">{p.brand}, {cfg.line(p)}</span>
+                    <span className="block truncate text-sm font-semibold text-primary">
+                      {item.name}
+                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-secondary">
+                      {item.subtitle}
+                    </span>
                   </span>
-                  <span className="flex flex-col items-end gap-1"><span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">{idr(p.price)}</span><CondBadge cond={p.cond} /></span>
-                  {taken && <span className="text-xs text-zinc-500">Used as {SIDES[side === "a" ? "b" : "a"].label}</span>}
+                  <span className="shrink-0 text-right">
+                    <span className="block font-mono text-xs font-semibold tabular-nums text-primary">
+                      {formatVersusIdr(item.specs.priceIdr)}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] text-secondary">
+                      {isOther
+                        ? "Dipakai pembanding lain"
+                        : isCurrent
+                          ? "Terpilih"
+                          : item.conditionLabel}
+                    </span>
+                  </span>
                 </button>
               </li>
             );
           })}
         </ul>
-      </div>
+      </aside>
     </div>
   );
 }
 
-/* ───────────────────────── Page ───────────────────────── */
+export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
+  const [remoteHardware, setRemoteHardware] = useState([]);
+  const [catalogNotice, setCatalogNotice] = useState("");
+  const [category, setCategory] = useState("build");
+  const [profile, setProfile] = useState("gaming");
+  const [selections, setSelections] = useState({});
+  const [pickerSide, setPickerSide] = useState(null);
+  const [showMethodology, setShowMethodology] = useState(false);
 
-export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
-  const [tab, setTab] = useState("pc");
-  // Each category keeps its own Item A / Item B selection
-  const [sel, setSel] = useState({ pc: { a: "b2c", b: "esports" }, laptops: { a: "t14", b: "lat7440" }, phones: { a: "s24u", b: "x14tp" } });
-  const [picker, setPicker] = useState(null); // "a" | "b" | null
-  const [deployed, setDeployed] = useState([]);
-  const [quote, setQuote] = useState(null);
-  const [notice, setNotice] = useState("");
+  const buttonARef = useRef(null);
+  const buttonBRef = useRef(null);
 
-  const cfg = CATS[tab];
-  const { a: idA, b: idB } = sel[tab];
-  const A = cfg.items.find((p) => p.id === idA);
-  const B = cfg.items.find((p) => p.id === idB);
-  const result = useMemo(() => evaluate(tab, A, B), [tab, A, B]);
-  const leaderItem = result.leader === "a" ? A : B;
-  const Icon = cfg.icon;
+  useEffect(() => {
+    let active = true;
+    listHardwareComponents({ activeOnly: true })
+      .then((items) => {
+        if (active) setRemoteHardware(items);
+      })
+      .catch(() => {
+        if (active) {
+          setCatalogNotice("Sebagian katalog komponen Supabase belum dapat dimuat; menampilkan katalog referensi terkurasi.");
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const choose = (side, id) => { setSel((s) => ({ ...s, [tab]: { ...s[tab], [side]: id } })); setPicker(null); setQuote(null); setNotice(""); };
-  const swap = () => { setSel((s) => ({ ...s, [tab]: { a: s[tab].b, b: s[tab].a } })); setQuote(null); setNotice(""); };
-  const switchTab = (k) => { setTab(k); setPicker(null); setQuote(null); setNotice(""); };
+  const catalogByCategory = useMemo(
+    () => mergeVersusCatalog(remoteHardware, marketProducts),
+    [remoteHardware, marketProducts],
+  );
 
-  const deploy = () => {
-    setDeployed((d) => (d.some((x) => x.id === leaderItem.id) ? d : [...d, leaderItem]));
-    onDeployToPreset?.(leaderItem);
-    setNotice(`${leaderItem.name} is queued for the Preset Builder.`);
+  const items = catalogByCategory[category] ?? [];
+  const defaultItemA = items[0];
+  const defaultItemB = items[1] ?? items[0];
+  const savedPair = selections[category];
+  const itemA = items.find((item) => item.id === savedPair?.a) ?? defaultItemA;
+  const itemB =
+    items.find((item) => item.id === savedPair?.b && item.id !== itemA?.id) ??
+    items.find((item) => item.id !== itemA?.id) ??
+    defaultItemB;
+
+  const result = useMemo(() => {
+    if (!itemA || !itemB) return null;
+    return evaluateVersus(itemA, itemB, profile);
+  }, [itemA, itemB, profile]);
+
+  if (!itemA || !itemB || !result) {
+    return null;
+  }
+
+  const CatIcon = CATEGORY_ICONS[category] ?? Layers;
+  const catMeta = VERSUS_CATEGORY_META[category];
+  const activeScenario = getVersusScenarioDisplay(category, profile);
+  const winnerSide = result.verdict.winnerSide;
+  const winnerItem = winnerSide === "a" ? itemA : itemB;
+  const winnerMarketHref = winnerItem.marketSlug
+    ? `/market/${encodeURIComponent(winnerItem.marketSlug)}`
+    : DEFAULT_MARKET_LINKS[category] ?? "/market?tab=market&view=catalog";
+  const supportsPresetBuilder = category === "build" || category === "cpu" || category === "gpu";
+
+  const handleSwap = () => {
+    setSelections((prev) => ({
+      ...prev,
+      [category]: { a: itemB.id, b: itemA.id },
+    }));
   };
-  const requestQuote = () => {
-    const ref = `VT-Q-${Date.now().toString(36).toUpperCase().slice(-6)}`;
-    setQuote({ ref, item: leaderItem, text: `ViciTech quote request ${ref}\n${leaderItem.name}\nListed price: ${idr(leaderItem.price)}\nStatus: pending review by the ViciTech team` });
-    onRequestQuote?.(leaderItem);
-    setNotice("");
-  };
-  const copyQuote = async () => {
-    try { await navigator.clipboard.writeText(quote.text); setNotice("Quote summary copied to clipboard."); } catch { setNotice("Copying isn't available in this browser."); }
+
+  const handlePick = (side, pickedId) => {
+    setSelections((prev) => ({
+      ...prev,
+      [category]: {
+        a: side === "a" ? pickedId : itemA.id,
+        b: side === "b" ? pickedId : itemB.id,
+      },
+    }));
+    setPickerSide(null);
   };
 
-  const total = Math.max(1, result.wonA + result.wonB);
-  const better = result.valA >= result.valB ? "a" : "b";
-  const valueGap = Math.round((Math.max(result.valA, result.valB) / Math.min(result.valA, result.valB) - 1) * 100);
+  const handleDeployWinner = () => {
+    onDeployToPreset?.(winnerItem);
+  };
 
   return (
-    <div className="bg-[#F6F5F2] text-[#141518] antialiased">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Make the comparison count</p>
-        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl"><Swords className="h-8 w-8 text-[#FF5500]" /> Versus Arena</h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-[#5A606A]">Put two products head to head, see who wins each spec, compare value per rupiah and get a clear verdict for the way you plan to use them.</p>
+    <div className="bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-shell px-4 py-10 sm:px-6">
+        <header className="max-w-3xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="vt-badge-simulated">Skor Simulasi Terbobot</span>
+            <span className="text-xs font-medium text-secondary">
+              Mesin Komparasi ViciTech
+            </span>
+          </div>
+          <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
+            <Swords className="h-7 w-7 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+            <span>Versus Arena</span>
+          </h1>
+          <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
+            Bandingkan dua konfigurasi PC, CPU, GPU, laptop, atau smartphone dalam kategori yang sama berdasarkan bobot skenario nyata dan indeks Price-to-Performance.
+          </p>
+        </header>
 
-        {/* Category tabs */}
-        <div role="tablist" aria-label="Comparison category" className="mt-8 grid gap-3 sm:grid-cols-3">
-          {TAB_ORDER.map((k) => {
-            const c = CATS[k];
-            const TabIcon = c.icon;
-            const on = tab === k;
-            return (
-              <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="arena-panel" onClick={() => switchTab(k)}
-                className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-all ${focusRing} ${on ? "border-[#FF5500]/30 bg-white shadow-[0_10px_28px_rgba(255,85,0,0.07)]" : "border-black/[0.07] bg-white/70 hover:border-black/15"}`}>
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${on ? "bg-[#FF5500] text-white" : "bg-[#F6F5F2] text-[#5A606A]"}`}><TabIcon className="h-5 w-5" /></span>
-                <span><span className={`block text-sm font-semibold ${on ? "text-[#C94300]" : "text-[#141518]"}`}>{c.label}</span><span className="block text-xs text-[#777C83]">{c.sub}</span></span>
-              </button>
-            );
-          })}
-        </div>
+        {catalogNotice && (
+          <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
+            {catalogNotice}
+          </p>
+        )}
 
-        <section id="arena-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="mt-6 space-y-6">
-          {/* Item A vs Item B */}
-          <div className="grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
-            <ItemCard item={A} side="a" leader={result.leader === "a"} line={cfg.line} Icon={Icon} onChange={() => setPicker("a")} />
-            <div className="flex items-center justify-center gap-3 md:flex-col">
-              <span className="grid h-12 w-12 place-items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#C94300] dark:text-[#C94300]"><Swords className="h-6 w-6" /></span>
-              <button type="button" onClick={swap} aria-label="Swap Item A and Item B" className={`vt-btn-tactile grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}><ArrowRightLeft className="h-4 w-4" /></button>
-            </div>
-            <ItemCard item={B} side="b" leader={result.leader === "b"} line={cfg.line} Icon={Icon} onChange={() => setPicker("b")} />
+        {/* Category Filter Pill Bar */}
+        <section
+          aria-label="Filter kategori perangkat"
+          className="mt-7 rounded-xl border border-default bg-surface p-3.5 shadow-sm"
+        >
+          <div
+            role="tablist"
+            aria-label="Kategori perbandingan perangkat"
+            className="flex flex-wrap items-center gap-2"
+          >
+            {VERSUS_CATEGORIES.map((catKey) => {
+              const meta = VERSUS_CATEGORY_META[catKey];
+              const Icon = CATEGORY_ICONS[catKey];
+              const isSelected = category === catKey;
+              return (
+                <button
+                  key={catKey}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    setCategory(catKey);
+                    setPickerSide(null);
+                  }}
+                  className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm ${focusRing} ${
+                    isSelected
+                      ? "bg-accent-cta text-white hover:bg-accent-cta-hover"
+                      : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                  <span>{meta.pillLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2.5 text-xs text-secondary">
+            Kategori aktif: <strong className="text-primary">{catMeta.label}</strong> — {catMeta.subtitle}.
+          </p>
+        </section>
+
+        {/* Use-case Weighting Pills */}
+        <section
+          aria-label="Profil skenario penilaian"
+          className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-surface p-3.5"
+        >
+          <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Pilih skenario bobot">
+            {VERSUS_PROFILES.map((profKey) => {
+              const scenario = getVersusScenarioDisplay(category, profKey);
+              const isActive = profile === profKey;
+              return (
+                <button
+                  key={profKey}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  onClick={() => setProfile(profKey)}
+                  className={`vt-btn-tactile min-h-11 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm ${focusRing} ${
+                    isActive
+                      ? "bg-primary text-surface"
+                      : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                  }`}
+                >
+                  {scenario.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs leading-relaxed text-secondary">
+            {activeScenario.description}
+          </p>
+        </section>
+
+        {/* 2-Column Head-to-Head + Swap */}
+        <section aria-label="Perbandingan langsung dua perangkat" className="mt-6 grid items-stretch gap-4 md:grid-cols-[1fr_auto_1fr]">
+          <ItemComparisonCard
+            item={itemA}
+            sideLabel="Kandidat A"
+            compositeScore={result.subScoresA.compositeScore}
+            resolved={result.resolvedA}
+            isWinner={winnerSide === "a"}
+            Icon={CatIcon}
+            buttonRef={buttonARef}
+            onPick={() => setPickerSide("a")}
+          />
+
+          <div className="flex items-center justify-center gap-3 md:flex-col">
+            <span
+              className="grid h-11 w-11 place-items-center rounded-full border border-default bg-surface text-accent-cta shadow-sm"
+              aria-hidden="true"
+            >
+              <Swords className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <button
+              type="button"
+              onClick={handleSwap}
+              className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary hover:border-accent-primary/50 hover:bg-subtle ${focusRing}`}
+            >
+              <ArrowRightLeft className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+              <span>Tukar Posisi</span>
+            </button>
           </div>
 
-          {/* Scoreboard */}
-          <div className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]" aria-label="Scoreboard">
-            <div className="flex items-center justify-between text-sm">
-              <span className={`font-medium ${SIDES.a.text}`}>{A.name}: <AnimatedNumber value={result.wonA} format="number" /> rows</span>
-              <span className="text-xs text-zinc-500">{result.ranked} ranked rows</span>
-              <span className={`font-medium ${SIDES.b.text}`}>{B.name}: <AnimatedNumber value={result.wonB} format="number" /> rows</span>
+          <ItemComparisonCard
+            item={itemB}
+            sideLabel="Kandidat B"
+            compositeScore={result.subScoresB.compositeScore}
+            resolved={result.resolvedB}
+            isWinner={winnerSide === "b"}
+            Icon={CatIcon}
+            buttonRef={buttonBRef}
+            onPick={() => setPickerSide("b")}
+          />
+        </section>
+
+        {/* Sub-Score GPU Horizontal Bars + Verdict Summary */}
+        <div className="mt-6 grid gap-6 lg:grid-cols-12">
+          <section
+            aria-labelledby="subscore-heading"
+            className="rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-6"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
+              <h2 id="subscore-heading" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                <Scale className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                <span>Skor Sub-Metrik (0–100)</span>
+              </h2>
+              <span className="font-mono text-xs text-secondary">
+                Profil: {activeScenario.label}
+              </span>
             </div>
-            <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="img" aria-label={`${A.name} wins ${result.wonA} rows, ${B.name} wins ${result.wonB}`}>
-              <div className={`${SIDES.a.bar} transition-all duration-500`} style={{ width: `${(result.wonA / total) * 100}%` }} />
-              <div className={`${SIDES.b.bar} ml-auto transition-all duration-500`} style={{ width: `${(result.wonB / total) * 100}%` }} />
-            </div>
-          </div>
 
-          {/* Matrix */}
-          <div className="overflow-hidden rounded-2xl border border-black/[0.07] bg-white shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-sm">
-                <caption className="sr-only">Specification comparison. Winning values are highlighted in green.</caption>
-                <thead className="bg-white/70 dark:bg-zinc-900/70">
-                  <tr>
-                    <th className="w-56 p-3 text-left font-normal text-zinc-500">Specification</th>
-                    <th className={`p-3 text-left font-semibold ${SIDES.a.text}`}>{A.name}</th>
-                    <th className={`p-3 text-left font-semibold ${SIDES.b.text}`}>{B.name}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {result.rows.map((r) => (
-                    <tr key={r.key} className={`border-t border-zinc-200 dark:border-zinc-800 ${r.key === "value" ? "bg-white/40 dark:bg-zinc-900/40" : ""}`}>
-                      <th scope="row" className="p-3 text-left font-normal text-zinc-600 dark:text-zinc-400">{r.label}</th>
-                      {[["a", A], ["b", B]].map(([side, item]) => {
-                        const win = r.win === side;
-                        const lose = r.rank && r.win && !win;
-                        return (
-                          <td key={side} className={`p-3 align-top ${win ? "bg-emerald-400/10 font-semibold text-emerald-700 dark:text-emerald-400" : lose ? "text-zinc-500" : "text-zinc-800 dark:text-zinc-200"}`}>
-                            <span className="flex items-start gap-1.5">
-                              {win && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-label="Wins this row" />}
-                              {lose && <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-zinc-600" aria-label="Loses this row" />}
-                              <span>{r.show(item)}{win && r.note && <span className="ml-2 text-xs font-normal text-emerald-700 dark:text-emerald-300">{r.note}</span>}</span>
-                            </span>
-                            {r.rank && !r.win && <span className="text-xs text-zinc-500">Tie</span>}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-5">
-            {/* Price to performance */}
-            <section aria-labelledby="value-title" className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-2 lg:self-start">
-              <h2 id="value-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]"><Scale className="h-5 w-5 text-[#FF5500]" /> Price to performance</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Performance index points you get for every Rp 1 juta.</p>
-              <div className="mt-4 space-y-4">
-                {[["a", A, result.valA], ["b", B, result.valB]].map(([side, item, v]) => (
-                  <div key={side}>
-                    <div className="flex items-center justify-between gap-3 text-sm"><span className={`truncate ${SIDES[side].text}`}>{item.name}</span><span className={`flex items-center gap-1 ${better === side ? "font-semibold text-emerald-700 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"}`}><Zap className="h-3.5 w-3.5" /> <AnimatedNumber value={v} format="number" decimals={1} /></span></div>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full transition-all duration-500 ${better === side ? "bg-emerald-400" : "bg-zinc-500"}`} style={{ width: `${(v / Math.max(result.valA, result.valB)) * 100}%` }} /></div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-4 text-sm text-zinc-700 dark:text-zinc-300">{valueGap === 0 ? "Both deliver the same value per rupiah." : <><span className="font-semibold text-emerald-700 dark:text-emerald-400">{(better === "a" ? A : B).name}</span> gives <AnimatedNumber value={valueGap} format="percent" /> more performance per rupiah.</>}</p>
-            </section>
-
-            {/* Verdict */}
-            <section aria-labelledby="verdict-title" className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-3">
-              <h2 id="verdict-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]"><Sparkles className="h-5 w-5 text-[#FF5500]" /> ViciTech Verdict</h2>
-              <p className="text-xs text-zinc-500">Generated from the matrix above with rule-based scoring, not a benchmark run.</p>
-
-              <p className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                <Trophy className="h-4 w-4 shrink-0" />
-                <span>Recommended pick: <span className="font-semibold">{leaderItem.name}</span>, winning {result.leader === "a" ? result.wonA : result.wonB} of {result.ranked} ranked rows{result.wonA === result.wonB ? " and better value on a tie" : ""}.</span>
-              </p>
-
-              <ul className="mt-4 space-y-2.5">
-                {result.verdicts.map((v) => (
-                  <li key={v.id} className="flex gap-2.5 text-sm">
-                    {v.tie ? <Scale className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" /> : <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${v.side === "a" ? "text-[#C94300] dark:text-[#C94300]" : "text-amber-700 dark:text-amber-400"}`} />}
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      {v.tie ? <><span className="font-medium text-zinc-900 dark:text-zinc-100">{v.label}:</span> too close to call, the two are within 4%.</> : <><span className="font-medium text-zinc-900 dark:text-zinc-100">Winner for {v.label}:</span> {v.text}.</>}
+            <div className="mt-4 space-y-5">
+              {result.subScoreBars.map((bar) => (
+                <div key={bar.key} className="space-y-2">
+                  <div className="flex items-baseline justify-between gap-2 text-sm">
+                    <span className="font-medium text-primary">{bar.label}</span>
+                    <span className="font-mono text-xs text-secondary">
+                      {bar.weightPct > 0 ? `Bobot ${bar.weightPct}%` : "Metrik Referensi"}
                     </span>
+                  </div>
+
+                  {/* Bar Item A */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="truncate pr-2 text-secondary">{itemA.name}</span>
+                      <span
+                        className={`font-mono tabular-nums font-semibold ${
+                          bar.winner === "a" ? "text-accent-cta" : "text-primary"
+                        }`}
+                      >
+                        {bar.scoreA.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className={styles.barTrack} role="presentation">
+                      <div
+                        className={`${styles.barFill} ${
+                          bar.winner === "a" ? "bg-accent-primary" : "bg-secondary/35"
+                        }`}
+                        style={{ transform: `scaleX(${Math.max(0.03, Math.min(1, bar.scoreA / 100))})` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bar Item B */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="truncate pr-2 text-secondary">{itemB.name}</span>
+                      <span
+                        className={`font-mono tabular-nums font-semibold ${
+                          bar.winner === "b" ? "text-accent-cta" : "text-primary"
+                        }`}
+                      >
+                        {bar.scoreB.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className={styles.barTrack} role="presentation">
+                      <div
+                        className={`${styles.barFill} ${
+                          bar.winner === "b" ? "bg-accent-primary" : "bg-secondary/35"
+                        }`}
+                        style={{ transform: `scaleX(${Math.max(0.03, Math.min(1, bar.scoreB / 100))})` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Verdict ViciTech Card */}
+          <section
+            aria-labelledby="verdict-heading"
+            className="flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-6"
+          >
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
+                <h2 id="verdict-heading" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                  <Sparkles className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                  <span>Verdict ViciTech</span>
+                </h2>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-semibold ${MARGIN_BADGES[result.verdict.marginTier]}`}
+                >
+                  <Trophy className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                  <span>
+                    {result.verdict.marginLabel} ({result.verdict.marginPts.toFixed(1)} poin)
+                  </span>
+                </span>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-default bg-accent-subtle p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-accent-cta">
+                  Rekomendasi Utama · {activeScenario.label}
+                </p>
+                <p className="mt-1 font-serif text-xl font-semibold leading-snug text-primary [text-wrap:balance]">
+                  {result.verdict.headline}
+                </p>
+              </div>
+
+              <ul className="mt-4 space-y-3">
+                {result.verdict.bullets.map((bullet, index) => (
+                  <li key={index} className="flex items-start gap-2.5 text-sm leading-relaxed text-secondary">
+                    <CheckCircle2
+                      className="mt-0.5 h-4 w-4 shrink-0 text-accent-cta"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
+                    <span>{bullet}</span>
                   </li>
                 ))}
               </ul>
+            </div>
 
-              <div className="mt-5 flex flex-wrap gap-3">
-                <button type="button" onClick={deploy} className={`vt-btn-tactile inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] ${focusRing}`}><Cpu className="h-4 w-4" /> Deploy to Preset Builder</button>
-                <button type="button" onClick={requestQuote} className={`vt-btn-tactile inline-flex items-center gap-2 rounded-full border border-[#FF5500]/25 px-5 py-3 text-sm font-medium text-[#C94300] hover:bg-[#FF5500]/[0.06] ${focusRing}`}><ShieldCheck className="h-4 w-4" /> Request Official Quote</button>
-              </div>
+            <div className="mt-6 flex flex-wrap gap-3 border-t border-default pt-4">
+              <Link
+                href={winnerMarketHref}
+                className={`vt-btn-tactile inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
+              >
+                <span>Lihat di Market</span>
+                <ArrowUpRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              </Link>
+              {supportsPresetBuilder ? (
+                <button
+                  type="button"
+                  onClick={handleDeployWinner}
+                  className={`vt-btn-tactile inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary hover:border-accent-primary/50 hover:bg-subtle ${focusRing}`}
+                >
+                  <Cpu className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                  <span>Muat ke Preset Builder</span>
+                </button>
+              ) : (
+                <Link
+                  href="/market?tab=market&view=catalog"
+                  className={`vt-btn-tactile inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary hover:border-accent-primary/50 hover:bg-subtle ${focusRing}`}
+                >
+                  <Layers className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                  <span>Jelajahi Katalog Hardware</span>
+                </Link>
+              )}
+            </div>
+          </section>
+        </div>
 
-              <div aria-live="polite" className="mt-3 space-y-2 text-sm">
-                {notice && <p className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
-                {quote && (
-                  <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 p-3">
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">Quote request {quote.ref}</p>
-                    <p className="text-zinc-600 dark:text-zinc-400">{quote.item.name}, listed at {idr(quote.item.price)}. The ViciTech team reviews it and replies with the official quote.</p>
-                    <button type="button" onClick={copyQuote} className={`mt-2 rounded border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-xs text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 ${focusRing}`}>Copy summary</button>
-                  </div>
-                )}
-                {deployed.length > 0 && <p className="text-xs text-zinc-500">Queued for Preset Builder: {deployed.map((d) => d.name).join(", ")}</p>}
-              </div>
-            </section>
+        {/* Detailed Spec Table */}
+        <section
+          aria-labelledby="matrix-heading"
+          className="mt-6 overflow-hidden rounded-xl border border-default bg-surface shadow-sm"
+        >
+          <div className="border-b border-default px-5 py-4">
+            <h2 id="matrix-heading" className="font-serif text-lg font-semibold text-primary">
+              Matriks Spesifikasi Teknis
+            </h2>
           </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-default bg-subtle text-left">
+                  <th className="w-56 px-4 py-3 font-semibold text-secondary">Parameter</th>
+                  <th className="px-4 py-3 font-semibold text-primary">{itemA.name}</th>
+                  <th className="px-4 py-3 font-semibold text-primary">{itemB.name}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-default">
+                {result.specRows.map((row) => (
+                  <tr key={row.key}>
+                    <th scope="row" className="px-4 py-3 text-left font-medium text-secondary">
+                      {row.label}
+                    </th>
+                    {[
+                      ["a", row.valueA],
+                      ["b", row.valueB],
+                    ].map(([side, displayValue]) => {
+                      const isRowWinner = row.winner === side;
+                      return (
+                        <td
+                          key={side}
+                          className={`px-4 py-3 align-top font-mono text-xs tabular-nums sm:text-sm ${
+                            isRowWinner
+                              ? "bg-accent-subtle/60 font-semibold text-primary"
+                              : "text-secondary"
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {isRowWinner && (
+                              <CheckCircle2
+                                className="mt-0.5 h-4 w-4 shrink-0 text-accent-cta"
+                                strokeWidth={1.75}
+                                aria-label="Unggul pada parameter ini"
+                              />
+                            )}
+                            <div>
+                              <span>{displayValue}</span>
+                              {isRowWinner && row.deltaNote && (
+                                <span className="mt-0.5 block font-sans text-xs font-medium text-accent-cta">
+                                  {row.deltaNote}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Methodology Accordion */}
+        <section className="mt-6 rounded-xl border border-default bg-surface">
+          <button
+            type="button"
+            aria-expanded={showMethodology}
+            onClick={() => setShowMethodology((prev) => !prev)}
+            className={`flex min-h-11 w-full items-center justify-between gap-3 px-5 py-4 text-left ${focusRing}`}
+          >
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="vt-badge-simulated">Simulasi Deterministik</span>
+              <span className="font-serif text-base font-semibold text-primary">
+                Metodologi &amp; Rumus Penilaian
+              </span>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-secondary transition-transform duration-200 ${
+                showMethodology ? "rotate-180" : ""
+              }`}
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+          </button>
+          {showMethodology && (
+            <div className="space-y-3 border-t border-default px-5 py-4 text-xs leading-relaxed text-secondary sm:text-sm">
+              {category === "smartphone" ? (
+                <p>
+                  Untuk kategori <strong className="text-primary">Smartphone / HP</strong>, setiap perangkat dinormalisasi pada rentang <span className="font-mono text-primary">0–100</span> berdasarkan Performa Chipset (SoC), Panel &amp; Refresh Rate layar, Gabungan Kapasitas Baterai (<span className="font-mono">mAh</span>) + Kecepatan Charging (<span className="font-mono">W</span>), Kamera, dan Indeks <em>Price-to-Performance</em> per Rp 1 juta.
+                </p>
+              ) : (
+                <p>
+                  Setiap perangkat dinilai menggunakan empat sub-skor ternormalisasi pada rentang <span className="font-mono text-primary">0–100</span>: Performa Utama, Indeks <em>Price-to-Performance</em> (skor per Rp 1 juta), Efisiensi Termal/Daya (skor per Watt TDP), dan Masa Pakai Platform (soket/DDR/VRAM).
+                </p>
+              )}
+              <p>
+                Bobot aktif untuk skenario <strong className="text-primary">{activeScenario.label}</strong>:{" "}
+                <span className="font-medium text-primary">{activeScenario.weightBreakdownText}</span>. Ambang verdict: Unggul Telak (<span className="font-mono">&gt;= 10</span> poin), Menang Tipis (<span className="font-mono">3–9.9</span> poin), Seimbang (<span className="font-mono">&lt; 3</span> poin).
+              </p>
+            </div>
+          )}
         </section>
       </div>
 
-      {picker && <Picker cat={tab} side={picker} otherId={sel[tab][picker === "a" ? "b" : "a"]} currentId={sel[tab][picker]} onPick={(id) => choose(picker, id)} onClose={() => setPicker(null)} />}
+      {pickerSide && (
+        <ItemPickerDrawer
+          categoryLabel={catMeta.label}
+          sideLabel={pickerSide === "a" ? "Kandidat A" : "Kandidat B"}
+          items={items}
+          otherId={pickerSide === "a" ? itemB.id : itemA.id}
+          currentId={pickerSide === "a" ? itemA.id : itemB.id}
+          triggerRef={pickerSide === "a" ? buttonARef : buttonBRef}
+          onPick={(pickedId) => handlePick(pickerSide, pickedId)}
+          onClose={() => setPickerSide(null)}
+        />
+      )}
     </div>
   );
 }

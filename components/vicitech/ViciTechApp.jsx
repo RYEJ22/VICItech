@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Component, Suspense, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Package, ShieldCheck, Layers, Zap,
   Gauge, Swords, User, Building2, GraduationCap, ArrowRight, CheckCircle2, ShoppingBag,
@@ -101,7 +101,7 @@ const MODULES = [
   { id: "qc", label: "Mesin IoT QC & Telemetri", short: "IoT QC", sub: "Telemetri Burn-In dan sertifikat IoT QC digital", blurb: "Masukkan nomor seri untuk memeriksa log suhu Burn-In, 15 titik inspeksi, dan sertifikat unit.", icon: Activity },
   { id: "bottleneck", label: "Analisis Bottleneck AI", short: "Bottleneck AI", sub: "Kalkulasi keseimbangan CPU, GPU, RAM, dan beban kerja", blurb: "Temukan komponen yang menahan performa, estimasi FPS, dan saran penyeimbangan rakitan.", icon: Gauge },
   { id: "versus", label: "Versus Arena", short: "Versus Arena", sub: "Perbandingan spesifikasi dua perangkat berdampingan", blurb: "Bandingkan dua PC, laptop, atau smartphone secara langsung berdasarkan spesifikasi dan nilai pakai.", icon: Swords },
-  { id: "account", label: "Dasbor Akun", short: "Akun", sub: "Pesanan, brankas sertifikat IoT QC, preset, dan profil", blurb: "Lacak status pesanan, pengajuan Trade-In, arsip sertifikat IoT QC, serta pengaturan akun.", icon: User },
+  { id: "account", label: "Profil & Akun", short: "Profil & Akun", sub: "Kartu profil, pesanan, preset & pengaturan", blurb: "Kelola kartu profil publik, riwayat pesanan Market/Trade-In, preset tersimpan, dan kustomisasi akun.", icon: User },
   { id: "community", label: "Komunitas & Pusat Pengetahuan", short: "Komunitas", sub: "Showcase rakitan, panduan lab, dan forum tanya jawab", blurb: "Bagikan rakitan PC, pelajari panduan instalasi lab sekolah, dan diskusikan solusi teknis.", icon: MessageSquare },
 ];
 const HOME = { id: "home", label: "Beranda", short: "Beranda", sub: "Ringkasan ekosistem", icon: LayoutDashboard };
@@ -278,13 +278,12 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
             {user ? "Pesanan Terbaru" : "Alat Cepat"}
           </h2>
           {user && (
-            <button
-              type="button"
-              onClick={() => onNavigate("account")}
-              className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
+            <Link
+              href="/profile?tab=orders"
+              className={`inline-flex min-h-9 items-center rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
             >
               Semua pesanan
-            </button>
+            </Link>
           )}
         </div>
 
@@ -876,6 +875,7 @@ const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account
  * @param {string | null} [props.initialSerial]
  * @param {string} [props.initialProfileUsername]
  * @param {string} [props.initialMessageUsername]
+ * @param {string} [props.initialMessagePeerId]
  * @param {readonly import('@/lib/admin/products-validation').ProductRow[]} [props.initialMarketProducts]
  * @param {string | null} [props.initialMarketError]
  * @param {string} [props.initialMarketCategory]
@@ -890,12 +890,14 @@ export default function ViciTechApp({
   initialSerial = null,
   initialProfileUsername = "",
   initialMessageUsername = "",
+  initialMessagePeerId = "",
   initialMarketProducts = [],
   initialMarketError = null,
   initialMarketCategory = "all",
   homeUrl = undefined,
   onSignOut = undefined,
 }) {
+  const router = useRouter();
   const { triggerCheckout } = useCheckout();
   const C = useMemo(() => ({ ...DEFAULT_COMPONENTS, ...components }), [components]);
   const [resolvedInitialModule] = normalizeModuleTarget(initialModule, initialView);
@@ -1069,6 +1071,13 @@ export default function ViciTechApp({
       return;
     }
 
+    if (id === "account") {
+      setPalette(false);
+      const tabSuffix = viewOrData === "orders" || viewOrData === "settings" ? `?tab=${viewOrData}` : "";
+      router.push(`/profile${tabSuffix}`);
+      return;
+    }
+
     // Direct serial lookup hand-off to IoT QC Engine
     if (id === "qc" && typeof viewOrData === "string" && SERIAL_RE.test(viewOrData.trim().toUpperCase())) {
       const serial = viewOrData.trim().toUpperCase();
@@ -1232,8 +1241,12 @@ export default function ViciTechApp({
       },
     },
     versus: {
+      marketProducts: initialMarketProducts,
       onDeployToPreset: (item) => {
-        setBuilderConfig({ items: [item] });
+        const partHint = item?.builderPartHint && typeof item.builderPartHint === "object"
+          ? item.builderPartHint
+          : {};
+        setBuilderConfig({ ...partHint, items: [item] });
         notify(`${item.name} dimasukkan ke antrean Preset Builder.`);
         navigate("builder");
       },
@@ -1265,8 +1278,9 @@ export default function ViciTechApp({
       user: authState.user,
       isAuthLoading: authState.isLoading,
       initialUsername: initialMessageUsername,
+      initialPeerId: initialMessagePeerId,
     },
-  }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername]);
+  }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername, initialMessagePeerId, initialMarketProducts]);
 
   return (
     <div className="flex min-h-screen flex-col bg-canvas text-primary font-sans antialiased">

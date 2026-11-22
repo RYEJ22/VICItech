@@ -1,0 +1,83 @@
+.tabPanel {
+  animation: profileTabIn 200ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes profileTabIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.avatarFrame {
+  box-shadow: 0 0 0 4px var(--bg-canvas);
+}
+
+.avatarAccentRing {
+  border: 2px solid var(--profile-accent, var(--accent-cta));
+}
+
+.statusDot {
+  background-color: var(--profile-accent, var(--accent-cta));
+}
+
+.cameraOverlay {
+  opacity: 0;
+  transition: opacity 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.avatarWrapper:hover .cameraOverlay,
+.avatarWrapper:focus-within .cameraOverlay {
+  opacity: 1;
+}
+
+.swatchButton {
+  background-color: var(--swatch-color, var(--accent-cta));
+}
+
+/* Curated editorial cover banner presets */
+.preset_alabaster_grid {
+  background-color: #f3f1ed;
+  background-image:
+    linear-gradient(to right, rgba(24, 24, 27, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(24, 24, 27, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 85% 20%, rgba(194, 65, 12, 0.14), transparent 55%);
+  background-size: 24px 24px, 24px 24px, 100% 100%;
+}
+
+.preset_ember_horizon {
+  background: linear-gradient(125deg, #fff7ed 0%, #fed7aa 42%, #f3f1ed 100%);
+}
+
+.preset_graphite_circuit {
+  background:
+    radial-gradient(circle at 18% 30%, rgba(234, 88, 12, 0.25), transparent 45%),
+    linear-gradient(135deg, #18181b 0%, #27272a 60%, #3f3f46 100%);
+}
+
+.preset_emerald_bench {
+  background:
+    radial-gradient(circle at 82% 28%, rgba(5, 150, 105, 0.2), transparent 52%),
+    linear-gradient(125deg, #ecfdf5 0%, #d1fae5 45%, #faf9f6 100%);
+}
+
+.preset_indigo_blueprint {
+  background:
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #0f172a 100%);
+  background-size: 20px 20px, 20px 20px, 100% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabPanel {
+    animation: none;
+  }
+  .cameraOverlay {
+    transition: none;
+  }
+}

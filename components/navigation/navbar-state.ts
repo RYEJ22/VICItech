@@ -172,6 +172,12 @@ export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
     module: 'messages',
     keys: 'dm messages chat teknisi pesan',
   },
+  {
+    label: 'Buka Profil & Akun',
+    hint: 'Kartu profil publik, pesanan, preset tersimpan & kustomisasi',
+    href: '/profile',
+    keys: 'profil akun profile account pesanan preset kustomisasi',
+  },
 ];
 
 export function isShellOwnedRoute(pathname: string): boolean {
@@ -279,7 +285,13 @@ export const MORE_MENU_ITEMS: readonly MoreMenuItem[] = [
   { id: 'messages', label: 'Pesan Langsung', hint: 'Obrolan langsung dengan teknisi', href: '/messages', iconKey: 'messages' },
   { id: 'bottleneck', label: 'Analisis Bottleneck AI', hint: 'Analisis keseimbangan CPU, GPU & RAM', href: '/home?tab=bottleneck', iconKey: 'bottleneck', module: 'bottleneck' },
   { id: 'versus', label: 'Versus Arena', hint: 'Perbandingan spesifikasi berdampingan', href: '/home?tab=versus', iconKey: 'versus', module: 'versus' },
-  { id: 'account', label: 'Dasbor Akun', hint: 'Pesanan, sertifikat IoT QC & preset tersimpan', href: '/home?tab=account', iconKey: 'account', module: 'account' },
+  {
+    id: 'account',
+    label: 'Profil & Akun',
+    hint: 'Kartu profil publik, pesanan, preset tersimpan & pengaturan',
+    href: '/profile',
+    iconKey: 'account',
+  },
 ];
 
 export function countUnreadNotifications(items: readonly NavNotification[]): number {

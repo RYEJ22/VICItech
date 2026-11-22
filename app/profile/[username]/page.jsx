@@ -1,11 +1,13 @@
-import ViciTechApp from "@/components/vicitech/ViciTechApp";
-import PublicProfilePage from "@/components/vicitech/PublicProfilePage";
+import { ProfileAccountHub } from "@/components/features/profile/profile-account-hub";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
-  const username = typeof params?.username === "string" ? params.username.trim() : "";
+  const resolvedParams = await Promise.resolve(params);
+  const username = typeof resolvedParams?.username === "string" ? resolvedParams.username.trim() : "";
   const handle = username ? `@${username}` : "Anggota ViciTech";
-  const description = `Profil publik ${handle}: showcase rakitan PC, preset tersimpan, dan rekam jejak kontribusi di ViciTech.`;
-  const canonicalPath = username ? `/profile/${encodeURIComponent(username)}` : "/community";
+  const description = `Profil publik ${handle}: showcase rakitan PC, postingan komunitas, dan perangkat utama di ViciTech.`;
+  const canonicalPath = username ? `/profile/${encodeURIComponent(username)}` : "/profile";
 
   return {
     title: `${handle} | Profil ViciTech`,
@@ -22,13 +24,19 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function ProfileRoute({ params }) {
-  const username = typeof params?.username === "string" ? params.username : "";
+export default async function ProfileRoute({ params, searchParams }) {
+  const resolvedParams = await Promise.resolve(params);
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const username = typeof resolvedParams?.username === "string" ? resolvedParams.username : "";
+  const rawTab = Array.isArray(resolvedSearchParams?.tab)
+    ? resolvedSearchParams.tab[0]
+    : resolvedSearchParams?.tab;
+
   return (
-    <ViciTechApp
-      components={{ profile: PublicProfilePage }}
-      initialModule="profile"
-      initialProfileUsername={username}
+    <ProfileAccountHub
+      mode="public"
+      targetUsername={username}
+      initialTab={typeof rawTab === "string" ? rawTab : undefined}
     />
   );
 }

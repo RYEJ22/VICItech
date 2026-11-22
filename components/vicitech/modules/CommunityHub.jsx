@@ -3,11 +3,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
-  CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle,
+  CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { sanitizeSingleLineText, sanitizeUserText } from "@/lib/validation/sanitize-text";
+import { insertTextAtCursor } from "@/lib/chat/chat-media-catalog";
+import { ChatMediaPicker } from "@/components/chat/ChatMediaPicker";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
   MAX_IMAGE_ATTACHMENTS,
@@ -158,38 +160,52 @@ function timeAgo(ts) {
 
 /* ───────────────────────── Small UI pieces ───────────────────────── */
 
-const USERNAME_RE = /^[a-z0-9]{3,20}$/;
+const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 const usernameHref = (username) =>
-  typeof username === "string" && USERNAME_RE.test(username) ? `/profile/${encodeURIComponent(username)}` : "";
+  typeof username === "string" && USERNAME_RE.test(username.toLowerCase()) ? `/profile/${encodeURIComponent(username.toLowerCase())}` : "";
 
 function resolveAuthor(key, { currentUser, profiles }) {
   const seed = key !== "you" ? AUTHORS[key] : undefined;
-  if (seed) return { ...seed, href: key === "team" ? "" : usernameHref(key), isSelf: false };
+  if (seed) return { ...seed, avatarUrl: "", href: key === "team" ? "" : usernameHref(key), isSelf: false };
 
   const userId = key === "you" ? currentUser?.id : key;
   const isSelf = key === "you" || (Boolean(userId) && userId === currentUser?.id);
   const profile = userId ? profiles[userId] : undefined;
   const username = profile?.username || (isSelf ? currentUser?.user_metadata?.username : "");
+  const avatarUrl = profile?.avatar_url || (isSelf ? currentUser?.user_metadata?.avatar_url : "") || "";
 
   return {
-    name: profile?.full_name || profile?.display_name || username || "Anggota ViciTech",
-    role: "fan",
+    name: profile?.display_name || profile?.full_name || username || "Anggota ViciTech",
+    role: profile?.role === "admin" ? "team" : "fan",
+    avatarUrl,
     href: usernameHref(username),
     isSelf,
   };
 }
 
 function Avatar({ author, size = "h-10 w-10" }) {
-  const avatar = author.isSelf
-    ? <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-subtle text-primary`}><User className="h-1/2 w-1/2" /></span>
-    : <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>;
+  const avatar = author.avatarUrl ? (
+    <img
+      src={author.avatarUrl}
+      alt=""
+      width={40}
+      height={40}
+      loading="lazy"
+      decoding="async"
+      className={`${size} shrink-0 rounded-full border border-default bg-surface object-cover`}
+    />
+  ) : author.isSelf ? (
+    <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-subtle text-primary`}><User className="h-1/2 w-1/2" /></span>
+  ) : (
+    <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>
+  );
   return author.href
-    ? <a href={author.href} aria-label={author.isSelf ? "Lihat profil Anda" : `Lihat profil ${author.name}`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">{avatar}</a>
+    ? <Link href={author.href} aria-label={author.isSelf ? "Lihat profil Anda" : `Lihat profil ${author.name}`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">{avatar}</Link>
     : avatar;
 }
 
 function RoleBadge({ role }) {
-  const r = ROLES[role];
+  const r = ROLES[role] || ROLES.fan;
   return (
     <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${r.cls}`}>
       {r.verified && <CheckCircle2 className="h-3 w-3" />}{r.label}
@@ -481,7 +497,11 @@ function Composer({ onPublish }) {
 const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolve, onOpenMedia }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [emojiOpen, setEmojiOpen] = useState(false);
   const [shareNote, setShareNote] = useState("");
+  const commentInputRef = useRef(null);
+  const commentEmojiTriggerRef = useRef(null);
+  const commentSelectionRef = useRef({ start: 0, end: 0 });
   const author = resolve(post.by);
   const cat = CATEGORIES[post.cat] || CATEGORIES.all;
   const CatIcon = cat.icon;
@@ -510,6 +530,49 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     if (!draft.trim()) return;
     onComment(post.id, draft.trim());
     setDraft("");
+    setEmojiOpen(false);
+    commentSelectionRef.current = { start: 0, end: 0 };
+  };
+
+  const syncCommentSelection = (target) => {
+    if (!target) return;
+    commentSelectionRef.current = {
+      start: typeof target.selectionStart === "number" ? target.selectionStart : draft.length,
+      end: typeof target.selectionEnd === "number" ? target.selectionEnd : draft.length,
+    };
+  };
+
+  const handleInsertCommentEmoji = (emoji) => {
+    const inputEl = commentInputRef.current;
+    const rawStart =
+      inputEl && document.activeElement === inputEl
+        ? inputEl.selectionStart
+        : commentSelectionRef.current.start;
+    const rawEnd =
+      inputEl && document.activeElement === inputEl
+        ? inputEl.selectionEnd
+        : commentSelectionRef.current.end;
+
+    const { nextValue, nextCursor } = insertTextAtCursor({
+      value: draft,
+      selectionStart: rawStart,
+      selectionEnd: rawEnd,
+      insertText: emoji,
+      maxLength: 1000,
+    });
+    commentSelectionRef.current = { start: nextCursor, end: nextCursor };
+    setDraft(nextValue);
+
+    if (
+      inputEl &&
+      typeof window !== "undefined" &&
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      window.requestAnimationFrame(() => {
+        inputEl.focus();
+        inputEl.setSelectionRange(nextCursor, nextCursor);
+      });
+    }
   };
 
   const action = `inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
@@ -520,7 +583,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {authorProfile
-              ? <a href={authorProfile} className="font-medium text-primary hover:text-accent-hover">{author.name}</a>
+              ? <Link href={authorProfile} className="font-medium text-primary hover:text-accent-hover">{author.name}</Link>
               : <span className="font-medium text-primary">{author.name}</span>}
             <RoleBadge role={author.role} />
           </div>
@@ -635,10 +698,46 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               </div>
             );
           })}
-          <form onSubmit={submitComment} className="flex gap-2">
+          <form onSubmit={submitComment} className="relative flex items-center gap-2">
+            <ChatMediaPicker
+              isOpen={emojiOpen}
+              onClose={() => setEmojiOpen(false)}
+              onSelectEmoji={handleInsertCommentEmoji}
+              enabledTabs={["emoji"]}
+              restoreFocusTo={commentEmojiTriggerRef}
+              align="left"
+            />
+            <button
+              ref={commentEmojiTriggerRef}
+              type="button"
+              onClick={() => setEmojiOpen((current) => !current)}
+              aria-expanded={emojiOpen}
+              aria-haspopup="dialog"
+              aria-label="Sisipkan emoji ke balasan"
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border transition active:scale-[0.95] ${focusRing} ${
+                emojiOpen
+                  ? "border-accent-primary bg-accent-subtle text-accent-hover"
+                  : "border-default bg-surface text-secondary hover:border-accent-primary/50 hover:text-primary"
+              }`}
+            >
+              <Smile className="h-4 w-4" strokeWidth={1.75} />
+            </button>
             <label htmlFor={`reply-${post.id}`} className="sr-only">Tulis balasan</label>
-            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Tulis balasan…" className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
-            <button type="submit" disabled={!draft.trim()} aria-label="Kirim balasan" className={`grid h-10 w-10 place-items-center rounded-full bg-accent-cta text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
+            <input
+              ref={commentInputRef}
+              id={`reply-${post.id}`}
+              value={draft}
+              onChange={(e) => {
+                setDraft(e.target.value);
+                syncCommentSelection(e.currentTarget);
+              }}
+              onClick={(e) => syncCommentSelection(e.currentTarget)}
+              onKeyUp={(e) => syncCommentSelection(e.currentTarget)}
+              onSelect={(e) => syncCommentSelection(e.currentTarget)}
+              placeholder="Tulis balasan…"
+              className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+            />
+            <button type="submit" disabled={!draft.trim()} aria-label="Kirim balasan" className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-cta text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
           </form>
         </div>
       )}
@@ -757,7 +856,10 @@ export default function CommunityHub() {
     const ids = [...new Set(userIds)].filter((id) => id && !requestedProfiles.current.has(id));
     if (!ids.length) return;
     ids.forEach((id) => requestedProfiles.current.add(id));
-    const { data, error } = await supabase.from("profiles").select("id, username").in("id", ids);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, full_name, avatar_url, role")
+      .in("id", ids);
     if (error || !data) return;
     setProfiles((current) => ({ ...current, ...Object.fromEntries(data.map((p) => [p.id, p])) }));
   }, []);

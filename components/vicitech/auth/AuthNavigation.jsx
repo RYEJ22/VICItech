@@ -286,6 +286,23 @@ export default function AuthNavigation({
     if (user) setIsAuthOpen(false);
   }, [user]);
 
+  useEffect(() => {
+    const handleProfileUpdated = (event) => {
+      const updated = event instanceof CustomEvent ? event.detail : null;
+      if (!updated || typeof updated !== "object") return;
+      setProfile((current) => ({
+        ...(current || {}),
+        username: updated.username ?? current?.username,
+        display_name: updated.displayName ?? current?.display_name,
+        full_name: updated.displayName ?? current?.full_name,
+        avatar_url: updated.avatarUrl !== undefined ? updated.avatarUrl : current?.avatar_url,
+        bio: updated.bio !== undefined ? updated.bio : current?.bio,
+      }));
+    };
+    window.addEventListener("vicitech:profile-updated", handleProfileUpdated);
+    return () => window.removeEventListener("vicitech:profile-updated", handleProfileUpdated);
+  }, []);
+
   const signOut = async () => {
     setIsSigningOut(true);
     closeMenu();
@@ -353,8 +370,19 @@ export default function AuthNavigation({
                 : "h-10 max-w-[11.5rem] gap-2 pl-1.5 pr-2.5 text-xs font-medium"
             }`}
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-subtle font-serif text-xs font-semibold text-accent-primary">
-              {initials || <UserRound className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />}
+            <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-accent-subtle font-serif text-xs font-semibold text-accent-primary">
+              {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
+                <img
+                  src={profile?.avatar_url || user?.user_metadata?.avatar_url}
+                  alt=""
+                  width={28}
+                  height={28}
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initials || <UserRound className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              )}
             </span>
             {!isMobile && (
               <>
@@ -389,17 +417,15 @@ export default function AuthNavigation({
                 </p>
               </div>
 
-              {typeof profileUsername === "string" && profileUsername && (
-                <Link
-                  role="menuitem"
-                  href={`/profile/${encodeURIComponent(profileUsername)}`}
-                  onClick={closeMenu}
-                  className={`flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-primary transition hover:bg-subtle ${focusRing}`}
-                >
-                  <UserRound className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Profil</span>
-                </Link>
-              )}
+              <Link
+                role="menuitem"
+                href="/profile"
+                onClick={closeMenu}
+                className={`flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-primary transition hover:bg-subtle ${focusRing}`}
+              >
+                <UserRound className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span>Profil &amp; Akun</span>
+              </Link>
 
               <Link
                 role="menuitem"
@@ -412,21 +438,14 @@ export default function AuthNavigation({
                   <span>Pesan Langsung</span>
                 </span>
                 {dmBadgeLabel && (
-                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-accent-cta px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white">
+                  <span
+                    key={dmBadgeLabel}
+                    className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-[#C2410C] px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
+                  >
                     {dmBadgeLabel}
                   </span>
                 )}
               </Link>
-
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => navigateTarget("/home?tab=account", "account")}
-                className={`flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-primary transition hover:bg-subtle ${focusRing}`}
-              >
-                <User className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Dasbor Akun</span>
-              </button>
 
               {isAdmin && (
                 <Link

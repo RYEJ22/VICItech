@@ -25,6 +25,9 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
+import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { formatDmBadgeCount } from '@/lib/chat/dm-notifications';
 import { shouldInterceptRouteLink, startRouteTransition } from '@/lib/motion/view-transition';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
@@ -196,7 +199,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [role, setRole] = useState<UserRole>(initialRole);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
@@ -207,6 +210,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const lastScrollYRef = useRef(0);
   const isMinimizedRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
+  const currentUserIdRef = useRef<string | null>(null);
+  currentUserIdRef.current = currentUserId;
+
+  const { unreadCount, toasts, dismissToast } = useUnreadMessages({
+    userId: currentUserId,
+    pathname,
+    enabled: Boolean(currentUserId) && !isShellOwnedRoute(pathname ?? ''),
+  });
 
   const setMinimizedSynced = useCallback((next: boolean) => {
     if (isMinimizedRef.current === next) return;
@@ -367,48 +378,16 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     };
   }, [closeSheet, sheetOpen]);
 
-  // Role + live DM unread badge from Supabase.
+  // Sync authenticated role + current user ID from Supabase (Realtime DMs handled by useUnreadMessages).
   useEffect(() => {
     if (!isSupabaseAuthConfigured) {
       setRole('guest');
-      setUnreadCount(0);
+      setCurrentUserId(null);
       return undefined;
     }
 
     let isMounted = true;
     const supabase = getSupabaseBrowserClient();
-    let dmChannel: ReturnType<typeof supabase.channel> | null = null;
-    let activeDmUserId: string | null = null;
-
-    async function refreshUnreadMessages(userId: string): Promise<void> {
-      const { count } = await supabase
-        .from('direct_messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('receiver_id', userId)
-        .eq('is_read', false);
-
-      if (isMounted && typeof count === 'number') {
-        setUnreadCount(count);
-      }
-    }
-
-    function subscribeToMessages(userId: string): void {
-      if (activeDmUserId === userId && dmChannel) return;
-      if (dmChannel) {
-        void supabase.removeChannel(dmChannel);
-      }
-      activeDmUserId = userId;
-      dmChannel = supabase
-        .channel(`nav-unread-dm:${userId}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'direct_messages', filter: `receiver_id=eq.${userId}` },
-          () => {
-            void refreshUnreadMessages(userId);
-          },
-        )
-        .subscribe();
-    }
 
     async function syncNavigationState(): Promise<void> {
       try {
@@ -419,37 +398,26 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
         if (!isMounted) return;
         if (authError || !user) {
-          activeDmUserId = null;
-          if (dmChannel) {
-            void supabase.removeChannel(dmChannel);
-            dmChannel = null;
-          }
           setRole('guest');
-          setUnreadCount(0);
+          setCurrentUserId(null);
           return;
         }
 
-        const [profileResult, unreadResult] = await Promise.all([
-          supabase.from('profiles').select('role').eq('id', user.id).maybeSingle(),
-          supabase
-            .from('direct_messages')
-            .select('id', { count: 'exact', head: true })
-            .eq('receiver_id', user.id)
-            .eq('is_read', false),
-        ]);
+        setCurrentUserId(user.id);
+        const { data: profileRow } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
 
         if (!isMounted) return;
         const appRole = normalizeUserRole(user.app_metadata?.role);
-        const profileRole = normalizeUserRole(profileResult.data?.role);
+        const profileRole = normalizeUserRole(profileRow?.role);
         setRole(appRole === 'admin' ? 'admin' : profileRole === 'guest' ? 'member' : profileRole);
-        if (typeof unreadResult.count === 'number') {
-          setUnreadCount(unreadResult.count);
-        }
-        subscribeToMessages(user.id);
       } catch {
         if (isMounted) {
           setRole('guest');
-          setUnreadCount(0);
+          setCurrentUserId(null);
         }
       }
     }
@@ -460,39 +428,36 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       (event: string, session: { readonly user?: { readonly id?: string } } | null) => {
-      if (event === 'SIGNED_OUT') {
-        activeDmUserId = null;
-        if (dmChannel) {
-          void supabase.removeChannel(dmChannel);
-          dmChannel = null;
+        if (event === 'SIGNED_OUT') {
+          if (isMounted) {
+            setRole('guest');
+            setCurrentUserId(null);
+          }
+          return;
         }
-        if (isMounted) {
-          setRole('guest');
-          setUnreadCount(0);
+        if (
+          event === 'TOKEN_REFRESHED' &&
+          session?.user?.id &&
+          session.user.id === currentUserIdRef.current
+        ) {
+          return;
         }
-        return;
-      }
-      if (event === 'TOKEN_REFRESHED' && session?.user?.id && session.user.id === activeDmUserId) {
-        return;
-      }
-      void syncNavigationState();
-    });
+        void syncNavigationState();
+      },
+    );
 
     return () => {
       isMounted = false;
-      activeDmUserId = null;
       subscription.unsubscribe();
-      if (dmChannel) {
-        void supabase.removeChannel(dmChannel);
-      }
     };
   }, []);
 
   const visibleDesktopItems = useMemo(() => getVisibleNavItems(PRIMARY_NAV_ITEMS, role), [role]);
   const visibleBottomItems = useMemo(() => getVisibleNavItems(MOBILE_BOTTOM_NAV_ITEMS, role), [role]);
-  const dmBadgeLabel = formatUnreadBadge(unreadCount);
+  const dmBadgeLabel = formatDmBadgeCount(unreadCount);
   const unreadNotifications = countUnreadNotifications(notifications);
   const notificationBadge = formatUnreadBadge(unreadNotifications);
+  const isMessagesRoute = pathname === '/messages' || Boolean(pathname?.startsWith('/messages/'));
 
   const handleHrefClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>, href: string, closeMenus = false) => {
@@ -649,6 +614,25 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               </kbd>
             </button>
 
+            <Link
+              href="/messages"
+              onClick={(event) => handleHrefClick(event, '/messages', true)}
+              tabIndex={isMinimized ? -1 : undefined}
+              aria-current={isMessagesRoute ? 'page' : undefined}
+              aria-label={dmBadgeLabel ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
+              className={`${desktopUtilityBtn} ${isMessagesRoute ? utilityOpen : utilityIdle}`}
+            >
+              <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              {dmBadgeLabel && (
+                <span
+                  key={dmBadgeLabel}
+                  className="vt-badge-pop vt-badge-pulse absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#C2410C] px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
+                >
+                  {dmBadgeLabel}
+                </span>
+              )}
+            </Link>
+
             <div className="relative" data-nav-menu>
               <button
                 type="button"
@@ -711,7 +695,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             className={`vt-btn-tactile inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full ${focusRing}`}
           >
             <BrandMark compact />
-            <span className="font-serif text-sm font-semibold tracking-tight text-primary sm:text-base">
+            <span className="hidden font-serif text-sm font-semibold tracking-tight text-primary min-[410px]:inline sm:text-base">
               ViciTech
             </span>
           </Link>
@@ -725,6 +709,24 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             >
               <Search className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </button>
+
+            <Link
+              href="/messages"
+              onClick={(event) => handleHrefClick(event, '/messages', true)}
+              aria-current={isMessagesRoute ? 'page' : undefined}
+              aria-label={dmBadgeLabel ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
+              className={`${mobileUtilityBtn} ${isMessagesRoute ? utilityOpen : utilityIdle}`}
+            >
+              <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              {dmBadgeLabel && (
+                <span
+                  key={dmBadgeLabel}
+                  className="vt-badge-pop vt-badge-pulse absolute -right-0.5 -top-0.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#C2410C] px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
+                >
+                  {dmBadgeLabel}
+                </span>
+              )}
+            </Link>
 
             <div className="relative" data-nav-menu>
               <button
@@ -791,7 +793,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         onClick={expandNavbar}
         aria-hidden={!isMinimized}
         tabIndex={isMinimized ? 0 : -1}
-        aria-label="Expand ViciTech navigation"
+        aria-label="Buka navigasi ViciTech"
         className={`group fixed left-3 top-3 z-50 flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-primary md:left-4 md:top-4 ${motion} ${logoState} ${styles.floatingPill ?? ''} ${styles.floatingPillMinimized ?? ''} ${focusRing}`}
       >
         <BrandMark compact />
@@ -904,7 +906,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   {entry.iconKey === 'messages' && dmBadgeLabel && (
                     <span
                       key={dmBadgeLabel}
-                      className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-accent-cta px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
+                      className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-[#C2410C] px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
                     >
                       {dmBadgeLabel}
                     </span>
@@ -924,6 +926,18 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           </div>
         </div>
       )}
+
+      {/* ───────── Live DM Toast Preview (when away from /messages) ───────── */}
+      <DmNotificationToast
+        toasts={toasts}
+        onDismiss={dismissToast}
+        onOpen={(toast) => {
+          dismissToast(toast.id);
+          startRouteTransition(() => {
+            router.push(toast.href);
+          });
+        }}
+      />
 
       {/* ───────── Standalone Global Search (routes outside ViciTechApp) ───────── */}
       {searchOpen && <NavbarCommandPalette onClose={closeSearch} onNavigate={navigateTo} />}

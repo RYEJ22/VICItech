@@ -1,10 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ImagePlus, LoaderCircle, MessageSquare, Send, UserRound, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, LoaderCircle, MessageSquare, Send, Smile, UserRound, X } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { sanitizeUserText } from "@/lib/validation/sanitize-text";
+import {
+  encodeStickerContent,
+  formatChatMessagePreview,
+  insertTextAtCursor,
+  parseChatMessagePayload,
+} from "@/lib/chat/chat-media-catalog";
+import { dispatchDmReadSync } from "@/lib/chat/dm-notifications";
+import { ChatMediaPicker } from "@/components/chat/ChatMediaPicker";
+import { ChatGifImage } from "@/components/chat/ChatGifImage";
+import { ViciTechStickerGraphic } from "@/components/chat/ViciTechStickerGraphic";
+import pickerStyles from "@/components/chat/chat-media-picker.module.css";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
   MAX_IMAGE_ATTACHMENTS,
@@ -50,17 +62,115 @@ function profileInitial(profile) {
 }
 
 function latestPreview(latest, profile) {
-  if (typeof latest?.content === "string" && latest.content.trim()) {
-    return latest.content;
-  }
-  const mediaUrls = Array.isArray(latest?.media_urls) ? latest.media_urls : [];
-  if (mediaUrls.length > 0) {
-    return latest?.media_type === "video" ? "[Video]" : "[Foto]";
-  }
-  return `@${profile?.username || "anggota"}`;
+  return formatChatMessagePreview({
+    content: latest?.content,
+    mediaUrls: latest?.media_urls,
+    mediaType: latest?.media_type,
+    fallback: `@${profile?.username || "anggota"}`,
+  });
 }
 
-export default function DirectMessageDrawer({ user, initialUsername, isAuthLoading }) {
+const DM_SELECT_COLUMNS =
+  "id, sender_id, receiver_id, content, media_urls, media_type, is_read, created_at";
+
+async function insertDirectMessageWithRpcFallback({
+  client,
+  userId,
+  selectedId,
+  content,
+  mediaUrls,
+  mediaType,
+}) {
+  const { data: rpcId, error: rpcError } = await client.rpc(
+    "send_direct_message_with_notification",
+    {
+      p_receiver_id: selectedId,
+      p_content: content,
+      p_media_urls: mediaUrls,
+      p_media_type: mediaType,
+    },
+  );
+
+  if (!rpcError && rpcId) {
+    const { data: fetchedRow, error: fetchError } = await client
+      .from("direct_messages")
+      .select(DM_SELECT_COLUMNS)
+      .eq("id", rpcId)
+      .maybeSingle();
+    if (fetchError) {
+      throw new Error(`Pesan terkirim tetapi gagal memuat ulang baris: ${fetchError.message}`);
+    }
+    return (
+      fetchedRow || {
+        id: rpcId,
+        sender_id: userId,
+        receiver_id: selectedId,
+        content,
+        media_urls: mediaUrls,
+        media_type: mediaType,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      }
+    );
+  }
+
+  if (rpcError && rpcError.code !== "PGRST202" && rpcError.code !== "42883") {
+    const err = new Error(`Pesan gagal dikirim: ${rpcError.message}`);
+    err.pgCode = rpcError.code;
+    throw err;
+  }
+
+  const { data, error: insertError } = await client
+    .from("direct_messages")
+    .insert({
+      sender_id: userId,
+      receiver_id: selectedId,
+      content,
+      media_urls: mediaUrls,
+      media_type: mediaType,
+    })
+    .select(DM_SELECT_COLUMNS)
+    .single();
+  if (insertError) {
+    const err = new Error(`Pesan gagal dikirim: ${insertError.message}`);
+    err.pgCode = insertError.code;
+    throw err;
+  }
+  return data;
+}
+
+async function persistDirectMessage(params) {
+  try {
+    return await insertDirectMessageWithRpcFallback(params);
+  } catch (err) {
+    const pgCode = err && typeof err === "object" ? err.pgCode : undefined;
+    const isMediaConstraintFallback = pgCode === "23514" || pgCode === "22023";
+    if (!isMediaConstraintFallback) throw err;
+
+    // Graceful compatibility if migration 20261122000007 is not yet applied on remote DB
+    if (params.mediaType === "gif" && params.mediaUrls.length > 0) {
+      return insertDirectMessageWithRpcFallback({
+        ...params,
+        mediaType: "image",
+      });
+    }
+    if (params.mediaType === "sticker") {
+      return insertDirectMessageWithRpcFallback({
+        ...params,
+        mediaType: null,
+        mediaUrls: [],
+      });
+    }
+    throw err;
+  }
+}
+
+export default function DirectMessageDrawer({
+  user,
+  initialUsername,
+  initialPeerId = "",
+  isAuthLoading,
+}) {
   const [client, setClient] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [profiles, setProfiles] = useState({});
@@ -70,6 +180,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [draft, setDraft] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState([]);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [lightbox, setLightbox] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sendStage, setSendStage] = useState("");
@@ -78,6 +189,9 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
   const [realtimeStatus, setRealtimeStatus] = useState("connecting");
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+  const pickerTriggerRef = useRef(null);
+  const selectionRangeRef = useRef({ start: 0, end: 0 });
   const pendingAttachmentsRef = useRef([]);
   pendingAttachmentsRef.current = pendingAttachments;
   const selectedIdRef = useRef(selectedId);
@@ -87,6 +201,10 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
   const shouldAutoScrollRef = useRef(true);
   const isSending = Boolean(sendStage);
   const userId = user?.id || "";
+
+  useEffect(() => {
+    setIsPickerOpen(false);
+  }, [selectedId]);
 
   useEffect(() => {
     return () => {
@@ -242,8 +360,13 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
               .eq("id", message.id)
               .eq("receiver_id", userId)
               .eq("is_read", false)
-              .then(({ error: readError }) => {
-                if (readError && active) setError(`Pesan baru masuk, tetapi status dibaca gagal diperbarui: ${readError.message}`);
+              .select("id")
+              .then(({ data: markedRows, error: readError }) => {
+                if (readError && active) {
+                  setError(`Pesan baru masuk, tetapi status dibaca gagal diperbarui: ${readError.message}`);
+                } else if (!readError && active && Array.isArray(markedRows) && markedRows.length > 0) {
+                  dispatchDmReadSync(markedRows.length);
+                }
               });
           }
         }
@@ -283,12 +406,30 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
   }, [userId, loadInbox, upsertConversationFromMessage]);
 
   useEffect(() => {
-    if (!client || !userId || !initialUsername || !profileReady) return;
+    const trimmedUsername = typeof initialUsername === "string" ? initialUsername.trim().toLowerCase() : "";
+    const trimmedPeerId = typeof initialPeerId === "string" ? initialPeerId.trim() : "";
+    if (!client || !userId || !profileReady || (!trimmedUsername && !trimmedPeerId)) return;
+
+    if (!trimmedUsername && trimmedPeerId) {
+      if (trimmedPeerId === userId) {
+        setError("Anda tidak dapat memulai percakapan dengan akun sendiri.");
+        return;
+      }
+      if (profilesRef.current[trimmedPeerId]) {
+        setSelectedId(trimmedPeerId);
+        return;
+      }
+    }
+
     let active = true;
-    client
+    const baseQuery = client
       .from("profiles")
-      .select("id, username, display_name, full_name, avatar_url, bio")
-      .eq("username", initialUsername.trim().toLowerCase())
+      .select("id, username, display_name, full_name, avatar_url, bio");
+    const targetQuery = trimmedUsername
+      ? baseQuery.eq("username", trimmedUsername)
+      : baseQuery.eq("id", trimmedPeerId);
+
+    targetQuery
       .maybeSingle()
       .then(({ data, error: targetError }) => {
         if (!active) return;
@@ -311,7 +452,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         if (active) setError(targetError.message || "Gagal membuka percakapan ini.");
       });
     return () => { active = false; };
-  }, [client, userId, initialUsername, profileReady]);
+  }, [client, userId, initialUsername, initialPeerId, profileReady]);
 
   useEffect(() => {
     setPendingAttachments((current) => {
@@ -346,19 +487,25 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         setHasOlderMessages(hasMore);
         shouldAutoScrollRef.current = true;
         setMessages([...pageRows].reverse());
-        const unreadIds = pageRows.filter((item) => item?.receiver_id === userId && !item.is_read).map((item) => item.id);
-        if (unreadIds.length) {
-          const { error: readError } = await client
-            .from("direct_messages")
-            .update({ is_read: true })
-            .in("id", unreadIds)
-            .eq("receiver_id", userId);
-          if (readError && active) setError(`Pesan dimuat, namun status belum dibaca gagal diperbarui: ${readError.message}`);
-          if (!readError && active) {
-            setConversations((current) =>
-              current.map((conv) => (conv.userId === selectedId ? { ...conv, unread: 0 } : conv)),
-            );
+        const pageUnreadIds = pageRows.filter((item) => item?.receiver_id === userId && !item.is_read).map((item) => item.id);
+        const { data: markedRows, error: readError } = await client
+          .from("direct_messages")
+          .update({ is_read: true })
+          .eq("receiver_id", userId)
+          .eq("sender_id", selectedId)
+          .eq("is_read", false)
+          .select("id");
+        if (readError && active) {
+          setError(`Pesan dimuat, namun status belum dibaca gagal diperbarui: ${readError.message}`);
+        }
+        if (!readError && active) {
+          const markedCount = Array.isArray(markedRows) ? markedRows.length : pageUnreadIds.length;
+          if (markedCount > 0) {
+            dispatchDmReadSync(markedCount);
           }
+          setConversations((current) =>
+            current.map((conv) => (conv.userId === selectedId ? { ...conv, unread: 0 } : conv)),
+          );
         }
       })
       .catch((messagesError) => {
@@ -486,52 +633,20 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
       }
 
       setSendStage("sending");
-      let sentMessage = null;
-      const { data: rpcId, error: rpcError } = await client.rpc("send_direct_message_with_notification", {
-        p_receiver_id: selectedId,
-        p_content: content,
-        p_media_urls: mediaUrls,
-        p_media_type: mediaType,
+      const sentMessage = await persistDirectMessage({
+        client,
+        userId,
+        selectedId,
+        content,
+        mediaUrls,
+        mediaType,
       });
-
-      if (!rpcError && rpcId) {
-        const { data: fetchedRow, error: fetchError } = await client
-          .from("direct_messages")
-          .select("id, sender_id, receiver_id, content, media_urls, media_type, is_read, created_at")
-          .eq("id", rpcId)
-          .maybeSingle();
-        if (fetchError) throw new Error(`Pesan terkirim tetapi gagal memuat ulang baris: ${fetchError.message}`);
-        sentMessage = fetchedRow || {
-          id: rpcId,
-          sender_id: userId,
-          receiver_id: selectedId,
-          content,
-          media_urls: mediaUrls,
-          media_type: mediaType,
-          is_read: false,
-          created_at: new Date().toISOString(),
-        };
-      } else if (rpcError && rpcError.code !== "PGRST202" && rpcError.code !== "42883") {
-        throw new Error(`Pesan gagal dikirim: ${rpcError.message}`);
-      } else {
-        const { data, error: insertError } = await client
-          .from("direct_messages")
-          .insert({
-            sender_id: userId,
-            receiver_id: selectedId,
-            content,
-            media_urls: mediaUrls,
-            media_type: mediaType,
-          })
-          .select("id, sender_id, receiver_id, content, media_urls, media_type, is_read, created_at")
-          .single();
-        if (insertError) throw new Error(`Pesan gagal dikirim: ${insertError.message}`);
-        sentMessage = data;
-      }
 
       pendingAttachments.forEach((item) => URL.revokeObjectURL(item.previewUrl));
       setPendingAttachments([]);
       setDraft("");
+      selectionRangeRef.current = { start: 0, end: 0 };
+      setIsPickerOpen(false);
       shouldAutoScrollRef.current = true;
       setMessages((current) =>
         current.some((item) => item?.id === sentMessage?.id) ? current : [...current, sentMessage],
@@ -545,6 +660,99 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
       setSendStage("");
     }
   };
+
+  const syncSelectionFromTextarea = useCallback((target) => {
+    if (!target) return;
+    selectionRangeRef.current = {
+      start: typeof target.selectionStart === "number" ? target.selectionStart : draft.length,
+      end: typeof target.selectionEnd === "number" ? target.selectionEnd : draft.length,
+    };
+  }, [draft.length]);
+
+  const handleSelectEmoji = useCallback((emoji) => {
+    const textarea = textareaRef.current;
+    const rawStart =
+      textarea && document.activeElement === textarea
+        ? textarea.selectionStart
+        : selectionRangeRef.current.start;
+    const rawEnd =
+      textarea && document.activeElement === textarea
+        ? textarea.selectionEnd
+        : selectionRangeRef.current.end;
+
+    const { nextValue, nextCursor } = insertTextAtCursor({
+      value: draft,
+      selectionStart: rawStart,
+      selectionEnd: rawEnd,
+      insertText: emoji,
+      maxLength: 4000,
+    });
+    selectionRangeRef.current = { start: nextCursor, end: nextCursor };
+    setDraft(nextValue);
+
+    if (
+      textarea &&
+      typeof window !== "undefined" &&
+      !window.matchMedia("(max-width: 767px)").matches
+    ) {
+      window.requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(nextCursor, nextCursor);
+      });
+    }
+  }, [draft]);
+
+  const sendInstantMediaMessage = useCallback(
+    async ({ content, mediaUrls, mediaType }) => {
+      if (!client || !userId || !selectedId || isSending) return;
+      setSendStage("sending");
+      setError("");
+      try {
+        const sentMessage = await persistDirectMessage({
+          client,
+          userId,
+          selectedId,
+          content,
+          mediaUrls,
+          mediaType,
+        });
+        shouldAutoScrollRef.current = true;
+        setMessages((current) =>
+          current.some((item) => item?.id === sentMessage?.id) ? current : [...current, sentMessage],
+        );
+        if (sentMessage) {
+          void upsertConversationFromMessage(client, sentMessage, userId, { incrementUnread: false });
+        }
+      } catch (sendError) {
+        setError(sendError instanceof Error ? sendError.message : "Media gagal dikirim.");
+      } finally {
+        setSendStage("");
+      }
+    },
+    [client, isSending, selectedId, upsertConversationFromMessage, userId],
+  );
+
+  const handleSelectGif = useCallback(
+    (gif) => {
+      void sendInstantMediaMessage({
+        content: "",
+        mediaUrls: [gif.url],
+        mediaType: "gif",
+      });
+    },
+    [sendInstantMediaMessage],
+  );
+
+  const handleSelectSticker = useCallback(
+    (sticker) => {
+      void sendInstantMediaMessage({
+        content: encodeStickerContent(sticker.id),
+        mediaUrls: [],
+        mediaType: "sticker",
+      });
+    },
+    [sendInstantMediaMessage],
+  );
 
   if (isAuthLoading) {
     return (
@@ -568,15 +776,18 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
     return (
       <section className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
         <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
-        <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Pengaturan Akun sebelum memulai pesan langsung.</p>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
+        <Link href="/profile?tab=settings" className="vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
+          Buka Pengaturan Profil
+        </Link>
         {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
       </section>
     );
   }
 
   return (
-    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-sm md:flex-row">
-      <aside className={`min-h-[58vh] w-full border-b border-default bg-surface md:min-h-0 md:w-80 md:shrink-0 md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
+    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col rounded-xl border border-default bg-surface shadow-sm md:flex-row">
+      <aside className={`min-h-[58vh] w-full rounded-t-xl border-b border-default bg-surface md:min-h-0 md:w-80 md:shrink-0 md:rounded-l-xl md:rounded-tr-none md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
         <div className="border-b border-default px-5 py-5">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-hover">
             <MessageSquare className="h-4 w-4 text-accent-primary" /> Kotak Masuk
@@ -618,11 +829,26 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
           <>
             <header className="flex items-center gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-6">
               <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="rounded-full p-2 text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
-              {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
-                <span className="block text-xs text-secondary">@{selectedProfile.username || "anggota"}</span>
-              </span>
+              {selectedProfile.username ? (
+                <Link
+                  href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
+                  className="flex min-w-0 items-center gap-3 rounded-lg transition-colors hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                >
+                  {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile)}</span>
+                    <span className="block font-mono text-xs text-secondary">@{selectedProfile.username}</span>
+                  </span>
+                </Link>
+              ) : (
+                <>
+                  {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
+                    <span className="block text-xs text-secondary">@anggota</span>
+                  </span>
+                </>
+              )}
             </header>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
               {hasOlderMessages && (
@@ -640,57 +866,86 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
               )}
               {messages.length ? messages.map((message) => {
                 if (!message?.id) return null;
-                const text = typeof message.content === "string" ? message.content : "";
-                const mediaUrls = Array.isArray(message.media_urls)
-                  ? message.media_urls.filter((url) => typeof url === "string" && url.trim().length > 0)
-                  : [];
-                if (!text.trim() && mediaUrls.length === 0) return null;
+                const payload = parseChatMessagePayload({
+                  content: message.content,
+                  mediaUrls: message.media_urls,
+                  mediaType: message.media_type,
+                });
+                if (payload.kind === "text" && !payload.text.trim()) return null;
 
                 const own = message.sender_id === userId;
-                const isVideo =
-                  message.media_type === "video" ||
-                  mediaUrls.some((url) => /\.(mp4|webm)(\?|$)/i.test(url));
+
+                if (payload.kind === "sticker") {
+                  return (
+                    <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
+                      <div className={`flex max-w-[88%] flex-col ${own ? "items-end" : "items-start"}`}>
+                        <div className={pickerStyles.stickerPop}>
+                          <ViciTechStickerGraphic sticker={payload.sticker} size="md" />
+                        </div>
+                        <p className="mt-1 px-1 font-mono text-[10px] text-secondary">
+                          {formatMessageTime(message.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
                     <article className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-accent-cta text-white" : "rounded-bl-md border border-default bg-surface text-primary"}`}>
-                      {mediaUrls.length > 0 && (
-                        isVideo ? (
-                          <div className="mb-2 overflow-hidden rounded-xl bg-ink">
-                            <video
-                              src={mediaUrls[0]}
-                              controls
-                              playsInline
-                              preload="metadata"
-                              className="max-h-64 w-full object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className={`mb-2 grid gap-1.5 ${mediaUrls.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                            {mediaUrls.map((url, idx) => (
-                              <button
-                                key={`${url}-${idx}`}
-                                type="button"
-                                onClick={() => setLightbox({ images: mediaUrls, index: idx })}
-                                aria-label={`Perbesar lampiran foto ${idx + 1}`}
-                                className="overflow-hidden rounded-xl bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
-                              >
-                                <img
-                                  src={url}
-                                  alt={`Lampiran pesan ${idx + 1}`}
-                                  width={480}
-                                  height={360}
-                                  loading="lazy"
-                                  decoding="async"
-                                  className="max-h-64 w-full object-cover transition hover:opacity-95"
-                                />
-                              </button>
-                            ))}
-                          </div>
-                        )
-                      )}
-                      {text.trim() ? (
-                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{text}</p>
+                      {payload.kind === "gif" ? (
+                        <div className="mb-1.5 w-[220px] max-w-full sm:w-[240px]">
+                          <ChatGifImage
+                            src={payload.gifUrl}
+                            alt={payload.alt}
+                            title={payload.alt}
+                            width={240}
+                            height={180}
+                            className="max-h-60 w-full"
+                            showBadge
+                          />
+                        </div>
+                      ) : null}
+                      {payload.kind === "video" ? (
+                        <div className="mb-2 overflow-hidden rounded-xl bg-ink">
+                          <video
+                            src={payload.mediaUrls[0]}
+                            controls
+                            playsInline
+                            preload="metadata"
+                            className="max-h-64 w-full object-contain"
+                          />
+                        </div>
+                      ) : null}
+                      {payload.kind === "image" ? (
+                        <div className={`mb-2 grid gap-1.5 ${payload.mediaUrls.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                          {payload.mediaUrls.map((url, idx) => (
+                            <button
+                              key={`${url}-${idx}`}
+                              type="button"
+                              onClick={() => setLightbox({ images: payload.mediaUrls, index: idx })}
+                              aria-label={`Perbesar lampiran foto ${idx + 1}`}
+                              className="overflow-hidden rounded-xl bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                            >
+                              <img
+                                src={url}
+                                alt={`Lampiran pesan ${idx + 1}`}
+                                width={480}
+                                height={360}
+                                loading="lazy"
+                                decoding="async"
+                                className="max-h-64 w-full object-cover transition hover:opacity-95"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      {payload.kind === "emoji_large" ? (
+                        <p className="py-0.5 text-3xl leading-tight tracking-wide">{payload.text}</p>
+                      ) : payload.kind === "text" ? (
+                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{payload.text}</p>
+                      ) : "caption" in payload && payload.caption ? (
+                        <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{payload.caption}</p>
                       ) : null}
                       <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/90" : "text-secondary"}`}>{formatMessageTime(message.created_at)}</p>
                     </article>
@@ -745,7 +1000,17 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-default bg-surface p-3 sm:gap-3 sm:p-4">
+            <form onSubmit={sendMessage} className="relative flex items-end gap-2 rounded-b-xl border-t border-default bg-surface p-3 sm:gap-3 sm:p-4 md:rounded-br-xl md:rounded-bl-none">
+              <ChatMediaPicker
+                isOpen={isPickerOpen}
+                onClose={() => setIsPickerOpen(false)}
+                onSelectEmoji={handleSelectEmoji}
+                onSelectGif={handleSelectGif}
+                onSelectSticker={handleSelectSticker}
+                restoreFocusTo={pickerTriggerRef}
+                disabled={isSending}
+                align="left"
+              />
               <input
                 ref={fileInputRef}
                 type="file"
@@ -760,20 +1025,58 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSending}
                 aria-label="Lampirkan foto atau video"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-default bg-subtle text-primary transition hover:border-accent-primary/50 hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-default bg-subtle text-primary transition hover:border-accent-primary/50 hover:text-accent-hover active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <ImagePlus className="h-5 w-5" />
               </button>
-              <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  event.currentTarget.form?.requestSubmit();
+              <button
+                ref={pickerTriggerRef}
+                type="button"
+                onClick={() => setIsPickerOpen((current) => !current)}
+                disabled={isSending}
+                aria-expanded={isPickerOpen}
+                aria-haspopup="dialog"
+                aria-label="Pilih Emoji, GIF, atau Stiker ViciTech"
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border transition active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45 ${
+                  isPickerOpen
+                    ? "border-accent-primary bg-accent-subtle text-accent-hover"
+                    : "border-default bg-subtle text-primary hover:border-accent-primary/50 hover:text-accent-hover"
+                }`}
+              >
+                <Smile className="h-5 w-5" strokeWidth={1.75} />
+              </button>
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(event) => {
+                  setDraft(event.target.value);
+                  syncSelectionFromTextarea(event.currentTarget);
+                }}
+                onClick={(event) => syncSelectionFromTextarea(event.currentTarget)}
+                onKeyUp={(event) => syncSelectionFromTextarea(event.currentTarget)}
+                onSelect={(event) => syncSelectionFromTextarea(event.currentTarget)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                maxLength={4000}
+                rows={1}
+                placeholder={
+                  isSending
+                    ? "Mengirim…"
+                    : pendingAttachments.length
+                      ? "Tambahkan keterangan (opsional)…"
+                      : "Tulis pesan…"
                 }
-              }} maxLength={4000} rows={1} placeholder={pendingAttachments.length ? "Tambahkan keterangan (opsional)…" : "Tulis pesan…"} aria-label="Tulis pesan" className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20" />
+                aria-label="Tulis pesan"
+                className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+              />
               <button
                 type="submit"
                 disabled={(!draft.trim() && pendingAttachments.length === 0) || isSending}
-                aria-label={sendStage === "uploading" ? "Mengunggah media" : "Kirim pesan"}
+                aria-label={sendStage === "uploading" ? "Mengunggah media" : sendStage === "sending" ? "Mengirim…" : "Kirim pesan"}
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-cta text-white shadow-sm transition-colors hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
