@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
 import type { RoutePreviewItem } from '@/components/features/route-preview/route-preview-content';
+import { PARTNER_TYPE_LABELS } from '@/lib/admin/partners-validation';
+import type { PartnerRow } from '@/lib/admin/partners-validation';
 import type { ProductRow, ProductStockStatus } from '@/lib/admin/products-validation';
 import {
   getCategoryLabel,
@@ -147,6 +149,41 @@ export function buildPartnersLocalBusinessJsonLd(
           addressLocality: extractCityLocality(item.title),
           addressCountry: 'ID',
         },
+      },
+    })),
+  };
+}
+
+export function buildSupabasePartnersJsonLd(
+  partners: readonly PartnerRow[],
+): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'ViciTech Verified Service Centers & Component Stores',
+    itemListElement: partners.map((partner, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: {
+        '@type': 'LocalBusiness',
+        name: partner.name,
+        description: `${PARTNER_TYPE_LABELS[partner.type] ?? partner.type} — ${partner.address}, ${partner.city}`,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: partner.address,
+          addressLocality: partner.city,
+          addressCountry: 'ID',
+        },
+        ...(partner.gmaps_url ? { url: partner.gmaps_url, hasMap: partner.gmaps_url } : {}),
+        ...(partner.latitude !== null && partner.longitude !== null
+          ? {
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: partner.latitude,
+                longitude: partner.longitude,
+              },
+            }
+          : {}),
       },
     })),
   };

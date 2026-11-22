@@ -42,7 +42,7 @@ export function Hero({
       />
 
       <div
-        className={`relative z-10 mx-auto w-full max-w-6xl px-4 pt-28 pb-16 sm:px-6 md:pt-28 lg:px-8 ${styles.content}`}
+        className={`relative z-10 mx-auto w-full max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:px-8 ${styles.content}`}
         style={{ position: 'relative', zIndex: 10 }}
       >
         <div className="max-w-2xl">
@@ -52,10 +52,10 @@ export function Hero({
           >
             {headline}
           </h1>
-          <p className={`mt-6 max-w-[68ch] text-lg leading-relaxed ${styles.description}`}>
+          <p className={`mt-5 max-w-xl text-base leading-relaxed sm:text-lg ${styles.description}`}>
             {subheadline}
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-4">
+          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-4">
             <Link
               href={primaryCta.href}
               className={`inline-flex h-11 items-center justify-center rounded-md px-6 text-base font-medium ${styles.ctaPrimary}`}

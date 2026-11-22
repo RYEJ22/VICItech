@@ -44,56 +44,56 @@ export interface HeroContent {
 export const HERO_SLIDES: HeroSlides = [
   {
     src: '/images/hero/pc-rig.jpg',
-    headline: 'Welcome to ViciTech — your circular tech ecosystem.',
+    headline: 'PC & laptop anti-zonk, teruji IoT QC 15 titik.',
     subheadline:
-      'From custom PCs and laptops to smartphones and accessories—build, diagnose, upgrade, and extend the life of all your gear in one place.',
-    description: 'High-performance desktop workstations and custom PC builds',
-    primaryCta: { label: 'Enter Workspace', href: '/home' },
-    secondaryCta: { label: 'Explore Library', href: '/market?view=catalog' },
+      'Beli rakitan siap kirim, cek kompatibilitas komponen, dan tukar tambah perangkat dengan laporan telemetri nyata.',
+    description: 'Workstation desktop dan rakitan PC kustom terkurasi ViciTech',
+    primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
     objectPosition: '50% 50%',
     zoomOrigin: 'center',
   },
   {
     src: '/images/hero/thermal-paste.jpg',
-    headline: 'Precision diagnostics & thermal lifecycle care.',
+    headline: 'Diagnostik presisi berbasis telemetri nyata.',
     subheadline:
-      'Verify hardware health with 15-point IoT quality control, live burn-in telemetry, and component-level upgrade intelligence.',
-    description: 'Precision thermal application and component-level diagnostics',
-    primaryCta: { label: 'Enter Workspace', href: '/home' },
-    secondaryCta: { label: 'Explore Library', href: '/market?view=catalog' },
+      'Pantau log burn-in suhu CPU/GPU dan voltase langsung dari sensor bench uji sebelum perangkat dikirim.',
+    description: 'Aplikasi pasta termal presisi dan inspeksi QC tingkat komponen',
+    primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
+    secondaryCta: { label: 'Cek Serial IoT QC', href: '/qc-panel' },
     objectPosition: '50% 45%',
     zoomOrigin: 'top left',
   },
   {
     src: '/images/hero/repair-tech.jpg',
-    headline: 'Extend the life of every laptop, phone, and workstation.',
+    headline: 'Perpanjang masa pakai perangkat keras Anda.',
     subheadline:
-      'Check maximum RAM and NVMe expansion, find CPU/GPU bottlenecks, and trade in retired devices for certified refurbished hardware.',
-    description: 'Professional laptop and mobile device motherboard servicing',
-    primaryCta: { label: 'Enter Workspace', href: '/home' },
-    secondaryCta: { label: 'Explore Library', href: '/market?view=catalog' },
+      'Uji kapasitas ekspansi RAM/SSD, analisis bottleneck, dan tukar tambah laptop lama ke unit terverifikasi.',
+    description: 'Layanan servis motherboard laptop dan perangkat oleh teknisi mitra ViciTech',
+    primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
     objectPosition: '50% 40%',
     zoomOrigin: 'bottom right',
   },
   {
     src: '/images/hero/code-screen.jpg',
-    headline: 'Connected hardware intelligence for creators, labs, and fleets.',
+    headline: 'Rakit cerdas untuk kreator, lab, dan bisnis.',
     subheadline:
-      'Configure tailored B2C, B2B, and B2S presets with live wattage estimation, verified QC certificates, and circular buyback tracking.',
-    description: 'IoT telemetry engine, QC certification, and multi-device lifecycle tracking',
-    primaryCta: { label: 'Enter Workspace', href: '/home' },
-    secondaryCta: { label: 'Explore Library', href: '/market?view=catalog' },
+      'Susun konfigurasi B2C, B2B, dan B2S lengkap dengan kalkulasi daya PSU otomatis dan sertifikat QC digital.',
+    description: 'Mesin telemetri IoT QC, sertifikasi unit, dan pelacakan siklus perangkat',
+    primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
     objectPosition: '50% 50%',
     zoomOrigin: 'top right',
   },
 ];
 
 export const HERO_CONTENT: HeroContent = {
-  headline: 'Welcome to ViciTech — your circular tech ecosystem.',
+  headline: 'PC & laptop anti-zonk, teruji IoT QC 15 titik.',
   subheadline:
-    'From custom PCs and laptops to smartphones and accessories—build, diagnose, upgrade, and extend the life of all your gear in one place.',
+    'Beli rakitan siap kirim, cek kompatibilitas komponen, dan tukar tambah perangkat dengan laporan telemetri nyata.',
   description:
-    'From custom PCs and laptops to smartphones and accessories—build, diagnose, upgrade, and extend the life of all your gear in one place.',
-  primaryCta: { label: 'Enter Workspace', href: '/home' },
-  secondaryCta: { label: 'Explore Library', href: '/market?view=catalog' },
+    'Beli rakitan siap kirim, cek kompatibilitas komponen, dan tukar tambah perangkat dengan laporan telemetri nyata.',
+  primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
+  secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
 };

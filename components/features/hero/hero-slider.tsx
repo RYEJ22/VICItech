@@ -154,7 +154,7 @@ export function HeroSlider({
         <button
           type="button"
           className={styles.pauseButton}
-          aria-label={isUserPaused ? 'Play background animation' : 'Pause background animation'}
+          aria-label={isUserPaused ? 'Putar animasi latar' : 'Jeda animasi latar'}
           onClick={() => {
             setIsUserPaused((paused) => !paused);
           }}

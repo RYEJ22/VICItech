@@ -281,7 +281,7 @@ export default async function ProductDetailPage({
                     <span>Komponen dalam Preset</span>
                   </h2>
                   <Link
-                    href="/home?tab=builder"
+                    href={`/home?tab=builder&productId=${encodeURIComponent(product.id)}`}
                     className="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold text-accent-cta hover:text-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
                     <span>Sesuaikan di Preset Builder</span>
@@ -354,7 +354,9 @@ export default async function ProductDetailPage({
           {/* Trust & Guarantee Rail */}
           <aside aria-labelledby="guarantee-heading" className="lg:col-span-4">
             <section className="rounded-xl border border-default bg-surface p-6 shadow-sm">
-              <span className="vt-badge-live">Terverifikasi Bench</span>
+              <span className="inline-flex items-center rounded-md border border-default bg-subtle px-2.5 py-1 text-xs font-semibold text-primary">
+                Standar Protokol ViciTech
+              </span>
               <h2
                 id="guarantee-heading"
                 className="mt-3 font-serif text-xl font-semibold text-primary [text-wrap:balance]"

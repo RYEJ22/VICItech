@@ -2,12 +2,14 @@ import { EditorialShowcase } from "@/components/features/editorial-showcase/edit
 import { SiteFooter } from "@/components/features/footer/site-footer";
 import { Hero } from "@/components/features/hero/hero";
 
-export const metadata = { title: "ViciTech | Circular IT Ecosystem" };
+export const metadata = {
+  title: "ViciTech — Marketplace & Ekosistem Circular IT Terverifikasi IoT QC",
+};
 
 export default function Page() {
   return (
     <>
-      <main>
+      <main className="bg-canvas text-primary">
         <Hero />
         <EditorialShowcase />
       </main>

@@ -125,9 +125,10 @@ function QueryParamSync({ onSync }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const view = searchParams.get("view");
+  const productId = searchParams.get("productId");
   useEffect(() => {
-    onSync(tab, view);
-  }, [tab, view, onSync]);
+    onSync(tab, view, productId);
+  }, [tab, view, productId, onSync]);
   return null;
 }
 
@@ -178,29 +179,15 @@ function ToastHost({ toast, onDone }) {
 
 /* ───────────────────────── Home dashboard ───────────────────────── */
 
-function DataSourceLink({ badgeClass, badgeLabel, title, detail, onClick }) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onClick}
-        className={`flex min-h-11 w-full items-start justify-between gap-3 rounded-xl border border-default bg-surface p-3.5 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
-      >
-        <span className="min-w-0 flex-1">
-          <span className={badgeClass}>{badgeLabel}</span>
-          <span className="mt-2 block text-sm font-semibold text-primary">{title}</span>
-          <span className="mt-0.5 block text-xs leading-relaxed text-secondary">{detail}</span>
-        </span>
-        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
-      </button>
-    </li>
-  );
-}
-
 const COMMUNITY_CATEGORY_LABELS = {
+  hardware: "Hardware",
   build_showcase: "Showcase",
-  general: "Panduan",
+  gaming: "Gaming",
+  dev: "Dev & Coding",
+  creative: "Kreatif",
   troubleshooting: "Tanya Jawab",
+  general: "Panduan",
+  meme: "Meme",
   news: "Info Resmi",
 };
 
@@ -270,17 +257,17 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
   }, [user?.id, isAuthLoading]);
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan operasional">
-      <section aria-labelledby="orders-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+    <aside className="space-y-8 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan operasional">
+      <section aria-labelledby="orders-rail-title" className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6">
         <div className="flex items-center justify-between gap-2">
-          <h2 id="orders-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
-            <Package className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          <h2 id="orders-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-[#18181B]">
+            <Package className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
             {user ? "Pesanan Terbaru" : "Alat Cepat"}
           </h2>
           {user && (
             <Link
               href="/profile?tab=orders"
-              className={`inline-flex min-h-9 items-center rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
+              className={`inline-flex min-h-9 items-center rounded-full px-2.5 text-xs font-medium text-[#EA580C] transition hover:bg-[#F3F1ED] ${focusRing}`}
             >
               Semua pesanan
             </Link>
@@ -288,28 +275,28 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
         </div>
 
         {loading ? (
-          <div className="mt-3 space-y-2.5" aria-hidden="true">
-            <div className="h-14 animate-pulse rounded-lg bg-subtle" />
-            <div className="h-14 animate-pulse rounded-lg bg-subtle" />
+          <div className="mt-4 space-y-3" aria-hidden="true">
+            <div className="h-12 animate-pulse rounded-lg bg-[#F3F1ED]" />
+            <div className="h-12 animate-pulse rounded-lg bg-[#F3F1ED]" />
           </div>
         ) : user && recentOrders.length > 0 ? (
-          <ul className="mt-3 divide-y divide-default">
+          <ul className="mt-4 divide-y divide-[#E4E4E7]">
             {recentOrders.map((order) => (
               <li key={order.id}>
                 <button
                   type="button"
                   onClick={() => onNavigate("account")}
-                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:text-[#EA580C] ${focusRing}`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium text-primary">
+                    <span className="block truncate text-sm font-medium text-[#18181B]">
                       {order.product_name || order.order_number || "Pesanan ViciTech"}
                     </span>
-                    <span className="mt-0.5 block truncate font-mono text-xs text-secondary">
+                    <span className="mt-0.5 block truncate font-mono text-xs text-[#71717A]">
                       {order.status || "Diproses"}
                     </span>
                   </span>
-                  <span className="shrink-0 font-mono text-xs font-semibold tabular-nums text-primary">
+                  <span className="shrink-0 font-mono text-xs font-semibold tabular-nums text-[#18181B]">
                     {formatCompactIdr(order.total_price)}
                   </span>
                 </button>
@@ -317,103 +304,103 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
             ))}
           </ul>
         ) : (
-          <div className="mt-3 space-y-2">
+          <div className="mt-4">
             {user && (
-              <p className="text-xs leading-relaxed text-secondary">
-                Belum ada pesanan aktif di akun Anda. Mulai rakit dari Preset Builder atau luncurkan alat berikut:
+              <p className="mb-3 text-xs leading-relaxed text-[#71717A]">
+                Belum ada pesanan aktif. Mulai rakit atau jalankan alat cepat berikut:
               </p>
             )}
-            <div className="grid gap-2">
+            <ul className="divide-y divide-[#E4E4E7]">
               {OPERATE_QUICK_TOOLS.map((tool) => {
                 const Icon = tool.icon;
                 return (
-                  <button
-                    key={tool.label}
-                    type="button"
-                    onClick={() => onNavigate(tool.module, tool.view)}
-                    className={`flex min-h-11 w-full items-center gap-3 rounded-lg border border-default bg-canvas px-3 py-2 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium text-primary">{tool.label}</span>
-                      <span className="block text-xs text-secondary">{tool.hint}</span>
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
-                  </button>
+                  <li key={tool.label}>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate(tool.module, tool.view)}
+                      className={`group flex min-h-11 w-full items-center gap-3 py-3 text-left transition-colors ${focusRing}`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0 text-[#71717A] transition-colors group-hover:text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-medium text-[#18181B] group-hover:text-[#EA580C]">{tool.label}</span>
+                        <span className="block text-xs text-[#71717A]">{tool.hint}</span>
+                      </span>
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#71717A] group-hover:text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                    </button>
+                  </li>
                 );
               })}
-              <Link
-                href="/messages"
-                className={`flex min-h-11 w-full items-center gap-3 rounded-lg border border-default bg-canvas px-3 py-2 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
-              >
-                <MessageSquare className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-primary">Pesan Langsung</span>
-                  <span className="block text-xs text-secondary">Konsultasi langsung dengan teknisi</span>
-                </span>
-                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
-              </Link>
-            </div>
+              <li>
+                <Link
+                  href="/messages"
+                  className={`group flex min-h-11 w-full items-center gap-3 py-3 text-left transition-colors ${focusRing}`}
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0 text-[#71717A] transition-colors group-hover:text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-[#18181B] group-hover:text-[#EA580C]">Pesan Langsung</span>
+                    <span className="block text-xs text-[#71717A]">Konsultasi langsung dengan teknisi</span>
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#71717A] group-hover:text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                </Link>
+              </li>
+            </ul>
           </div>
         )}
       </section>
 
-      <section aria-labelledby="community-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+      <section aria-labelledby="community-rail-title" className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6">
         <div className="flex items-center justify-between gap-2">
-          <h2 id="community-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
-            <MessageSquare className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          <h2 id="community-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-[#18181B]">
+            <MessageSquare className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
             Komunitas Terbaru
           </h2>
           <button
             type="button"
             onClick={() => onNavigate("community")}
-            className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
+            className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-[#EA580C] transition hover:bg-[#F3F1ED] ${focusRing}`}
           >
             Buka forum
           </button>
         </div>
 
         {loading ? (
-          <div className="mt-3 space-y-2.5" aria-hidden="true">
-            <div className="h-12 animate-pulse rounded-lg bg-subtle" />
-            <div className="h-12 animate-pulse rounded-lg bg-subtle" />
+          <div className="mt-4 space-y-3" aria-hidden="true">
+            <div className="h-12 animate-pulse rounded-lg bg-[#F3F1ED]" />
+            <div className="h-12 animate-pulse rounded-lg bg-[#F3F1ED]" />
           </div>
         ) : recentPosts.length > 0 ? (
-          <ul className="mt-3 divide-y divide-default">
+          <ul className="mt-4 divide-y divide-[#E4E4E7]">
             {recentPosts.map((post) => (
               <li key={post.id}>
                 <button
                   type="button"
                   onClick={() => onNavigate("community")}
-                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3.5 text-left transition-colors hover:text-[#EA580C] ${focusRing}`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 text-sm font-medium leading-snug text-primary">
+                    <span className="line-clamp-2 text-sm font-medium leading-snug text-[#18181B]">
                       {post.title}
                     </span>
-                    <span className="mt-1 inline-block rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-secondary">
-                      {COMMUNITY_CATEGORY_LABELS[post.category] || "Diskusi"}
+                    <span className="mt-1 block text-xs text-[#71717A]">
+                      {COMMUNITY_CATEGORY_LABELS[post.category] || "Diskusi"} · {Number(post.likes_count) || 0} suka
                     </span>
-                  </span>
-                  <span className="shrink-0 font-mono text-xs tabular-nums text-secondary">
-                    {Number(post.likes_count) || 0} suka
                   </span>
                 </button>
               </li>
             ))}
           </ul>
         ) : (
-          <div className="mt-3 space-y-3">
-            <p className="text-xs leading-relaxed text-secondary">
-              Jelajahi showcase rakitan B2S/B2C, panduan instalasi lab CBT, dan tanya jawab teknisi di Community Hub.
+          <div className="mt-4 space-y-4">
+            <p className="text-xs leading-relaxed text-[#71717A]">
+              Jelajahi showcase rakitan, panduan lab CBT, dan diskusi teknisi di Komunitas.
             </p>
             <button
               type="button"
               onClick={() => onNavigate("community")}
-              className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+              className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-4 py-2 text-xs font-semibold text-[#18181B] transition hover:border-[#EA580C]/45 hover:bg-[#F3F1ED] ${focusRing}`}
             >
               <span>Buka Forum Komunitas</span>
-              <ArrowRight className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+              <ArrowRight className="h-3.5 w-3.5 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
         )}
@@ -429,51 +416,21 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
   const primaryTarget = r.rec?.[0] || "builder";
   const primaryModule = BY_ID[primaryTarget] || BY_ID.builder;
 
-  const dataTransparency = [
-    {
-      badgeClass: "vt-badge-live",
-      badgeLabel: "Live ESP32",
-      title: "Sensor IoT QC & Burn-In",
-      detail: "Pembacaan suhu CPU/GPU, voltase, dan stabilitas aktual dari smart bench.",
-      go: ["qc"],
-    },
-    {
-      badgeClass: "vt-badge-simulated",
-      badgeLabel: "Simulasi IoT QC",
-      title: "Profil Simulasi Admin",
-      detail: "Skenario uji terkalibrasi yang dipisahkan secara eksplisit dari sensor fisik.",
-      go: ["qc"],
-    },
-    {
-      badgeClass: "vt-badge-sample",
-      badgeLabel: "Katalog Sampel",
-      title: "Hardware Library & Trade-In",
-      detail: "Spesifikasi acuan, estimasi harga, dan simulasi upgrade untuk riset awal.",
-      go: ["market", "catalog"],
-    },
-  ];
-  const quick = [
-    ["Cek batas maksimal upgrade", "market", "upgrade"],
-    ["Hitung bottleneck CPU & GPU", "bottleneck"],
-    ["Cek nomor seri IoT QC", "qc"],
-    ["Lihat rakitan komunitas", "community"],
-  ];
   return (
     <>
-      <section className="border-b border-default pb-10" aria-labelledby="home-title">
-        <div className="mx-auto grid max-w-shell gap-10 px-4 py-8 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-10">
-          <div className="lg:col-span-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="vt-badge-sample">{r.label}</span>
-              <span className="text-xs font-medium text-secondary">Ruang Kerja Circular IT</span>
-            </div>
-            <h1 id="home-title" className="vt-display mt-5 max-w-2xl text-4xl text-primary [text-wrap:balance] sm:text-5xl lg:text-6xl">
-              Satu ruang kerja untuk riset, rakit, dan verifikasi perangkat keras.
-            </h1>
-            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-secondary">
-              {r.greeting} Tukar tambah, rakit preset, periksa telemetri IoT QC, dan bandingkan spesifikasi dalam satu ekosistem.
+      <section className="border-b border-[#E4E4E7] bg-[#FFFFFF] py-12 md:py-16" aria-labelledby="home-title">
+        <div className="mx-auto max-w-shell px-4 sm:px-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
+              Ruang Kerja ViciTech
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Peran ruang kerja">
+            <h1 id="home-title" className="vt-display mt-3 text-4xl text-[#18181B] [text-wrap:balance] sm:text-5xl">
+              Riset, rakit, dan verifikasi perangkat keras.
+            </h1>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-[#71717A]">
+              {r.greeting}
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Peran ruang kerja">
               {Object.entries(ROLES).map(([roleKey, meta]) => {
                 const selected = role === roleKey;
                 const RoleIcon = meta.icon;
@@ -484,10 +441,10 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     role="radio"
                     aria-checked={selected}
                     onClick={() => onRoleChange?.(roleKey)}
-                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition ${focusRing} ${
+                    className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition ${focusRing} ${
                       selected
-                        ? "bg-primary font-semibold text-surface"
-                        : "border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
+                        ? "bg-[#18181B] font-semibold text-white"
+                        : "border border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"
                     }`}
                   >
                     <RoleIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -496,11 +453,11 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                 );
               })}
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => onNavigate(primaryTarget)}
-                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
+                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-cta px-6 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
               >
                 <span>Buka {primaryModule.short}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -508,44 +465,22 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
               <button
                 type="button"
                 onClick={() => onNavigate("market", "catalog")}
-                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-5 py-2.5 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
               >
                 <span>Jelajahi Market &amp; Library</span>
               </button>
             </div>
           </div>
-          <div className="lg:col-span-2">
-            <div className="rounded-xl border border-default bg-canvas p-4 sm:p-5">
-              <p className="text-xs font-semibold text-primary">Transparansi Sumber Data</p>
-              <ul className="mt-3 grid gap-2.5" aria-label="Sumber data dan verifikasi">
-                {dataTransparency.map((item) => (
-                  <DataSourceLink key={item.badgeLabel} {...item} onClick={() => onNavigate(...item.go)} />
-                ))}
-              </ul>
-            </div>
-          </div>
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-shell gap-8 px-4 py-12 sm:px-6 lg:grid-cols-3">
-        <section aria-labelledby="launch-title" className="space-y-8 lg:col-span-2">
+      <div className="mx-auto grid max-w-shell gap-10 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-3 lg:gap-12">
+        <section aria-labelledby="launch-title" className="space-y-12 lg:col-span-2">
           <div>
-            <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+            <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance]">
               Prioritas untuk peran Anda
             </h2>
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Aksi cepat">
-              {quick.map(([label, ...go]) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => onNavigate(...go)}
-                  className={`inline-flex min-h-11 items-center rounded-full border border-default bg-surface px-4 py-2 text-xs font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="mt-5 grid gap-5 sm:grid-cols-3">
               {featuredModules.map((m) => {
                 const Icon = m.icon;
                 return (
@@ -553,25 +488,20 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`vt-card-interactive group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-5 text-left hover:border-accent-primary/50 ${focusRing}`}
+                    className={`group flex min-h-11 flex-col justify-between rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6 text-left transition-colors hover:border-[#EA580C]/45 ${focusRing}`}
                   >
                     <div>
-                      <span className="flex items-center justify-between gap-2">
-                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-surface text-accent-primary shadow-sm transition group-hover:bg-accent-primary group-hover:text-white">
-                          <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
-                        </span>
-                        <span className="rounded-md bg-surface px-2 py-0.5 text-[11px] font-semibold text-primary">
-                          Direkomendasikan
-                        </span>
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FAF9F6] text-[#EA580C] transition-colors group-hover:bg-[#EA580C] group-hover:text-white">
+                        <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
                       </span>
-                      <span className="mt-4 block font-serif text-lg font-semibold leading-snug text-primary">
+                      <span className="mt-5 block font-serif text-lg font-semibold leading-snug text-[#18181B] group-hover:text-[#EA580C]">
                         {m.short}
                       </span>
-                      <span className="mt-1.5 block text-xs leading-relaxed text-secondary">
+                      <span className="mt-2 block text-xs leading-relaxed text-[#71717A]">
                         {m.blurb}
                       </span>
                     </div>
-                    <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary group-hover:text-accent-primary">
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-[#18181B] group-hover:text-[#EA580C]">
                       Buka modul <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" strokeWidth={1.75} aria-hidden="true" />
                     </span>
                   </button>
@@ -581,31 +511,32 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
           </div>
 
           <div>
-            <h3 className="font-serif text-lg font-semibold tracking-tight text-primary">
+            <h3 className="font-serif text-xl font-semibold tracking-tight text-[#18181B]">
               Direktori modul lainnya
             </h3>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <ul className="mt-4 divide-y divide-[#E4E4E7] border-y border-[#E4E4E7]">
               {otherModules.map((m) => {
                 const Icon = m.icon;
                 return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => onNavigate(m.id)}
-                    className={`vt-card-interactive group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
-                  >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary transition group-hover:bg-accent-primary group-hover:text-white">
-                      <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-primary">{m.label}</span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">{m.sub}</span>
-                    </span>
-                    <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-secondary transition-transform group-hover:translate-x-0.5 group-hover:text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  </button>
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate(m.id)}
+                      className={`group flex min-h-11 w-full items-center gap-4 py-4 text-left transition-colors ${focusRing}`}
+                    >
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FFFFFF] text-[#71717A] transition-colors group-hover:text-[#EA580C]">
+                        <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">{m.label}</span>
+                        <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">{m.sub}</span>
+                      </span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-[#71717A] transition-transform group-hover:translate-x-0.5 group-hover:text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </section>
         <WorkspacePulsePanel user={user} isAuthLoading={isAuthLoading} onNavigate={onNavigate} />
@@ -708,12 +639,14 @@ const MarketModule = memo(function MarketModule({
 
   return (
     <div>
-      <section className="border-b border-default bg-surface">
-        <div className="mx-auto max-w-shell px-4 py-6 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
+      <section className="border-b border-[#E4E4E7] bg-[#FFFFFF]">
+        <div className="mx-auto max-w-shell px-4 py-8 sm:px-6 sm:py-10">
+          <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
-              <span className="vt-badge-sample">Market &amp; Hardware Library</span>
-              <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
+                Market &amp; Hardware Library
+              </p>
+              <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl">
                 {isLibraryView
                   ? "Hardware Library, Spesifikasi & Potensi Upgrade"
                   : "Etalase Market & Unit Siap Kirim"}
@@ -724,17 +657,17 @@ const MarketModule = memo(function MarketModule({
             <div
               role="tablist"
               aria-label="Pengalih mode Market"
-              className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1"
+              className="inline-flex flex-wrap gap-1 rounded-full border border-[#E4E4E7] bg-[#FAF9F6] p-1"
             >
               <button
                 type="button"
                 role="tab"
                 aria-selected={!isLibraryView}
                 onClick={() => onView("ready")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
+                className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 py-1.5 text-sm transition-colors ${focusRing} ${
                   !isLibraryView
-                    ? "bg-accent-cta font-semibold text-white shadow-sm"
-                    : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                    ? "bg-[#18181B] font-semibold text-white"
+                    : "font-medium text-[#71717A] hover:text-[#18181B]"
                 }`}
               >
                 <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -745,10 +678,10 @@ const MarketModule = memo(function MarketModule({
                 role="tab"
                 aria-selected={isLibraryView}
                 onClick={() => onView("catalog")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
+                className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 py-1.5 text-sm transition-colors ${focusRing} ${
                   isLibraryView
-                    ? "bg-accent-cta font-semibold text-white shadow-sm"
-                    : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                    ? "bg-[#18181B] font-semibold text-white"
+                    : "font-medium text-[#71717A] hover:text-[#18181B]"
                 }`}
               >
                 <Layers className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -758,16 +691,16 @@ const MarketModule = memo(function MarketModule({
           </div>
 
           {isLibraryView && (
-            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Alat Hardware Library">
+            <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Alat Hardware Library">
               <button
                 type="button"
                 role="tab"
                 aria-selected={view === "catalog"}
                 onClick={() => onView("catalog")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition ${focusRing} ${
                   view === "catalog"
-                    ? "bg-primary text-surface"
-                    : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                    ? "bg-[#18181B] text-white"
+                    : "border border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"
                 }`}
               >
                 <Layers className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -778,10 +711,10 @@ const MarketModule = memo(function MarketModule({
                 role="tab"
                 aria-selected={view === "upgrade"}
                 onClick={() => onView("upgrade")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                className={`inline-flex min-h-10 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition ${focusRing} ${
                   view === "upgrade"
-                    ? "bg-primary text-surface"
-                    : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                    ? "bg-[#18181B] text-white"
+                    : "border border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"
                 }`}
               >
                 <Zap className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -888,6 +821,7 @@ const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account
  * @param {readonly import('@/lib/admin/products-validation').ProductRow[]} [props.initialMarketProducts]
  * @param {string | null} [props.initialMarketError]
  * @param {string} [props.initialMarketCategory]
+ * @param {string} [props.initialBuilderProductId]
  * @param {string} [props.homeUrl]
  * @param {() => Promise<void> | void} [props.onSignOut]
  */
@@ -903,6 +837,7 @@ export default function ViciTechApp({
   initialMarketProducts = [],
   initialMarketError = null,
   initialMarketCategory = "all",
+  initialBuilderProductId = "",
   homeUrl = undefined,
   onSignOut = undefined,
 }) {
@@ -922,6 +857,7 @@ export default function ViciTechApp({
   const [authState, setAuthState] = useState({ user: null, profile: null, session: null, isLoading: true });
   const [upgradeDevice, setUpgradeDevice] = useState("t14");
   const [builderConfig, setBuilderConfig] = useState(null);
+  const [builderProductId, setBuilderProductId] = useState(initialBuilderProductId);
   const [qcSerial, setQcSerial] = useState(initialSerial);
   const [palette, setPalette] = useState(false);
   const [toast, setToast] = useState(null);
@@ -1117,7 +1053,10 @@ export default function ViciTechApp({
     window.scrollTo(0, 0);
   }, [show, notify, homeUrl]);
 
-  const handleQuerySync = useCallback((tab, view) => {
+  const handleQuerySync = useCallback((tab, view, productId) => {
+    if (productId) {
+      setBuilderProductId(productId);
+    }
     if (window.location.hash) return;
     if (tab) {
       const [normId, normView] = normalizeModuleTarget(tab, view);
@@ -1183,7 +1122,7 @@ export default function ViciTechApp({
 
   useEffect(() => {
     if (BY_ID[active]) {
-      document.title = `${BY_ID[active].label} | ViciTech OS`;
+      document.title = `${BY_ID[active].label} | ViciTech`;
     }
     window.dispatchEvent(new CustomEvent("vicitech:module-change", { detail: { module: active, view: views[active] } }));
   }, [active, views]);
@@ -1222,6 +1161,8 @@ export default function ViciTechApp({
       role,
       userId: authState.user?.id,
       importedConfig: builderConfig,
+      initialProductId: builderProductId,
+      marketProducts: initialMarketProducts,
       onNavigate: navigate,
       onOpenEngine: (serial) => {
         if (serial) setQcSerial(serial);
@@ -1289,7 +1230,7 @@ export default function ViciTechApp({
       initialUsername: initialMessageUsername,
       initialPeerId: initialMessagePeerId,
     },
-  }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername, initialMessagePeerId, initialMarketProducts]);
+  }), [role, authState, builderConfig, builderProductId, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername, initialMessagePeerId, initialMarketProducts]);
 
   const isViewportLockedChat = active === "messages";
 

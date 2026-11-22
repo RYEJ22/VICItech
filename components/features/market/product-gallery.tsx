@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Layers, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import type { ProductCategory } from '@/lib/admin/products-validation';
-import type { MarketTrustBadge } from '@/lib/market/product-presenter';
+import { getTrustBadgeClassName, type MarketTrustBadge } from '@/lib/market/product-presenter';
 import { MarketProductImage } from './market-product-image';
 import styles from './product-gallery.module.css';
 
@@ -27,8 +27,7 @@ export function ProductGallery({
   const safeIndex = images.length > 0 && activeIndex < images.length ? activeIndex : 0;
   const activeSrc = images[safeIndex] ?? null;
 
-  const trustBadgeClass =
-    trustBadge.tone === 'simulated' ? 'vt-badge-simulated' : 'vt-badge-live';
+  const trustBadgeClass = getTrustBadgeClassName(trustBadge.tone);
 
   const handlePrev = () => {
     if (images.length <= 1) return;

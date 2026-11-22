@@ -33,9 +33,25 @@ export interface MarketSpecItem {
   readonly value: string;
 }
 
+export type MarketBadgeTone = 'live' | 'simulated' | 'sample' | 'neutral';
+
 export interface MarketTrustBadge {
   readonly label: string;
-  readonly tone: 'live' | 'simulated' | 'sample';
+  readonly tone: MarketBadgeTone;
+  readonly hasVerifiedQc: boolean;
+}
+
+export function getTrustBadgeClassName(tone: MarketBadgeTone): string {
+  switch (tone) {
+    case 'live':
+      return 'vt-badge-live';
+    case 'simulated':
+      return 'vt-badge-simulated';
+    case 'sample':
+      return 'vt-badge-sample';
+    case 'neutral':
+      return 'inline-flex items-center gap-1.5 rounded-md border border-default bg-surface px-2 py-0.5 text-xs font-semibold text-primary';
+  }
 }
 
 export interface MarketStockMeta {
@@ -188,23 +204,41 @@ export function isOptimizedImageSrc(src: string): boolean {
   }
 }
 
+const QC_SERIAL_PATTERN = /^VICI-[A-Z]{3}-\d{4}-\d{4}$/;
+
 export function getProductTrustBadge(product: ProductRow): MarketTrustBadge {
   const entries = parseProductSpecs(product.specs);
-  const gradeEntry = entries.find((entry) => entry.key.trim().toLowerCase() === 'grade');
-  if (gradeEntry && gradeEntry.value.trim()) {
-    return { label: gradeEntry.value.trim(), tone: 'live' };
+  const specMap = new Map(
+    entries.map((entry) => [entry.key.trim().toLowerCase(), entry.value.trim()]),
+  );
+
+  const telemetrySource = (specMap.get('qc_telemetry_source') ?? '').toLowerCase();
+  const liveFlag = (specMap.get('live_esp32') ?? '').toLowerCase();
+  const qcSerial = (specMap.get('qc_serial') ?? '').toUpperCase();
+
+  if (
+    telemetrySource === 'esp32' ||
+    liveFlag === 'true' ||
+    QC_SERIAL_PATTERN.test(qcSerial)
+  ) {
+    return { label: 'Live ESP32 QC', tone: 'live', hasVerifiedQc: true };
   }
 
-  const qcEntry = entries.find((entry) => entry.key.trim().toLowerCase() === 'qc_protocol');
-  if (qcEntry && qcEntry.value.trim()) {
-    return { label: 'IoT QC Lulus', tone: 'live' };
+  const gradeValue = specMap.get('grade');
+  if (gradeValue) {
+    return { label: gradeValue, tone: 'neutral', hasVerifiedQc: true };
+  }
+
+  const qcProtocol = specMap.get('qc_protocol');
+  if (qcProtocol) {
+    return { label: 'Standar QC 15-Titik', tone: 'neutral', hasVerifiedQc: true };
   }
 
   if (product.seller_type === 'vicitech') {
-    return { label: 'IoT QC ViciTech', tone: 'live' };
+    return { label: 'Kurasi ViciTech', tone: 'neutral', hasVerifiedQc: false };
   }
 
-  return { label: 'Mitra Terverifikasi', tone: 'simulated' };
+  return { label: 'Mitra Terverifikasi', tone: 'neutral', hasVerifiedQc: false };
 }
 
 export function formatSpecLabel(rawKey: string): string {
@@ -381,7 +415,7 @@ export function buildCheckoutPayloadFromProduct(product: ProductRow): MarketChec
     id: product.id,
     title: product.title,
     price: unitPrice,
-    type: product.is_preset ? 'preset_builder' : 'direct_buy',
+    type: 'direct_buy',
     specs: specsRecord,
     items: [
       {

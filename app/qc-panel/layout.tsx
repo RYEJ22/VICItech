@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "IoT Diagnostics Panel | ViciTech OS",
-  description: "Interactive ViciTech diagnostics, order tracking, and hardware compatibility workspace.",
+  title: "Panel Diagnostik IoT QC | ViciTech",
+  description: "Panel diagnostik, pelacakan pesanan, dan verifikasi telemetri IoT QC ViciTech.",
   robots: {
     index: false,
     follow: false,

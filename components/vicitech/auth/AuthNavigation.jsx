@@ -4,16 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
-  ChevronDown,
-  Gauge,
   LoaderCircle,
   LogOut,
-  MessageSquare,
-  MoreHorizontal,
   ShieldCheck,
-  Swords,
-  User,
   UserRound,
 } from "lucide-react";
 import {
@@ -30,43 +23,17 @@ import {
 import AuthModal from "./AuthModal";
 
 const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60";
-
-function sourceBadgeClass(tone) {
-  if (tone === "live") return "vt-badge-live";
-  if (tone === "simulated") return "vt-badge-simulated";
-  return "vt-badge-sample";
-}
-
-function MoreToolIcon({ iconKey }) {
-  const cls = "h-4 w-4 shrink-0 text-accent-primary";
-  switch (iconKey) {
-    case "qc":
-      return <Activity className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case "messages":
-      return <MessageSquare className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case "bottleneck":
-      return <Gauge className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case "versus":
-      return <Swords className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    default:
-      return <User className={cls} strokeWidth={1.75} aria-hidden="true" />;
-  }
-}
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60";
 
 /**
  * @param {{
  *   onAuthState?: (payload: any) => void,
  *   onNotify?: (message: string) => void,
  *   onNavigate?: (moduleId: string) => void,
- *   onNavigateHref?: (href: string, moduleId?: string, view?: string) => void,
  *   onSignOut?: () => Promise<void>,
  *   isMenuOpen?: boolean,
  *   onToggleMenu?: () => void,
  *   onCloseMenu?: () => void,
- *   dataSources?: readonly any[],
- *   moreItems?: readonly any[],
- *   dmBadgeLabel?: string | null,
  *   variant?: "desktop" | "mobile",
  * }} props
  */
@@ -74,14 +41,10 @@ export default function AuthNavigation({
   onAuthState,
   onNotify,
   onNavigate,
-  onNavigateHref,
   onSignOut,
   isMenuOpen,
   onToggleMenu,
   onCloseMenu,
-  dataSources,
-  moreItems,
-  dmBadgeLabel,
   variant = "desktop",
 }) {
   const router = useRouter();
@@ -104,20 +67,6 @@ export default function AuthNavigation({
     if (onCloseMenu) onCloseMenu();
     else setLocalMenuOpen(false);
   }, [onCloseMenu]);
-
-  const navigateTarget = useCallback(
-    (href, moduleId, view) => {
-      closeMenu();
-      if (onNavigateHref) {
-        onNavigateHref(href, moduleId, view);
-      } else if (moduleId && onNavigate) {
-        onNavigate(moduleId);
-      } else {
-        router.push(href);
-      }
-    },
-    [closeMenu, onNavigate, onNavigateHref, router]
-  );
 
   const applyAuthState = useCallback(
     (nextSession, nextProfile = null) => {
@@ -330,8 +279,8 @@ export default function AuthNavigation({
   if (isLoading) {
     return (
       <span
-        className={`grid shrink-0 place-items-center rounded-full border border-default bg-surface text-secondary ${
-          isMobile ? "h-11 w-11" : "h-10 w-10"
+        className={`grid shrink-0 place-items-center rounded-full border border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] ${
+          isMobile ? "h-10 w-10" : "h-10 w-10"
         }`}
         aria-label="Memeriksa sesi masuk"
       >
@@ -340,15 +289,10 @@ export default function AuthNavigation({
     );
   }
 
-  const profileUsername = profile?.username || user?.user_metadata?.username;
   const resolvedName = getUserDisplayName(user, profile);
   const initials = getUserInitials(user, profile);
   const isAdmin = user?.app_metadata?.role === "admin" || profile?.role === "admin";
-  const resolvedSources = Array.isArray(dataSources) ? dataSources : [];
-  const resolvedMoreItems = Array.isArray(moreItems) ? moreItems : [];
-  const toolItems = user
-    ? resolvedMoreItems.filter((entry) => entry.id !== "messages" && entry.id !== "account")
-    : resolvedMoreItems;
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
 
   return (
     <>
@@ -360,23 +304,20 @@ export default function AuthNavigation({
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             aria-label={`Menu akun ${resolvedName}`}
-            className={`relative inline-flex items-center justify-center rounded-full border transition-colors duration-150 ${focusRing} ${
+            title={resolvedName}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border bg-[#FFFFFF] p-0.5 transition-colors duration-150 ${focusRing} ${
               menuOpen
-                ? "border-accent-primary bg-accent-subtle text-primary"
-                : "border-default bg-surface text-primary hover:bg-subtle"
-            } ${
-              isMobile
-                ? "h-11 w-11"
-                : "h-10 max-w-[11.5rem] gap-2 pl-1.5 pr-2.5 text-xs font-medium"
+                ? "border-[#EA580C] ring-2 ring-[#EA580C]/20"
+                : "border-[#E4E4E7] hover:border-[#EA580C]/60"
             }`}
           >
-            <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-accent-subtle font-serif text-xs font-semibold text-accent-primary">
-              {profile?.avatar_url || user?.user_metadata?.avatar_url ? (
+            <span className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-[#F3F1ED] font-serif text-xs font-semibold text-[#EA580C]">
+              {avatarUrl ? (
                 <img
-                  src={profile?.avatar_url || user?.user_metadata?.avatar_url}
+                  src={avatarUrl}
                   alt=""
-                  width={28}
-                  height={28}
+                  width={36}
+                  height={36}
                   decoding="async"
                   className="h-full w-full object-cover"
                 />
@@ -384,35 +325,17 @@ export default function AuthNavigation({
                 initials || <UserRound className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               )}
             </span>
-            {!isMobile && (
-              <>
-                <span className="hidden min-w-0 truncate lg:inline">{resolvedName}</span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 shrink-0 text-secondary transition-transform duration-200 ${
-                    menuOpen ? "rotate-180" : ""
-                  }`}
-                  strokeWidth={1.75}
-                  aria-hidden="true"
-                />
-              </>
-            )}
-            {dmBadgeLabel && (
-              <span
-                aria-hidden="true"
-                className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-accent-primary"
-              />
-            )}
           </button>
 
           {menuOpen && (
             <div
               role="menu"
-              aria-label="Menu akun dan sistem"
-              className="absolute right-0 top-full z-[60] mt-2 grid max-h-[calc(100dvh-5.5rem)] w-[min(21rem,calc(100vw-1.5rem))] gap-1 overflow-y-auto rounded-xl border border-default bg-surface p-2 shadow-2xl"
+              aria-label="Menu akun"
+              className="absolute right-0 top-full z-[60] mt-2 grid w-64 max-w-[calc(100vw-1.5rem)] gap-1 rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-2 shadow-[0_12px_32px_-8px_rgba(24,24,27,0.08),0_2px_6px_-2px_rgba(24,24,27,0.04)]"
             >
-              <div className="border-b border-default px-3 py-2">
-                <p className="truncate text-sm font-semibold text-primary">{resolvedName}</p>
-                <p className="truncate text-xs text-secondary">
+              <div className="border-b border-[#E4E4E7] px-3 py-2.5">
+                <p className="truncate text-sm font-semibold text-[#18181B]">{resolvedName}</p>
+                <p className="truncate text-xs text-[#71717A]">
                   {isAdmin ? "Administrator ViciTech" : user?.email || "Anggota ViciTech"}
                 </p>
               </div>
@@ -421,30 +344,14 @@ export default function AuthNavigation({
                 role="menuitem"
                 href="/profile"
                 onClick={closeMenu}
-                className={`flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-primary transition hover:bg-subtle ${focusRing}`}
+                className={`group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
               >
-                <UserRound className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <UserRound
+                  className="h-4 w-4 shrink-0 text-[#71717A] transition-colors group-hover:text-[#EA580C]"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
                 <span>Profil &amp; Akun</span>
-              </Link>
-
-              <Link
-                role="menuitem"
-                href="/messages"
-                onClick={closeMenu}
-                className={`flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-primary transition hover:bg-subtle ${focusRing}`}
-              >
-                <span className="flex items-center gap-2.5">
-                  <MessageSquare className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Pesan Langsung</span>
-                </span>
-                {dmBadgeLabel && (
-                  <span
-                    key={dmBadgeLabel}
-                    className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-[#C2410C] px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
-                  >
-                    {dmBadgeLabel}
-                  </span>
-                )}
               </Link>
 
               {isAdmin && (
@@ -452,70 +359,29 @@ export default function AuthNavigation({
                   role="menuitem"
                   href="/admin"
                   onClick={closeMenu}
-                  className={`flex min-h-11 items-center justify-between gap-2 rounded-lg border border-accent-primary/25 bg-accent-subtle/60 px-3 py-2 text-sm font-semibold text-primary transition hover:bg-accent-subtle ${focusRing}`}
+                  className={`group flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
                 >
                   <span className="flex items-center gap-2.5">
-                    <ShieldCheck className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                    <ShieldCheck
+                      className="h-4 w-4 shrink-0 text-[#EA580C]"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
                     <span>Konsol Admin</span>
                   </span>
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-accent-primary">
-                    OS
+                  <span className="rounded-md bg-[#F3F1ED] px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#EA580C]">
+                    Admin
                   </span>
                 </Link>
               )}
 
-              {toolItems.length > 0 && (
-                <div className="mt-1 border-t border-default pt-1.5">
-                  <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                    Alat Lainnya
-                  </p>
-                  {toolItems.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => navigateTarget(entry.href, entry.module)}
-                      className={`flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-primary transition hover:bg-subtle ${focusRing}`}
-                    >
-                      <MoreToolIcon iconKey={entry.iconKey} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">{entry.label}</span>
-                        <span className="block truncate text-xs text-secondary">{entry.hint}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {resolvedSources.length > 0 && (
-                <div className="mt-1 border-t border-default pt-1.5">
-                  <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                    Sumber Data
-                  </p>
-                  <div className="grid gap-1">
-                    {resolvedSources.map((source) => (
-                      <button
-                        key={source.id}
-                        type="button"
-                        role="menuitem"
-                        onClick={() => navigateTarget(source.href, source.module, source.view)}
-                        className={`flex min-h-11 w-full flex-col items-start gap-1 rounded-lg px-3 py-2 text-left transition hover:bg-subtle ${focusRing}`}
-                      >
-                        <span className={sourceBadgeClass(source.tone)}>{source.label}</span>
-                        <span className="text-xs font-medium text-primary">{source.title}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-1 border-t border-default pt-1.5">
+              <div className="mt-1 border-t border-[#E4E4E7] pt-1">
                 <button
                   type="button"
                   role="menuitem"
                   onClick={signOut}
                   disabled={isSigningOut}
-                  className={`flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-secondary transition hover:bg-status-danger/10 hover:text-status-danger disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
+                  className={`flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-[#71717A] transition-colors hover:bg-status-danger/10 hover:text-status-danger disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
                 >
                   {isSigningOut ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -529,89 +395,15 @@ export default function AuthNavigation({
           )}
         </div>
       ) : (
-        <div className="flex shrink-0 items-center gap-1.5">
-          {!isMobile && (resolvedSources.length > 0 || toolItems.length > 0) && (
-            <div className="relative shrink-0" data-nav-menu>
-              <button
-                type="button"
-                onClick={toggleMenu}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                aria-label="Alat dan Sumber Data"
-                className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-150 ${focusRing} ${
-                  menuOpen
-                    ? "border-accent-primary bg-accent-subtle text-primary"
-                    : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
-                }`}
-              >
-                <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-              </button>
-
-              {menuOpen && (
-                <div
-                  role="menu"
-                  aria-label="Alat dan Sumber Data"
-                  className="absolute right-0 top-full z-[60] mt-2 grid max-h-[calc(100dvh-5.5rem)] w-[min(21rem,calc(100vw-1.5rem))] gap-1 overflow-y-auto rounded-xl border border-default bg-surface p-2 shadow-2xl"
-                >
-                  {toolItems.length > 0 && (
-                    <div>
-                      <p className="px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                        Alat Lainnya
-                      </p>
-                      {toolItems.map((entry) => (
-                        <button
-                          key={entry.id}
-                          type="button"
-                          role="menuitem"
-                          onClick={() => navigateTarget(entry.href, entry.module)}
-                          className={`flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-primary transition hover:bg-subtle ${focusRing}`}
-                        >
-                          <MoreToolIcon iconKey={entry.iconKey} />
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate font-medium">{entry.label}</span>
-                            <span className="block truncate text-xs text-secondary">{entry.hint}</span>
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {resolvedSources.length > 0 && (
-                    <div className="mt-1 border-t border-default pt-1.5">
-                      <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                        Sumber Data
-                      </p>
-                      <div className="grid gap-1">
-                        {resolvedSources.map((source) => (
-                          <button
-                            key={source.id}
-                            type="button"
-                            role="menuitem"
-                            onClick={() => navigateTarget(source.href, source.module, source.view)}
-                            className={`flex min-h-11 w-full flex-col items-start gap-1 rounded-lg px-3 py-2 text-left transition hover:bg-subtle ${focusRing}`}
-                          >
-                            <span className={sourceBadgeClass(source.tone)}>{source.label}</span>
-                            <span className="text-xs font-medium text-primary">{source.title}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setIsAuthOpen(true)}
-            className={`inline-flex items-center justify-center whitespace-nowrap rounded-full bg-accent-cta text-xs font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-accent-cta-hover ${focusRing} ${
-              isMobile ? "h-11 min-h-11 px-3.5" : "h-10 px-4"
-            }`}
-          >
-            Masuk
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsAuthOpen(true)}
+          className={`inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-accent-cta text-sm font-medium text-white transition-colors duration-150 hover:bg-accent-cta-hover ${focusRing} ${
+            isMobile ? "px-3.5" : "px-4"
+          }`}
+        >
+          Masuk
+        </button>
       )}
 
       {isAuthOpen && !user && (
