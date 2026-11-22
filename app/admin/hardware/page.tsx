@@ -42,9 +42,9 @@ const PAGE_SIZE = 25;
 type ConditionFilter = 'all' | HardwareCondition;
 
 function conditionLabel(condition: HardwareCondition): string {
-  if (condition === 'brand_new') return 'Brand New';
-  if (condition === 'refurbished_qc_passed') return 'Refurbished';
-  return 'Used';
+  if (condition === 'brand_new') return 'Baru';
+  if (condition === 'refurbished_qc_passed') return 'Refurbished QC';
+  return 'Bekas';
 }
 
 function conditionBadgeClass(condition: HardwareCondition): string {
@@ -169,10 +169,10 @@ export default function HardwareInventoryPage(): ReactElement {
             <span>Registry Komponen PC</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Hardware Inventory &amp; Spec Registry
+            Inventori Hardware &amp; Spesifikasi
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
-            Kelola spesifikasi CPU, GPU, RAM, PSU, stok unit, skor benchmark, dan visibilitas PC Builder.
+            Kelola spesifikasi CPU, GPU, RAM, PSU, stok unit, skor benchmark, dan visibilitas Preset Builder.
           </p>
         </div>
 
@@ -192,7 +192,7 @@ export default function HardwareInventoryPage(): ReactElement {
           </button>
           <Link
             href="/admin/hardware/new"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-accent-hover hover:text-accent-foreground"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-cta-hover"
           >
             <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Tambah Hardware</span>
@@ -303,9 +303,9 @@ export default function HardwareInventoryPage(): ReactElement {
             className="min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
           >
             <option value="all">Semua Kondisi</option>
-            <option value="brand_new">Brand New</option>
-            <option value="refurbished_qc_passed">Refurbished (QC Passed)</option>
-            <option value="used">Used</option>
+            <option value="brand_new">Baru</option>
+            <option value="refurbished_qc_passed">Refurbished (Lulus QC)</option>
+            <option value="used">Bekas</option>
           </select>
         </label>
       </div>
@@ -359,7 +359,7 @@ export default function HardwareInventoryPage(): ReactElement {
             </p>
             <Link
               href="/admin/hardware/new"
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover"
             >
               <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Tambah Komponen Hardware</span>

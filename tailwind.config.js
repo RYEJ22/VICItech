@@ -11,29 +11,29 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-poppins)", "Poppins", "Arial", "sans-serif"],
-        serif: ["var(--font-serif)", "Georgia", "Times New Roman", "serif"],
+        sans: ["var(--font-sans)", "Poppins", "Arial", "sans-serif"],
+        serif: ["var(--font-serif)", "Playfair Display", "Georgia", "Times New Roman", "serif"],
         mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
-        // ViciTech palette — legacy shell aliases & DESIGN.md semantic tokens.
+        // ViciTech palette — legacy shell aliases collapsed onto DESIGN.md semantic tokens.
         paper: {
-          DEFAULT: "#F4F4F2",
-          deep: "#ECEDE9",
+          DEFAULT: "var(--bg-canvas)",
+          deep: "var(--bg-subtle)",
         },
-        ink: "#141518",
-        gunmetal: "#141518",
-        pewter: "#5A606A",
-        faint: "#8B9099",
-        hairline: "rgba(20,21,24,0.08)",
+        ink: "var(--text-primary)",
+        gunmetal: "var(--text-primary)",
+        pewter: "var(--text-secondary)",
+        faint: "var(--text-secondary)",
+        hairline: "var(--border-default)",
         signal: {
-          DEFAULT: "#FF5500",
-          orange: "#FF5500",
-          deep: "#E04B00",
-          hover: "#e04b00",
-          wash: "rgba(255,85,0,0.10)",
+          DEFAULT: "var(--accent-primary)",
+          orange: "var(--accent-primary)",
+          deep: "var(--accent-cta)",
+          hover: "var(--accent-cta-hover)",
+          wash: "var(--vt-signal-wash)",
         },
-        brick: "#B3261E",
+        brick: "var(--status-danger)",
         // DESIGN.md semantic tokens.
         canvas: "var(--bg-canvas)",
         surface: "var(--bg-surface)",
@@ -46,6 +46,8 @@ module.exports = {
         },
         accent: {
           primary: "var(--accent-primary)",
+          cta: "var(--accent-cta)",
+          "cta-hover": "var(--accent-cta-hover)",
           hover: "var(--accent-hover)",
           subtle: "var(--accent-subtle)",
           foreground: "var(--accent-foreground)",

@@ -73,7 +73,7 @@ interface IotQcPostResponse {
 }
 
 function formatTime(value = new Date()): string {
-  return new Intl.DateTimeFormat('en-ID', {
+  return new Intl.DateTimeFormat('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -368,10 +368,10 @@ export default function AdminIotQcPage(): ReactElement {
         <div>
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-accent-primary">
             <ShieldCheck className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Smart Bench · Restricted Admin</span>
+            <span>Smart Bench · Akses Terbatas Admin</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            IoT QC Control Portal
+            Portal Kontrol IoT QC
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-secondary">
             Jalankan stress test terotorisasi, pantau payload sensor ESP32 realtime, dan terbitkan sertifikat kelulusan unit sebelum pengiriman.
@@ -389,7 +389,7 @@ export default function AdminIotQcPage(): ReactElement {
           ) : (
             <Activity className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
           )}
-          <span>Refresh Units</span>
+          <span>Muat Ulang Unit</span>
         </button>
       </header>
 
@@ -434,9 +434,9 @@ export default function AdminIotQcPage(): ReactElement {
                         type="button"
                         disabled={Boolean(activeAction)}
                         onClick={() => void registerOrder(order)}
-                        className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-accent-primary/35 bg-accent-subtle px-3 py-1.5 text-xs font-semibold text-accent-hover transition hover:bg-accent-primary hover:text-primary disabled:opacity-50"
+                        className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-accent-primary/35 bg-accent-subtle px-3 py-1.5 text-xs font-semibold text-accent-hover transition hover:bg-accent-cta hover:text-white disabled:opacity-50"
                       >
-                        {activeAction === `register:${order.id}` ? 'Mendaftarkan…' : 'Register QC'}
+                        {activeAction === `register:${order.id}` ? 'Mendaftarkan…' : 'Daftarkan QC'}
                       </button>
                     )}
                   </li>
@@ -499,16 +499,16 @@ export default function AdminIotQcPage(): ReactElement {
                       </div>
 
                       {telemetry.source === 'esp32' ? (
-                        <span className="vt-badge-live">Live ESP32 Sensor</span>
+                        <span className="vt-badge-live">Live ESP32</span>
                       ) : telemetry.source === 'admin_simulation' ? (
-                        <span className="vt-badge-simulated">Simulated Payload</span>
+                        <span className="vt-badge-simulated">Simulasi IoT QC</span>
                       ) : (
-                        <span className="vt-badge-sample">Menunggu Telemetry</span>
+                        <span className="vt-badge-sample">Menunggu Telemetri</span>
                       )}
                     </div>
 
                     <div className="mt-5 flex justify-between text-xs font-medium text-secondary">
-                      <span>Progres Assembly / QC / Pengiriman</span>
+                      <span>Progres Perakitan / IoT QC / Pengiriman</span>
                       <span className="font-mono tabular-nums text-primary">{Math.round(progress)}%</span>
                     </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-default">
@@ -521,25 +521,25 @@ export default function AdminIotQcPage(): ReactElement {
                     <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <MetricCard
                         icon={Cpu}
-                        label="CPU Temp"
+                        label="Suhu CPU"
                         value={telemetry.cpu_temp_c == null ? '—' : `${telemetry.cpu_temp_c} °C`}
                         level={telemetry.cpu_temp_c == null ? null : (Number(telemetry.cpu_temp_c) / 120) * 100}
                       />
                       <MetricCard
                         icon={Thermometer}
-                        label="GPU Temp"
+                        label="Suhu GPU"
                         value={telemetry.gpu_temp_c == null ? '—' : `${telemetry.gpu_temp_c} °C`}
                         level={telemetry.gpu_temp_c == null ? null : (Number(telemetry.gpu_temp_c) / 120) * 100}
                       />
                       <MetricCard
                         icon={Activity}
-                        label="Fan Speed"
+                        label="Kecepatan Kipas"
                         value={telemetry.fan_rpm == null ? '—' : `${telemetry.fan_rpm} RPM`}
                         level={telemetry.fan_rpm == null ? null : (Number(telemetry.fan_rpm) / 2500) * 100}
                       />
                       <MetricCard
                         icon={Activity}
-                        label="Voltage Stability"
+                        label="Stabilitas Voltase"
                         value={
                           telemetry.voltage_stability == null
                             ? '—'
@@ -555,9 +555,9 @@ export default function AdminIotQcPage(): ReactElement {
 
                     <div className="mt-5">
                       <div className="mb-2 flex justify-between text-xs text-secondary">
-                        <span>Progres Burn-in Termal</span>
+                        <span>Progres Burn-In Termal</span>
                         <span className="font-mono font-semibold tabular-nums text-primary">
-                          {burninValue}/4 jam burn-in
+                          {burninValue}/4 jam Burn-In
                         </span>
                       </div>
                       <div className="h-1.5 overflow-hidden rounded-full bg-default">
@@ -575,13 +575,13 @@ export default function AdminIotQcPage(): ReactElement {
                       </strong>{' '}
                       · Pengiriman:{' '}
                       <strong className="text-primary">
-                        {selectedUnit.shipping_status || 'In Production'}
+                        {selectedUnit.shipping_status || 'Dalam Produksi'}
                       </strong>
                     </p>
 
                     {selectedUnit.certificate_id ? (
                       <p className="mt-2 font-mono text-xs font-semibold text-status-live">
-                        Certificate ID: {selectedUnit.certificate_id}
+                        ID Sertifikat: {selectedUnit.certificate_id}
                       </p>
                     ) : null}
                   </section>
@@ -592,16 +592,16 @@ export default function AdminIotQcPage(): ReactElement {
                 <button
                   type="button"
                   disabled={Boolean(activeAction)}
-                  onClick={() => void runAction('start_test', 'Start Stress Test')}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-primary px-4 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-accent-hover hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => void runAction('start_test', 'Mulai Stress Test')}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {activeAction === 'start_test' ? 'Memulai…' : 'Start Stress Test'}
+                  {activeAction === 'start_test' ? 'Memulai…' : 'Mulai Stress Test'}
                 </button>
 
                 <button
                   type="button"
                   disabled={Boolean(activeAction)}
-                  onClick={() => void runAction('simulate_payload', 'Simulate ESP32 Payload')}
+                  onClick={() => void runAction('simulate_payload', 'Simulasi Payload ESP32')}
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-3 text-sm font-medium text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {activeAction === 'simulate_payload' ? (
@@ -609,16 +609,16 @@ export default function AdminIotQcPage(): ReactElement {
                   ) : (
                     <Radio className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                   )}
-                  <span>Simulate ESP32 Payload</span>
+                  <span>Simulasi Payload ESP32</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={Boolean(activeAction) || !hasCompletedBurnIn}
-                  onClick={() => void runAction('pass_qc', 'Pass QC & Generate Certificate')}
+                  onClick={() => void runAction('pass_qc', 'Lulus IoT QC & Terbitkan Sertifikat')}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-status-live/45 bg-status-live/10 px-4 py-3 text-sm font-semibold text-primary transition hover:bg-status-live/15 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {activeAction === 'pass_qc' ? 'Menerbitkan…' : 'Pass QC & Generate Certificate'}
+                  {activeAction === 'pass_qc' ? 'Menerbitkan…' : 'Lulus IoT QC & Terbitkan Sertifikat'}
                 </button>
 
                 <button
@@ -628,15 +628,15 @@ export default function AdminIotQcPage(): ReactElement {
                     !isPassed ||
                     selectedUnit.shipping_status === 'Shipped'
                   }
-                  onClick={() => void runAction('mark_shipped', 'Mark Unit as Shipped')}
+                  onClick={() => void runAction('mark_shipped', 'Tandai Unit Dikirim')}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-ink bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {activeAction === 'mark_shipped' ? 'Memperbarui…' : 'Mark Unit as Shipped'}
+                  {activeAction === 'mark_shipped' ? 'Memperbarui…' : 'Tandai Unit Dikirim'}
                 </button>
               </section>
 
               <p className="text-xs text-secondary">
-                Lulus QC membutuhkan minimal 4 jam burn-in. Status pengiriman aktif hanya setelah sertifikat QC diterbitkan.
+                Lulus IoT QC membutuhkan minimal 4 jam Burn-In. Status pengiriman aktif hanya setelah sertifikat QC diterbitkan.
               </p>
             </>
           ) : null}
@@ -647,11 +647,11 @@ export default function AdminIotQcPage(): ReactElement {
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Terminal className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-              <span>ESP32 Telemetry Terminal</span>
+              <span>Terminal Telemetri ESP32</span>
             </h2>
             <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-status-live">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-live" aria-hidden="true" />
-              <span>Secure Stream</span>
+              <span>Aliran Aman</span>
             </span>
           </div>
 

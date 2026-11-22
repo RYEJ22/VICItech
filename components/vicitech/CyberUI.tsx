@@ -25,7 +25,7 @@ export function CyberButton({
   const prefersReducedMotion = usePrefersReducedMotion();
   const styles =
     variant === 'primary'
-      ? 'bg-accent-primary text-primary font-semibold hover:bg-accent-hover hover:text-accent-foreground shadow-sm border-none'
+      ? 'bg-accent-cta text-white font-semibold hover:bg-accent-cta-hover shadow-sm border-none'
       : 'bg-surface text-primary font-medium hover:bg-subtle border border-default shadow-sm';
 
   return (

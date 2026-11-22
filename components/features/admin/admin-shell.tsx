@@ -29,38 +29,38 @@ interface AdminNavItem {
 const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
   {
     href: '/admin',
-    label: 'Overview',
+    label: 'Ringkasan',
     description: 'Bento KPI & aktivitas operasional',
     icon: LayoutDashboard,
   },
   {
     href: '/admin/products',
-    label: 'Market Products',
+    label: 'Produk Market',
     description: 'Katalog produk & preset rakitan',
     icon: Package,
   },
   {
     href: '/admin/hardware',
-    label: 'Hardware Inventory',
-    description: 'Stok komponen & registry builder',
+    label: 'Inventori Hardware',
+    description: 'Stok komponen & registri Preset Builder',
     icon: Cpu,
   },
   {
     href: '/admin/dashboard',
-    label: 'Orders',
+    label: 'Pesanan',
     description: 'Pesanan masuk & status pengerjaan',
     icon: ShoppingBag,
   },
   {
     href: '/admin/iot-qc',
     label: 'IoT QC',
-    description: 'Burn-in test, ESP32 & sertifikat',
+    description: 'Uji Burn-In, ESP32 & sertifikat',
     icon: Activity,
   },
   {
     href: '/admin/partners',
-    label: 'Partners & Mitra',
-    description: 'Service center & toko komponen',
+    label: 'Mitra & Service',
+    description: 'Pusat layanan & toko komponen',
     icon: MapPin,
   },
 ];
@@ -77,7 +77,7 @@ function getActiveSection(pathname: string): AdminNavItem {
   return (
     matched ?? {
       href: '/admin',
-      label: 'Admin Workspace',
+      label: 'Ruang Kerja Admin',
       description: 'Pusat kontrol operasional ViciTech OS',
       icon: LayoutDashboard,
     }
@@ -157,7 +157,7 @@ export function AdminShell({
               ViciTech OS
             </span>
             <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-primary">
-              Admin Console
+              Konsol Admin
             </span>
           </span>
         </Link>
@@ -209,7 +209,7 @@ export function AdminShell({
           className="inline-flex min-h-11 w-full items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-sm font-medium text-secondary transition hover:border-accent-primary/40 hover:bg-accent-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
         >
           <ArrowLeft className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-          <span>Back to Storefront</span>
+          <span>Kembali ke Storefront</span>
         </Link>
 
         <AdminSignOutButton className="w-full justify-start" />
@@ -246,25 +246,6 @@ export function AdminShell({
                 <p className="truncate text-sm font-semibold text-primary">
                   {activeSection.description}
                 </p>
-              </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-              <span className="hidden items-center gap-2 rounded-full border border-default bg-canvas px-3 py-1.5 text-xs font-medium text-secondary lg:inline-flex">
-                <span className="h-2 w-2 rounded-full bg-status-live" aria-hidden="true" />
-                <span className="max-w-44 truncate text-primary">{operatorLabel}</span>
-              </span>
-
-              <Link
-                href="/"
-                className="hidden min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle sm:inline-flex"
-              >
-                <ArrowLeft className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Storefront</span>
-              </Link>
-
-              <div className="hidden sm:block">
-                <AdminSignOutButton compact />
               </div>
             </div>
           </div>

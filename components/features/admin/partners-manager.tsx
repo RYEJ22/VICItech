@@ -194,7 +194,7 @@ export function PartnersManager({
             <span>Jaringan Ekosistem Regional</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Partners &amp; Mitra Manager
+            Manajemen Mitra &amp; Service
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
             Kelola direktori resmi Service Center dan Toko Komponen ViciTech di seluruh kota.
@@ -204,7 +204,7 @@ export function PartnersManager({
         <button
           type="button"
           onClick={openCreateDrawer}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-accent-hover hover:text-accent-foreground"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-cta-hover"
         >
           <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           <span>Tambah Mitra</span>

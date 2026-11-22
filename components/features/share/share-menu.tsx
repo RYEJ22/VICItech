@@ -279,7 +279,7 @@ export function ShareMenu({
               <button
                 type="button"
                 onClick={() => void handleCopyLink()}
-                className="mt-1 flex min-h-11 w-full items-center gap-3 rounded-lg bg-accent-primary px-3.5 py-2.5 text-left text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground"
+                className="mt-1 flex min-h-11 w-full items-center gap-3 rounded-lg bg-accent-cta px-3.5 py-2.5 text-left text-sm font-semibold text-white hover:bg-accent-cta-hover"
               >
                 <Copy className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                 <span>Salin Tautan</span>

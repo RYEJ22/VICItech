@@ -24,14 +24,14 @@ const MediaLightbox = dynamic(
 /* ───────────────────────── Static config & sample data ───────────────────────── */
 
 const CATEGORIES = {
-  all: { label: "All Posts", icon: MessageSquare },
-  build: { label: "Build Showcases", icon: Cpu, cls: "border-[#FF5500]/30 bg-[#FF5500]/10 text-[#A83A00]" },
-  guide: { label: "School/Office IT Guides", icon: BookOpen, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
-  qa: { label: "Tech Q&A", icon: HelpCircle, cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
-  news: { label: "Official Announcements", icon: Megaphone, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
+  all: { label: "Semua Postingan", icon: MessageSquare },
+  build: { label: "Showcase Rakitan", icon: Cpu, cls: "border-accent-primary/30 bg-accent-subtle text-accent-hover" },
+  guide: { label: "Panduan IT Sekolah/Kantor", icon: BookOpen, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
+  qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
+  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
 };
 const CAT_ORDER = ["all", "build", "guide", "qa", "news"];
-const POSTABLE = ["build", "guide", "qa"]; // announcements come from the ViciTech team only
+const POSTABLE = ["build", "guide", "qa"]; // pengumuman resmi hanya dari tim ViciTech
 
 const databaseCategory = { build: "build_showcase", guide: "general", qa: "troubleshooting" };
 const feedCategory = { build_showcase: "build", general: "guide", troubleshooting: "qa", news: "news" };
@@ -51,7 +51,6 @@ function mapDatabasePost(row) {
           : null;
   return {
     id: row.id,
-    // Penulis = pemilik baris (user_id), bukan "you". Postingan user lain tidak lagi dianggap milik akun yang sedang login.
     by: row.user_id || "member",
     cat: category,
     title: row.title,
@@ -66,15 +65,15 @@ function mapDatabasePost(row) {
 }
 
 const ROLES = {
-  tech: { label: "Certified Technician", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800", verified: true },
-  lab: { label: "CBT Lab Admin", cls: "border-[#FF5500]/30 bg-[#FF5500]/10 text-[#A83A00]" },
-  fan: { label: "Hardware Enthusiast", cls: "border-black/10 bg-[#F6F5F2] text-[#5A606A]" },
-  buyer: { label: "IT Procurement Lead", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
-  team: { label: "ViciTech Team", cls: "border-[#FF5500] bg-[#FF5500] text-white", verified: true },
+  tech: { label: "Teknisi Tersertifikasi", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800", verified: true },
+  lab: { label: "Admin Lab CBT", cls: "border-accent-primary/30 bg-accent-subtle text-accent-hover" },
+  fan: { label: "Penggemar Hardware", cls: "border-default bg-subtle text-secondary" },
+  buyer: { label: "Tim Pengadaan IT", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
+  team: { label: "Tim ViciTech", cls: "border-accent-cta bg-accent-cta text-white", verified: true },
 };
 
 const AUTHORS = {
-  team: { name: "ViciTech Team", role: "team" },
+  team: { name: "Tim ViciTech", role: "team" },
   rizky: { name: "Rizky Aditya", role: "tech" },
   dewi: { name: "Dewi Anggraini", role: "tech" },
   hendra: { name: "Hendra Wijaya", role: "lab" },
@@ -82,14 +81,14 @@ const AUTHORS = {
   bagas: { name: "Bagas Pratama", role: "fan" },
   nadia: { name: "Nadia Putri", role: "fan" },
   fajar: { name: "Fajar Ramadhan", role: "buyer" },
-  you: { name: "You", role: "fan" },
+  you: { name: "Anda", role: "fan" },
 };
 
 const ATTACH_SPECS = [["CPU", "AMD Ryzen 5 7600"], ["GPU", "NVIDIA RTX 4060 8 GB"], ["RAM", "16 GB DDR5-5600"], ["Storage", "1 TB NVMe SSD"], ["PSU", "550 W 80+ Bronze"]];
 const PROMPTS = {
-  build: "Describe your build: parts, temperatures, what you would change. Add tags like #RTX4060.",
-  guide: "Share the steps that worked for your lab or office. Add tags like #CBTSetup.",
-  qa: "What is going wrong? Include model numbers and symptoms. Add tags like #PSU.",
+  build: "Ceritakan rakitan Anda: daftar komponen, suhu kerja, dan hal yang bisa ditingkatkan. Sertakan tag seperti #RTX4060.",
+  guide: "Bagikan langkah teknis yang berhasil diterapkan di lab sekolah atau kantor Anda. Tambahkan tag seperti #CBTSetup.",
+  qa: "Kendala apa yang sedang terjadi? Cantumkan seri perangkat dan gejala lengkap beserta tag seperti #PSU.",
 };
 
 const mk = (id, by, cat, minsAgo, title, body, likes, comments = [], extra = {}) => ({
@@ -99,96 +98,70 @@ const mk = (id, by, cat, minsAgo, title, body, likes, comments = [], extra = {})
 });
 
 const SEED_POSTS = [
-  mk("p1", "team", "news", 35, "Price index update: RTX 40-series down this week",
-    "Our daily Hardware Price Index shows #RTX4060 and #RTX4070 listings trending lower week over week, while refurbished #ThinkPadGradeA stock is steady. Open the Hardware Engine to compare current prices.",
-    128, [["bagas", 20, "Good timing, I was about to order the 4060."]]),
-  mk("p2", "team", "news", 190, "Stock alert: Grade A+ ThinkPad T14 back at Hub Bandung",
-    "A fresh batch has passed the 15-point inspection and is listed now. Schools can request bulk quotes through the Trade-In & Recycle portal. #ThinkPadGradeA #Refurbished #CBTSetup",
-    86, [["sari", 150, "Requested a quote for 30 units, thank you!"], ["hendra", 120, "Does the whole batch share one inspection report?"]]),
-  mk("p3", "bagas", "build", 320, "1080p esports rig for under Rp 14 juta",
-    "Finished this over the weekend. It runs most esports titles above 140 FPS at 1080p and stays under 65 °C. #RTX4060 #Ryzen5 #BudgetBuild",
-    94, [["rizky", 250, "Clean cable management! A 550 W Bronze unit is plenty for this combo."], ["nadia", 200, "Which case fans are you running?"]],
+  mk("p1", "team", "news", 35, "Update indeks harga: lini RTX 40-series turun minggu ini",
+    "Indeks Harga Hardware harian menunjukkan listing #RTX4060 dan #RTX4070 bergerak lebih rendah minggu ini, sementara stok refurbished #ThinkPadGradeA stabil. Buka Market untuk membandingkan harga terbaru.",
+    128, [["bagas", 20, "Pas sekali waktunya, saya memang berencana memesan RTX 4060."]]),
+  mk("p2", "team", "news", 190, "Info stok: ThinkPad T14 Grade A+ tersedia kembali di Hub Bandung",
+    "Batch terbaru baru saja lulus 15 titik inspeksi IoT QC. Sekolah dapat mengajukan penawaran massal melalui modul Trade-In & Buyback. #ThinkPadGradeA #Refurbished #CBTSetup",
+    86, [["sari", 150, "Sudah mengajukan penawaran untuk 30 unit, terima kasih!"], ["hendra", 120, "Apakah satu batch memakai satu laporan inspeksi terpadu?"]]),
+  mk("p3", "bagas", "build", 320, "Rakitan esports 1080p di bawah Rp 14 juta",
+    "Baru selesai dirakit akhir pekan ini. Mayoritas game esports berjalan di atas 140 FPS pada resolusi 1080p dan suhu terjaga di bawah 65 °C. #RTX4060 #Ryzen5 #BudgetBuild",
+    94, [["rizky", 250, "Cable management-nya rapi! PSU 550 W Bronze sudah sangat cukup untuk kombinasi ini."], ["nadia", 200, "Pakai fan casing apa untuk build ini?"]],
     { cost: 13900000, attachment: "esports-rig-front.jpg", specs: [["CPU", "AMD Ryzen 5 7600"], ["GPU", "NVIDIA RTX 4060 8 GB"], ["RAM", "16 GB DDR5-5600"], ["Storage", "1 TB NVMe SSD"], ["PSU", "550 W 80+ Bronze"]] }),
-  mk("p4", "nadia", "build", 1500, "Silent 4K video editing workstation",
-    "Priority was low noise during long renders. Fan curves are tuned to stay near 35 dB at full load. #Ryzen9 #CreatorRig #SilentBuild",
-    152, [["rizky", 1400, "Nice. Re-pasting the CPU brought mine down another 5 °C."]],
+  mk("p4", "nadia", "build", 1500, "Workstation editing video 4K senyap",
+    "Prioritas utama adalah kebisingan rendah saat render panjang. Kurva fan diatur agar tetap di kisaran 35 dB pada beban penuh. #Ryzen9 #CreatorRig #SilentBuild",
+    152, [["rizky", 1400, "Mantap. Repaste CPU kemarin juga berhasil menurunkan suhu unit saya 5 °C lagi."]],
     { cost: 38400000, attachment: "creator-rig.jpg", specs: [["CPU", "AMD Ryzen 9 7950X"], ["GPU", "NVIDIA RTX 4070 Super 12 GB"], ["RAM", "64 GB DDR5-6000"], ["Storage", "2 TB NVMe SSD"], ["PSU", "750 W 80+ Gold"]] }),
-  mk("p5", "rizky", "build", 2900, "Compact office SFF with dual monitors",
-    "Our standard B2B build: low power, quiet and ready for two displays. It idles around 25 W. #OfficeSFF #DualMonitor #CoreI5",
+  mk("p5", "rizky", "build", 2900, "PC SFF kantor ringkas dengan dukungan dual monitor",
+    "Standar rakitan B2B kami: hemat daya, senyap, dan siap untuk dua monitor sekaligus. Konsumsi idle sekitar 25 W. #OfficeSFF #DualMonitor #CoreI5",
     71, [], { cost: 9850000, specs: [["CPU", "Intel Core i5-12400"], ["GPU", "Integrated UHD 730"], ["RAM", "16 GB DDR4-3200"], ["Storage", "512 GB NVMe SSD"], ["PSU", "350 W 80+ White"]] }),
-  mk("p6", "hendra", "guide", 4300, "How to Prevent Thermal Throttling in School Labs",
-    "Our lab of 36 PCs used to slow down during the second CBT session. What fixed it:\n1. Clean dust filters every term.\n2. Re-paste any CPU older than three years.\n3. Keep the room below 28 °C and stagger exam sessions.\n4. Check fan curves in the BIOS after each firmware update.\n#CBTSetup #ThermalThrottling #LabMaintenance",
-    203, [["rizky", 4200, "Re-pasting is the step most schools skip. It is worth it."], ["sari", 4100, "Saved this for our next maintenance day."]]),
-  mk("p7", "dewi", "guide", 5800, "Best Refurbished Laptops under 5 Million IDR",
-    "Shortlist for student and admin laptops: look for business-class models like the ThinkPad T480 or Latitude 7280, battery health above 85% and an SSD. Always ask for the inspection summary. #ThinkPadGradeA #Refurbished #BudgetLab",
-    175, [["fajar", 5700, "Is Grade A cosmetic wear a problem for classroom use?"], ["dewi", 5600, "Not at all. It only affects the shell, and the 15-point check covers function."]]),
+  mk("p6", "hendra", "guide", 4300, "Cara mencegah thermal throttling pada lab komputer sekolah",
+    "Lab kami berisi 36 PC yang dulu sering melambat di sesi ujian CBT kedua. Solusi yang efektif:\n1. Bersihkan filter debu setiap semester.\n2. Lakukan repaste CPU yang usianya di atas 3 tahun.\n3. Jaga suhu ruangan di bawah 28 °C dan atur jeda antarsesi.\n4. Cek kurva fan di BIOS setelah update firmware.\n#CBTSetup #ThermalThrottling #LabMaintenance",
+    203, [["rizky", 4200, "Repaste memang langkah yang paling sering terlewat sekolah, padahal dampaknya besar."], ["sari", 4100, "Disimpan untuk agenda maintenance bulan depan."]]),
+  mk("p7", "dewi", "guide", 5800, "Rekomendasi laptop refurbished di bawah Rp 5 juta",
+    "Daftar pilihan untuk laptop pelajar dan admin: cari lini bisnis seperti ThinkPad T480 atau Latitude 7280 dengan kesehatan baterai di atas 85% serta SSD. Selalu minta ringkasan hasil inspeksi IoT QC. #ThinkPadGradeA #Refurbished #BudgetLab",
+    175, [["fajar", 5700, "Apakah lecet pemakaian wajar Grade A mengganggu untuk ruang kelas?"], ["dewi", 5600, "Tidak sama sekali, hanya pada bodi luar, sementara fungsi lulus 15 titik inspeksi."]]),
   mk("p8", "sari", "guide", 5100, "Checklist Jaringan & UPS untuk 30 Unit PC Ujian CBT",
     "Pembagian beban UPS dan switch gigabit agar sesi ujian serentak bebas drop tegangan maupun RTO. #CBTSetup #UPS #LabSekolah",
     144, [["hendra", 5000, "Checklist pembagian jalur MCB ini sangat membantu tim teknisi sekolah kami."]]),
-  mk("p9", "fajar", "qa", 600, "Is a 350 W PSU enough for an i5-12400 with a GTX 1650?",
-    "We are speccing 20 office PCs and want to add a low-profile GPU to some. The Preset Builder shows about 150 W for the base build. Any reason to go bigger? #PSU #i512400",
-    24, [["rizky", 540, "A 450 W Bronze unit gives you headroom and better efficiency. Check the load meter in the Preset Builder."], ["fajar", 500, "Thanks, switching to 450 W."]]),
-  mk("p10", "bagas", "qa", 980, "Refurbished RTX 3080 hits 83 °C under load, is that normal?",
-    "Bought a Grade A+ card last week. Idle is fine, but games push it to 83 °C. #RTX3080 #Thermals #Refurbished",
-    37, [["rizky", 900, "Within spec, but under 75 °C is better. Check case airflow and the fan curve first."]]),
+  mk("p9", "fajar", "qa", 600, "Apakah PSU 350 W cukup untuk Core i5-12400 dengan GTX 1650?",
+    "Kami menyiapkan 20 PC kantor dan berencana menambah GPU low-profile di beberapa unit. Preset Builder menunjukkan estimasi sekitar 150 W. Perlu naik kapasitas PSU? #PSU #i512400",
+    24, [["rizky", 540, "PSU 450 W Bronze memberi ruang efisiensi lebih baik. Cek meteran beban daya di Preset Builder."], ["fajar", 500, "Terima kasih, kami naikkan ke 450 W."]]),
+  mk("p10", "bagas", "qa", 980, "RTX 3080 refurbished menyentuh 83 °C saat beban penuh, wajar?",
+    "Baru membeli unit Grade A+ minggu lalu. Suhu idle normal, namun saat gaming naik ke 83 °C. #RTX3080 #Thermals #Refurbished",
+    37, [["rizky", 900, "Masih dalam batas aman, namun idealnya di bawah 75 °C. Periksa airflow casing dan atur ulang kurva fan."]]),
 ];
 
 const BUILDERS = [["rizky", 14, 2480], ["dewi", 11, 2105], ["nadia", 9, 1870], ["bagas", 8, 1540], ["hendra", 7, 1320]];
 const GUIDES = [
-  { title: "How to Prevent Thermal Throttling in School Labs", reads: 3280, q: "thermal" },
-  { title: "Best Refurbished Laptops under 5 Million IDR", reads: 2910, q: "refurbished" },
-  { title: "Choosing the Right PSU for Office PCs", reads: 1760, q: "psu" },
-  { title: "CBT Lab Setup Checklist for 30 Seats", reads: 1540, q: "cbtsetup" },
+  { title: "Mencegah Thermal Throttling di Lab Sekolah", reads: 3280, q: "thermal" },
+  { title: "Laptop Refurbished Terbaik di Bawah Rp 5 Juta", reads: 2910, q: "refurbished" },
+  { title: "Memilih PSU yang Tepat untuk PC Kantor", reads: 1760, q: "psu" },
+  { title: "Checklist Jaringan & UPS untuk 30 PC CBT", reads: 1540, q: "cbtsetup" },
 ];
 
 /* ───────────────────────── Helpers ───────────────────────── */
 
 const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(n);
 const num = (n) => new Intl.NumberFormat("id-ID").format(n);
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 const TAG_RE = /#[A-Za-z0-9_]+/g;
-const AVATAR_TONES = ["bg-[#FF5500]/10 text-[#A83A00]", "bg-emerald-50 text-emerald-800", "bg-violet-50 text-violet-800", "bg-amber-50 text-amber-800"];
+const AVATAR_TONES = ["bg-accent-subtle text-accent-hover", "bg-emerald-50 text-emerald-800", "bg-violet-50 text-violet-800", "bg-amber-50 text-amber-800"];
 
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - ts) / 60000);
-  if (m < 1) return "Just now";
-  if (m < 60) return `${m} min ago`;
-  if (m < 1440) return `${Math.floor(m / 60)} h ago`;
-  return `${Math.floor(m / 1440)} d ago`;
+  if (m < 1) return "baru saja";
+  if (m < 60) return `${m} mnt lalu`;
+  if (m < 1440) return `${Math.floor(m / 60)} jam lalu`;
+  return `${Math.floor(m / 1440)} hr lalu`;
 }
 
 /* ───────────────────────── Small UI pieces ───────────────────────── */
-
-function Header({ onNavigate }) {
-  const go = (id) => () => onNavigate?.(id);
-  const link = `shrink-0 rounded-full px-3 py-2 text-sm text-[#5A606A] hover:bg-black/[0.04] hover:text-[#141518] ${focusRing}`;
-  return (
-    <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-[#F6F5F2]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-        <span className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight">ViciTech</span>
-        </span>
-        <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
-          <button type="button" onClick={go("engine")} className={link}>Hardware Engine</button>
-          <button type="button" onClick={go("builder")} className={link}>Preset Builder</button>
-          <button type="button" onClick={go("tradein")} className={link}>Trade-In &amp; Recycle</button>
-          <button type="button" onClick={go("qc")} className={link}>IoT QC Engine</button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-[#FF5500] px-3 py-1.5 text-sm font-medium text-[#C94300] ${focusRing}`}>
-            <MessageSquare className="h-4 w-4" /> Community
-          </button>
-        </nav>
-      </div>
-    </header>
-  );
-}
 
 const USERNAME_RE = /^[a-z0-9]{3,20}$/;
 const usernameHref = (username) =>
   typeof username === "string" && USERNAME_RE.test(username) ? `/profile/${encodeURIComponent(username)}` : "";
 
-// Satu-satunya tempat yang menentukan nama, peran, dan link profil seorang penulis.
-// `key` bisa berupa key penulis sampel ("rizky"), UUID user Supabase, atau "you" (komentar lokal tanpa sesi).
 function resolveAuthor(key, { currentUser, profiles }) {
   const seed = key !== "you" ? AUTHORS[key] : undefined;
   if (seed) return { ...seed, href: key === "team" ? "" : usernameHref(key), isSelf: false };
@@ -196,43 +169,38 @@ function resolveAuthor(key, { currentUser, profiles }) {
   const userId = key === "you" ? currentUser?.id : key;
   const isSelf = key === "you" || (Boolean(userId) && userId === currentUser?.id);
   const profile = userId ? profiles[userId] : undefined;
-  // Username berasal dari tabel profiles milik penulis itu sendiri.
-  // user_metadata hanya cadangan untuk akun yang sedang login, tidak pernah dipakai untuk akun orang lain.
   const username = profile?.username || (isSelf ? currentUser?.user_metadata?.username : "");
-  
+
   return {
-    name: profile?.full_name || profile?.display_name || username || "ViciTech member",
+    name: profile?.full_name || profile?.display_name || username || "Anggota ViciTech",
     role: "fan",
     href: usernameHref(username),
-    isSelf, // biarin kalau mau nandain kepunyaan sendiri
+    isSelf,
   };
 }
-  
-
 
 function Avatar({ author, size = "h-10 w-10" }) {
   const avatar = author.isSelf
-    ? <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}><User className="h-1/2 w-1/2" /></span>
+    ? <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-subtle text-primary`}><User className="h-1/2 w-1/2" /></span>
     : <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>;
   return author.href
-    ? <a href={author.href} aria-label={author.isSelf ? "View your profile" : `View ${author.name}'s profile`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]">{avatar}</a>
+    ? <a href={author.href} aria-label={author.isSelf ? "Lihat profil Anda" : `Lihat profil ${author.name}`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">{avatar}</a>
     : avatar;
 }
 
 function RoleBadge({ role }) {
   const r = ROLES[role];
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${r.cls}`}>
+    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${r.cls}`}>
       {r.verified && <CheckCircle2 className="h-3 w-3" />}{r.label}
     </span>
   );
 }
 
-// Renders #tags inline as clickable badges that start a tag search
 function RichText({ text, onTag }) {
   return text.split(/(#[A-Za-z0-9_]+)/g).map((part, i) =>
     /^#[A-Za-z0-9_]+$/.test(part) ? (
-      <button key={i} type="button" onClick={() => onTag(part)} className={`mx-0.5 rounded bg-emerald-600/10 dark:bg-emerald-400/10 px-1.5 py-0.5 text-[13px] text-[#A83A00] dark:text-[#A83A00] hover:bg-emerald-600/20 dark:hover:bg-emerald-400/20 ${focusRing}`}>{part}</button>
+      <button key={i} type="button" onClick={() => onTag(part)} className={`mx-0.5 rounded bg-accent-subtle px-1.5 py-0.5 text-[13px] font-medium text-accent-hover hover:bg-accent-primary/15 ${focusRing}`}>{part}</button>
     ) : part
   );
 }
@@ -319,8 +287,8 @@ function Composer({ onPublish }) {
   };
 
   const publish = async () => {
-    if (title.trim().length < 5) return setError("Give your post a title of at least 5 characters.");
-    if (body.trim().length < 10) return setError("Add a few details (at least 10 characters) so others can help.");
+    if (title.trim().length < 5) return setError("Judul postingan minimal 5 karakter.");
+    if (body.trim().length < 10) return setError("Tambahkan detail minimal 10 karakter agar anggota lain dapat memahami konteksnya.");
     setPublishStage(stagedMedia.length ? "uploading" : "saving");
     setError("");
     try {
@@ -338,46 +306,46 @@ function Composer({ onPublish }) {
       setBody("");
       setAttachedSpecs(false);
       setStagedMedia([]);
-      setNotice("Your post is live at the top of the feed.");
+      setNotice("Postingan Anda berhasil diterbitkan di bagian atas feed.");
     } catch (publishError) {
-      setError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
+      setError(publishError instanceof Error ? publishError.message : "Gagal menerbitkan postingan.");
     } finally {
       setPublishStage("");
     }
   };
 
-  const field = `w-full rounded-xl border border-black/10 bg-white px-3.5 py-3 text-sm text-[#141518] placeholder:text-[#777C83] ${focusRing}`;
+  const field = `w-full rounded-lg border border-default bg-canvas px-3.5 py-3 text-sm text-primary placeholder:text-secondary ${focusRing}`;
   return (
-    <section aria-labelledby="composer-title" className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
-      <h2 id="composer-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-[#141518]">
-        <PenSquare className="h-5 w-5 text-[#FF5500]" /> Share Your Build or Ask the Community
+    <section aria-labelledby="composer-title" className="rounded-xl border border-default bg-surface p-6 shadow-sm">
+      <h2 id="composer-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+        <PenSquare className="h-5 w-5 text-accent-primary" /> Bagikan Rakitan atau Ajukan Pertanyaan
       </h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
-          <label htmlFor="post-title" className="mb-1.5 block text-sm text-zinc-700">Post title</label>
-          <input id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="e.g. Quiet 4K editing rig under Rp 40 juta" className={field} />
+          <label htmlFor="post-title" className="mb-1.5 block text-sm text-primary">Judul postingan</label>
+          <input id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="cth. Workstation editing 4K senyap di bawah Rp 40 juta" className={field} />
         </div>
         <div>
-          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-zinc-700">Category</label>
+          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-primary">Kategori</label>
           <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
             {POSTABLE.map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
           </select>
         </div>
       </div>
       <div className="mt-3">
-        <label htmlFor="post-body" className="mb-1.5 block text-sm text-zinc-700">Details</label>
+        <label htmlFor="post-body" className="mb-1.5 block text-sm text-primary">Detail</label>
         <textarea id="post-body" rows={4} value={body} onChange={(e) => { setBody(e.target.value); setError(""); }} placeholder={PROMPTS[cat]} className={`${field} resize-y`} />
         {tags.length > 0 && (
-          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-            <Tag className="h-3.5 w-3.5" /> Tags detected:
-            {tags.map((t) => <span key={t} className="rounded bg-[#FF5500]/10 px-1.5 py-0.5 text-[#A83A00]">{t}</span>)}
+          <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-secondary">
+            <Tag className="h-3.5 w-3.5" /> Tag terdeteksi:
+            {tags.map((t) => <span key={t} className="rounded bg-accent-subtle px-1.5 py-0.5 text-accent-hover">{t}</span>)}
           </p>
         )}
       </div>
 
       {stagedMedia.length > 0 && (
-        <div className="mt-3 space-y-2 rounded-2xl border border-black/[0.08] bg-[#FAF9F6] p-3">
-          <div className="flex items-center justify-between text-xs font-medium text-[#5A606A]">
+        <div className="mt-3 space-y-2 rounded-xl border border-default bg-canvas p-3">
+          <div className="flex items-center justify-between text-xs font-medium text-secondary">
             <span>
               {stagedMedia[0]?.mediaType === "video"
                 ? "Lampiran Video Siap Diunggah"
@@ -385,7 +353,7 @@ function Composer({ onPublish }) {
             </span>
           </div>
           {stagedMedia[0]?.mediaType === "video" ? (
-            <div className="relative overflow-hidden rounded-xl border border-black/10 bg-[#141518]">
+            <div className="relative overflow-hidden rounded-lg border border-default bg-ink">
               <video
                 src={stagedMedia[0].previewUrl}
                 controls
@@ -394,14 +362,14 @@ function Composer({ onPublish }) {
                 preload="metadata"
                 className="max-h-60 w-full object-contain"
               />
-              <div className="flex items-center justify-between gap-2 bg-white px-3 py-2 text-xs text-[#5A606A]">
+              <div className="flex items-center justify-between gap-2 bg-surface px-3 py-2 text-xs text-secondary">
                 <span className="truncate font-mono">{stagedMedia[0].name} ({formatMediaFileSize(stagedMedia[0].size)})</span>
                 <button
                   type="button"
                   onClick={() => removeStagedMedia(stagedMedia[0].id)}
                   disabled={isPublishing}
                   aria-label="Hapus video lampiran"
-                  className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-black/10 text-[#141518] hover:border-red-500/40 hover:text-red-700 ${focusRing}`}
+                  className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default text-primary hover:border-status-danger/40 hover:text-status-danger ${focusRing}`}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -410,7 +378,7 @@ function Composer({ onPublish }) {
           ) : (
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {stagedMedia.map((item) => (
-                <div key={item.id} className="group relative overflow-hidden rounded-xl border border-black/10 bg-white">
+                <div key={item.id} className="group relative overflow-hidden rounded-lg border border-default bg-surface">
                   <img
                     src={item.previewUrl}
                     alt={item.name}
@@ -422,11 +390,11 @@ function Composer({ onPublish }) {
                     onClick={() => removeStagedMedia(item.id)}
                     disabled={isPublishing}
                     aria-label={`Hapus ${item.name}`}
-                    className={`absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#141518]/80 text-white hover:bg-red-600 ${focusRing}`}
+                    className={`absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-ink/80 text-white hover:bg-status-danger ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
                   </button>
-                  <p className="truncate px-2 py-1 font-mono text-[10px] text-[#5A606A]">
+                  <p className="truncate px-2 py-1 font-mono text-[10px] text-secondary">
                     {formatMediaFileSize(item.size)}
                   </p>
                 </div>
@@ -437,13 +405,13 @@ function Composer({ onPublish }) {
       )}
 
       {attachedSpecs && (
-        <div className="mt-3 flex gap-3 rounded-xl border border-black/[0.08] bg-[#FAF9F6] p-3">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-[#FF5500]"><Cpu className="h-5 w-5" /></div>
+        <div className="mt-3 flex gap-3 rounded-lg border border-default bg-canvas p-3">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-default bg-surface text-accent-primary"><Cpu className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1 text-sm">
-            <p className="font-medium text-[#141518]">Spec Sheet Sample Build</p>
-            <p className="text-xs text-[#5A606A]">{ATTACH_SPECS.map(([, v]) => v).join(" · ")}</p>
+            <p className="font-medium text-primary">Contoh Spec Sheet Rakitan</p>
+            <p className="text-xs text-secondary">{ATTACH_SPECS.map(([, v]) => v).join(" · ")}</p>
           </div>
-          <button type="button" aria-label="Hapus spec sheet" onClick={() => setAttachedSpecs(false)} className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[#5A606A] hover:text-[#141518] ${focusRing}`}><X className="h-4 w-4" /></button>
+          <button type="button" aria-label="Hapus spec sheet" onClick={() => setAttachedSpecs(false)} className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-secondary hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
         </div>
       )}
 
@@ -461,10 +429,10 @@ function Composer({ onPublish }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isPublishing}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-black/10 bg-[#FAF9F6] px-3.5 py-2 text-sm font-medium text-[#141518] transition hover:border-[#FF5500]/50 hover:text-[#A83A00] disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+          className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary transition hover:border-accent-primary/50 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
         >
-          <ImageIcon className="h-4 w-4 text-[#FF5500]" />
-          <Video className="h-4 w-4 text-[#FF5500]" />
+          <ImageIcon className="h-4 w-4 text-accent-primary" />
+          <Video className="h-4 w-4 text-accent-primary" />
           <span>Foto / Video</span>
         </button>
 
@@ -473,36 +441,36 @@ function Composer({ onPublish }) {
             type="button"
             onClick={() => setAttachedSpecs((v) => !v)}
             disabled={isPublishing}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm transition ${focusRing} ${
+            className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition ${focusRing} ${
               attachedSpecs
-                ? "border-[#FF5500] bg-[#FF5500]/10 font-medium text-[#A83A00]"
-                : "border-black/10 bg-white text-[#5A606A] hover:text-[#141518]"
+                ? "border-accent-primary bg-accent-subtle font-medium text-accent-hover"
+                : "border-default bg-canvas text-secondary hover:text-primary"
             }`}
           >
             <Cpu className="h-4 w-4" />
-            <span>{attachedSpecs ? "Spec Sheet Terlampir" : "Tambah Spec Sheet"}</span>
+            <span>{attachedSpecs ? "Spec Sheet Terlampir" : "Lampirkan Spec Sheet"}</span>
           </button>
         )}
 
-        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full bg-[#FF5500] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
+        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
           {isPublishing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           <span>
             {publishStage === "uploading"
               ? "Mengunggah media…"
               : publishStage === "saving"
-                ? "Mempublikasikan…"
-                : "Publish Post"}
+                ? "Menerbitkan…"
+                : "Terbitkan Postingan"}
           </span>
         </button>
       </div>
       <div aria-live="polite">
         {error && (
-          <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-status-danger/30 bg-red-50 p-3 text-sm text-status-danger">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </p>
         )}
-        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
+        {notice && <p className="mt-3 flex items-center gap-2 text-sm text-status-live"><CheckCircle2 className="h-4 w-4" /> {notice}</p>}
       </div>
     </section>
   );
@@ -533,8 +501,8 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     const text = post.specs
       ? `${post.title}\n${post.specs.map(([k, v]) => `${k}: ${v}`).join("\n")}${post.cost ? `\nTotal: ${idr(post.cost)}` : ""}`
       : `${post.title}\n${origin}/community/${post.id}`;
-    try { await navigator.clipboard.writeText(text); setShareNote("Copied to clipboard"); }
-    catch { setShareNote("Copying isn't available in this browser"); }
+    try { await navigator.clipboard.writeText(text); setShareNote("Tautan disalin ke papan klip"); }
+    catch { setShareNote("Fitur salin tidak tersedia di browser ini"); }
   };
 
   const submitComment = (e) => {
@@ -544,29 +512,29 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     setDraft("");
   };
 
-  const action = `inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
+  const action = `inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
   return (
-    <article className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)]">
+    <article className="rounded-xl border border-default bg-surface p-6 shadow-sm">
       <header className="flex items-start gap-3">
         <Avatar author={author} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {authorProfile
-              ? <a href={authorProfile} className="font-medium text-zinc-900 dark:text-zinc-50 hover:text-[#A83A00] dark:hover:text-[#A83A00]">{author.name}</a>
-              : <span className="font-medium text-zinc-900 dark:text-zinc-50">{author.name}</span>}
+              ? <a href={authorProfile} className="font-medium text-primary hover:text-accent-hover">{author.name}</a>
+              : <span className="font-medium text-primary">{author.name}</span>}
             <RoleBadge role={author.role} />
           </div>
-          <p className="mt-0.5 text-xs text-zinc-500">{timeAgo(post.createdAt)}</p>
+          <p className="mt-0.5 text-xs text-secondary">{timeAgo(post.createdAt)}</p>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${cat.cls}`}><CatIcon className="h-3.5 w-3.5" /> {cat.label}</span>
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${cat.cls}`}><CatIcon className="h-3.5 w-3.5" /> {cat.label}</span>
       </header>
 
-      <h3 className="mt-4 text-lg font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{post.title}</h3>
-      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-zinc-700 dark:text-zinc-300"><RichText text={post.body} onTag={onTag} /></p>
+      <h3 className="mt-4 text-lg font-semibold leading-snug text-primary">{post.title}</h3>
+      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-secondary"><RichText text={post.body} onTag={onTag} /></p>
 
       {mediaUrls.length > 0 && (
         isVideoPost ? (
-          <div className="mt-3 overflow-hidden rounded-2xl border border-black/[0.08] bg-[#141518]">
+          <div className="mt-3 overflow-hidden rounded-lg border border-default bg-ink">
             <video
               src={mediaUrls[0]}
               controls
@@ -580,7 +548,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
             type="button"
             onClick={() => onOpenMedia?.(mediaUrls, 0, post.title)}
             aria-label={`Perbesar gambar dari ${post.title}`}
-            className={`mt-3 block w-full overflow-hidden rounded-2xl border border-black/[0.06] bg-[#FAF9F6] ${focusRing}`}
+            className={`mt-3 block w-full overflow-hidden rounded-lg border border-default bg-canvas ${focusRing}`}
           >
             <img
               src={mediaUrls[0]}
@@ -600,7 +568,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 type="button"
                 onClick={() => onOpenMedia?.(mediaUrls, idx, post.title)}
                 aria-label={`Perbesar gambar ${idx + 1} dari ${post.title}`}
-                className={`overflow-hidden rounded-xl border border-black/[0.06] bg-[#FAF9F6] ${focusRing}`}
+                className={`overflow-hidden rounded-lg border border-default bg-canvas ${focusRing}`}
               >
                 <img
                   src={url}
@@ -618,38 +586,38 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
       )}
 
       {post.attachment && (
-        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-white/60 px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
+        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-default bg-canvas px-3 py-1.5 text-xs text-secondary"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
       )}
 
       {post.specs && (
-        <div className="mt-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/60 dark:bg-white/60">
-          <p className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-500"><Cpu className="h-3.5 w-3.5 text-[#A83A00] dark:text-[#A83A00]" /> Hardware spec breakdown</p>
+        <div className="mt-3 rounded-lg border border-default bg-canvas">
+          <p className="flex items-center gap-1.5 border-b border-default px-3 py-2 text-xs text-secondary"><Cpu className="h-3.5 w-3.5 text-accent-primary" /> Rincian Spesifikasi Hardware</p>
           <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
             {post.specs.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-zinc-500">{k}</dt><dd className="text-right text-zinc-900 dark:text-[#141518]">{v}</dd></div>
+              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-secondary">{k}</dt><dd className="text-right text-primary">{v}</dd></div>
             ))}
           </dl>
-          {post.cost && <p className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm"><span className="text-zinc-500">Total build cost</span><span className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-700">{idr(post.cost)}</span></p>}
+          {post.cost && <p className="flex justify-between border-t border-default px-3 py-2 text-sm"><span className="text-secondary">Total estimasi rakitan</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-zinc-200 dark:border-zinc-800 pt-3">
-        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-[#FF5500]/[0.06] text-[#A83A00]" : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-[#141518]"}`}>
-          <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="tabular-nums">{post.likes}</span>
-          <span className="sr-only">{post.liked ? "upvotes, you upvoted this" : "upvotes"}</span>
+      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-default pt-3">
+        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-accent-subtle text-accent-hover" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
+          <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="font-mono tabular-nums">{post.likes}</span>
+          <span className="sr-only">{post.liked ? "suka, Anda menyukai postingan ini" : "suka"}</span>
         </button>
-        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-[#141518]" : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-[#141518]"}`}>
-          <MessageSquare className="h-4 w-4" /> <span className="tabular-nums">{post.comments.length}</span> {post.comments.length === 1 ? "Comment" : "Comments"}
+        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-subtle text-primary" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
+          <MessageSquare className="h-4 w-4" /> <span className="font-mono tabular-nums">{post.comments.length}</span> Komentar
         </button>
-        <button type="button" onClick={share} className={`${action} ml-auto text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-[#141518]`}>
-          <Share2 className="h-4 w-4" /> {post.specs ? "Share Spec" : "Share"}
+        <button type="button" onClick={share} className={`${action} ml-auto text-secondary hover:bg-subtle hover:text-primary`}>
+          <Share2 className="h-4 w-4" /> {post.specs ? "Bagikan Spek" : "Bagikan"}
         </button>
       </div>
-      <p role="status" className="min-h-0 text-right text-xs text-emerald-700 dark:text-emerald-700">{shareNote}</p>
+      <p role="status" className="min-h-0 text-right text-xs text-status-live">{shareNote}</p>
 
       {open && (
-        <div className="mt-2 space-y-3 rounded-lg bg-white/50 dark:bg-white/50 p-3">
-          {post.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet. Be the first to reply.</p>}
+        <div className="mt-2 space-y-3 rounded-lg border border-default bg-canvas p-3">
+          {post.comments.length === 0 && <p className="text-sm text-secondary">Belum ada komentar. Jadilah yang pertama membalas.</p>}
           {post.comments.map((c) => {
             const commenter = resolve(c.by);
             return (
@@ -658,19 +626,19 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-x-2 text-sm">
                     {commenter.href
-                      ? <a href={commenter.href} className="font-medium text-zinc-900 dark:text-[#141518] hover:text-[#A83A00] dark:hover:text-[#A83A00]">{commenter.name}</a>
-                      : <span className="font-medium text-zinc-900 dark:text-[#141518]">{commenter.name}</span>}
-                    <span className="text-xs text-zinc-500">{ROLES[commenter.role]?.label || "Member"}, {timeAgo(c.createdAt)}</span>
+                      ? <a href={commenter.href} className="font-medium text-primary hover:text-accent-hover">{commenter.name}</a>
+                      : <span className="font-medium text-primary">{commenter.name}</span>}
+                    <span className="text-xs text-secondary">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
                   </p>
-                  <p className="text-sm text-zinc-700 dark:text-zinc-300">{c.text}</p>
+                  <p className="text-sm text-secondary">{c.text}</p>
                 </div>
               </div>
             );
           })}
           <form onSubmit={submitComment} className="flex gap-2">
-            <label htmlFor={`reply-${post.id}`} className="sr-only">Write a reply</label>
-            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Write a reply" className={`min-w-0 flex-1 rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-white px-3 py-2 text-sm text-zinc-900 dark:text-[#141518] placeholder:text-zinc-600 ${focusRing}`} />
-        <button type="submit" disabled={!draft.trim()} aria-label="Send reply" className={`grid h-10 w-10 place-items-center rounded-full bg-[#FF5500] text-white hover:bg-[#E94B00] disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
+            <label htmlFor={`reply-${post.id}`} className="sr-only">Tulis balasan</label>
+            <input id={`reply-${post.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Tulis balasan…" className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
+            <button type="submit" disabled={!draft.trim()} aria-label="Kirim balasan" className={`grid h-10 w-10 place-items-center rounded-full bg-accent-cta text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}><Send className="h-4 w-4" /></button>
           </form>
         </div>
       )}
@@ -682,52 +650,55 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
 function Sidebar({ topTags, onTag, onGuide, resolve }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Community highlights">
-      <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Award className="h-5 w-5 text-emerald-700 dark:text-emerald-700" /> Top Verified Builders of the Month</h2>
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-primary"><Award className="h-5 w-5 text-status-live" /> Builder Terverifikasi Bulan Ini</h2>
         <ol className="mt-3 space-y-3">
           {BUILDERS.map(([key, builds, points], i) => {
             const author = resolve(key);
             return (
               <li key={key} className="flex items-center gap-3">
-                <span className={`w-5 text-center text-sm font-semibold tabular-nums ${i === 0 ? "text-emerald-700 dark:text-emerald-700" : "text-zinc-500"}`}>{i + 1}</span>
+                <span className={`w-5 text-center font-mono text-sm font-semibold tabular-nums ${i === 0 ? "text-status-live" : "text-secondary"}`}>{i + 1}</span>
                 <Avatar author={author} size="h-9 w-9" />
                 <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1 truncate text-sm font-medium text-zinc-900 dark:text-[#141518]">
+                  <p className="flex items-center gap-1 truncate text-sm font-medium text-primary">
                     {author.href
-                      ? <a href={author.href} className="truncate hover:text-[#A83A00] dark:hover:text-[#A83A00]">{author.name}</a>
+                      ? <a href={author.href} className="truncate hover:text-accent-hover">{author.name}</a>
                       : <span className="truncate">{author.name}</span>}
-                    {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-emerald-700 dark:text-emerald-700" aria-label="Builder of the month" />}
+                    {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-status-live" aria-label="Builder terbaik bulan ini" />}
                   </p>
-                  <p className="text-xs text-zinc-500">{ROLES[author.role]?.label || "Member"}</p>
+                  <p className="text-xs text-secondary">{ROLES[author.role]?.label || "Anggota"}</p>
                 </div>
-                <div className="text-right text-xs tabular-nums"><p className="font-medium text-[#A83A00] dark:text-[#A83A00]">{num(points)} pts</p><p className="text-zinc-500">{builds} builds</p></div>
+                <div className="text-right font-mono text-xs tabular-nums">
+                  <p className="font-medium text-accent-hover">{num(points)} poin</p>
+                  <p className="text-secondary">{builds} rakitan</p>
+                </div>
               </li>
             );
           })}
         </ol>
       </section>
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><BookOpen className="h-5 w-5 text-[#A83A00] dark:text-[#A83A00]" /> Trending Maintenance Guides</h2>
-        <ul className="mt-3 divide-y divide-zinc-800">
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-primary"><BookOpen className="h-5 w-5 text-accent-primary" /> Panduan Perawatan Populer</h2>
+        <ul className="mt-3 divide-y divide-default">
           {GUIDES.map((g) => (
             <li key={g.title}>
-              <button type="button" onClick={() => onGuide(g.q)} className={`w-full py-2.5 text-left hover:text-[#A83A00] dark:hover:text-[#A83A00] ${focusRing}`}>
-                <span className="block text-sm text-zinc-800 dark:text-zinc-200">{g.title}</span>
-                <span className="text-xs tabular-nums text-zinc-500">{num(g.reads)} reads</span>
+              <button type="button" onClick={() => onGuide(g.q)} className={`w-full py-2.5 text-left text-primary hover:text-accent-hover ${focusRing}`}>
+                <span className="block text-sm">{g.title}</span>
+                <span className="font-mono text-xs tabular-nums text-secondary">{num(g.reads)} dibaca</span>
               </button>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
-        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 dark:text-zinc-50"><Tag className="h-5 w-5 text-[#A83A00] dark:text-[#A83A00]" /> Popular hardware tags</h2>
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-primary"><Tag className="h-5 w-5 text-accent-primary" /> Tag Hardware Populer</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {topTags.map(([tag, count]) => (
-            <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-full border border-zinc-200 dark:border-black/10 px-2.5 py-1 text-xs text-zinc-700 dark:text-zinc-300 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-[#A83A00] dark:hover:text-[#A83A00] ${focusRing}`}>
-              {tag} <span className="text-zinc-500">{count}</span>
+            <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-md border border-default bg-canvas px-2.5 py-1 text-xs text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>
+              {tag} <span className="font-mono text-secondary">{count}</span>
             </button>
           ))}
         </div>
@@ -738,7 +709,6 @@ function Sidebar({ topTags, onTag, onGuide, resolve }) {
 
 /* ───────────────────────── Page ───────────────────────── */
 
-/* Sesi user selalu dibaca dari Supabase Auth, bukan dari prop yang bisa tertinggal. */
 function useCurrentUser() {
   const [currentUser, setCurrentUser] = useState(null);
   useEffect(() => {
@@ -766,7 +736,7 @@ function useCurrentUser() {
 const FEED_PAGE_SIZE = 6;
 const SUPABASE_FETCH_STEP = 24;
 
-export default function CommunityHub({ onNavigate }) {
+export default function CommunityHub() {
   const [posts, setPosts] = useState(SEED_POSTS);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
@@ -783,8 +753,6 @@ export default function CommunityHub({ onNavigate }) {
     setVisibleLimit(FEED_PAGE_SIZE);
   }, [category, debouncedQuery]);
 
-  // Ambil username penulis dari tabel `profiles` (kolom: id = auth user id, username).
-  // Jika tabel/kolom berbeda atau RLS menolak, penulis tampil tanpa link, bukan dengan link yang salah.
   const loadProfiles = useCallback(async (supabase, userIds) => {
     const ids = [...new Set(userIds)].filter((id) => id && !requestedProfiles.current.has(id));
     if (!ids.length) return;
@@ -805,13 +773,12 @@ export default function CommunityHub({ onNavigate }) {
     }
   }, [currentUser?.id, loadProfiles]);
 
-  // Data fetching (re-runs only when dbFetchLimit expands)
   useEffect(() => {
     let supabase;
     try {
       supabase = getSupabaseBrowserClient();
     } catch (clientError) {
-      setPublishError(clientError instanceof Error ? clientError.message : "Community feed is unavailable.");
+      setPublishError(clientError instanceof Error ? clientError.message : "Feed komunitas sedang tidak tersedia.");
       return undefined;
     }
 
@@ -823,7 +790,7 @@ export default function CommunityHub({ onNavigate }) {
         .order("created_at", { ascending: false })
         .range(0, dbFetchLimit - 1);
       if (error) {
-        if (isActive) setPublishError(`Community posts could not be refreshed: ${error.message}`);
+        if (isActive) setPublishError(`Gagal memuat ulang postingan komunitas: ${error.message}`);
         return;
       }
       if (isActive && data) {
@@ -843,7 +810,6 @@ export default function CommunityHub({ onNavigate }) {
     };
   }, [loadProfiles, dbFetchLimit]);
 
-  // Realtime subscription (kept independent from pagination state so loading more never churns sockets)
   useEffect(() => {
     let supabase;
     try {
@@ -862,7 +828,7 @@ export default function CommunityHub({ onNavigate }) {
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          setPublishError("Live community updates are unavailable. Reload the page to refresh the feed.");
+          setPublishError("Pembaruan realtime komunitas terputus. Muat ulang halaman untuk menyegarkan feed.");
         }
       });
 
@@ -912,17 +878,15 @@ export default function CommunityHub({ onNavigate }) {
     const cleanTitle = sanitizeSingleLineText(title, 200);
     const cleanBody = sanitizeUserText(body, 4000);
     if (!cleanTitle || !cleanBody) {
-      setPublishError("Enter a valid post title and body before publishing.");
+      setPublishError("Masukkan judul dan isi postingan yang valid sebelum menerbitkan.");
       return false;
     }
     try {
       const client = getSupabaseBrowserClient();
-      // Ambil user terbaru dari Auth server TEPAT sebelum insert.
-      // Jangan memakai prop/state `user`: bisa tertinggal setelah login, logout, atau ganti akun.
       const { data: { user: activeUser }, error: authError } = await client.auth.getUser();
       if (authError) throw new Error(authError.message);
-      if (!activeUser) throw new Error("Silakan login terlebih dahulu sebelum mempublikasikan postingan.");
-      setCurrentUser(activeUser); // tampilan ikut akun yang benar-benar dipakai untuk insert
+      if (!activeUser) throw new Error("Silakan login terlebih dahulu sebelum menerbitkan postingan.");
+      setCurrentUser(activeUser);
 
       let mediaUrls = [];
       let mediaType = null;
@@ -966,7 +930,7 @@ export default function CommunityHub({ onNavigate }) {
 
         if (cat === "build") {
           const { error: buildError } = await client.from("shared_builds").insert({ user_id: activeUser.id, title: cleanTitle });
-          if (buildError) setPublishError(`Post published, but the shared-build summary could not be saved: ${buildError.message}`);
+          if (buildError) setPublishError(`Postingan terbit, tetapi ringkasan build gagal disimpan: ${buildError.message}`);
         }
       }
 
@@ -980,7 +944,7 @@ export default function CommunityHub({ onNavigate }) {
       setQuery("");
       return true;
     } catch (publishError) {
-      setPublishError(publishError instanceof Error ? publishError.message : "Could not publish your post.");
+      setPublishError(publishError instanceof Error ? publishError.message : "Gagal menerbitkan postingan.");
       return false;
     }
   };
@@ -993,46 +957,44 @@ export default function CommunityHub({ onNavigate }) {
   const closeLightbox = useCallback(() => setLightbox(null), []);
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <Header onNavigate={onNavigate} />
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Ideas shared by the community</p>
-        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl">
-          <MessageSquare className="h-8 w-8 text-[#FF5500]" /> Community &amp; Knowledge Hub
+    <div className="bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent-hover">Berbagi rakitan &amp; solusi teknis</p>
+        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
+          <MessageSquare className="h-8 w-8 text-accent-primary" /> Komunitas &amp; Pusat Pengetahuan
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
-          Show off your builds, learn from lab admins and certified technicians, and get answers from people who run real hardware every day.
+        <p className="mt-3 max-w-2xl text-secondary">
+          Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
         </p>
-        <Link href="/community/create" className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#FF5500]/25 bg-white px-5 py-3 text-sm font-medium text-[#A83A00] transition hover:bg-[#FF5500]/[0.05]">
-          <PenSquare className="h-4 w-4" /> Create a full post
+        <Link href="/community/create" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle">
+          <PenSquare className="h-4 w-4 text-accent-primary" /> Buat Postingan Lengkap
         </Link>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <div className="space-y-5 lg:col-span-2">
             <Composer onPublish={publish} />
-            {publishError && <p role="alert" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">{publishError}</p>}
+            {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
 
             <div className="relative">
-              <label htmlFor="feed-search" className="sr-only">Search posts</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search topics, hardware or tags like #RTX4060" className={`w-full rounded-lg border border-zinc-200 dark:border-black/10 bg-white dark:bg-zinc-900 py-3 pl-12 pr-4 text-sm text-zinc-900 dark:text-[#141518] placeholder:text-zinc-500 ${focusRing}`} />
+              <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-3 pl-12 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
             </div>
 
-            <div role="group" aria-label="Filter posts by category" className="flex flex-wrap gap-2">
+            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="flex flex-wrap gap-2">
               {CAT_ORDER.map((k) => {
                 const Icon = CATEGORIES[k].icon;
                 const active = category === k;
                 return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-[#FF5500]/25 bg-[#FF5500]/[0.06] font-medium text-[#A83A00]" : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-black/10 hover:text-zinc-800 dark:hover:text-zinc-200"}`}>
-                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="text-xs text-zinc-500">{counts[k]}</span>
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
                   </button>
                 );
               })}
             </div>
 
-            <p className="text-sm text-zinc-500" aria-live="polite">
-              Showing {visible.length} {visible.length === 1 ? "post" : "posts"}{query.trim() ? ` for “${query.trim()}”` : ""}
+            <p className="text-sm text-secondary" aria-live="polite">
+              Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
 
             {paginatedPosts.length ? (
@@ -1059,7 +1021,7 @@ export default function CommunityHub({ onNavigate }) {
                           setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
                         }
                       }}
-                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-black/10 bg-white px-5 py-2.5 text-sm font-medium text-[#141518] transition hover:border-[#FF5500]/40 hover:bg-[#FF5500]/[0.04] ${focusRing}`}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
                     >
                       Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
                     </button>
@@ -1067,21 +1029,17 @@ export default function CommunityHub({ onNavigate }) {
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-zinc-200 dark:border-black/10 p-10 text-center">
-                <p className="text-zinc-900 dark:text-[#141518]">No posts match your filters.</p>
-                <p className="mt-1 text-sm text-zinc-500">Try a different keyword or category, or start the conversation yourself.</p>
-                <button type="button" onClick={clearFilters} className={`mt-4 rounded-lg border border-zinc-200 dark:border-black/10 px-4 py-2 text-sm text-zinc-800 dark:text-zinc-200 hover:border-emerald-600/60 dark:hover:border-emerald-400/60 hover:text-[#A83A00] dark:hover:text-[#A83A00] ${focusRing}`}>Clear filters</button>
+              <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
+                <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
+                <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
+                <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>Reset Filter</button>
               </div>
             )}
           </div>
 
           <Sidebar topTags={topTags} onTag={searchTag} onGuide={searchTag} resolve={resolve} />
         </div>
-      </main>
-
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">
-        ViciTech Engine v1.0. Sample community content.
-      </footer>
+      </div>
 
       {lightbox && (
         <MediaLightbox

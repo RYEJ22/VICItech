@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { Poppins } from "next/font/google";
+import { JetBrains_Mono, Playfair_Display, Poppins } from "next/font/google";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import Navbar from "@/components/Navbar";
@@ -9,7 +9,21 @@ import Navbar from "@/components/Navbar";
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-serif",
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -46,7 +60,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${poppins.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-canvas text-primary font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
           <CheckoutProvider>

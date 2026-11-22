@@ -42,8 +42,8 @@ export default function NavbarCommandPalette({
     if (SERIAL_RE.test(upper)) {
       return [
         {
-          label: `Look up serial ${upper}`,
-          hint: 'Opens IoT QC & Telemetry Panel',
+          label: `Cek nomor seri ${upper}`,
+          hint: 'Buka Panel IoT QC & Telemetri',
           href: `/qc-panel?order=${encodeURIComponent(upper)}`,
           module: 'qc',
           keys: upper,
@@ -75,7 +75,7 @@ export default function NavbarCommandPalette({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Global Search"
+        aria-label="Pencarian Global"
         onMouseDown={(event) => event.stopPropagation()}
         className="w-full max-w-xl overflow-hidden rounded-xl border border-default bg-surface shadow-2xl"
       >
@@ -89,8 +89,8 @@ export default function NavbarCommandPalette({
               setSearchIndex(0);
             }}
             onKeyDown={onSearchKeyDown}
-            placeholder="Search modules, serials, guides…"
-            aria-label="Search ViciTech"
+            placeholder="Cari modul, nomor seri, atau panduan…"
+            aria-label="Cari di ViciTech"
             autoComplete="off"
             spellCheck={false}
             className="h-12 flex-1 bg-transparent text-sm text-primary placeholder:text-secondary/70 focus:outline-none"
@@ -98,13 +98,13 @@ export default function NavbarCommandPalette({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close search"
+            aria-label="Tutup pencarian"
             className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
           >
             <X className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
-        <ul role="listbox" aria-label="Search results" className="max-h-80 overflow-y-auto p-2">
+        <ul role="listbox" aria-label="Hasil pencarian" className="max-h-80 overflow-y-auto p-2">
           {searchMatches.length === 0 ? (
             <li className="px-3 py-6 text-center text-sm text-secondary">
               Tidak ada hasil. Coba kata kunci &ldquo;market&rdquo;, &ldquo;gpu&rdquo;, atau serial QC.

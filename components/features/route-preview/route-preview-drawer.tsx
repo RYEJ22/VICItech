@@ -183,7 +183,7 @@ export function RoutePreviewExplorer({
               onClick={() => setSelectedFilter(option.id)}
               className={`min-h-11 rounded-full px-4 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
                 active
-                  ? 'bg-accent-primary font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground'
+                  ? 'bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover'
                   : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
               }`}
             >
@@ -212,7 +212,7 @@ export function RoutePreviewExplorer({
               setSelectedFilter('all');
               setQuery('');
             }}
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             Tampilkan Semua
           </button>
@@ -257,7 +257,7 @@ export function RoutePreviewExplorer({
                   <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
                     <Link
                       href={featuredItem.actionHref}
-                      className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 lg:flex-none"
+                      className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 lg:flex-none"
                     >
                       <span>{featuredItem.actionLabel}</span>
                       <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -389,7 +389,7 @@ export function RoutePreviewExplorer({
                         }}
                         className={`min-h-11 rounded-lg px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
                           active
-                            ? 'bg-accent-primary font-semibold text-primary'
+                            ? 'bg-accent-cta font-semibold text-white'
                             : 'border border-default bg-subtle text-primary hover:bg-canvas'
                         }`}
                       >
@@ -424,7 +424,7 @@ export function RoutePreviewExplorer({
                 <button
                   type="submit"
                   disabled={isNotifying || !notifyEmail.trim()}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isNotifying && (
                     <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={1.75} aria-hidden="true" />

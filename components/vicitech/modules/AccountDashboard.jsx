@@ -736,7 +736,7 @@ function SettingsTab({ role, rs, patch, flash, user }) {
 
 function Sidebar({ orders, presets, ordersLoading, ordersError, presetsLoading }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Account summary">
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Account summary">
       <section className={`${card} p-5`}>
         <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">Account overview</h2>
         <dl className="mt-4 space-y-3">
@@ -900,16 +900,8 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
   const initials = getUserInitials(user);
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <header className="border-b border-black/[0.06] bg-[#F6F5F2]/90">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#5A606A]">My Account</span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="bg-[#F6F5F2] text-[#141518] antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         {/* Profile header */}
         <section className={`${card} p-5`} aria-label="Profile">
           <div className="flex flex-wrap items-center gap-4">
@@ -967,9 +959,7 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
           </div>
           <Sidebar orders={liveOrders} presets={userPresets} ordersLoading={ordersLoading} ordersError={ordersError} presetsLoading={presetsLoading} />
         </div>
-      </main>
-
-      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">ViciTech Engine v1.0. Account records are scoped to your signed-in profile.</footer>
+      </div>
     </div>
   );
 }
@@ -977,31 +967,31 @@ function AccountDashboardContent({ initialRole = "b2c", role: controlledRole, on
 export default function AccountDashboard({ user, isAuthLoading, onNavigate, ...props }) {
   if (isAuthLoading) {
     return (
-      <main className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 text-zinc-700">
-        <p role="status" className="text-sm">Checking your ViciTech account…</p>
-      </main>
+      <div className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 text-zinc-700">
+        <p role="status" className="text-sm">Memeriksa akun ViciTech Anda…</p>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <main className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 py-12 text-[#141518]">
-        <section className="w-full max-w-lg rounded-3xl border border-black/[0.06] bg-white p-8 text-center shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A83A00]">Account access</p>
-          <h1 className="mt-3 font-serif text-3xl font-semibold">Sign in to view your account</h1>
+      <div className="grid min-h-[60vh] place-items-center bg-[#F6F5F2] px-4 py-12 text-[#141518]">
+        <section className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A83A00]">Akses Akun</p>
+          <h1 className="mt-3 font-serif text-3xl font-semibold">Masuk untuk melihat akun Anda</h1>
           <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            Your orders, saved presets, and QC certificates are only available after you sign in.
-            Use the Sign In button in the navigation bar to continue.
+            Pesanan, preset tersimpan, dan sertifikat IoT QC hanya tersedia setelah Anda masuk.
+            Gunakan tombol Masuk di bilah navigasi untuk melanjutkan.
           </p>
           <button
             type="button"
             onClick={() => onNavigate?.("home")}
             className="mt-6 rounded-lg border border-zinc-200 dark:border-black/10 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            Return home
+            Kembali ke Beranda
           </button>
         </section>
-      </main>
+      </div>
     );
   }
 

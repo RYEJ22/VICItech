@@ -1,11 +1,11 @@
 "use client";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Component, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, Suspense, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
-  LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, ShieldCheck, Layers, Zap,
-  Gauge, Swords, User, Building2, GraduationCap, ArrowRight, CheckCircle2, ShoppingBag, Pause, Play,
+  LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Package, ShieldCheck, Layers, Zap,
+  Gauge, Swords, User, Building2, GraduationCap, ArrowRight, CheckCircle2, ShoppingBag,
 } from "lucide-react";
 
 function ModuleLoadingSkeleton() {
@@ -54,29 +54,14 @@ const AccountDashboard = dynamic(() => import("./modules/AccountDashboard"), {
 const CommunityHub = dynamic(() => import("./modules/CommunityHub"), {
   loading: () => <ModuleLoadingSkeleton />,
 });
-const CyberSuite = dynamic(() => import("./CyberSuite"), {
-  ssr: false,
-  loading: () => (
-    <div className="mx-auto max-w-shell px-4 py-8 sm:px-6" aria-hidden="true">
-      <div className="h-56 animate-pulse rounded-2xl border border-default bg-surface" />
-    </div>
-  ),
-});
 const WorkspaceCommandPalette = dynamic(() => import("./WorkspaceCommandPalette"), {
   ssr: false,
 });
-import { EditorialShowcase } from "@/components/features/editorial-showcase/editorial-showcase";
-import {
-  MARKET_FILTERS,
-  MARKET_PREVIEW_ITEMS,
-} from "@/components/features/route-preview/route-preview-content";
-import { RoutePreviewExplorer } from "@/components/features/route-preview/route-preview-drawer";
+import { MarketStorefront } from "@/components/features/market/market-storefront";
 import { supabase } from "@/lib/supabase";
 import { forceResetAuthSession, getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { fetchOrEnsureUserProfile, isExpiredOrInvalidTokenError } from "@/lib/supabase/profile";
 import { PENDING_CHECKOUT_STORAGE_KEY, useCheckout } from "@/context/CheckoutContext";
-import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
-import { usePageVisibility } from "@/hooks/use-page-visibility";
 
 /*
   ViciTech workspace container. Wrapped by the single global Navbar in app/layout.tsx.
@@ -106,20 +91,20 @@ const MODULES = [
     blurb: "Jelajahi paket rakitan terkurasi atau bandingkan spesifikasi teknis dan batas upgrade RAM/NVMe.",
     icon: ShoppingBag,
     views: [
-      ["ready", "All / Ready Stock", ShoppingBag],
-      ["catalog", "Hardware Library & Specs", Layers],
-      ["upgrade", "Max Upgrade Analyzer", Zap],
+      ["ready", "Semua / Siap Kirim", ShoppingBag],
+      ["catalog", "Hardware Library & Spesifikasi", Layers],
+      ["upgrade", "Analisis Upgrade Maksimal", Zap],
     ],
   },
   { id: "builder", label: "Smart Preset Builder", short: "Preset Builder", sub: "Konfigurator rakitan untuk B2S, B2B, dan B2C", blurb: "Mulai dari preset teruji, ganti komponen, dan pantau estimasi daya serta harga lengkap dengan JIT buffer.", icon: Sliders },
-  { id: "tradein", label: "Circular Trade-In & Buyback", short: "Trade-In", sub: "Tukar tambah aset IT dan etalase unit refurbished", blurb: "Hitung nilai buyback perangkat lama dan pilih unit refurbished bersertifikat QC.", icon: RefreshCw },
-  { id: "qc", label: "IoT QC & Telemetry Engine", short: "IoT QC", sub: "Telemetri burn-in dan sertifikat QC digital", blurb: "Masukkan nomor seri untuk memeriksa log suhu burn-in, 15 titik inspeksi, dan sertifikat unit.", icon: Activity },
-  { id: "bottleneck", label: "AI Bottleneck Analyzer", short: "Bottleneck AI", sub: "Kalkulasi keseimbangan CPU, GPU, RAM, dan beban kerja", blurb: "Temukan komponen yang menahan performa, estimasi FPS, dan saran penyeimbangan rakitan.", icon: Gauge },
+  { id: "tradein", label: "Circular Trade-In & Buyback", short: "Trade-In", sub: "Tukar tambah aset IT dan etalase unit refurbished", blurb: "Hitung nilai buyback perangkat lama dan pilih unit refurbished bersertifikat IoT QC.", icon: RefreshCw },
+  { id: "qc", label: "Mesin IoT QC & Telemetri", short: "IoT QC", sub: "Telemetri Burn-In dan sertifikat IoT QC digital", blurb: "Masukkan nomor seri untuk memeriksa log suhu Burn-In, 15 titik inspeksi, dan sertifikat unit.", icon: Activity },
+  { id: "bottleneck", label: "Analisis Bottleneck AI", short: "Bottleneck AI", sub: "Kalkulasi keseimbangan CPU, GPU, RAM, dan beban kerja", blurb: "Temukan komponen yang menahan performa, estimasi FPS, dan saran penyeimbangan rakitan.", icon: Gauge },
   { id: "versus", label: "Versus Arena", short: "Versus Arena", sub: "Perbandingan spesifikasi dua perangkat berdampingan", blurb: "Bandingkan dua PC, laptop, atau smartphone secara langsung berdasarkan spesifikasi dan nilai pakai.", icon: Swords },
-  { id: "account", label: "Account Dashboard", short: "Account", sub: "Pesanan, brankas sertifikat QC, preset, dan profil", blurb: "Lacak status pesanan, pengajuan trade-in, arsip sertifikat QC, serta pengaturan akun.", icon: User },
-  { id: "community", label: "Community & Knowledge Hub", short: "Community", sub: "Showcase rakitan, panduan lab, dan forum tanya jawab", blurb: "Bagikan rakitan PC, pelajari panduan instalasi lab sekolah, dan diskusikan solusi teknis.", icon: MessageSquare },
+  { id: "account", label: "Dasbor Akun", short: "Akun", sub: "Pesanan, brankas sertifikat IoT QC, preset, dan profil", blurb: "Lacak status pesanan, pengajuan Trade-In, arsip sertifikat IoT QC, serta pengaturan akun.", icon: User },
+  { id: "community", label: "Komunitas & Pusat Pengetahuan", short: "Komunitas", sub: "Showcase rakitan, panduan lab, dan forum tanya jawab", blurb: "Bagikan rakitan PC, pelajari panduan instalasi lab sekolah, dan diskusikan solusi teknis.", icon: MessageSquare },
 ];
-const HOME = { id: "home", label: "Home", short: "Home", sub: "Ecosystem overview", icon: LayoutDashboard };
+const HOME = { id: "home", label: "Beranda", short: "Beranda", sub: "Ringkasan ekosistem", icon: LayoutDashboard };
 const NAV = [HOME, ...MODULES];
 const BY_ID = Object.fromEntries(NAV.map((m) => [m.id, m]));
 const DEFAULT_VIEWS = { market: "ready" };
@@ -147,53 +132,28 @@ function QueryParamSync({ onSync }) {
 }
 
 const ROLES = {
-  b2c: { label: "B2C Member / Creator", icon: User, greeting: "Bandingkan komponen, susun rakitan, dan bagikan hasilnya ke komunitas.", rec: ["bottleneck", "versus", "community"] },
-  b2b: { label: "B2B Enterprise Admin", icon: Building2, greeting: "Kelola pengadaan perangkat organisasi, verifikasi sertifikat QC, dan pantau pesanan unit.", rec: ["qc", "tradein", "account"] },
-  b2s: { label: "B2S School / CBT Lab Admin", icon: GraduationCap, greeting: "Siapkan perangkat lab sekolah dan ujian CBT lengkap dengan jaminan QC terverifikasi.", rec: ["builder", "tradein", "qc"] },
+  b2c: { label: "Anggota / Kreator B2C", icon: User, greeting: "Bandingkan komponen, susun rakitan, dan bagikan hasilnya ke komunitas.", rec: ["bottleneck", "versus", "community"] },
+  b2b: { label: "Admin Enterprise B2B", icon: Building2, greeting: "Kelola pengadaan perangkat organisasi, verifikasi sertifikat IoT QC, dan pantau pesanan unit.", rec: ["qc", "tradein", "account"] },
+  b2s: { label: "Admin Lab Sekolah / CBT (B2S)", icon: GraduationCap, greeting: "Siapkan perangkat lab sekolah dan ujian CBT lengkap dengan jaminan IoT QC terverifikasi.", rec: ["builder", "tradein", "qc"] },
 };
 
 const ACTIONS = [
-  { label: "Compare two GPUs", module: "market", view: "catalog", keys: "gpu graphics card rtx compare specs" },
-  { label: "Check max RAM and NVMe slots of a laptop", module: "market", view: "upgrade", keys: "upgrade ram nvme slot max laptop pc" },
-  { label: "Start the CBT Labkom preset", module: "builder", keys: "cbt lab school b2s preset" },
-  { label: "Build an enterprise workstation", module: "builder", keys: "office b2b workstation" },
-  { label: "Get a trade-in valuation", module: "tradein", keys: "sell buyback estimate value" },
-  { label: "Look up a serial number", module: "qc", keys: "serial qr telemetry certificate" },
-  { label: "Find my CPU and GPU bottleneck", module: "bottleneck", keys: "bottleneck fps pairing cpu gpu ram" },
-  { label: "Compare two laptops head to head", module: "versus", keys: "versus compare laptop phone verdict" },
-  { label: "Ask the community a question", module: "community", keys: "question help post forum showcase" },
-  { label: "Download a QC certificate", module: "account", keys: "certificate vault order invoice settings api" },
+  { label: "Bandingkan dua GPU", module: "market", view: "catalog", keys: "gpu graphics card rtx compare specs" },
+  { label: "Cek batas RAM dan slot NVMe laptop", module: "market", view: "upgrade", keys: "upgrade ram nvme slot max laptop pc" },
+  { label: "Mulai preset CBT Labkom", module: "builder", keys: "cbt lab school b2s preset" },
+  { label: "Rakit workstation kantor enterprise", module: "builder", keys: "office b2b workstation" },
+  { label: "Hitung estimasi Trade-In perangkat", module: "tradein", keys: "sell buyback estimate value" },
+  { label: "Cek nomor seri IoT QC", module: "qc", keys: "serial qr telemetry certificate" },
+  { label: "Temukan bottleneck CPU dan GPU", module: "bottleneck", keys: "bottleneck fps pairing cpu gpu ram" },
+  { label: "Bandingkan dua laptop di Versus Arena", module: "versus", keys: "versus compare laptop phone verdict" },
+  { label: "Ajukan pertanyaan di Komunitas", module: "community", keys: "question help post forum showcase" },
+  { label: "Unduh sertifikat IoT QC", module: "account", keys: "certificate vault order invoice settings api" },
 ];
 const COMMANDS = [
-  ...NAV.map((m) => ({ label: m.id === "home" ? "Go to Home" : `Open ${m.label}`, hint: m.sub, module: m.id, keys: `${m.label} ${m.sub}` })),
+  ...NAV.map((m) => ({ label: m.id === "home" ? "Buka Beranda" : `Buka ${m.label}`, hint: m.sub, module: m.id, keys: `${m.label} ${m.sub}` })),
   ...ACTIONS.map((a) => ({ ...a, hint: BY_ID[a.module].label })),
 ];
 const SERIAL_RE = /^VICI-[A-Z]{3}-\d{4}-\d{4}$/;
-
-const EVENT_TYPES = {
-  qc: { icon: ShieldCheck, target: ["qc"] },
-  order: { icon: Sliders, target: ["builder"] },
-  tradein: { icon: RefreshCw, target: ["tradein"] },
-  price: { icon: Layers, target: ["market", "catalog"] },
-  upgrade: { icon: Zap, target: ["market", "upgrade"] },
-  bottleneck: { icon: Gauge, target: ["bottleneck"] },
-  versus: { icon: Swords, target: ["versus"] },
-  community: { icon: MessageSquare, target: ["community"] },
-};
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const GENERATORS = [
-  () => ["qc", `New QC Pass: VICI-${pick(["SRV", "LTP", "DSK"])}-2026-${1000 + Math.floor(Math.random() * 9000)}`],
-  () => ["order", `Preset Order Submitted for ${pick(["CBT Lab Tasikmalaya", "Office Fleet Bandung", "Student Builder Jakarta"])}`],
-  () => ["tradein", `Trade-In valuation requested: ${pick([6, 12, 40, 85])} ${pick(["laptops", "desktops", "monitors"])}`],
-  () => { const v = Math.random() * 5 - 3; return ["price", `Price Index updated: ${pick(["RTX 4060", "Ryzen 7 7800X3D", "Core i5-12400"])} ${v > 0 ? "+" : ""}${v.toFixed(1)}%`]; },
-  () => ["upgrade", `Upgrade check: ${pick(["ThinkPad T14", "OptiPlex 7090 SFF", "EliteBook 840 G9"])} can reach ${pick([32, 48, 64])} GB RAM`],
-  () => ["bottleneck", `Bottleneck scan: ${pick(["i5-12400F + RTX 4070", "Ryzen 5 7600 + RTX 4060", "i3-12100F + RX 6600"])} at ${pick(["1080p", "1440p"])}`],
-  () => ["versus", `Versus Arena: ${pick(["Galaxy S24 Ultra vs Xiaomi 14T Pro", "ThinkPad T14 vs Latitude 7440", "B2C rig vs Esports rig"])}`],
-  () => ["community", `New build showcase posted by ${pick(["Bagas", "Nadia", "Dewi"])}`],
-];
-const seedEvents = () =>
-  [["qc", "New QC Pass: VICI-SRV-2026-9042", 8], ["order", "Preset Order Submitted for CBT Lab Tasikmalaya", 41], ["bottleneck", "Bottleneck scan: i5-12400F + RTX 4060 at 1080p", 80], ["upgrade", "Upgrade check: ThinkPad T14 can reach 48 GB RAM", 120], ["tradein", "Trade-In valuation requested: 40 laptops", 190]]
-    .map(([type, text, elapsedSec], i) => ({ id: i, type, text, elapsedSec }));
 
 // Surface, motion and focus styles live in app/globals.css so the server and the client render
 // identical markup (an inline <style> tag here caused a hydration mismatch).
@@ -237,88 +197,233 @@ function DataSourceLink({ badgeClass, badgeLabel, title, detail, onClick }) {
   );
 }
 
-function ActivityFeed({ onNavigate }) {
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const isPageVisible = usePageVisibility();
-  const [events, setEvents] = useState(seedEvents);
-  const [userPaused, setUserPaused] = useState(false);
-  const [hoverPaused, setHoverPaused] = useState(false);
-  const uid = useRef(100);
-  const isRunning = !prefersReducedMotion && !userPaused && !hoverPaused && isPageVisible;
+const COMMUNITY_CATEGORY_LABELS = {
+  build_showcase: "Showcase",
+  general: "Panduan",
+  troubleshooting: "Tanya Jawab",
+  news: "Info Resmi",
+};
+
+const OPERATE_QUICK_TOOLS = [
+  { label: "Cek Serial IoT QC", hint: "Verifikasi log Burn-In", module: "qc", icon: Activity },
+  { label: "Analisis Upgrade Maksimal", hint: "Cek slot RAM & NVMe", module: "market", view: "upgrade", icon: Zap },
+  { label: "Analisis Bottleneck AI", hint: "Uji keseimbangan CPU/GPU", module: "bottleneck", icon: Gauge },
+];
+
+const formatCompactIdr = (value) =>
+  new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(Number(value) || 0);
+
+function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isRunning) return undefined;
-    const id = window.setInterval(() => {
-      const [type, text] = pick(GENERATORS)();
-      setEvents((list) =>
-        [
-          { id: ++uid.current, type, text, elapsedSec: 0 },
-          ...list.map((item) => ({ ...item, elapsedSec: item.elapsedSec + 4 })),
-        ].slice(0, 7)
-      );
-    }, 4000);
-    return () => window.clearInterval(id);
-  }, [isRunning]);
+    if (isAuthLoading) return undefined;
+    if (!isSupabaseAuthConfigured) {
+      setRecentOrders([]);
+      setRecentPosts([]);
+      setLoading(false);
+      return undefined;
+    }
 
-  const ago = (s) => (s < 5 ? "just now" : s < 60 ? `${s}s ago` : `${Math.floor(s / 60)} min ago`);
+    let active = true;
+    setLoading(true);
+
+    async function loadOperationalSnapshot() {
+      try {
+        const client = getSupabaseBrowserClient();
+        const postsPromise = client
+          .from("community_posts")
+          .select("id, title, category, likes_count, created_at")
+          .order("created_at", { ascending: false })
+          .limit(3);
+
+        const ordersPromise = user?.id
+          ? client
+              .from("orders")
+              .select("id, order_number, product_name, status, total_price, created_at")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .limit(3)
+          : Promise.resolve({ data: [], error: null });
+
+        const [ordersResult, postsResult] = await Promise.all([ordersPromise, postsPromise]);
+        if (!active) return;
+
+        setRecentOrders(!ordersResult.error && Array.isArray(ordersResult.data) ? ordersResult.data : []);
+        setRecentPosts(!postsResult.error && Array.isArray(postsResult.data) ? postsResult.data : []);
+      } catch {
+        if (active) {
+          setRecentOrders([]);
+          setRecentPosts([]);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadOperationalSnapshot();
+    return () => {
+      active = false;
+    };
+  }, [user?.id, isAuthLoading]);
+
   return (
-    <section
-      aria-labelledby="feed-title"
-      className="rounded-xl border border-default bg-surface p-6 shadow-sm"
-      onMouseEnter={() => setHoverPaused(true)}
-      onMouseLeave={() => setHoverPaused(false)}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 id="feed-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
-              <Zap className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" /> Aliran aktivitas
-            </h2>
-            <span className="vt-badge-sample">{!isRunning ? "Dijeda · Contoh" : "Contoh"}</span>
-          </div>
-          <p className="mt-1 text-xs leading-relaxed text-secondary">
-            Simulasi aktivitas di browser sebagai ilustrasi alur kerja, bukan data transaksi pelanggan langsung.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setUserPaused((current) => !current)}
-          aria-pressed={userPaused}
-          aria-label={userPaused ? "Putar aliran aktivitas" : "Jeda aliran aktivitas"}
-          title={userPaused ? "Putar aliran aktivitas" : "Jeda aliran aktivitas"}
-          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition-colors hover:bg-canvas ${focusRing}`}
-        >
-          {userPaused || prefersReducedMotion ? (
-            <Play className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-          ) : (
-            <Pause className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan operasional">
+      <section aria-labelledby="orders-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="orders-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+            <Package className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            {user ? "Pesanan Terbaru" : "Alat Cepat"}
+          </h2>
+          {user && (
+            <button
+              type="button"
+              onClick={() => onNavigate("account")}
+              className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
+            >
+              Semua pesanan
+            </button>
           )}
-        </button>
-      </div>
-      <ul className="mt-4 divide-y divide-default">
-        {events.map((e) => {
-          const t = EVENT_TYPES[e.type] || EVENT_TYPES.price;
-          const Icon = t.icon;
-          return (
-            <li key={e.id} className="vt-in">
-              <button
-                type="button"
-                onClick={() => onNavigate(...t.target)}
-                className={`flex min-h-11 w-full items-start gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+        </div>
+
+        {loading ? (
+          <div className="mt-3 space-y-2.5" aria-hidden="true">
+            <div className="h-14 animate-pulse rounded-lg bg-subtle" />
+            <div className="h-14 animate-pulse rounded-lg bg-subtle" />
+          </div>
+        ) : user && recentOrders.length > 0 ? (
+          <ul className="mt-3 divide-y divide-default">
+            {recentOrders.map((order) => (
+              <li key={order.id}>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("account")}
+                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-primary">
+                      {order.product_name || order.order_number || "Pesanan ViciTech"}
+                    </span>
+                    <span className="mt-0.5 block truncate font-mono text-xs text-secondary">
+                      {order.status || "Diproses"}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-xs font-semibold tabular-nums text-primary">
+                    {formatCompactIdr(order.total_price)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {user && (
+              <p className="text-xs leading-relaxed text-secondary">
+                Belum ada pesanan aktif di akun Anda. Mulai rakit dari Preset Builder atau luncurkan alat berikut:
+              </p>
+            )}
+            <div className="grid gap-2">
+              {OPERATE_QUICK_TOOLS.map((tool) => {
+                const Icon = tool.icon;
+                return (
+                  <button
+                    key={tool.label}
+                    type="button"
+                    onClick={() => onNavigate(tool.module, tool.view)}
+                    className={`flex min-h-11 w-full items-center gap-3 rounded-lg border border-default bg-canvas px-3 py-2 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-primary">{tool.label}</span>
+                      <span className="block text-xs text-secondary">{tool.hint}</span>
+                    </span>
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                );
+              })}
+              <Link
+                href="/messages"
+                className={`flex min-h-11 w-full items-center gap-3 rounded-lg border border-default bg-canvas px-3 py-2 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
               >
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span className="min-w-0 flex-1 text-sm leading-snug text-primary">{e.text}</span>
-                <span className="tabular-nums shrink-0 font-mono text-xs text-secondary">{ago(e.elapsedSec)}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+                <MessageSquare className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-primary">Pesan Langsung</span>
+                  <span className="block text-xs text-secondary">Konsultasi langsung dengan teknisi</span>
+                </span>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="community-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="community-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+            <MessageSquare className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            Komunitas Terbaru
+          </h2>
+          <button
+            type="button"
+            onClick={() => onNavigate("community")}
+            className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-accent-primary transition hover:bg-accent-subtle ${focusRing}`}
+          >
+            Buka forum
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="mt-3 space-y-2.5" aria-hidden="true">
+            <div className="h-12 animate-pulse rounded-lg bg-subtle" />
+            <div className="h-12 animate-pulse rounded-lg bg-subtle" />
+          </div>
+        ) : recentPosts.length > 0 ? (
+          <ul className="mt-3 divide-y divide-default">
+            {recentPosts.map((post) => (
+              <li key={post.id}>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("community")}
+                  className={`flex min-h-11 w-full items-start justify-between gap-3 py-3 text-left transition-colors hover:text-accent-primary ${focusRing}`}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="line-clamp-2 text-sm font-medium leading-snug text-primary">
+                      {post.title}
+                    </span>
+                    <span className="mt-1 inline-block rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-secondary">
+                      {COMMUNITY_CATEGORY_LABELS[post.category] || "Diskusi"}
+                    </span>
+                  </span>
+                  <span className="shrink-0 font-mono text-xs tabular-nums text-secondary">
+                    {Number(post.likes_count) || 0} suka
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-3 space-y-3">
+            <p className="text-xs leading-relaxed text-secondary">
+              Jelajahi showcase rakitan B2S/B2C, panduan instalasi lab CBT, dan tanya jawab teknisi di Community Hub.
+            </p>
+            <button
+              type="button"
+              onClick={() => onNavigate("community")}
+              className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+            >
+              <span>Buka Forum Komunitas</span>
+              <ArrowRight className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+      </section>
+    </aside>
   );
 }
 
-function HomeDashboard({ role, onRoleChange, onNavigate }) {
+function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) {
   const r = ROLES[role] || ROLES.b2c;
   const featuredModules = MODULES.filter((m) => r.rec?.includes(m.id));
   const otherModules = MODULES.filter((m) => !r.rec?.includes(m.id));
@@ -328,22 +433,22 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
   const dataTransparency = [
     {
       badgeClass: "vt-badge-live",
-      badgeLabel: "Live ESP32 Telemetry",
-      title: "IoT QC & Burn-In Sensor",
+      badgeLabel: "Live ESP32",
+      title: "Sensor IoT QC & Burn-In",
       detail: "Pembacaan suhu CPU/GPU, voltase, dan stabilitas aktual dari smart bench.",
       go: ["qc"],
     },
     {
       badgeClass: "vt-badge-simulated",
-      badgeLabel: "Simulated QC Profile",
+      badgeLabel: "Simulasi IoT QC",
       title: "Profil Simulasi Admin",
       detail: "Skenario uji terkalibrasi yang dipisahkan secara eksplisit dari sensor fisik.",
       go: ["qc"],
     },
     {
       badgeClass: "vt-badge-sample",
-      badgeLabel: "Sample Catalog",
-      title: "Library Hardware & Trade-In",
+      badgeLabel: "Katalog Sampel",
+      title: "Hardware Library & Trade-In",
       detail: "Spesifikasi acuan, estimasi harga, dan simulasi upgrade untuk riset awal.",
       go: ["market", "catalog"],
     },
@@ -351,13 +456,13 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
   const quick = [
     ["Cek batas maksimal upgrade", "market", "upgrade"],
     ["Hitung bottleneck CPU & GPU", "bottleneck"],
-    ["Cek nomor seri QC", "qc"],
+    ["Cek nomor seri IoT QC", "qc"],
     ["Lihat rakitan komunitas", "community"],
   ];
   return (
     <>
-      <section className="border-b border-default pb-12" aria-labelledby="home-title">
-        <div className="mx-auto grid max-w-shell gap-10 px-4 py-12 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-16">
+      <section className="border-b border-default pb-10" aria-labelledby="home-title">
+        <div className="mx-auto grid max-w-shell gap-10 px-4 py-8 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-10">
           <div className="lg:col-span-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="vt-badge-sample">{r.label}</span>
@@ -367,9 +472,9 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
               Satu ruang kerja untuk riset, rakit, dan verifikasi perangkat keras.
             </h1>
             <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-secondary">
-              {r.greeting} Tukar tambah, rakit preset, periksa telemetri QC, dan bandingkan spesifikasi dalam satu ekosistem.
+              {r.greeting} Tukar tambah, rakit preset, periksa telemetri IoT QC, dan bandingkan spesifikasi dalam satu ekosistem.
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Workspace role">
+            <div className="mt-5 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Peran ruang kerja">
               {Object.entries(ROLES).map(([roleKey, meta]) => {
                 const selected = role === roleKey;
                 const RoleIcon = meta.icon;
@@ -396,7 +501,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
               <button
                 type="button"
                 onClick={() => onNavigate(primaryTarget)}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}
+                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
               >
                 <span>Buka {primaryModule.short}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -404,7 +509,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
               <button
                 type="button"
                 onClick={() => onNavigate("market", "catalog")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle ${focusRing}`}
+                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}
               >
                 <span>Jelajahi Market &amp; Library</span>
               </button>
@@ -429,7 +534,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
             <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
               Prioritas untuk peran Anda
             </h2>
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Quick actions">
+            <div className="mt-4 flex flex-wrap gap-2" aria-label="Aksi cepat">
               {quick.map(([label, ...go]) => (
                 <button
                   key={label}
@@ -449,11 +554,11 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-5 text-left transition hover:border-accent-primary/50 ${focusRing}`}
+                    className={`vt-card-interactive group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-5 text-left hover:border-accent-primary/50 ${focusRing}`}
                   >
                     <div>
                       <span className="flex items-center justify-between gap-2">
-                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-surface text-accent-primary shadow-sm transition group-hover:bg-accent-primary group-hover:text-primary">
+                        <span className="grid h-10 w-10 place-items-center rounded-lg bg-surface text-accent-primary shadow-sm transition group-hover:bg-accent-primary group-hover:text-white">
                           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
                         </span>
                         <span className="rounded-md bg-surface px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -488,9 +593,9 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left transition hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+                    className={`vt-card-interactive group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary transition group-hover:bg-accent-primary group-hover:text-primary">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary transition group-hover:bg-accent-primary group-hover:text-white">
                       <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -504,29 +609,27 @@ function HomeDashboard({ role, onRoleChange, onNavigate }) {
             </div>
           </div>
         </section>
-        <div className="lg:sticky lg:top-28 lg:self-start"><ActivityFeed onNavigate={onNavigate} /></div>
+        <WorkspacePulsePanel user={user} isAuthLoading={isAuthLoading} onNavigate={onNavigate} />
       </div>
-      <EditorialShowcase onNavigate={onNavigate} />
-      <CyberSuite />
     </>
   );
 }
 
 /* ───────────────────────── Module container ───────────────────────── */
 
-// Hides a module's own header/footer (the shell provides them) and keeps it mounted when inactive
+// Keeps inactive tabs mounted via [hidden] without hiding duplicate headers/footers via CSS.
 function Chromeless({ active = true, children }) {
-  return <div hidden={!active} className="vt-module vt-in [&>div]:min-h-0 [&>div>header]:hidden [&>div>footer]:hidden">{children}</div>;
+  return <div hidden={!active} className="vt-module vt-in [&>div]:min-h-0">{children}</div>;
 }
 
 function SubTabs({ label, items, value, onChange }) {
   return (
     <div className="mx-auto max-w-shell px-4 pt-8 sm:px-6">
-      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-full bg-white/70 p-1.5 shadow-sm">
+      <div role="tablist" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-full border border-default bg-surface p-1.5 shadow-sm">
         {items.map(([id, text, Icon]) => {
           const on = value === id;
           return (
-            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "bg-signal text-white font-medium" : "text-pewter hover:bg-white hover:text-ink"}`}>
+            <button key={id} type="button" role="tab" aria-selected={on} onClick={() => onChange(id)} className={`flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200 ${focusRing} ${on ? "bg-accent-cta font-semibold text-white" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
               <Icon className="h-4 w-4" aria-hidden="true" /> {text}
             </button>
           );
@@ -550,11 +653,11 @@ class ModuleErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <section role="alert" className="vt-card mx-auto my-8 max-w-3xl rounded-2xl p-6 text-ink">
-          <h2 className="text-lg font-semibold">This module could not be displayed</h2>
-          <p className="mt-2 text-sm leading-relaxed text-pewter">The rest of ViciTech is still available. Retry the module or choose another section.</p>
+        <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-default bg-surface p-6 text-primary shadow-sm">
+          <h2 className="text-lg font-semibold">Modul ini gagal ditampilkan</h2>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">Bagian lain dari ViciTech tetap tersedia. Coba muat ulang modul atau pilih menu lain.</p>
           <button type="button" onClick={() => this.setState({ hasError: false })} className="vt-btn vt-btn-primary mt-4">
-            Retry module
+            Muat ulang modul
           </button>
         </section>
       );
@@ -567,9 +670,9 @@ class ModuleErrorBoundary extends Component {
 const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
   if (typeof Comp !== "function") {
     return (
-      <section role="alert" className="vt-card mx-auto my-8 max-w-3xl rounded-2xl p-6 text-ink">
-        <h2 className="text-lg font-semibold">This module is unavailable</h2>
-        <p className="mt-2 text-sm leading-relaxed text-pewter">Its component is not configured. Choose another section or check the module imports.</p>
+      <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-default bg-surface p-6 text-primary shadow-sm">
+        <h2 className="text-lg font-semibold">Modul ini tidak tersedia</h2>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">Komponennya belum dikonfigurasi. Pilih bagian lain untuk melanjutkan.</p>
       </section>
     );
   }
@@ -589,6 +692,9 @@ const MarketModule = memo(function MarketModule({
   onDevice,
   onNavigate,
   onOpenBuilder,
+  marketProducts,
+  marketError,
+  marketCategory,
 }) {
   const isLibraryView = view === "catalog" || view === "upgrade";
 
@@ -601,15 +707,15 @@ const MarketModule = memo(function MarketModule({
               <span className="vt-badge-sample">Market &amp; Hardware Library</span>
               <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
                 {isLibraryView
-                  ? "Hardware Library, Specs & Upgrade Potential"
-                  : "Curated Market & Ready-Stock Ecosystem"}
+                  ? "Hardware Library, Spesifikasi & Potensi Upgrade"
+                  : "Etalase Market & Unit Siap Kirim"}
               </h1>
             </div>
 
             {/* Unified Segmented Switcher */}
             <div
               role="tablist"
-              aria-label="Market mode switcher"
+              aria-label="Pengalih mode Market"
               className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1"
             >
               <button
@@ -619,12 +725,12 @@ const MarketModule = memo(function MarketModule({
                 onClick={() => onView("ready")}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
                   !isLibraryView
-                    ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                    ? "bg-accent-cta font-semibold text-white shadow-sm"
                     : "font-medium text-secondary hover:bg-surface hover:text-primary"
                 }`}
               >
                 <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span>All / Ready Stock</span>
+                <span>Semua / Siap Kirim</span>
               </button>
               <button
                 type="button"
@@ -633,18 +739,18 @@ const MarketModule = memo(function MarketModule({
                 onClick={() => onView("catalog")}
                 className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors ${focusRing} ${
                   isLibraryView
-                    ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                    ? "bg-accent-cta font-semibold text-white shadow-sm"
                     : "font-medium text-secondary hover:bg-surface hover:text-primary"
                 }`}
               >
                 <Layers className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span>Hardware Library &amp; Specs</span>
+                <span>Hardware Library &amp; Spesifikasi</span>
               </button>
             </div>
           </div>
 
           {isLibraryView && (
-            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Hardware library tools">
+            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Alat Hardware Library">
               <button
                 type="button"
                 role="tab"
@@ -657,7 +763,7 @@ const MarketModule = memo(function MarketModule({
                 }`}
               >
                 <Layers className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                <span>Catalog &amp; Compare Specs</span>
+                <span>Katalog &amp; Bandingkan Spek</span>
               </button>
               <button
                 type="button"
@@ -671,7 +777,7 @@ const MarketModule = memo(function MarketModule({
                 }`}
               >
                 <Zap className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                <span>Max Upgrade Analyzer</span>
+                <span>Analisis Upgrade Maksimal</span>
               </button>
             </div>
           )}
@@ -679,43 +785,13 @@ const MarketModule = memo(function MarketModule({
       </section>
 
       {view === "ready" && (
-        <div className="mx-auto max-w-shell space-y-8 px-4 py-8 sm:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-default bg-surface p-5 shadow-sm">
-            <p className="max-w-[68ch] text-sm leading-relaxed text-secondary">
-              Pilih paket rakitan siap pakai, unit refurbished QC-pass, atau buka tab{" "}
-              <strong className="font-semibold text-primary">Hardware Library &amp; Specs</strong> untuk
-              membandingkan spesifikasi lengkap CPU, GPU, laptop, dan smartphone.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => onView("catalog")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary transition hover:bg-canvas ${focusRing}`}
-              >
-                <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Buka Library &amp; Specs</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onNavigate("builder")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}
-              >
-                <Sliders className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span>Buka Preset Builder</span>
-              </button>
-            </div>
-          </div>
-
-          <RoutePreviewExplorer
-            kind="market"
-            filters={MARKET_FILTERS}
-            items={MARKET_PREVIEW_ITEMS}
-            badgeText="Ready Stock · Sample"
-            drawerTitle="Etalase Market & Filter Kategori"
-            drawerDescription="Jelajahi paket rakitan terkurasi atau pindah ke tab Hardware Library & Specs untuk melihat perbandingan teknis hingga 4 perangkat."
-            searchPlaceholder="Cari preset PC, ThinkPad QC, smartphone, atau komponen…"
-          />
-        </div>
+        <MarketStorefront
+          initialProducts={marketProducts}
+          initialCategory={marketCategory}
+          initialError={marketError}
+          onOpenLibrary={() => onView("catalog")}
+          onOpenBuilder={() => onNavigate("builder")}
+        />
       )}
 
       <Chromeless active={view === "catalog"}>
@@ -737,45 +813,46 @@ const MarketModule = memo(function MarketModule({
 /* ───────────────────────── Footer ───────────────────────── */
 
 function Footer({ onNavigate }) {
-  const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["ESP32 telemetry", Activity]];
-  const link = `rounded text-sm text-pewter transition-colors duration-200 hover:text-ink ${focusRing}`;
+  const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["Telemetri ESP32", Activity]];
+  const link = `rounded text-sm text-secondary transition-colors duration-200 hover:text-primary ${focusRing}`;
   return (
-    <footer className="mt-20 border-t border-black/[0.08]">
+    <footer className="mt-20 border-t border-default bg-canvas">
       <div className="mx-auto grid max-w-shell gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
-          <p className="flex items-center gap-2 text-base font-semibold text-ink">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-signal text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span> ViciTech
+          <p className="flex items-center gap-2 text-base font-semibold text-primary">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span>
+            <span className="font-serif text-lg tracking-tight">ViciTech</span>
           </p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-pewter">
-            Hardware research, trade-ins, verified quality control and lifecycle tracking in one circular IT ecosystem.
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-secondary">
+            Riset perangkat keras, tukar tambah Trade-In, verifikasi IoT QC, dan pelacakan siklus pakai dalam satu ekosistem Circular IT.
           </p>
-          <ul className="mt-5 flex flex-wrap gap-2" aria-label="Tech stack">
+          <ul className="mt-5 flex flex-wrap gap-2" aria-label="Tumpukan teknologi">
             {stack.map(([name, Icon]) => (
-              <li key={name} className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1 text-xs text-pewter shadow-sm">
-                <Icon className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> {name}
+              <li key={name} className="inline-flex items-center gap-1.5 rounded-full border border-default bg-surface px-3 py-1 text-xs text-secondary">
+                <Icon className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" /> {name}
               </li>
             ))}
           </ul>
         </div>
-        <nav aria-label="Modules">
-          <p className="vt-eyebrow">Modules</p>
+        <nav aria-label="Modul ViciTech">
+          <p className="vt-eyebrow">Modul</p>
           <ul className="mt-3 space-y-2">
             {MODULES.map((m) => <li key={m.id}><button type="button" onClick={() => onNavigate(m.id)} className={link}>{m.short}</button></li>)}
           </ul>
         </nav>
         <div>
-          <p className="vt-eyebrow flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-signal" aria-hidden="true" /> Standards</p>
+          <p className="vt-eyebrow flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" /> Standar</p>
           <ul className="mt-3 space-y-2">
-            {["NIST 800-88 data sanitization", "15-point QC protocol", "JIT dynamic buffer policy", "Refurbished grading"].map((t) => (
-              <li key={t} className="text-sm leading-relaxed text-pewter">{t}</li>
+            {["Sanitasi data NIST 800-88", "Protokol 15-titik IoT QC", "Kebijakan JIT Dynamic Buffer 5%", "Sertifikasi Grade Refurbished"].map((t) => (
+              <li key={t} className="text-sm leading-relaxed text-secondary">{t}</li>
             ))}
           </ul>
         </div>
       </div>
-      <div className="border-t border-black/[0.06]">
-        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-faint sm:px-6">
-          <p>© {new Date().getFullYear()} ViciTech. All rights reserved.</p>
-          <p>Catalog prices, specs and scores are sample data.</p>
+      <div className="border-t border-default bg-surface/60">
+        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-secondary sm:px-6">
+          <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
+          <p>Harga, spesifikasi, dan skor pada katalog merupakan data referensi.</p>
         </div>
       </div>
     </footer>
@@ -790,6 +867,21 @@ const DEFAULT_COMPONENTS = {
 };
 const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account", "community", "profile", "messages"];
 
+/**
+ * @param {object} props
+ * @param {Record<string, unknown>} [props.components]
+ * @param {string} [props.initialRole]
+ * @param {string} [props.initialModule]
+ * @param {string} [props.initialView]
+ * @param {string | null} [props.initialSerial]
+ * @param {string} [props.initialProfileUsername]
+ * @param {string} [props.initialMessageUsername]
+ * @param {readonly import('@/lib/admin/products-validation').ProductRow[]} [props.initialMarketProducts]
+ * @param {string | null} [props.initialMarketError]
+ * @param {string} [props.initialMarketCategory]
+ * @param {string} [props.homeUrl]
+ * @param {() => Promise<void> | void} [props.onSignOut]
+ */
 export default function ViciTechApp({
   components = undefined,
   initialRole = "b2c",
@@ -798,6 +890,9 @@ export default function ViciTechApp({
   initialSerial = null,
   initialProfileUsername = "",
   initialMessageUsername = "",
+  initialMarketProducts = [],
+  initialMarketError = null,
+  initialMarketCategory = "all",
   homeUrl = undefined,
   onSignOut = undefined,
 }) {
@@ -909,7 +1004,7 @@ export default function ViciTechApp({
   useEffect(() => {
     const handleOrderCreated = (event) => {
       if (event.detail?.id) {
-        notify(`Order ${event.detail.id} was placed and saved to your ViciTech account.`);
+        notify(`Pesanan ${event.detail.id} telah dibuat dan disimpan ke akun ViciTech Anda.`);
       }
     };
     window.addEventListener("vicitech:order_created", handleOrderCreated);
@@ -918,29 +1013,29 @@ export default function ViciTechApp({
 
   const handleSignOut = useCallback(async () => {
     if (!supabase) {
-      notify("Supabase authentication is not configured.");
+      notify("Autentikasi Supabase belum dikonfigurasi.");
       return;
     }
 
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        notify(`Sign out failed: ${error.message}`);
+        notify(`Gagal keluar: ${error.message}`);
         return;
       }
       await forceResetAuthSession(supabase);
     } catch (error) {
-      notify(`Sign out failed: ${error.message}`);
+      notify(`Gagal keluar: ${error.message}`);
       return;
     }
 
     try {
       await onSignOut?.();
     } catch (error) {
-      notify(`Signed out, but the follow-up action failed: ${error.message}`);
+      notify(`Berhasil keluar, namun aksi lanjutan gagal: ${error.message}`);
       return;
     }
-    notify("You have been signed out.");
+    notify("Anda telah keluar dari akun.");
   }, [notify, onSignOut]);
 
   useEffect(() => {
@@ -950,13 +1045,13 @@ export default function ViciTechApp({
       const summary = JSON.parse(saved);
       if (!summary?.productName || !summary?.pricing || !Array.isArray(summary.items) || !summary?.specs) {
         window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
-        notify("The pending checkout could not be restored. Please start checkout again.");
+        notify("Checkout tertunda tidak dapat dipulihkan. Silakan ulangi proses checkout.");
         return;
       }
       triggerCheckout(summary);
     } catch (error) {
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
-      notify(`The pending checkout could not be restored: ${error.message}`);
+      notify(`Checkout tertunda gagal dipulihkan: ${error.message}`);
     }
   }, [notify, triggerCheckout]);
 
@@ -978,7 +1073,7 @@ export default function ViciTechApp({
     if (id === "qc" && typeof viewOrData === "string" && SERIAL_RE.test(viewOrData.trim().toUpperCase())) {
       const serial = viewOrData.trim().toUpperCase();
       setQcSerial(serial);
-      notify(`Inspecting serial ${serial} in IoT QC Engine.`);
+      notify(`Memeriksa nomor seri ${serial} di Mesin IoT QC.`);
       viewOrData = undefined;
     }
 
@@ -986,11 +1081,11 @@ export default function ViciTechApp({
     if (id === "builder" && viewOrData && typeof viewOrData === "object") {
       setBuilderConfig(viewOrData);
       if (viewOrData.name) {
-        notify(`Preset "${viewOrData.name}" loaded into Preset Builder.`);
+        notify(`Preset "${viewOrData.name}" dimuat ke Preset Builder.`);
       } else if (viewOrData.items?.length) {
-        notify(`${viewOrData.items.length} items sent to Preset Builder.`);
+        notify(`${viewOrData.items.length} item dikirim ke Preset Builder.`);
       } else {
-        notify("Hardware configuration transferred to Preset Builder.");
+        notify("Konfigurasi perangkat keras diteruskan ke Preset Builder.");
       }
       viewOrData = undefined;
     }
@@ -1099,7 +1194,7 @@ export default function ViciTechApp({
   const marketView = useCallback((v) => navigate("market", v), [navigate]);
   const handleMarketOpenBuilder = useCallback((items) => {
     setBuilderConfig({ items });
-    notify("Selected hardware sent to Preset Builder.");
+    notify("Perangkat terpilih dikirim ke Preset Builder.");
     navigate("builder");
   }, [navigate, notify]);
 
@@ -1132,17 +1227,17 @@ export default function ViciTechApp({
     bottleneck: {
       onSwapToPreset: (parts) => {
         setBuilderConfig(parts);
-        notify("Rebalanced configuration sent to Preset Builder.");
+        notify("Konfigurasi hasil penyeimbangan dikirim ke Preset Builder.");
         navigate("builder");
       },
     },
     versus: {
       onDeployToPreset: (item) => {
         setBuilderConfig({ items: [item] });
-        notify(`${item.name} queued for Preset Builder.`);
+        notify(`${item.name} dimasukkan ke antrean Preset Builder.`);
         navigate("builder");
       },
-      onRequestQuote: (item) => notify(`Quote request created for ${item.name}.`),
+      onRequestQuote: (item) => notify(`Permintaan penawaran dibuat untuk ${item.name}.`),
     },
     account: {
       role,
@@ -1152,7 +1247,7 @@ export default function ViciTechApp({
       onNavigate: navigate,
       onReconfigure: (preset) => {
         setBuilderConfig({ preset });
-        notify(`Preset "${preset.name}" loaded into Preset Builder.`);
+        notify(`Preset "${preset.name}" dimuat ke Preset Builder.`);
         navigate("builder");
       },
       onSignOut: handleSignOut,
@@ -1182,7 +1277,13 @@ export default function ViciTechApp({
       <main className="flex-1">
         {active === "home" && (
           <div className="vt-in">
-            <HomeDashboard role={role} onRoleChange={setRole} onNavigate={navigate} />
+            <HomeDashboard
+              role={role}
+              onRoleChange={setRole}
+              onNavigate={navigate}
+              user={authState.user}
+              isAuthLoading={authState.isLoading}
+            />
           </div>
         )}
 
@@ -1190,10 +1291,10 @@ export default function ViciTechApp({
           <div className="border-b border-default bg-surface">
             <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
               <div>
-                <p className="text-xs font-semibold text-primary">Trade-In &amp; IoT QC Workspace</p>
-                <p className="text-xs text-secondary">Beralih antara estimasi buyback sirkular dan engine inspeksi serial IoT.</p>
+                <p className="text-xs font-semibold text-primary">Ruang Kerja Trade-In &amp; IoT QC</p>
+                <p className="text-xs text-secondary">Beralih antara estimasi buyback sirkular dan mesin inspeksi serial IoT QC.</p>
               </div>
-              <div role="tablist" aria-label="Trade-In and QC switcher" className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1">
+              <div role="tablist" aria-label="Pengalih Trade-In dan IoT QC" className="inline-flex flex-wrap gap-1 rounded-xl border border-default bg-subtle p-1">
                 <button
                   type="button"
                   role="tab"
@@ -1201,8 +1302,8 @@ export default function ViciTechApp({
                   onClick={() => navigate("tradein")}
                   className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-xs transition-colors ${focusRing} ${
                     active === "tradein"
-                      ? "bg-accent-primary font-semibold text-primary shadow-sm"
-                      : "font-medium text-secondary hover:bg-surface hover:text-primary"
+                    ? "bg-accent-cta font-semibold text-white shadow-sm"
+                    : "font-medium text-secondary hover:bg-surface hover:text-primary"
                   }`}
                 >
                   <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
@@ -1215,12 +1316,12 @@ export default function ViciTechApp({
                   onClick={() => navigate("qc")}
                   className={`inline-flex min-h-11 items-center gap-2 rounded-lg px-4 py-2 text-xs transition-colors ${focusRing} ${
                     active === "qc"
-                      ? "bg-accent-primary font-semibold text-primary shadow-sm"
+                      ? "bg-accent-cta font-semibold text-white shadow-sm"
                       : "font-medium text-secondary hover:bg-surface hover:text-primary"
                   }`}
                 >
                   <Activity className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                  <span>IoT QC &amp; Telemetry Engine</span>
+                  <span>Mesin IoT QC &amp; Telemetri</span>
                 </button>
               </div>
             </div>
@@ -1237,6 +1338,9 @@ export default function ViciTechApp({
               onDevice={setUpgradeDevice}
               onNavigate={navigate}
               onOpenBuilder={handleMarketOpenBuilder}
+              marketProducts={initialMarketProducts}
+              marketError={initialMarketError}
+              marketCategory={initialMarketCategory}
             />
           </div>
         )}

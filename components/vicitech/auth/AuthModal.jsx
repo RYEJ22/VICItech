@@ -321,7 +321,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
             <button
               type="submit"
               disabled={isSubmitting || isResetting || !configured}
-              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}
               {mode === "sign-in" ? "Sign in with email" : "Create account"}

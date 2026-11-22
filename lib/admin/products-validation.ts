@@ -1,5 +1,7 @@
 import type { Json, Tables, TablesInsert, TablesUpdate } from '@/types/database.types';
 
+export const MAX_PRODUCT_IMAGES = 5;
+
 export const PRODUCT_CATEGORIES = [
   'pc-build',
   'laptop',
@@ -12,7 +14,10 @@ export const PRODUCT_STOCK_STATUSES = ['ready', 'preorder', 'sold_out'] as const
 
 export const PRODUCT_SELLER_TYPES = ['vicitech', 'partner'] as const;
 
-export type ProductRow = Tables<'products'>;
+export type ProductRow = Tables<'products'> & {
+  readonly image_url?: string | null;
+  readonly gallery_urls?: readonly string[];
+};
 export type ProductInsert = TablesInsert<'products'>;
 export type ProductUpdate = TablesUpdate<'products'>;
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
@@ -40,6 +45,8 @@ export interface ProductFormPayload {
   readonly seller_type: string;
   readonly stock_status: string;
   readonly images: readonly string[];
+  readonly image_url?: string | null;
+  readonly gallery_urls?: readonly string[];
   readonly specs: { readonly [key: string]: Json | undefined };
   readonly is_preset: boolean;
   readonly preset_components: readonly { readonly slot: string; readonly name: string }[];
@@ -191,10 +198,102 @@ export function isValidMediaUrl(value: string): boolean {
   }
 }
 
+function readOptionalStringProp(record: object, key: string): string | null {
+  for (const [entryKey, entryValue] of Object.entries(record)) {
+    if (entryKey === key && typeof entryValue === 'string') {
+      const trimmed = entryValue.trim();
+      return trimmed || null;
+    }
+  }
+  return null;
+}
+
+function readOptionalStringArrayProp(record: object, key: string): readonly string[] {
+  for (const [entryKey, entryValue] of Object.entries(record)) {
+    if (entryKey === key && Array.isArray(entryValue)) {
+      const urls: string[] = [];
+      for (const item of entryValue) {
+        if (typeof item === 'string') {
+          const trimmed = item.trim();
+          if (trimmed) urls.push(trimmed);
+        }
+      }
+      return urls;
+    }
+  }
+  return [];
+}
+
+export function resolveProductImages(
+  product: Pick<ProductRow, 'images' | 'image_url' | 'gallery_urls'>,
+): string[] {
+  const resolved: string[] = [];
+  const pushValidUnique = (rawUrl: unknown) => {
+    if (typeof rawUrl !== 'string') return;
+    const trimmed = rawUrl.trim();
+    if (!trimmed || !isValidMediaUrl(trimmed)) return;
+    if (!resolved.includes(trimmed)) {
+      resolved.push(trimmed);
+    }
+  };
+
+  pushValidUnique(product.image_url);
+
+  if (Array.isArray(product.gallery_urls)) {
+    for (const url of product.gallery_urls) {
+      pushValidUnique(url);
+    }
+  }
+
+  if (Array.isArray(product.images)) {
+    for (const url of product.images) {
+      pushValidUnique(url);
+    }
+  }
+
+  return resolved;
+}
+
+export function normalizeProductRecord(row: Tables<'products'>): ProductRow {
+  const optionalImageUrl = readOptionalStringProp(row, 'image_url');
+  const optionalGalleryUrls = readOptionalStringArrayProp(row, 'gallery_urls');
+  const cleanImages = resolveProductImages({
+    image_url: optionalImageUrl,
+    gallery_urls: optionalGalleryUrls,
+    images: row.images,
+  });
+
+  return {
+    ...row,
+    images: cleanImages,
+    image_url: cleanImages[0] ?? null,
+    gallery_urls: cleanImages,
+  };
+}
+
+export function isMissingImageColumnError(
+  error: { readonly code?: string | undefined; readonly message?: string | undefined } | null,
+): boolean {
+  if (!error) return false;
+  if (error.code === '42703' || error.code === 'PGRST204') return true;
+  const message = (error.message ?? '').toLowerCase();
+  return (
+    message.includes('image_url') ||
+    message.includes('gallery_urls')
+  );
+}
+
 export function validateProductPayload(
   input: ProductFormPayload,
 ):
-  | { readonly ok: true; readonly data: ProductInsert }
+  | {
+      readonly ok: true;
+      readonly data: ProductInsert;
+      readonly imageColumns: {
+        readonly image_url: string | null;
+        readonly gallery_urls: readonly string[];
+      };
+    }
   | { readonly ok: false; readonly error: string } {
   const title = input.title.trim();
   if (title.length < 2 || title.length > 180) {
@@ -221,8 +320,16 @@ export function validateProductPayload(
     return { ok: false, error: 'Harga harus berupa angka non-negatif dalam IDR.' };
   }
 
+  const rawImageInputs: readonly string[] = [
+    ...(typeof input.image_url === 'string' && input.image_url.trim()
+      ? [input.image_url]
+      : []),
+    ...(Array.isArray(input.gallery_urls) ? input.gallery_urls : []),
+    ...input.images,
+  ];
+
   const cleanImages: string[] = [];
-  for (const rawUrl of input.images) {
+  for (const rawUrl of rawImageInputs) {
     const url = rawUrl.trim();
     if (!url) continue;
     if (!isValidMediaUrl(url)) {
@@ -231,6 +338,10 @@ export function validateProductPayload(
     if (!cleanImages.includes(url)) {
       cleanImages.push(url);
     }
+  }
+
+  if (cleanImages.length > MAX_PRODUCT_IMAGES) {
+    return { ok: false, error: `Maksimal ${MAX_PRODUCT_IMAGES} foto per produk.` };
   }
 
   if (!isJsonRecord(input.specs)) {
@@ -274,6 +385,10 @@ export function validateProductPayload(
       reviewed_by_avatar: reviewedByAvatar || null,
       review_quote: input.review_quote.trim() || null,
       review_video_url: reviewVideoUrl || null,
+    },
+    imageColumns: {
+      image_url: cleanImages[0] ?? null,
+      gallery_urls: cleanImages,
     },
   };
 }

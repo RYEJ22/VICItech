@@ -18,59 +18,59 @@ const grade = (v) => (v >= 95 ? "A+" : v >= 90 ? "A" : v >= 80 ? "B" : "C");
 // specs: { key, label, short?, fmt?, better? }. `better` marks a numeric spec that can be ranked in comparisons.
 const CATS = {
   phones: {
-    label: "Smartphones & Mobile Devices", short: "Smartphones", icon: Smartphone, typeLabel: "Segment",
-    focus: "Chipset, refresh rate, camera, battery, charging",
+    label: "Smartphone & Perangkat Mobile", short: "Smartphone", icon: Smartphone, typeLabel: "Segmen",
+    focus: "Chipset, refresh rate, kamera, baterai, pengisian daya",
     specs: [
       { key: "chipset", label: "Chipset" },
-      { key: "refresh", label: "Display Refresh Rate", short: "Refresh rate", fmt: (v) => `${v} Hz`, better: "high" },
-      { key: "camera", label: "Camera Array" },
-      { key: "battery", label: "Battery", fmt: (v) => `${num(v)} mAh`, better: "high" },
-      { key: "charging", label: "Charging Wattage", short: "Charging", fmt: (v) => `${v} W`, better: "high" },
-      { key: "perf", label: "Performance Index", fmt: (v) => `${v} / 100`, better: "high" },
+      { key: "refresh", label: "Refresh Rate Layar", short: "Refresh rate", fmt: (v) => `${v} Hz`, better: "high" },
+      { key: "camera", label: "Konfigurasi Kamera" },
+      { key: "battery", label: "Kapasitas Baterai", fmt: (v) => `${num(v)} mAh`, better: "high" },
+      { key: "charging", label: "Daya Pengisian", short: "Pengisian", fmt: (v) => `${v} W`, better: "high" },
+      { key: "perf", label: "Indeks Performa", fmt: (v) => `${v} / 100`, better: "high" },
     ],
     card: ["chipset", "refresh", "battery", "charging"],
   },
   laptops: {
-    label: "Laptops & Mobile Workstations", short: "Laptops", icon: Laptop, typeLabel: "Segment",
-    focus: "CPU, GPU, RAM expansion, display, weight, battery health",
+    label: "Laptop & Workstation Mobile", short: "Laptop", icon: Laptop, typeLabel: "Segmen",
+    focus: "CPU, GPU, ekspansi RAM, layar, bobot, kesehatan baterai",
     specs: [
       { key: "cpu", label: "CPU" },
       { key: "gpu", label: "GPU" },
-      { key: "ramMax", label: "RAM Expansion", fmt: (v) => `Up to ${v} GB`, better: "high" },
-      { key: "display", label: "Display Resolution / Color Gamut", short: "Display" },
-      { key: "weight", label: "Weight", fmt: (v) => `${v} kg`, better: "low" },
-      { key: "health", label: "Battery Health Grade", short: "Battery health", fmt: (v) => `${grade(v)} (${v}%)`, better: "high" },
-      { key: "perf", label: "Performance Index", fmt: (v) => `${v} / 100`, better: "high" },
+      { key: "ramMax", label: "Ekspansi RAM", fmt: (v) => `Hingga ${v} GB`, better: "high" },
+      { key: "display", label: "Resolusi Layar / Akurasi Warna", short: "Layar" },
+      { key: "weight", label: "Bobot", fmt: (v) => `${v} kg`, better: "low" },
+      { key: "health", label: "Kesehatan Baterai", short: "Baterai", fmt: (v) => `${grade(v)} (${v}%)`, better: "high" },
+      { key: "perf", label: "Indeks Performa", fmt: (v) => `${v} / 100`, better: "high" },
     ],
     card: ["cpu", "gpu", "weight", "health"],
   },
   pc: {
-    label: "PC Desktop & Raw Components", short: "PC & Components", icon: Monitor, typeLabel: "Component",
-    focus: "Form factor, TDP, socket, benchmark, VRAM and cores",
+    label: "PC Desktop & Komponen", short: "PC & Komponen", icon: Monitor, typeLabel: "Komponen",
+    focus: "Form factor, TDP, socket, benchmark, VRAM & core",
     specs: [
       { key: "formFactor", label: "Form Factor" },
-      { key: "tdp", label: "TDP Wattage", short: "TDP", fmt: (v) => `${v} W`, better: "low" },
-      { key: "socket", label: "Socket Type", short: "Socket" },
-      { key: "perf", label: "Benchmark Score", short: "Benchmark", fmt: (v) => `${v} / 100`, better: "high" },
-      { key: "cores", label: "VRAM / Cores", short: "VRAM / Cores" },
+      { key: "tdp", label: "Daya TDP", short: "TDP", fmt: (v) => `${v} W`, better: "low" },
+      { key: "socket", label: "Tipe Socket", short: "Socket" },
+      { key: "perf", label: "Skor Benchmark", short: "Benchmark", fmt: (v) => `${v} / 100`, better: "high" },
+      { key: "cores", label: "VRAM / Core", short: "VRAM / Core" },
     ],
     card: ["socket", "tdp", "perf", "cores"],
   },
   peripherals: {
-    label: "Peripherals & IT Accessories", short: "Peripherals", icon: Headphones, typeLabel: "Device type",
-    focus: "Connectivity, DPI or switch type, compatibility, power, warranty",
+    label: "Periferal & Aksesori IT", short: "Periferal", icon: Headphones, typeLabel: "Jenis perangkat",
+    focus: "Konektivitas, DPI/switch, kompatibilitas, daya, garansi",
     specs: [
-      { key: "connectivity", label: "Connectivity Type", short: "Connectivity" },
-      { key: "switchType", label: "DPI / Switch Type", short: "DPI / Switch" },
-      { key: "compat", label: "Compatibility" },
-      { key: "power", label: "Power Output", short: "Power" },
-      { key: "warranty", label: "Warranty", fmt: (v) => `${v} months`, better: "high" },
+      { key: "connectivity", label: "Konektivitas", short: "Konektivitas" },
+      { key: "switchType", label: "DPI / Tipe Switch", short: "DPI / Switch" },
+      { key: "compat", label: "Kompatibilitas" },
+      { key: "power", label: "Daya & Baterai", short: "Daya" },
+      { key: "warranty", label: "Garansi", fmt: (v) => `${v} bulan`, better: "high" },
     ],
     card: ["connectivity", "switchType", "power", "warranty"],
   },
 };
 const CAT_ORDER = ["phones", "laptops", "pc", "peripherals"];
-const COND_LABEL = { new: "New", refurb: "Recertified Grade A+", used: "Used" };
+const COND_LABEL = { new: "Baru", refurb: "Recertified A+", used: "Bekas" };
 
 /* ───────────────────────── Sample catalog ───────────────────────── */
 
@@ -105,12 +105,12 @@ const PRODUCTS = [
   pcPart("optiplex7090", "Dell", "OptiPlex 7090 SFF", "Desktop", "refurb", 6300000, -1.1, "Small form factor", 65, "LGA1200", 55, "8C / 16T"),
   pcPart("elitedesk800", "HP", "EliteDesk 800 G6 Mini", "Desktop", "refurb", 4900000, -0.5, "Mini PC", 35, "LGA1200", 40, "6C / 12T"),
 
-  periph("mx3s", "Logitech", "MX Master 3S", "Mouse", "new", 1650000, -0.5, "Bluetooth and Logi Bolt", "8,000 DPI, quiet optical switches", "Windows, macOS, Linux, iPadOS", "USB-C, up to 70 days per charge", 24),
-  periph("k8pro", "Keychron", "K8 Pro Wireless Keyboard", "Keyboard", "new", 1850000, 0.3, "Bluetooth 5.1 and USB-C", "Gateron G Pro Brown, hot-swappable", "Windows, macOS, Linux", "USB-C 5 V charging", 12),
-  periph("dav3", "Razer", "DeathAdder V3", "Mouse", "new", 1350000, -1.4, "Wired USB-C", "30,000 DPI, optical switches", "Windows, macOS", "USB bus powered", 24),
-  periph("xm5", "Sony", "WH-1000XM5 Headset", "Headset", "new", 5400000, -2.0, "Bluetooth 5.2 and 3.5 mm", "30 mm drivers, active noise canceling", "Windows, macOS, Android, iOS", "USB-C, up to 30 hours playback", 12),
-  periph("ups1100", "APC", "Back-UPS 1100VA", "UPS", "new", 2100000, 0.2, "USB data port", "Not applicable", "PCs, routers, monitors", "660 W output, 6 outlets", 24),
-  periph("wd19s", "Dell", "WD19S Docking Station", "Dock", "refurb", 2700000, -2.8, "USB-C to HDMI, DisplayPort, RJ45", "Not applicable", "Dell Latitude and most USB-C laptops", "130 W USB-C power delivery", 12),
+  periph("mx3s", "Logitech", "MX Master 3S", "Mouse", "new", 1650000, -0.5, "Bluetooth and Logi Bolt", "8,000 DPI, quiet optical switches", "Windows, macOS, Linux, iPadOS", "USB-C, hingga 70 hari", 24),
+  periph("k8pro", "Keychron", "K8 Pro Wireless Keyboard", "Keyboard", "new", 1850000, 0.3, "Bluetooth 5.1 & USB-C", "Gateron G Pro Brown, hot-swappable", "Windows, macOS, Linux", "Pengisian USB-C 5 V", 12),
+  periph("dav3", "Razer", "DeathAdder V3", "Mouse", "new", 1350000, -1.4, "Kabel USB-C", "30,000 DPI, optical switches", "Windows, macOS", "Daya USB langsung", 24),
+  periph("xm5", "Sony", "WH-1000XM5 Headset", "Headset", "new", 5400000, -2.0, "Bluetooth 5.2 & 3.5 mm", "Driver 30 mm, Active Noise Canceling", "Windows, macOS, Android, iOS", "USB-C, hingga 30 jam putar", 12),
+  periph("ups1100", "APC", "Back-UPS 1100VA", "UPS", "new", 2100000, 0.2, "Port data USB", "Tidak berlaku", "PC, router, monitor", "Output 660 W, 6 soket", 24),
+  periph("wd19s", "Dell", "WD19S Docking Station", "Dock", "refurb", 2700000, -2.8, "USB-C ke HDMI, DisplayPort, RJ45", "Tidak berlaku", "Dell Latitude & laptop USB-C", "Power delivery 130 W", 12),
 ].map((p) => ({
   ...p,
   hay: `${p.brand} ${p.name} ${p.type} ${COND_LABEL[p.cond]} ${CATS[p.cat].short} ${Object.values(p.specs).join(" ")}`.toLowerCase(),
@@ -121,6 +121,7 @@ const BOUNDS = Object.fromEntries(CAT_ORDER.map((k) => {
   const prices = PRODUCTS.filter((p) => p.cat === k).map((p) => p.price);
   return [k, { min: Math.floor(Math.min(...prices) / STEP) * STEP, max: Math.ceil(Math.max(...prices) / STEP) * STEP }];
 }));
+
 /* ───────────────────────── Helpers ───────────────────────── */
 
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60";
@@ -163,7 +164,7 @@ function OverlayHeader({ title, subtitle, onClose }) {
         <h2 className="font-serif text-lg font-semibold text-primary">{title}</h2>
         {subtitle && <p className="mt-0.5 text-sm text-secondary">{subtitle}</p>}
       </div>
-      <button type="button" onClick={onClose} aria-label="Close" className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas ${focusRing}`}>
+      <button type="button" onClick={onClose} aria-label="Tutup panel" className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas ${focusRing}`}>
         <X className="h-5 w-5" strokeWidth={1.75} />
       </button>
     </div>
@@ -172,16 +173,16 @@ function OverlayHeader({ title, subtitle, onClose }) {
 
 function CondBadge({ cond }) {
   if (cond === "used") {
-    return <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium text-[#5A606A]">Used</span>;
+    return <span className="inline-flex items-center gap-1 rounded-md border border-default bg-canvas px-2 py-0.5 text-xs font-medium text-secondary">Bekas</span>;
   }
   return cond === "refurb" ? (
-    <span className="badge-certified"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
+    <span className="inline-flex items-center gap-1 rounded-md border border-status-live/30 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800"><ShieldCheck className="h-3 w-3" /> Recertified A+</span>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-[#141518] shadow-sm">New</span>
+    <span className="inline-flex items-center gap-1 rounded-md border border-default bg-canvas px-2 py-0.5 text-xs font-medium text-primary">Baru</span>
   );
 }
 
-const Delta = ({ d }) => <span className="text-xs tabular-nums text-[#5A606A]">{d > 0 ? "+" : ""}{d.toFixed(1)}% in 7 days</span>;
+const Delta = ({ d }) => <span className="text-xs tabular-nums text-secondary">{d > 0 ? "+" : ""}{d.toFixed(1)}% dlm 7 hari</span>;
 
 /* ───────────────────────── Product card ───────────────────────── */
 
@@ -190,43 +191,66 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
-  const secondary = `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/80 px-2.5 py-2 text-xs font-medium text-[#141518] shadow-sm transition-all hover:bg-white hover:-translate-y-0.5 ${focusRing}`;
+  const secondary = `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-subtle ${focusRing}`;
   return (
-    <article className={`card-unibody card-unibody-hover relative flex flex-col justify-between rounded-2xl p-5 border-none transition-all duration-200 hover:-translate-y-1 ${inCompare ? "selected-indicator" : ""}`}>
+    <article
+      className={`relative flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+        inCompare ? "border-accent-primary ring-1 ring-accent-primary/25" : "border-default hover:border-accent-primary/40"
+      }`}
+    >
       <div>
-        <div className="grid h-28 place-items-center rounded-xl bg-white shadow-sm text-[#141518]" aria-hidden="true"><Icon className="h-10 w-10" /></div>
-        <div className="mt-3.5 flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-white px-2.5 py-0.5 text-xs text-[#5A606A] shadow-sm font-medium">{p.brand}</span>
-          <CondBadge cond={p.cond} />
-          <span className="ml-auto text-xs text-[#5A606A]">{p.type}</span>
+        <div className="grid h-24 place-items-center rounded-lg border border-default bg-canvas text-primary" aria-hidden="true">
+          <Icon className="h-9 w-9" strokeWidth={1.6} />
         </div>
-        <h3 className="mt-2.5 text-base font-semibold leading-snug text-[#141518]">{p.name}</h3>
+        <div className="mt-3.5 flex flex-wrap items-center gap-2">
+          <span className="rounded-md border border-default bg-canvas px-2 py-0.5 text-xs font-medium text-secondary">{p.brand}</span>
+          <CondBadge cond={p.cond} />
+          <span className="ml-auto text-xs text-secondary">{p.type}</span>
+        </div>
+        <h3 className="mt-2.5 text-base font-semibold leading-snug text-primary">{p.name}</h3>
         <div className="mt-2">
-          <p className="flex items-center gap-1 text-xs text-[#5A606A]"><Zap className="h-3 w-3 text-[#FF5500]" /> Live market price index</p>
-          <p className="text-xl font-semibold tabular-nums text-[#141518]">{idr(p.price)}</p>
+          <p className="flex items-center gap-1 text-xs text-secondary"><Zap className="h-3 w-3 text-accent-primary" /> Indeks harga referensi</p>
+          <p className="font-mono text-xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
           <Delta d={p.delta} />
         </div>
         <dl className="mt-3.5 grid grid-cols-2 gap-2">
           {cfg.card.map((key) => {
             const s = cfg.specs.find((x) => x.key === key);
             return (
-              <div key={key} className="rounded-xl bg-white/60 p-2 shadow-sm">
-                <dt className="text-xs text-[#5A606A]">{specLabel(s)}</dt>
-                <dd className="mt-0.5 text-sm font-medium leading-snug text-[#141518]">{specValue(p, s)}</dd>
+              <div key={key} className="rounded-lg border border-default bg-canvas p-2.5">
+                <dt className="text-[11px] text-secondary">{specLabel(s)}</dt>
+                <dd className="mt-0.5 text-xs font-medium leading-snug text-primary">{specValue(p, s)}</dd>
               </div>
             );
           })}
         </dl>
       </div>
       <div className="mt-5 space-y-2 pt-2">
-        <button type="button" aria-pressed={inCompare} disabled={blocked} onClick={() => onCompare(p)} title={blocked ? `Compare up to ${MAX_COMPARE} items` : undefined}
-          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all shadow-sm ${focusRing} ${inCompare ? "bg-[#FF5500] text-white hover:bg-[#e04b00]" : blocked ? "cursor-not-allowed bg-black/5 text-[#5A606A]" : "bg-white/80 text-[#141518] hover:bg-white"}`}>
-          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In side-by-side comparison" : "Add to Comparison"}
+        <button
+          type="button"
+          aria-pressed={inCompare}
+          disabled={blocked}
+          onClick={() => onCompare(p)}
+          title={blocked ? `Bandingkan hingga ${MAX_COMPARE} unit` : undefined}
+          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
+            inCompare
+              ? "bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover"
+              : blocked
+                ? "cursor-not-allowed bg-subtle text-secondary"
+                : "border border-default bg-surface text-primary hover:bg-subtle"
+          }`}
+        >
+          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />}
+          <span>{inCompare ? "Dalam Perbandingan" : "Tambah ke Perbandingan"}</span>
         </button>
-        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full`}><FileText className="h-3.5 w-3.5 text-[#5A606A]" /> View Full Datasheet</button>
+        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full`}>
+          <FileText className="h-3.5 w-3.5 text-secondary" />
+          <span>Lihat Datasheet Lengkap</span>
+        </button>
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "text-[#FF5500]" : ""}`}>
-            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-[#FF5500]" /> : <Plus className="h-3.5 w-3.5" />} {inBuilder ? "In Builder" : "To Builder"}
+          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "border-accent-primary/40 bg-accent-subtle text-accent-hover font-semibold" : ""}`}>
+            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-accent-primary" /> : <Plus className="h-3.5 w-3.5" />}
+            <span>{inBuilder ? "Di Builder" : "Ke Builder"}</span>
           </button>
           <button
             type="button"
@@ -236,13 +260,16 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
               type: "direct_buy",
               specs: p.specs,
             })}
-            className="btn-signal inline-flex min-h-11 items-center justify-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold shadow-sm"
+            className={`inline-flex min-h-11 items-center justify-center gap-1 rounded-lg bg-accent-cta px-2.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-cta-hover ${focusRing}`}
           >
-            Check Out Now
+            Beli Sekarang
           </button>
         </div>
         {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
-          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}><Zap className="h-3.5 w-3.5 text-[#FF5500]" /> Check upgrade potential</button>
+          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}>
+            <Zap className="h-3.5 w-3.5 text-accent-primary" />
+            <span>Cek Potensi Upgrade</span>
+          </button>
         )}
       </div>
     </article>
@@ -255,39 +282,66 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
   const cfg = CATS[p.cat];
   const hasPerf = "perf" in p.specs;
   return (
-    <Overlay label={`Datasheet for ${p.name}`} onClose={onClose}>
-      <OverlayHeader title="Full Datasheet" subtitle={p.name} onClose={onClose} />
+    <Overlay label={`Datasheet untuk ${p.name}`} onClose={onClose}>
+      <OverlayHeader title="Datasheet Lengkap" subtitle={p.name} onClose={onClose} />
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-zinc-200 dark:border-zinc-700 px-2 py-0.5 text-xs text-zinc-700 dark:text-zinc-300">{p.brand}</span>
+          <span className="rounded-md border border-default px-2 py-0.5 text-xs text-primary">{p.brand}</span>
           <CondBadge cond={p.cond} />
-          <span className="text-xs text-zinc-500">{cfg.short}, {p.type}</span>
+          <span className="text-xs text-secondary">{cfg.short}, {p.type}</span>
         </div>
         <div>
-          <p className="text-xs text-zinc-500">Live market price index</p>
-          <p className="text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(p.price)}</p>
+          <p className="text-xs text-secondary">Indeks harga referensi</p>
+          <p className="font-mono text-2xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
           <Delta d={p.delta} />
         </div>
         <section>
-          <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">All specifications</h3>
-          <dl className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <h3 className="mb-2 text-sm font-medium text-primary">Semua Spesifikasi</h3>
+          <dl className="divide-y divide-default rounded-xl border border-default">
             {cfg.specs.map((s) => (
-              <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">{s.label}</dt><dd className="col-span-3 text-zinc-900 dark:text-zinc-100">{specValue(p, s)}</dd></div>
+              <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm">
+                <dt className="col-span-2 text-secondary">{s.label}</dt>
+                <dd className="col-span-3 text-primary">{specValue(p, s)}</dd>
+              </div>
             ))}
-            {hasPerf && <div className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm"><dt className="col-span-2 text-zinc-500">Performance per Rp 1 juta</dt><dd className="col-span-3 tabular-nums text-emerald-700 dark:text-emerald-400">{perfPerMillion(p).toFixed(1)}</dd></div>}
+            {hasPerf && (
+              <div className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm">
+                <dt className="col-span-2 text-secondary">Performa per Rp 1 juta</dt>
+                <dd className="col-span-3 font-mono tabular-nums text-status-live">{perfPerMillion(p).toFixed(1)}</dd>
+              </div>
+            )}
           </dl>
         </section>
-        <p className="flex gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-3 text-sm text-zinc-600 dark:text-zinc-400">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
-          {p.cond === "refurb" ? "Recertified units pass the 15-point inspection and ship with a 12-month ViciTech warranty." : p.cond === "used" ? "Pre-owned component; inspect the listed specifications and condition before purchase." : "Sealed unit with the manufacturer's official warranty."}
+        <p className="flex gap-2 rounded-lg border border-default bg-canvas p-3 text-sm text-secondary">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-status-live" />
+          {p.cond === "refurb"
+            ? "Unit recertified lulus 15 titik inspeksi IoT QC dan disertai garansi ViciTech 12 bulan."
+            : p.cond === "used"
+              ? "Komponen bekas pakai; periksa daftar spesifikasi dan kondisi sebelum membeli."
+              : "Unit baru tersegel dengan garansi resmi pabrikan."}
         </p>
       </div>
       <div className="grid gap-2 border-t border-default p-5 sm:grid-cols-2">
-        <button type="button" onClick={() => onCompare(p)} disabled={compareFull && !inCompare} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${inCompare ? "bg-accent-primary font-semibold text-primary" : "border border-default bg-surface text-primary hover:bg-subtle"}`}>
-          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />} {inCompare ? "In comparison" : "Add to comparison"}
+        <button
+          type="button"
+          onClick={() => onCompare(p)}
+          disabled={compareFull && !inCompare}
+          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${
+            inCompare ? "bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover" : "border border-default bg-surface text-primary hover:bg-subtle"
+          }`}
+        >
+          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />}
+          <span>{inCompare ? "Dalam Perbandingan" : "Tambah ke Perbandingan"}</span>
         </button>
-        <button type="button" onClick={() => onBuilder(p.id)} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${inBuilder ? "bg-accent-subtle font-semibold text-primary border border-accent-primary/40" : "border border-default bg-surface text-primary hover:bg-subtle"}`}>
-          {inBuilder ? <CheckCircle2 className="h-4 w-4" /> : <Plus className="h-4 w-4" />} {inBuilder ? "In Preset Builder" : "Add to Preset Builder"}
+        <button
+          type="button"
+          onClick={() => onBuilder(p.id)}
+          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${
+            inBuilder ? "border border-accent-primary/40 bg-accent-subtle font-semibold text-primary" : "border border-default bg-surface text-primary hover:bg-subtle"
+          }`}
+        >
+          {inBuilder ? <CheckCircle2 className="h-4 w-4 text-accent-primary" /> : <Plus className="h-4 w-4" />}
+          <span>{inBuilder ? "Di Preset Builder" : "Tambah ke Preset Builder"}</span>
         </button>
       </div>
     </Overlay>
@@ -299,9 +353,9 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
   const hasPerf = cfg.specs.some((s) => s.key === "perf");
   const rows = useMemo(() => {
     const defs = [
-      { key: "price", label: "Market price", get: (p) => p.price, show: idr, better: "low" },
+      { key: "price", label: "Harga referensi", get: (p) => p.price, show: idr, better: "low" },
       ...cfg.specs.map((s) => ({ key: s.key, label: s.label, get: (p) => p.specs[s.key], show: (v) => (s.fmt ? s.fmt(v) : v), better: s.better })),
-      ...(hasPerf ? [{ key: "value", label: "Performance per Rp 1 juta", get: perfPerMillion, show: (v) => v.toFixed(1), better: "high" }] : []),
+      ...(hasPerf ? [{ key: "value", label: "Performa per Rp 1 juta", get: perfPerMillion, show: (v) => v.toFixed(1), better: "high" }] : []),
     ];
     return defs.map((d) => {
       const vals = items.map(d.get);
@@ -313,25 +367,26 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
 
   const pick = (fn, dir = 1) => [...items].sort((a, b) => dir * (fn(a) - fn(b)))[0];
   const highlights = [
-    ["Lowest price", pick((p) => p.price)],
-    ...(hasPerf ? [["Highest performance", pick((p) => p.specs.perf, -1)], ["Best value", pick(perfPerMillion, -1)]] : [["Longest warranty", pick((p) => p.specs.warranty, -1)]]),
+    ["Harga terendah", pick((p) => p.price)],
+    ...(hasPerf ? [["Performa tertinggi", pick((p) => p.specs.perf, -1)], ["Nilai terbaik", pick(perfPerMillion, -1)]] : [["Garansi terpanjang", pick((p) => p.specs.warranty, -1)]]),
   ];
   const shown = diffOnly ? rows.filter((r) => !r.same) : rows;
 
   return (
-    <Overlay label="Side-by-side comparison" onClose={onClose} wide>
-      <OverlayHeader title={`Compare ${cfg.short}`} subtitle="Best spec values are highlighted in each row." onClose={onClose} />
+    <Overlay label="Perbandingan spesifikasi berdampingan" onClose={onClose} wide>
+      <OverlayHeader title={`Bandingkan ${cfg.short}`} subtitle="Nilai spesifikasi terbaik ditandai pada setiap baris." onClose={onClose} />
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-default px-5 py-3 text-sm">
         <div className="flex flex-wrap gap-x-6 gap-y-1 text-secondary">
           {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-primary">{p.name}</span></p>)}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-primary">
-            <input type="checkbox" checked={diffOnly} onChange={(e) => setDiffOnly(e.target.checked)} className="h-4 w-4 accent-accent-primary" /> Show differences only
+            <input type="checkbox" checked={diffOnly} onChange={(e) => setDiffOnly(e.target.checked)} className="h-4 w-4 accent-accent-primary" />
+            <span>Tampilkan perbedaan saja</span>
           </label>
           {onClear && (
             <button type="button" onClick={onClear} className={`min-h-11 rounded-lg border border-default bg-subtle px-3 py-1.5 text-xs font-medium text-primary hover:bg-canvas ${focusRing}`}>
-              Clear all
+              Hapus semua
             </button>
           )}
         </div>
@@ -345,14 +400,14 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
                 <th key={p.id} className="p-3 text-left align-top font-normal">
                   <div className="flex items-start justify-between gap-2">
                     <div><p className="font-semibold text-primary">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
-                    <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
+                    <button type="button" aria-label={`Hapus ${p.name}`} onClick={() => onRemove(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
                   </div>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-secondary">These items have identical specifications.</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-secondary">Perangkat yang dipilih memiliki spesifikasi identik.</td></tr>}
             {shown.map((r) => (
               <tr key={r.key} className="border-t border-default">
                 <th scope="row" className="p-3 text-left font-normal text-secondary sm:pl-5">{r.label}</th>
@@ -360,7 +415,7 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
                   const win = r.best !== null && r.vals[i] === r.best;
                   return (
                     <td key={p.id} className={`p-3 align-top tabular-nums ${win ? "bg-accent-subtle font-semibold text-primary" : r.same ? "text-secondary" : "text-primary"}`}>
-                      <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-label="Best in row" />}{r.show(r.vals[i])}</span>
+                      <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-label="Unggul pada baris ini" />}{r.show(r.vals[i])}</span>
                     </td>
                   );
                 })}
@@ -378,31 +433,31 @@ function BuilderList({ items, onRemove, onClear, onClose, onOpenBuilder }) {
   const total = items.reduce((s, p) => s + p.price, 0);
   const copy = async () => {
     const text = `${items.map((p) => `${p.name} (${p.brand}): ${idr(p.price)}`).join("\n")}\nTotal: ${idr(total)}`;
-    try { await navigator.clipboard.writeText(text); setCopied("List copied to clipboard"); } catch { setCopied("Copying isn't available in this browser"); }
+    try { await navigator.clipboard.writeText(text); setCopied("Daftar disalin ke papan klip."); } catch { setCopied("Fitur salin tidak tersedia di browser ini."); }
   };
   return (
-    <Overlay label="Preset Builder list" onClose={onClose}>
-      <OverlayHeader title="Preset Builder list" subtitle="Items you plan to include in a preset or bulk order" onClose={onClose} />
+    <Overlay label="Daftar Preset Builder" onClose={onClose}>
+      <OverlayHeader title="Daftar Preset Builder" subtitle="Item yang akan dimasukkan ke preset atau pesanan massal" onClose={onClose} />
       <div className="flex-1 overflow-y-auto p-5">
-        {items.length === 0 ? <p className="text-sm text-zinc-500">Nothing here yet. Use Add to Preset Builder on any card.</p> : (
-          <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
+        {items.length === 0 ? <p className="text-sm text-secondary">Belum ada komponen dipilih. Klik Ke Builder pada kartu mana pun.</p> : (
+          <ul className="divide-y divide-default rounded-xl border border-default">
             {items.map((p) => (
               <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
-                <div className="min-w-0 flex-1"><p className="truncate text-sm text-zinc-900 dark:text-zinc-100">{p.name}</p><p className="text-xs text-zinc-500">{CATS[p.cat].short}, {p.brand}</p></div>
-                <span className="text-sm tabular-nums text-zinc-800 dark:text-zinc-200">{idr(p.price)}</span>
-                <button type="button" aria-label={`Remove ${p.name}`} onClick={() => onRemove(p.id)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
+                <div className="min-w-0 flex-1"><p className="truncate text-sm text-primary">{p.name}</p><p className="text-xs text-secondary">{CATS[p.cat].short}, {p.brand}</p></div>
+                <span className="font-mono text-sm tabular-nums text-primary">{idr(p.price)}</span>
+                <button type="button" aria-label={`Hapus ${p.name}`} onClick={() => onRemove(p.id)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
         )}
       </div>
       <div className="space-y-2 border-t border-default p-5">
-        <p className="flex justify-between text-base font-semibold"><span className="text-secondary">Total</span><span className="tabular-nums text-primary">{idr(total)}</span></p>
+        <p className="flex justify-between text-base font-semibold"><span className="text-secondary">Total</span><span className="font-mono tabular-nums text-primary">{idr(total)}</span></p>
         {copied && <p role="status" className="text-xs text-status-live">{copied}</p>}
-        {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`min-h-11 w-full rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground disabled:opacity-40 ${focusRing}`}>Open Preset Builder</button>}
+        {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`min-h-11 w-full rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover disabled:opacity-40 ${focusRing}`}>Buka Preset Builder</button>}
         <div className="flex gap-2">
-          <button type="button" disabled={!items.length} onClick={copy} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}>Copy list</button>
-          <button type="button" disabled={!items.length} onClick={onClear} className={`min-h-11 flex-1 rounded-lg border border-default px-4 py-2.5 text-sm text-secondary hover:bg-subtle hover:text-primary disabled:opacity-40 ${focusRing}`}>Clear all</button>
+          <button type="button" disabled={!items.length} onClick={copy} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}>Salin daftar</button>
+          <button type="button" disabled={!items.length} onClick={onClear} className={`min-h-11 flex-1 rounded-lg border border-default px-4 py-2.5 text-sm text-secondary hover:bg-subtle hover:text-primary disabled:opacity-40 ${focusRing}`}>Hapus semua</button>
         </div>
       </div>
     </Overlay>
@@ -413,28 +468,28 @@ function FilterControls({ cfg, f, options, bounds, setFilter, fieldClass }) {
   return (
     <>
       <div>
-        <p className="mb-1.5 text-sm font-medium text-primary">Condition</p>
-        <div role="radiogroup" aria-label="Condition" className="grid grid-cols-4 gap-1 rounded-xl bg-white/70 p-1 shadow-sm">
-          {[["all", "All"], ["new", "New"], ["refurb", "Refurb A+"], ["used", "Used"]].map(([v, label]) => (
-            <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`min-h-11 rounded-lg px-1 py-1.5 text-xs font-medium transition-all ${focusRing} ${f.cond === v ? "bg-[#FF5500] text-white shadow-sm" : "text-[#5A606A] hover:text-[#141518]"}`}>{label}</button>
+        <p className="mb-1.5 text-sm font-medium text-primary">Kondisi</p>
+        <div role="radiogroup" aria-label="Kondisi" className="grid grid-cols-4 gap-1 rounded-xl border border-default bg-subtle p-1">
+          {[["all", "Semua"], ["new", "Baru"], ["refurb", "Refurb A+"], ["used", "Bekas"]].map(([v, label]) => (
+            <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`min-h-11 rounded-lg px-1 py-1.5 text-xs font-medium transition-colors ${focusRing} ${f.cond === v ? "bg-accent-cta font-semibold text-white shadow-sm" : "text-secondary hover:text-primary"}`}>{label}</button>
           ))}
         </div>
       </div>
       <div>
-        <label htmlFor={`f-brand-${cfg.short}`} className="mb-1.5 block text-sm font-medium text-primary">Brand</label>
+        <label htmlFor={`f-brand-${cfg.short}`} className="mb-1.5 block text-sm font-medium text-primary">Merek</label>
         <select id={`f-brand-${cfg.short}`} value={f.brand} onChange={(e) => setFilter("brand", e.target.value)} className={`${fieldClass} min-h-11`}>
-          <option value="all">All brands</option>{options.brands.map((b) => <option key={b}>{b}</option>)}
+          <option value="all">Semua merek</option>{options.brands.map((b) => <option key={b}>{b}</option>)}
         </select>
       </div>
       <div>
         <label htmlFor={`f-type-${cfg.short}`} className="mb-1.5 block text-sm font-medium text-primary">{cfg.typeLabel}</label>
         <select id={`f-type-${cfg.short}`} value={f.type} onChange={(e) => setFilter("type", e.target.value)} className={`${fieldClass} min-h-11`}>
-          <option value="all">All</option>{options.types.map((t) => <option key={t}>{t}</option>)}
+          <option value="all">Semua</option>{options.types.map((t) => <option key={t}>{t}</option>)}
         </select>
       </div>
       <div>
-        <label htmlFor={`f-price-${cfg.short}`} className="mb-1.5 flex justify-between text-sm font-medium text-primary"><span>Max price</span><span className="tabular-nums text-[#FF5500]">{idr(f.max)}</span></label>
-        <input id={`f-price-${cfg.short}`} type="range" min={bounds.min} max={bounds.max} step={STEP} value={Math.min(f.max, bounds.max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 h-8 w-full accent-[#FF5500]" />
+        <label htmlFor={`f-price-${cfg.short}`} className="mb-1.5 flex justify-between text-sm font-medium text-primary"><span>Harga maksimal</span><span className="font-mono tabular-nums text-accent-hover">{idr(f.max)}</span></label>
+        <input id={`f-price-${cfg.short}`} type="range" min={bounds.min} max={bounds.max} step={STEP} value={Math.min(f.max, bounds.max)} onChange={(e) => setFilter("max", Number(e.target.value))} className="mt-2 h-8 w-full accent-accent-primary" />
       </div>
     </>
   );
@@ -510,7 +565,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
       }));
       setInventoryError("");
     }).catch((error) => {
-      if (active) setInventoryError(`Hardware registry could not be loaded: ${error.message}`);
+      if (active) setInventoryError(`Registri hardware gagal dimuat: ${error.message}`);
     });
     return () => { active = false; };
   }, []);
@@ -590,32 +645,44 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const closeSheet = useCallback(() => setSheetId(null), []);
   const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < categoryBounds[cat].max;
 
-  const field = `w-full rounded-xl bg-white/80 px-3.5 py-2.5 text-sm text-[#141518] shadow-sm outline-none transition-all focus:ring-2 focus:ring-[#FF5500]/30`;
+  const field = `w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary outline-none transition-colors focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/25`;
   return (
-    <div className="bg-[#F4F4F2] text-[#141518] antialiased">
+    <div className="bg-canvas text-primary antialiased">
       <div className={`mx-auto max-w-7xl px-4 py-8 sm:px-6 ${barVisible ? "pb-36 md:pb-24" : "pb-16 md:pb-10"}`}>
-        <h2 className="font-serif text-3xl font-normal tracking-tight text-[#141518] sm:text-4xl">Hardware &amp; Peripheral Library</h2>
-        <p className="mt-3 max-w-2xl text-[#5A606A] leading-relaxed">Browse phones, laptops, PC components and IT accessories with the specs that matter for each one, then compare them side by side.</p>
-        {inventoryError && <p role="status" className="mt-4 rounded-xl bg-white p-4 text-sm text-[#FF5500] shadow-sm">{inventoryError} Showing the curated catalog instead.</p>}
+        <h2 className="font-serif text-3xl font-normal tracking-tight text-primary sm:text-4xl">Hardware Library &amp; Periferal</h2>
+        <p className="mt-3 max-w-2xl leading-relaxed text-secondary">Jelajahi ponsel, laptop, komponen PC, dan aksesori IT dengan spesifikasi inti lalu bandingkan berdampingan.</p>
+        {inventoryError && <p role="status" className="mt-4 rounded-xl border border-default bg-surface p-4 text-sm text-accent-hover shadow-sm">{inventoryError} Menampilkan katalog terkurasi.</p>}
 
         {/* Category tabs */}
-        <div role="tablist" aria-label="Hardware categories" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div role="tablist" aria-label="Kategori hardware" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {CAT_ORDER.map((k) => {
             const c = CATS[k];
             const Icon = c.icon;
             const on = cat === k;
             return (
-              <button key={k} type="button" role="tab" id={`tab-${k}`} aria-selected={on} aria-controls="library-panel" onClick={() => setCat(k)}
-                className={`card-unibody card-unibody-hover relative flex min-h-11 flex-col justify-between rounded-2xl p-5 text-left border-none transition-all duration-200 hover:-translate-y-1 ${focusRing} ${on ? "selected-indicator" : "opacity-85 hover:opacity-100"}`}>
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                id={`tab-${k}`}
+                aria-selected={on}
+                aria-controls="library-panel"
+                onClick={() => setCat(k)}
+                className={`relative flex min-h-11 flex-col justify-between rounded-xl border p-5 text-left transition-colors duration-150 ${focusRing} ${
+                  on
+                    ? "border-accent-primary bg-accent-subtle/50"
+                    : "border-default bg-surface hover:border-accent-primary/40 hover:bg-subtle/40"
+                }`}
+              >
                 <span className="flex items-center justify-between gap-2">
-                  <span className={`grid h-10 w-10 place-items-center rounded-xl shadow-sm transition-all ${on ? "bg-[#FF5500] text-white" : "bg-white text-[#141518]"}`}><Icon className="h-5 w-5" /></span>
+                  <span className={`grid h-10 w-10 place-items-center rounded-lg transition-colors ${on ? "bg-accent-primary text-white" : "border border-default bg-canvas text-primary"}`}><Icon className="h-5 w-5" /></span>
                   <span className="flex items-center gap-1.5">
-                    {compare[k].length > 0 && <span className="badge-certified"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
-                    <span className="rounded-full bg-white px-2.5 py-0.5 text-xs tabular-nums text-[#5A606A] shadow-sm font-medium">{tabCounts[k]}</span>
+                    {compare[k].length > 0 && <span className="inline-flex items-center gap-1 rounded-md border border-status-live/30 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800"><ArrowRightLeft className="h-3 w-3" /> {compare[k].length}</span>}
+                    <span className="rounded-md border border-default bg-canvas px-2 py-0.5 font-mono text-xs font-medium tabular-nums text-secondary">{tabCounts[k]}</span>
                   </span>
                 </span>
-                <span className="mt-4 block text-base font-semibold text-[#141518]">{c.label}</span>
-                <span className="mt-1 block text-xs text-[#5A606A]">{c.focus}</span>
+                <span className="mt-4 block text-base font-semibold text-primary">{c.label}</span>
+                <span className="mt-1 block text-xs text-secondary">{c.focus}</span>
               </button>
             );
           })}
@@ -623,17 +690,17 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
         {/* Filters */}
         <section id="library-panel" role="tabpanel" aria-labelledby={`tab-${cat}`}>
-          <div className="card-unibody mt-6 rounded-2xl p-4 sm:p-6 border-none shadow-sm">
+          <div className="mt-6 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-6">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <label htmlFor="lib-search" className="sr-only">Search all hardware categories</label>
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#5A606A]" />
-                <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search every category: brand, chipset, RTX, DDR5" className={`${field} min-h-11 py-2.5 pl-12`} />
+                <label htmlFor="lib-search" className="sr-only">Cari di semua kategori hardware</label>
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
+                <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari merek, chipset, RTX, DDR5…" className={`${field} min-h-11 py-2.5 pl-12`} />
               </div>
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-default bg-surface px-3.5 py-2 text-sm font-medium text-primary shadow-sm md:hidden ${focusRing}`}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary md:hidden ${focusRing}`}
               >
                 <SlidersHorizontal className="h-4 w-4 text-accent-primary" />
                 <span>Filter</span>
@@ -643,33 +710,44 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
             <div className="mt-5 hidden gap-4 md:grid md:grid-cols-4">
               <FilterControls cfg={cfg} f={f} options={categoryOptions[cat]} bounds={categoryBounds[cat]} setFilter={setFilter} fieldClass={field} />
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm pt-2 border-t border-black/[0.04]">
-              <p className="flex items-center gap-2 text-[#5A606A]"><SlidersHorizontal className="h-4 w-4" /> Filters for {cfg.short}. Search covers every category.</p>
-              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`min-h-11 rounded px-2 text-xs font-semibold text-[#FF5500] hover:underline disabled:text-[#5A606A] ${focusRing}`}>Reset filters</button>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-default pt-2 text-sm">
+              <p className="flex items-center gap-2 text-secondary"><SlidersHorizontal className="h-4 w-4" /> Filter untuk {cfg.short}. Pencarian mencakup seluruh kategori.</p>
+              <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`min-h-11 rounded px-2 text-xs font-semibold text-accent-hover hover:underline disabled:text-secondary ${focusRing}`}>Reset filter</button>
             </div>
           </div>
 
-          <p className="mt-6 text-sm text-[#5A606A]" aria-live="polite">Showing <span className="font-semibold text-[#141518]">{visible.length}</span> of {products.filter((p) => p.cat === cat).length} in {cfg.short}</p>
+          <p className="mt-6 text-sm text-secondary" aria-live="polite">
+            Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> dari {products.filter((p) => p.cat === cat).length} pada {cfg.short}
+          </p>
 
           {paginatedVisible.length ? (
             <>
               <div className="mt-4 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {paginatedVisible.map((p) => (
-                  <ProductCard key={p.id} p={p} inCompare={compare[cat].includes(p.id)} compareFull={compare[cat].length >= MAX_COMPARE} inBuilder={builder.includes(p.id)}
-                    onCompare={toggleCompare} onSheet={setSheetId} onBuilder={toggleBuilder} onUpgrade={onCheckUpgrade} />
+                  <ProductCard
+                    key={p.id}
+                    p={p}
+                    inCompare={compare[cat].includes(p.id)}
+                    compareFull={compare[cat].length >= MAX_COMPARE}
+                    inBuilder={builder.includes(p.id)}
+                    onCompare={toggleCompare}
+                    onSheet={setSheetId}
+                    onBuilder={toggleBuilder}
+                    onUpgrade={onCheckUpgrade}
+                  />
                 ))}
               </div>
               {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-black/[0.06] bg-white px-4 py-3 text-sm shadow-sm">
-                  <p className="text-xs text-[#5A606A]">
-                    Halaman <span className="font-mono font-semibold text-[#141518]">{safePage}</span> / <span className="font-mono">{totalPages}</span>
+                <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-default bg-surface px-4 py-3 text-sm shadow-sm">
+                  <p className="text-xs text-secondary">
+                    Halaman <span className="font-mono font-semibold text-primary">{safePage}</span> / <span className="font-mono">{totalPages}</span>
                   </p>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       disabled={safePage <= 1}
                       onClick={() => setPage((current) => Math.max(1, current - 1))}
-                      className={`min-h-10 rounded-xl border border-black/10 bg-[#F6F5F2] px-3.5 py-1.5 text-xs font-medium text-[#141518] hover:bg-white disabled:opacity-40 ${focusRing}`}
+                      className={`min-h-11 rounded-lg border border-default bg-subtle px-3.5 py-1.5 text-xs font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}
                     >
                       Sebelumnya
                     </button>
@@ -677,7 +755,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
                       type="button"
                       disabled={safePage >= totalPages}
                       onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                      className={`min-h-10 rounded-xl border border-black/10 bg-[#F6F5F2] px-3.5 py-1.5 text-xs font-medium text-[#141518] hover:bg-white disabled:opacity-40 ${focusRing}`}
+                      className={`min-h-11 rounded-lg border border-default bg-subtle px-3.5 py-1.5 text-xs font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}
                     >
                       Berikutnya
                     </button>
@@ -686,41 +764,45 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
               )}
             </>
           ) : (
-            <div className="card-unibody mt-4 rounded-2xl p-10 text-center border-none">
-              <p className="text-[#141518] font-medium">No {cfg.short.toLowerCase()} match these filters.</p>
+            <div className="mt-4 rounded-xl border border-default bg-surface p-10 text-center shadow-sm">
+              <p className="font-medium text-primary">Tidak ada {cfg.short.toLowerCase()} yang cocok dengan filter ini.</p>
               {tokens.length > 0 && otherHits.length > 0 && (
-                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-[#5A606A]">
-                  Your search has matches in:
-                  {otherHits.map((k) => <button key={k} type="button" onClick={() => setCat(k)} className={`card-unibody card-unibody-hover rounded-full px-3 py-1 text-xs text-[#141518] font-medium border-none shadow-sm ${focusRing}`}>{CATS[k].short} ({tabCounts[k]})</button>)}
+                <p className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm text-secondary">
+                  Hasil ditemukan di:
+                  {otherHits.map((k) => (
+                    <button key={k} type="button" onClick={() => setCat(k)} className={`rounded-lg border border-default bg-canvas px-3 py-1.5 text-xs font-medium text-primary hover:border-accent-primary/40 ${focusRing}`}>
+                      {CATS[k].short} ({tabCounts[k]})
+                    </button>
+                  ))}
                 </p>
               )}
-              <button type="button" onClick={resetFilters} className={`mt-4 rounded-xl bg-white px-4 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>Reset filters</button>
+              <button type="button" onClick={resetFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary hover:bg-canvas ${focusRing}`}>Reset filter</button>
             </div>
           )}
         </section>
       </div>
 
       {barVisible && (
-        <div className="fixed inset-x-0 bottom-16 z-30 glass-floating border-t border-black/[0.04] shadow-lg md:bottom-0">
+        <div className="fixed inset-x-0 bottom-16 z-30 border-t border-default bg-surface/95 shadow-lg backdrop-blur-md md:bottom-0">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
-              {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-[#5A606A]">Comparing {cfg.short}:</span>}
+              {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-secondary">Membandingkan {cfg.short}:</span>}
               {selected.map((p) => (
-                <span key={p.id} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full bg-white pl-3.5 pr-1 text-xs text-[#141518] shadow-sm font-medium">
+                <span key={p.id} className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border border-default bg-canvas pl-3 pr-1 text-xs font-medium text-primary">
                   <span className="max-w-[10rem] truncate">{p.name}</span>
-                  <button type="button" aria-label={`Remove ${p.name} from comparison`} onClick={() => toggleCompare(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-[#5A606A] hover:bg-black/5 hover:text-[#141518] ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label={`Hapus ${p.name} dari perbandingan`} onClick={() => toggleCompare(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-3.5 w-3.5" /></button>
                 </span>
               ))}
-              {selected.length === 1 && <span className="shrink-0 text-xs text-[#5A606A]">Pick one more {cfg.short.toLowerCase()} to compare</span>}
+              {selected.length === 1 && <span className="shrink-0 text-xs text-secondary">Pilih 1 {cfg.short.toLowerCase()} lagi untuk membandingkan</span>}
             </div>
             {builder.length > 0 && (
-              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-sm font-medium text-[#141518] shadow-sm hover:bg-[#F4F4F2] ${focusRing}`}>
-                <Plus className="h-4 w-4 text-[#FF5500]" /> Preset Builder list ({builder.length})
+              <button type="button" onClick={() => setPanel("builder")} className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}>
+                <Plus className="h-4 w-4 text-accent-primary" /> Daftar Preset Builder ({builder.length})
               </button>
             )}
             {selected.length > 0 && (
-              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`btn-signal inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium shadow-sm ${focusRing} ${selected.length < 2 ? "opacity-50 cursor-not-allowed" : ""}`}>
-                <ArrowRightLeft className="h-4 w-4" /> Compare now
+              <button type="button" disabled={selected.length < 2} onClick={() => setPanel("compare")} className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}>
+                <ArrowRightLeft className="h-4 w-4" /> Bandingkan Sekarang
               </button>
             )}
           </div>
@@ -735,7 +817,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
           </div>
           <div className="flex gap-2 border-t border-default p-4">
             <button type="button" onClick={resetFilters} disabled={!filtersActive} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary disabled:opacity-40 ${focusRing}`}>Reset</button>
-            <button type="button" onClick={() => setMobileFiltersOpen(false)} className={`min-h-11 flex-1 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground ${focusRing}`}>Lihat {visible.length} Item</button>
+            <button type="button" onClick={() => setMobileFiltersOpen(false)} className={`min-h-11 flex-1 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}>Lihat {visible.length} Item</button>
           </div>
         </Overlay>
       )}

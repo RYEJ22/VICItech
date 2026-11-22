@@ -42,7 +42,7 @@ export function Hero({
       />
 
       <div
-        className={`relative z-10 mx-auto w-full max-w-6xl px-4 pt-28 pb-16 sm:px-6 md:pt-44 lg:px-8 ${styles.content}`}
+        className={`relative z-10 mx-auto w-full max-w-6xl px-4 pt-28 pb-16 sm:px-6 md:pt-28 lg:px-8 ${styles.content}`}
         style={{ position: 'relative', zIndex: 10 }}
       >
         <div className="max-w-2xl">

@@ -49,7 +49,7 @@ export function AdminSignOutButton({
         ) : (
           <LogOut className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
         )}
-        <span>{compact ? 'Keluar' : 'Sign Out'}</span>
+        <span>{compact ? 'Keluar' : 'Keluar'}</span>
       </button>
       {error ? (
         <span role="alert" className="text-xs text-status-danger">

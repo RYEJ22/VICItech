@@ -16,6 +16,7 @@ import {
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { isJsonRecord } from '@/lib/admin/orders';
 import type { AdminOrder, AdminOrderStats, JsonValue, OrderStatus } from '@/lib/admin/orders';
@@ -29,10 +30,10 @@ const OrderDetailsDialog = dynamic(
 const DEFAULT_PAGE_SIZE = 25;
 
 const STATUSES: readonly { readonly value: OrderStatus; readonly label: string }[] = [
-  { value: 'pending_qc', label: 'Pending QC' },
-  { value: 'qc_in_progress', label: 'QC in Progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'pending_qc', label: 'Menunggu IoT QC' },
+  { value: 'qc_in_progress', label: 'IoT QC Berjalan' },
+  { value: 'completed', label: 'Selesai' },
+  { value: 'cancelled', label: 'Dibatalkan' },
 ];
 
 interface OrdersApiResponse {
@@ -218,10 +219,10 @@ export default function AdminDashboardPage(): ReactElement {
             <span>Operasi Transaksi</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Customer Orders Manager
+            Manajemen Pesanan Pelanggan
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
-            Tinjau checkout pelanggan B2C, B2B, dan pengadaan B2S lalu kelola status proses QC.
+            Tinjau checkout pelanggan B2C, B2B, dan pengadaan B2S lalu kelola status proses IoT QC.
           </p>
         </div>
 
@@ -247,8 +248,8 @@ export default function AdminDashboardPage(): ReactElement {
             <ShoppingBag className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Total Pendapatan</span>
           </p>
-          <p className="mt-2.5 font-mono text-2xl font-semibold tabular-nums sm:text-3xl">
-            {formatIdr(stats.totalRevenue)}
+          <p className="mt-2.5 text-2xl font-semibold sm:text-3xl">
+            <AnimatedNumber value={stats.totalRevenue} format="currency" />
           </p>
           <p className="mt-1 text-xs text-white/70">Akumulasi seluruh order tercatat</p>
         </article>
@@ -256,10 +257,10 @@ export default function AdminDashboardPage(): ReactElement {
         <article className="rounded-xl border border-default bg-surface p-5 shadow-sm">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-secondary">
             <ClipboardList className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            <span>Total Orders</span>
+            <span>Total Pesanan</span>
           </p>
-          <p className="mt-2.5 font-mono text-2xl font-semibold tabular-nums text-primary sm:text-3xl">
-            {stats.totalOrders.toLocaleString('id-ID')}
+          <p className="mt-2.5 text-2xl font-semibold text-primary sm:text-3xl">
+            <AnimatedNumber value={stats.totalOrders} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Seluruh status transaksi</p>
         </article>
@@ -267,10 +268,10 @@ export default function AdminDashboardPage(): ReactElement {
         <article className="rounded-xl border border-default bg-accent-subtle p-5 shadow-sm sm:col-span-2 xl:col-span-1">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-hover">
             <Activity className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Pending QC</span>
+            <span>Menunggu IoT QC</span>
           </p>
-          <p className="mt-2.5 font-mono text-2xl font-semibold tabular-nums text-primary sm:text-3xl">
-            {stats.pendingQcCount.toLocaleString('id-ID')}
+          <p className="mt-2.5 text-2xl font-semibold text-primary sm:text-3xl">
+            <AnimatedNumber value={stats.pendingQcCount} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Menunggu antrean stress test</p>
         </article>
@@ -391,7 +392,7 @@ export default function AdminDashboardPage(): ReactElement {
               <table className="w-full table-auto text-left text-sm">
                 <thead className="border-b border-default bg-canvas text-[11px] font-semibold uppercase tracking-wider text-secondary">
                   <tr>
-                    <th scope="col" className="px-4 py-3">Order ID &amp; Tanggal</th>
+                    <th scope="col" className="px-4 py-3">ID Pesanan &amp; Tanggal</th>
                     <th scope="col" className="px-4 py-3">Pelanggan</th>
                     <th scope="col" className="px-4 py-3">Tipe &amp; Ringkasan</th>
                     <th scope="col" className="px-4 py-3">Total</th>
@@ -445,7 +446,7 @@ export default function AdminDashboardPage(): ReactElement {
                             <span className={statusBadgeClass(status)}>
                               {STATUSES.find((option) => option.value === status)?.label ||
                                 status ||
-                                'Unknown'}
+                                'Tidak diketahui'}
                             </span>
                             <div className="flex items-center gap-2">
                               <select
@@ -488,7 +489,7 @@ export default function AdminDashboardPage(): ReactElement {
                             className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle"
                           >
                             <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                            <span>Inspect</span>
+                            <span>Detail</span>
                           </button>
                         </td>
                       </tr>
@@ -556,7 +557,7 @@ export default function AdminDashboardPage(): ReactElement {
                         className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3.5 py-2 text-xs font-semibold text-primary hover:border-accent-primary/45 hover:bg-accent-subtle"
                       >
                         <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                        <span>Inspect</span>
+                        <span>Detail</span>
                       </button>
                     </div>
                   </li>

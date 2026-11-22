@@ -346,16 +346,8 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <header className="border-b border-black/[0.06] bg-[#F6F5F2]/90">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-4 sm:px-6">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white shadow-sm"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight">Bottleneck Analyzer</span>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#5A606A] shadow-sm">Planning model</span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="bg-[#F6F5F2] text-[#141518] antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="max-w-4xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Build with confidence</p>
           <h1 className="font-serif text-4xl font-semibold leading-tight tracking-tight text-[#141518] sm:text-5xl">Find the balance in your build.</h1>
@@ -497,9 +489,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
             </section>
           </div>
         </div>
-      </main>
-
-      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">ViciTech Engine v1.0. Sample parts, prices and scoring model.</footer>
+      </div>
     </div>
   );
 }

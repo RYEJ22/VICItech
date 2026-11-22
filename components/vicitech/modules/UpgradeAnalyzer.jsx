@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Cpu, Laptop, Monitor, MemoryStick, HardDrive, CircuitBoard, Zap, CheckCircle2, AlertTriangle, ArrowRightLeft, Gauge } from "lucide-react";
+import { Laptop, Monitor, MemoryStick, HardDrive, CircuitBoard, Zap, CheckCircle2, AlertTriangle, ArrowRightLeft, Gauge } from "lucide-react";
 
 /* ───────────────────────── Sample device specs (verify against the datasheet before buying) ───────────────────────── */
 // ram: soldered GB + `slots` sockets that accept up to `slotMax` GB each; `modules` lists the sizes installed in them.
@@ -188,16 +188,8 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
   const Kind = d.kind === "Laptop" ? Laptop : Monitor;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
-      <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-600 dark:bg-emerald-400 text-white dark:text-zinc-950"><Cpu className="h-5 w-5" /></span>
-          <span className="text-lg font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full border border-emerald-600/30 dark:border-emerald-400/30 bg-emerald-600/10 dark:bg-emerald-400/10 px-3 py-1 text-xs text-cyan-700 dark:text-cyan-300">Max Upgrade Analyzer</span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <h1 className="flex items-center gap-3 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-4xl"><ArrowRightLeft className="h-8 w-8 text-cyan-700 dark:text-cyan-400" /> Max Upgrade Potential Analyzer</h1>
         <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">See how far a laptop or PC can grow: RAM limits, free NVMe and SATA slots, graphics and CPU headroom, plus a planner that prices the upgrade.</p>
 
@@ -285,9 +277,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
             </section>
           </div>
         </div>
-      </main>
-
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-600">ViciTech Engine v1.0. Sample specifications: confirm slot counts and limits in the manufacturer's datasheet before buying parts.</footer>
+      </div>
     </div>
   );
 }

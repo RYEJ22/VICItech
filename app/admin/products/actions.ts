@@ -2,21 +2,23 @@
 
 import { revalidatePath } from 'next/cache';
 import {
+  isMissingImageColumnError,
   isProductStockStatus,
+  normalizeProductRecord,
   validateProductPayload,
 } from '@/lib/admin/products-validation';
 import type {
   ActionResponse,
   ProductFormPayload,
+  ProductInsert,
   ProductRow,
   ProductStockStatus,
+  ProductUpdate,
 } from '@/lib/admin/products-validation';
 import { verifyAdminRole } from '@/lib/supabase/admin-auth';
 import { createClient } from '@/lib/supabase/server';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const PRODUCT_SELECT_COLUMNS =
-  'id, slug, title, description, price, category, seller_type, specs, images, stock_status, is_preset, preset_components, reviewed_by_name, reviewed_by_avatar, review_quote, review_video_url, created_at, updated_at';
 
 function checkVerifyAdminResult(
   result: unknown,
@@ -56,10 +58,15 @@ async function authorizeAdmin() {
   return { ok: true as const, supabase };
 }
 
-function revalidateMarketAndAdmin(): void {
+function revalidateMarketAndAdmin(slug?: string): void {
   revalidatePath('/admin/products');
   revalidatePath('/admin');
   revalidatePath('/market');
+  revalidatePath('/home');
+  revalidatePath('/market/[id]', 'page');
+  if (slug) {
+    revalidatePath(`/market/${encodeURIComponent(slug)}`);
+  }
 }
 
 export async function createProductAction(
@@ -71,17 +78,34 @@ export async function createProductAction(
   const validated = validateProductPayload(payload);
   if (!validated.ok) return { success: false, error: validated.error };
 
-  const { data, error } = await auth.supabase
+  const updatedAt = new Date().toISOString();
+  const v2PayloadObject = {
+    ...validated.data,
+    updated_at: updatedAt,
+    image_url: validated.imageColumns.image_url,
+    gallery_urls: [...validated.imageColumns.gallery_urls],
+  };
+  const v2InsertPayload: ProductInsert = v2PayloadObject;
+
+  let result = await auth.supabase
     .from('products')
-    .insert({
-      ...validated.data,
-      updated_at: new Date().toISOString(),
-    })
-    .select(PRODUCT_SELECT_COLUMNS)
+    .insert(v2InsertPayload)
+    .select('*')
     .single();
 
-  if (error) {
-    if (error.code === '23505') {
+  if (result.error && isMissingImageColumnError(result.error)) {
+    result = await auth.supabase
+      .from('products')
+      .insert({
+        ...validated.data,
+        updated_at: updatedAt,
+      })
+      .select('*')
+      .single();
+  }
+
+  if (result.error || !result.data) {
+    if (result.error?.code === '23505') {
       return {
         success: false,
         error: 'Slug sudah dipakai produk lain. Gunakan slug yang berbeda.',
@@ -90,8 +114,9 @@ export async function createProductAction(
     return { success: false, error: 'Gagal menambahkan produk ke katalog. Coba lagi.' };
   }
 
-  revalidateMarketAndAdmin();
-  return { success: true, data };
+  const normalized = normalizeProductRecord(result.data);
+  revalidateMarketAndAdmin(normalized.slug);
+  return { success: true, data: normalized };
 }
 
 export async function updateProductAction(
@@ -108,18 +133,36 @@ export async function updateProductAction(
   const validated = validateProductPayload(payload);
   if (!validated.ok) return { success: false, error: validated.error };
 
-  const { data, error } = await auth.supabase
+  const updatedAt = new Date().toISOString();
+  const v2PayloadObject = {
+    ...validated.data,
+    updated_at: updatedAt,
+    image_url: validated.imageColumns.image_url,
+    gallery_urls: [...validated.imageColumns.gallery_urls],
+  };
+  const v2UpdatePayload: ProductUpdate = v2PayloadObject;
+
+  let result = await auth.supabase
     .from('products')
-    .update({
-      ...validated.data,
-      updated_at: new Date().toISOString(),
-    })
+    .update(v2UpdatePayload)
     .eq('id', productId)
-    .select(PRODUCT_SELECT_COLUMNS)
+    .select('*')
     .maybeSingle();
 
-  if (error) {
-    if (error.code === '23505') {
+  if (result.error && isMissingImageColumnError(result.error)) {
+    result = await auth.supabase
+      .from('products')
+      .update({
+        ...validated.data,
+        updated_at: updatedAt,
+      })
+      .eq('id', productId)
+      .select('*')
+      .maybeSingle();
+  }
+
+  if (result.error) {
+    if (result.error.code === '23505') {
       return {
         success: false,
         error: 'Slug sudah dipakai produk lain. Gunakan slug yang berbeda.',
@@ -128,12 +171,13 @@ export async function updateProductAction(
     return { success: false, error: 'Gagal memperbarui produk. Periksa kembali isian Anda.' };
   }
 
-  if (!data) {
+  if (!result.data) {
     return { success: false, error: 'Produk tidak ditemukan atau sudah dihapus.' };
   }
 
-  revalidateMarketAndAdmin();
-  return { success: true, data };
+  const normalized = normalizeProductRecord(result.data);
+  revalidateMarketAndAdmin(normalized.slug);
+  return { success: true, data: normalized };
 }
 
 export async function updateProductStockAction(
@@ -150,22 +194,24 @@ export async function updateProductStockAction(
   const auth = await authorizeAdmin();
   if (!auth.ok) return { success: false, error: auth.error };
 
+  const updatedAt = new Date().toISOString();
   const { data, error } = await auth.supabase
     .from('products')
     .update({
       stock_status: stockStatus,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     })
     .eq('id', productId)
-    .select(PRODUCT_SELECT_COLUMNS)
+    .select('*')
     .maybeSingle();
 
   if (error || !data) {
     return { success: false, error: 'Gagal memperbarui status stok produk.' };
   }
 
-  revalidateMarketAndAdmin();
-  return { success: true, data };
+  const normalized = normalizeProductRecord(data);
+  revalidateMarketAndAdmin(normalized.slug);
+  return { success: true, data: normalized };
 }
 
 export async function deleteProductAction(

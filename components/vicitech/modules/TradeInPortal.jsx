@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   RefreshCw, Recycle, Building, GraduationCap, CheckCircle2, DollarSign, Leaf, ShieldAlert, FileSpreadsheet,
-  Cpu, User, ShieldCheck, X,
+  User, ShieldCheck, X,
 } from "lucide-react";
 import { useCheckout } from "@/context/CheckoutContext";
 
@@ -42,7 +42,7 @@ function estimate({ entity, equipment, condition, qty }) {
 
 const GRADES = {
   "A+": { label: "Grade A+ (Like New)", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
-  A: { label: "Grade A (Minor Cosmetic Wear)", cls: "border-[#FF5500]/20 bg-[#FF5500]/[0.06] text-[#A83A00]" },
+  A: { label: "Grade A (Minor Cosmetic Wear)", cls: "border-accent-primary/25 bg-accent-subtle text-accent-hover" },
   RE: { label: "Recertified Enterprise", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
 };
 
@@ -108,33 +108,9 @@ const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency:
 const num = (n) => new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format(n);
 const roundTo = (n, step = 10000) => Math.round(n / step) * step;
 const clampQty = (v) => Math.min(MAX_QTY, Math.max(1, parseInt(v, 10) || 1));
-const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 
 /* ───────────────────────── UI pieces ───────────────────────── */
-
-function Header({ onOpenEngine, onOpenBuilder }) {
-  const link = `shrink-0 rounded-full px-3 py-2 text-sm text-[#5A606A] hover:bg-black/[0.04] hover:text-[#141518] ${focusRing}`;
-  return (
-    <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-[#F6F5F2]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-        <span className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight text-[#141518]">ViciTech</span>
-        </span>
-        <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
-          <button type="button" onClick={onOpenEngine} className={link}>Hardware Engine</button>
-          <button type="button" onClick={onOpenBuilder} className={link}>Preset Builder</button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-[#FF5500] px-3 py-1.5 text-sm font-medium text-[#C94300] ${focusRing}`}>
-            <Recycle className="h-4 w-4" /> Trade-In &amp; Recycle
-          </button>
-        </nav>
-        <span className="ml-auto hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-400 md:inline-flex">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" /> ViciTech Engine v1.0
-        </span>
-      </div>
-    </header>
-  );
-}
 
 function Choice({ active, onClick, icon: Icon, title, hint }) {
   return (
@@ -144,13 +120,13 @@ function Choice({ active, onClick, icon: Icon, title, hint }) {
       aria-checked={active}
       onClick={onClick}
       className={`flex items-start gap-3 rounded-lg border p-3 text-left transition-colors ${focusRing} ${
-        active ? "border-[#FF5500]/35 bg-[#FF5500]/[0.05]" : "border-black/[0.08] bg-white hover:border-black/15"
+        active ? "border-accent-primary/40 bg-accent-subtle" : "border-default bg-surface hover:border-primary/20"
       }`}
     >
-      {Icon && <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${active ? "text-[#FF5500]" : "text-zinc-500"}`} />}
+      {Icon && <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${active ? "text-accent-primary" : "text-secondary"}`} />}
       <span>
-        <span className={`block text-sm font-medium ${active ? "text-[#C94300]" : "text-zinc-800 dark:text-zinc-200"}`}>{title}</span>
-        {hint && <span className="mt-0.5 block text-xs text-zinc-500">{hint}</span>}
+        <span className={`block text-sm font-medium ${active ? "text-accent-hover" : "text-primary"}`}>{title}</span>
+        {hint && <span className="mt-0.5 block text-xs text-secondary">{hint}</span>}
       </span>
     </button>
   );
@@ -164,40 +140,40 @@ function ProductCard({ p, onInspect }) {
   const { triggerCheckout } = useCheckout();
 
   return (
-    <article className="flex flex-col rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_12px_32px_rgba(20,21,24,0.04)]">
+    <article className="flex flex-col rounded-3xl border border-default bg-surface p-5 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <GradeBadge grade={p.grade} />
-        <span className="text-xs text-zinc-500">{p.kind}</span>
+        <span className="text-xs text-secondary">{p.kind}</span>
       </div>
-      <h3 className="mt-3 text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-50">{p.name}</h3>
-      <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">{p.spec}</p>
+      <h3 className="mt-3 text-base font-semibold leading-snug text-primary">{p.name}</h3>
+      <p className="mt-1 text-xs text-secondary">{p.spec}</p>
 
       <div className="mt-4 flex items-end justify-between gap-3">
         <div>
-          <p className="text-xs text-zinc-500">Refurbished price</p>
-          <p className="text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(p.price)}</p>
-          <p className="text-xs tabular-nums text-zinc-500">
+          <p className="text-xs text-secondary">Refurbished price</p>
+          <p className="text-xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
+          <p className="text-xs tabular-nums text-secondary">
             Original retail <span className="line-through">{idr(p.retail)}</span>
           </p>
         </div>
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-right">
-          <p className="text-lg font-semibold leading-none tabular-nums text-emerald-700 dark:text-emerald-400">{p.savePct}%</p>
-          <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-300">saved</p>
+        <div className="rounded-lg border border-status-live/30 bg-emerald-50 px-2.5 py-1.5 text-right">
+          <p className="text-lg font-semibold leading-none tabular-nums text-emerald-800">{p.savePct}%</p>
+          <p className="mt-1 text-xs text-emerald-800">saved</p>
         </div>
       </div>
 
       <dl className="mt-4 grid grid-cols-3 gap-2 text-xs">
-        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
-          <dt className="flex items-center gap-1 text-zinc-500"><Recycle className="h-3 w-3" /> E-waste</dt>
-          <dd className="mt-1 font-medium tabular-nums text-zinc-900 dark:text-zinc-100">{num(p.kg)} kg</dd>
+        <div className="rounded-xl bg-subtle p-2.5">
+          <dt className="flex items-center gap-1 text-secondary"><Recycle className="h-3 w-3" /> E-waste</dt>
+          <dd className="mt-1 font-medium tabular-nums text-primary">{num(p.kg)} kg</dd>
         </div>
-        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
-          <dt className="flex items-center gap-1 text-zinc-500"><Leaf className="h-3 w-3" /> CO₂ avoided</dt>
-          <dd className="mt-1 font-medium tabular-nums text-zinc-900 dark:text-zinc-100">{num(p.co2)} kg</dd>
+        <div className="rounded-xl bg-subtle p-2.5">
+          <dt className="flex items-center gap-1 text-secondary"><Leaf className="h-3 w-3" /> CO₂ avoided</dt>
+          <dd className="mt-1 font-medium tabular-nums text-primary">{num(p.co2)} kg</dd>
         </div>
-        <div className="rounded-xl bg-[#F6F5F2] p-2.5">
-          <dt className="flex items-center gap-1 text-zinc-500"><ShieldCheck className="h-3 w-3" /> Warranty</dt>
-          <dd className="mt-1 font-medium text-zinc-900 dark:text-zinc-100">{WARRANTY_MONTHS} months</dd>
+        <div className="rounded-xl bg-subtle p-2.5">
+          <dt className="flex items-center gap-1 text-secondary"><ShieldCheck className="h-3 w-3" /> Warranty</dt>
+          <dd className="mt-1 font-medium text-primary">{WARRANTY_MONTHS} months</dd>
         </div>
       </dl>
 
@@ -205,7 +181,7 @@ function ProductCard({ p, onInspect }) {
         <button
           type="button"
           onClick={() => onInspect(p)}
-          className={`inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium text-zinc-800 transition-colors hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}
+          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-default px-4 py-2.5 text-sm font-medium text-primary transition-colors hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}
         >
           <CheckCircle2 className="h-4 w-4" /> Inspection Summary
         </button>
@@ -223,9 +199,9 @@ function ProductCard({ p, onInspect }) {
               configuration: p.spec,
             },
           })}
-          className="inline-flex w-full items-center justify-center rounded-full bg-[#FF5500] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#E94B00]"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover"
         >
-          🚀 Check Out Now
+          Check Out Now
         </button>
       </div>
     </article>
@@ -253,54 +229,54 @@ function InspectionDrawer({ product, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label={`Inspection summary for ${product.name}`} onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5">
+      <aside role="dialog" aria-modal="true" aria-label={`Inspection summary for ${product.name}`} onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-default bg-surface">
+        <div className="flex items-start justify-between gap-4 border-b border-default p-5">
           <div>
-            <h2 className="font-serif text-xl font-semibold text-zinc-900 dark:text-zinc-50">Inspection Summary</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">{product.name}</p>
+            <h2 className="font-serif text-xl font-semibold text-primary">Inspection Summary</h2>
+            <p className="text-sm text-secondary">{product.name}</p>
             <div className="mt-2"><GradeBadge grade={product.grade} /></div>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close inspection summary" className={`rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}><X className="h-5 w-5" /></button>
+          <button type="button" onClick={onClose} aria-label="Close inspection summary" className={`rounded-lg p-2 text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-5 w-5" /></button>
         </div>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5">
           <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-700 dark:text-emerald-400">
-              <CheckCircle2 className="h-4 w-4" /> {total} of {total} points verified
+            <span className="inline-flex items-center gap-2 rounded-full border border-status-live/30 bg-emerald-50 px-3 py-1 text-sm text-emerald-800">
+              <CheckCircle2 className="h-4 w-4 text-status-live" /> {total} of {total} points verified
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-zinc-200 dark:border-zinc-700 px-3 py-1 text-sm text-zinc-700 dark:text-zinc-300">
-              <ShieldCheck className="h-4 w-4 text-[#FF5500]" /> {WARRANTY_MONTHS}-month warranty
+            <span className="inline-flex items-center gap-2 rounded-full border border-default px-3 py-1 text-sm text-primary">
+              <ShieldCheck className="h-4 w-4 text-accent-primary" /> {WARRANTY_MONTHS}-month warranty
             </span>
           </div>
 
           {groups.map((g) => (
             <section key={g.group}>
-              <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">{g.group}</h3>
-              <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
+              <h3 className="mb-2 text-sm font-medium text-primary">{g.group}</h3>
+              <ul className="divide-y divide-default rounded-xl border border-default">
                 {g.items.map((it) => (
                   <li key={it.label} className="flex gap-3 px-3 py-2.5">
                     {it.status === "serviced"
-                      ? <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5500]" aria-label="Serviced by our technicians" />
-                      : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-label="Passed" />}
+                      ? <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-label="Serviced by our technicians" />
+                      : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-live" aria-label="Passed" />}
                     <div>
-                      <p className="text-sm text-zinc-900 dark:text-zinc-100">{it.label}</p>
-                      <p className="text-xs text-zinc-500">{it.detail}</p>
+                      <p className="text-sm text-primary">{it.label}</p>
+                      <p className="text-xs text-secondary">{it.detail}</p>
                     </div>
                   </li>
                 ))}
               </ul>
             </section>
           ))}
-          <p className="text-xs text-zinc-500">
-            <CheckCircle2 className="mr-1 inline h-3 w-3 text-emerald-700 dark:text-emerald-400" /> Passed as received.
-            <RefreshCw className="ml-3 mr-1 inline h-3 w-3 text-[#FF5500]" /> Serviced by our technicians.
+          <p className="text-xs text-secondary">
+            <CheckCircle2 className="mr-1 inline h-3 w-3 text-status-live" /> Passed as received.
+            <RefreshCw className="ml-3 mr-1 inline h-3 w-3 text-accent-primary" /> Serviced by our technicians.
           </p>
 
-          <div className="flex gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3">
-            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+          <div className="flex gap-3 rounded-xl border border-status-sample/30 bg-amber-50 p-3">
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-status-sample" />
             <div>
-              <p className="text-sm font-medium text-amber-800 dark:text-amber-200">What to know before you buy</p>
-              <p className="mt-0.5 text-sm text-amber-800/80 dark:text-amber-100/80">{NOTES[product.grade]}</p>
+              <p className="text-sm font-medium text-amber-900">What to know before you buy</p>
+              <p className="mt-0.5 text-sm text-amber-900/90">{NOTES[product.grade]}</p>
             </div>
           </div>
         </div>
@@ -349,27 +325,25 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
   const closeInspect = useMemo(() => () => setInspecting(null), []);
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <Header onOpenEngine={onOpenEngine} onOpenBuilder={onOpenBuilder} />
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Give good hardware another life</p>
-        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl">
-          <Recycle className="h-8 w-8 text-[#FF5500]" /> Office Refurbished &amp; Trade-In Portal
+    <div className="bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-accent-hover">Give good hardware another life</p>
+        <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
+          <Recycle className="h-8 w-8 text-accent-primary" /> Office Refurbished &amp; Trade-In Portal
         </h1>
-        <p className="mt-3 max-w-2xl text-zinc-600 dark:text-zinc-400">
+        <p className="mt-3 max-w-2xl text-secondary">
           Sell retired equipment for a clear buyback estimate, or buy recertified enterprise hardware with a full inspection record and the savings shown up front.
         </p>
 
         {/* Trade-in form */}
         <section className="mt-10" aria-labelledby="buyback-title">
-          <h2 id="buyback-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-[#141518]">
-            <DollarSign className="h-5 w-5 text-[#FF5500]" /> Asset buyback request
+          <h2 id="buyback-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-primary">
+            <DollarSign className="h-5 w-5 text-accent-primary" /> Asset buyback request
           </h2>
           <div className="mt-4 grid gap-6 lg:grid-cols-5">
-            <div className="space-y-5 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-3">
+            <div className="space-y-5 rounded-3xl border border-default bg-surface p-6 shadow-sm lg:col-span-3">
               <fieldset>
-                <legend className="mb-2 text-sm text-zinc-700 dark:text-zinc-300">Entity type</legend>
+                <legend className="mb-2 text-sm text-primary">Entity type</legend>
                 <div role="radiogroup" aria-label="Entity type" className="grid gap-2 sm:grid-cols-3">
                   {ENTITIES.map((e) => <Choice key={e.id} active={form.entity === e.id} icon={e.icon} title={e.id} onClick={() => set("entity")(e.id)} />)}
                 </div>
@@ -377,84 +351,84 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="equipment" className="mb-2 block text-sm text-zinc-700 dark:text-zinc-300">Equipment type</label>
-                  <select id="equipment" value={form.equipment} onChange={(e) => set("equipment")(e.target.value)} className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 ${focusRing}`}>
+                  <label htmlFor="equipment" className="mb-2 block text-sm text-primary">Equipment type</label>
+                  <select id="equipment" value={form.equipment} onChange={(e) => set("equipment")(e.target.value)} className={`w-full rounded-lg border border-default bg-surface px-3 py-2.5 text-sm text-primary ${focusRing}`}>
                     {Object.keys(EQUIPMENT).map((k) => <option key={k}>{k}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="qty" className="mb-2 block text-sm text-zinc-700 dark:text-zinc-300">Unit quantity</label>
+                  <label htmlFor="qty" className="mb-2 block text-sm text-primary">Unit quantity</label>
                   <input
                     id="qty" type="number" inputMode="numeric" min={1} max={MAX_QTY} value={form.qty}
                     onChange={(e) => set("qty")(e.target.value)}
                     onBlur={() => set("qty")(String(qty))}
-                    className={`w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm tabular-nums text-zinc-900 dark:text-zinc-100 ${focusRing}`}
+                    className={`w-full rounded-lg border border-default bg-surface px-3 py-2.5 text-sm tabular-nums text-primary ${focusRing}`}
                   />
                 </div>
               </div>
 
               <fieldset>
-                <legend className="mb-2 text-sm text-zinc-700 dark:text-zinc-300">Estimated condition</legend>
+                <legend className="mb-2 text-sm text-primary">Estimated condition</legend>
                 <div role="radiogroup" aria-label="Estimated condition" className="grid gap-2 sm:grid-cols-3">
                   {Object.entries(CONDITIONS).map(([k, c]) => <Choice key={k} active={form.condition === k} title={k} hint={c.hint} onClick={() => set("condition")(k)} />)}
                 </div>
               </fieldset>
 
               <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button type="button" onClick={() => setRevealed(true)} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] ${focusRing}`}>
+                <button type="button" onClick={() => setRevealed(true)} className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-cta px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover ${focusRing}`}>
                   <DollarSign className="h-4 w-4" /> Get Instant Valuation Estimate
                 </button>
-                <button type="button" onClick={downloadTemplate} className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm text-zinc-600 hover:bg-black/[0.04] hover:text-[#C94300] ${focusRing}`}>
+                <button type="button" onClick={downloadTemplate} className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2.5 text-sm text-secondary hover:bg-subtle hover:text-accent-hover ${focusRing}`}>
                   <FileSpreadsheet className="h-4 w-4" /> Download asset list template
                 </button>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] lg:col-span-2" aria-live="polite">
+            <div className="rounded-3xl border border-default bg-surface p-6 shadow-sm lg:col-span-2" aria-live="polite">
               {!revealed ? (
                 <div className="flex h-full min-h-48 flex-col items-center justify-center text-center">
-                  <DollarSign className="h-8 w-8 text-zinc-700" />
-                  <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">Your estimate appears here.</p>
-                  <p className="mt-1 text-sm text-zinc-500">Fill in the form, then select Get Instant Valuation Estimate.</p>
+                  <DollarSign className="h-8 w-8 text-secondary" />
+                  <p className="mt-3 text-sm text-primary">Your estimate appears here.</p>
+                  <p className="mt-1 text-sm text-secondary">Fill in the form, then select Get Instant Valuation Estimate.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-zinc-500">Estimated buyback value for {qty} {qty > 1 ? "units" : "unit"}</p>
-                    <p className="text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(est.low)} to {idr(est.high)}</p>
+                    <p className="text-sm text-secondary">Estimated buyback value for {qty} {qty > 1 ? "units" : "unit"}</p>
+                    <p className="text-2xl font-semibold tabular-nums text-status-live">{idr(est.low)} to {idr(est.high)}</p>
                   </div>
-                  <dl className="divide-y divide-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-800 text-sm">
-                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="text-zinc-500">Per unit</dt><dd className="text-right tabular-nums text-zinc-900 dark:text-zinc-100">{idr(est.lowUnit)} to {idr(est.highUnit)}</dd></div>
-                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="text-zinc-500">Bulk bonus</dt><dd className="tabular-nums text-zinc-900 dark:text-zinc-100">{est.bonus ? `+${est.bonus}%` : "None"}</dd></div>
-                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="flex items-center gap-1.5 text-zinc-500"><Leaf className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" /> E-waste kept out of landfill</dt><dd className="tabular-nums text-zinc-900 dark:text-zinc-100">{num(est.kg)} kg</dd></div>
+                  <dl className="divide-y divide-default rounded-lg border border-default text-sm">
+                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="text-secondary">Per unit</dt><dd className="text-right tabular-nums text-primary">{idr(est.lowUnit)} to {idr(est.highUnit)}</dd></div>
+                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="text-secondary">Bulk bonus</dt><dd className="tabular-nums text-primary">{est.bonus ? `+${est.bonus}%` : "None"}</dd></div>
+                    <div className="flex justify-between gap-3 px-3 py-2"><dt className="flex items-center gap-1.5 text-secondary"><Leaf className="h-3.5 w-3.5 text-status-live" /> E-waste kept out of landfill</dt><dd className="tabular-nums text-primary">{num(est.kg)} kg</dd></div>
                   </dl>
-                  {nextBulk && <p className="text-xs text-zinc-500">Add {nextBulk.min - qty} more unit{nextBulk.min - qty > 1 ? "s" : ""} for a +{nextBulk.pct}% bulk bonus.</p>}
-                  {form.entity === "Individual" && <p className="text-xs text-zinc-500">Bulk bonuses apply to offices and schools.</p>}
+                  {nextBulk && <p className="text-xs text-secondary">Add {nextBulk.min - qty} more unit{nextBulk.min - qty > 1 ? "s" : ""} for a +{nextBulk.pct}% bulk bonus.</p>}
+                  {form.entity === "Individual" && <p className="text-xs text-secondary">Bulk bonuses apply to offices and schools.</p>}
 
-                  <p className="flex gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 p-3 text-xs text-amber-800/80 dark:text-amber-100/80">
-                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                  <p className="flex gap-2 rounded-lg border border-status-sample/30 bg-amber-50 p-3 text-xs text-amber-900">
+                    <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-status-sample" />
                     Sample rates for demonstration. The final value is confirmed after a physical inspection at Hub Bandung.
                   </p>
 
                   {submittedRef ? (
-                    <p role="status" className="flex gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p role="status" className="flex gap-2 rounded-lg border border-status-live/30 bg-emerald-50 p-3 text-sm text-emerald-800">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-live" />
                       Request {submittedRef} received. We will email the official valuation to {email.trim()}.
                     </p>
                   ) : (
                     <div>
-                      <label htmlFor="email" className="mb-2 block text-sm text-zinc-700 dark:text-zinc-300">Contact email</label>
+                      <label htmlFor="email" className="mb-2 block text-sm text-primary">Contact email</label>
                       <div className="flex gap-2">
                         <input
                           id="email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailError(false); }}
                           aria-invalid={emailError} placeholder="name@organization.id"
-                          className={`min-w-0 flex-1 rounded-lg border bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-600 ${focusRing} ${emailError ? "border-red-500" : "border-zinc-200 dark:border-zinc-700"}`}
+                          className={`min-w-0 flex-1 rounded-lg border bg-surface px-3 py-2.5 text-sm text-primary placeholder:text-secondary ${focusRing} ${emailError ? "border-status-danger" : "border-default"}`}
                         />
-                        <button type="button" onClick={submit} className={`shrink-0 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white hover:bg-[#E94B00] ${focusRing}`}>
+                        <button type="button" onClick={submit} className={`min-h-11 shrink-0 rounded-full bg-accent-cta px-5 py-3 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}>
                           Submit for valuation
                         </button>
                       </div>
-                      {emailError && <p className="mt-1.5 text-xs text-red-700 dark:text-red-400">Enter a valid email address so we can send the official valuation.</p>}
+                      {emailError && <p className="mt-1.5 text-xs text-status-danger">Enter a valid email address so we can send the official valuation.</p>}
                     </div>
                   )}
                 </div>
@@ -465,38 +439,34 @@ export default function CircularPortal({ onOpenEngine, onOpenBuilder }) {
 
         {/* Refurbished gallery */}
         <section className="mt-14" aria-labelledby="gallery-title">
-          <h2 id="gallery-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-[#141518]">
-            <RefreshCw className="h-5 w-5 text-[#FF5500]" /> Certified refurbished hardware
+          <h2 id="gallery-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-primary">
+            <RefreshCw className="h-5 w-5 text-accent-primary" /> Certified refurbished hardware
           </h2>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Every unit passes a 15-point inspection and ships with a {WARRANTY_MONTHS}-month warranty.</p>
+          <p className="mt-1 text-sm text-secondary">Every unit passes a 15-point inspection and ships with a {WARRANTY_MONTHS}-month warranty.</p>
 
           <div role="tablist" aria-label="Filter by category" className="mt-5 flex flex-wrap gap-2">
             {TABS.map((t) => (
               <button
                 key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-                className={`rounded-full border px-4 py-2 text-sm transition-colors ${focusRing} ${tab === t ? "border-[#FF5500]/25 bg-[#FF5500]/[0.06] font-medium text-[#A83A00]" : "border-black/[0.08] text-zinc-600 hover:border-black/15 hover:text-zinc-800"}`}
+                className={`rounded-full border px-4 py-2 text-sm transition-colors ${focusRing} ${tab === t ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default text-secondary hover:border-primary/20 hover:text-primary"}`}
               >
-                {t} <span className="ml-1 text-xs text-zinc-500">{tabCounts[t]}</span>
+                {t} <span className="ml-1 text-xs text-secondary">{tabCounts[t]}</span>
               </button>
             ))}
           </div>
 
-          <p className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-2xl border border-black/[0.06] bg-white px-5 py-4 text-sm text-zinc-600 shadow-[0_8px_24px_rgba(20,21,24,0.035)]">
-            <Leaf className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-            Buying one of each unit shown saves <b className="font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(totals.saved)}</b>,
-            keeps <b className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{num(totals.kg)} kg</b> of e-waste in use and avoids
-            <b className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">{num(totals.co2)} kg</b> of CO₂.
+          <p className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-2xl border border-default bg-surface px-5 py-4 text-sm text-secondary shadow-sm">
+            <Leaf className="h-4 w-4 text-status-live" />
+            Buying one of each unit shown saves <b className="font-semibold tabular-nums text-status-live">{idr(totals.saved)}</b>,
+            keeps <b className="font-semibold tabular-nums text-primary">{num(totals.kg)} kg</b> of e-waste in use and avoids
+            <b className="font-semibold tabular-nums text-primary">{num(totals.co2)} kg</b> of CO₂.
           </p>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((p) => <ProductCard key={p.id} p={p} onInspect={setInspecting} />)}
           </div>
         </section>
-      </main>
-
-      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">
-        ViciTech Engine v1.0. Sample prices, rates and inspection data.
-      </footer>
+      </div>
 
       {inspecting && <InspectionDrawer product={inspecting} onClose={closeInspect} />}
     </div>

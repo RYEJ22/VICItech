@@ -32,8 +32,8 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'home',
     href: '/home',
-    label: 'Home',
-    shortLabel: 'Home',
+    label: 'Beranda',
+    shortLabel: 'Beranda',
     iconKey: 'home',
     matchModules: ['home', 'bottleneck', 'versus', 'account'],
     targetModule: 'home',
@@ -62,7 +62,7 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'tradein',
     href: '/home?tab=tradein',
-    label: 'Trade-In & QC',
+    label: 'Trade-In & IoT QC',
     shortLabel: 'Trade & QC',
     iconKey: 'tradein',
     matchModules: ['tradein', 'qc'],
@@ -72,8 +72,8 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'partners',
     href: '/partners',
-    label: 'Service & Mitra',
-    shortLabel: 'Service',
+    label: 'Mitra & Service',
+    shortLabel: 'Mitra',
     iconKey: 'partners',
     matchModules: ['partners'],
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
@@ -81,7 +81,7 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'community',
     href: '/community',
-    label: 'Community',
+    label: 'Komunitas',
     shortLabel: 'Komunitas',
     iconKey: 'community',
     matchModules: ['community'],
@@ -101,76 +101,76 @@ export const MOBILE_BOTTOM_NAV_ITEMS: readonly NavItem[] = [
 
 export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
   {
-    label: 'Go to Home Workspace',
-    hint: 'Ecosystem overview',
+    label: 'Buka Beranda Workspace',
+    hint: 'Ringkasan ekosistem ViciTech',
     href: '/home',
     module: 'home',
-    keys: 'home workspace dashboard overview',
+    keys: 'home beranda workspace dashboard overview',
   },
   {
-    label: 'Open Market — Ready Stock',
-    hint: 'Curated PC builds & hardware showcase',
+    label: 'Buka Market — Siap Kirim',
+    hint: 'Etalase rakitan PC & perangkat siap kirim',
     href: '/market',
     module: 'market',
     view: 'ready',
     keys: 'market ready stock shop store rakitan pc',
   },
   {
-    label: 'Open Market — Hardware Library & Specs',
-    hint: 'Compare phones, laptops, PC parts & upgrade potential',
+    label: 'Buka Market — Hardware Library & Spesifikasi',
+    hint: 'Bandingkan ponsel, laptop, part PC & potensi upgrade',
     href: '/market?view=catalog',
     module: 'market',
     view: 'catalog',
     keys: 'library hardware specs gpu cpu ram nvme compare upgrade',
   },
   {
-    label: 'Check Max Upgrade Potential',
-    hint: 'RAM & NVMe expansion analyzer',
+    label: 'Cek Potensi Upgrade Maksimal',
+    hint: 'Analisis ekspansi slot RAM & NVMe',
     href: '/market?view=upgrade',
     module: 'market',
     view: 'upgrade',
     keys: 'upgrade analyzer ram nvme slot laptop pc',
   },
   {
-    label: 'Open Preset Builder',
-    hint: 'B2S, B2B & B2C build configurator with JIT buffer',
+    label: 'Buka Preset Builder',
+    hint: 'Konfigurator rakitan B2S, B2B & B2C dengan JIT buffer',
     href: '/home?tab=builder',
     module: 'builder',
     keys: 'preset builder configurator cbt lab b2s b2b b2c wattage',
   },
   {
-    label: 'Open Trade-In Portal',
-    hint: 'Buyback valuation & certified refurbished units',
+    label: 'Buka Portal Trade-In',
+    hint: 'Estimasi buyback & unit refurbished bersertifikat IoT QC',
     href: '/home?tab=tradein',
     module: 'tradein',
     keys: 'tradein buyback sell valuation refurbished',
   },
   {
-    label: 'Open IoT QC & Telemetry Engine',
-    hint: 'Serial lookup, burn-in telemetry & 15-point QC',
+    label: 'Buka Mesin IoT QC & Telemetri',
+    hint: 'Pencarian serial, telemetri Burn-In & 15 titik inspeksi',
     href: '/home?tab=qc',
     module: 'qc',
     keys: 'qc telemetry serial esp32 certificate burn-in',
   },
   {
-    label: 'Open Service & Mitra Directory',
-    hint: 'Verified component stores & repair centers',
+    label: 'Buka Direktori Mitra & Service',
+    hint: 'Toko komponen & pusat layanan terverifikasi',
     href: '/partners',
     keys: 'service mitra partners repair bandung jakarta tasikmalaya surabaya',
   },
   {
-    label: 'Open Community Hub',
-    hint: 'Build showcases, guides & Q&A feed',
+    label: 'Buka Komunitas & Pusat Pengetahuan',
+    hint: 'Showcase rakitan, panduan lab & tanya jawab teknis',
     href: '/community',
     module: 'community',
-    keys: 'community forum showcase guide q&a',
+    keys: 'community komunitas forum showcase guide q&a',
   },
   {
-    label: 'Open Direct Messages (DM)',
-    hint: 'Conversations with technicians & builders',
+    label: 'Buka Pesan Langsung (DM)',
+    hint: 'Percakapan langsung dengan teknisi & sesama builder',
     href: '/messages',
     module: 'messages',
-    keys: 'dm messages chat teknisi',
+    keys: 'dm messages chat teknisi pesan',
   },
 ];
 
@@ -197,7 +197,7 @@ export interface DataSourceInfo {
 export const DATA_SOURCES: readonly DataSourceInfo[] = [
   {
     id: 'live-telemetry',
-    label: 'Live ESP32 Telemetry',
+    label: 'Live ESP32',
     title: 'Sensor IoT QC & Burn-In',
     detail: 'Pembacaan suhu CPU/GPU, voltase, dan stabilitas aktual langsung dari smart bench.',
     tone: 'live',
@@ -206,7 +206,7 @@ export const DATA_SOURCES: readonly DataSourceInfo[] = [
   },
   {
     id: 'simulated-qc',
-    label: 'Simulated QC Profile',
+    label: 'Simulasi IoT QC',
     title: 'Profil simulasi admin',
     detail: 'Skenario uji terkalibrasi yang dipisahkan secara eksplisit dari sensor fisik.',
     tone: 'simulated',
@@ -215,7 +215,7 @@ export const DATA_SOURCES: readonly DataSourceInfo[] = [
   },
   {
     id: 'sample-catalog',
-    label: 'Sample Catalog',
+    label: 'Katalog Sampel',
     title: 'Katalog Market & Hardware Library',
     detail: 'Spesifikasi acuan, estimasi harga, dan simulasi upgrade untuk riset awal.',
     tone: 'sample',
@@ -275,11 +275,11 @@ export interface MoreMenuItem {
 }
 
 export const MORE_MENU_ITEMS: readonly MoreMenuItem[] = [
-  { id: 'qc-panel', label: 'IoT QC Panel', hint: 'Cek nomor seri & telemetri QC', href: '/qc-panel', iconKey: 'qc' },
-  { id: 'messages', label: 'Direct Messages', hint: 'Obrolan langsung dengan teknisi', href: '/messages', iconKey: 'messages' },
-  { id: 'bottleneck', label: 'AI Bottleneck Analyzer', hint: 'Analisis keseimbangan CPU, GPU & RAM', href: '/home?tab=bottleneck', iconKey: 'bottleneck', module: 'bottleneck' },
+  { id: 'qc-panel', label: 'Panel IoT QC', hint: 'Cek nomor seri & telemetri IoT QC', href: '/qc-panel', iconKey: 'qc' },
+  { id: 'messages', label: 'Pesan Langsung', hint: 'Obrolan langsung dengan teknisi', href: '/messages', iconKey: 'messages' },
+  { id: 'bottleneck', label: 'Analisis Bottleneck AI', hint: 'Analisis keseimbangan CPU, GPU & RAM', href: '/home?tab=bottleneck', iconKey: 'bottleneck', module: 'bottleneck' },
   { id: 'versus', label: 'Versus Arena', hint: 'Perbandingan spesifikasi berdampingan', href: '/home?tab=versus', iconKey: 'versus', module: 'versus' },
-  { id: 'account', label: 'Account Dashboard', hint: 'Pesanan, sertifikat QC & preset tersimpan', href: '/home?tab=account', iconKey: 'account', module: 'account' },
+  { id: 'account', label: 'Dasbor Akun', hint: 'Pesanan, sertifikat IoT QC & preset tersimpan', href: '/home?tab=account', iconKey: 'account', module: 'account' },
 ];
 
 export function countUnreadNotifications(items: readonly NavNotification[]): number {

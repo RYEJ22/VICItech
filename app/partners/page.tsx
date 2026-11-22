@@ -54,7 +54,7 @@ export default function PartnersPage(): ReactElement {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link
             href="/messages"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Chat Teknisi via DM</span>

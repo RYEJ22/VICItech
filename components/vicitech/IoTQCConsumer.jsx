@@ -18,23 +18,23 @@ function getProgress(record) {
   return 18;
 }
 
-function Stat({ icon: Icon, label, value, detail, color = "text-[#FF5500]", level }) {
+function Stat({ icon: Icon, label, value, detail, color = "text-accent-primary", level }) {
   const gaugeLevel = Number.isFinite(level) ? Math.max(0, Math.min(100, level)) : null;
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-4 shadow-[0_8px_24px_rgba(20,21,24,0.035)] transition-colors duration-200">
-      <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="rounded-2xl border border-default bg-surface p-4 shadow-sm transition-colors duration-200">
+      <div className="flex items-center justify-between text-sm text-secondary">
         {label}<Icon className={`h-4 w-4 ${color}`} />
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{value}</p>
+      <p className="mt-3 text-2xl font-semibold tabular-nums text-primary">{value}</p>
       {gaugeLevel !== null && (
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(gaugeLevel)} aria-label={`${label} gauge`}>
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-subtle" role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(gaugeLevel)} aria-label={`${label} gauge`}>
           <div
-            className="h-full w-full origin-left rounded-full bg-[#FF5500] transition-transform duration-300 motion-reduce:transition-none"
+            className="h-full w-full origin-left rounded-full bg-accent-primary transition-transform duration-300 motion-reduce:transition-none"
             style={{ transform: `scaleX(${gaugeLevel / 100})` }}
           />
         </div>
       )}
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{detail}</p>
+      <p className="mt-1 text-xs text-secondary">{detail}</p>
     </div>
   );
 }
@@ -235,42 +235,42 @@ export default function IoTQCConsumer({ initialSerial }) {
   const burninHours = Number(telemetry?.burnin_hours ?? record?.burnin_hours ?? 0);
 
   return (
-    <div className="space-y-5 text-[#141518]">
+    <div className="space-y-5 text-primary">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#C94300]">
-              <ShieldCheck className="h-4 w-4" /> Customer tracking
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-hover">
+              <ShieldCheck className="h-4 w-4 text-accent-primary" /> Customer tracking
             </p>
-            <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight sm:text-3xl">Rig assembly &amp; QC status</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Rig assembly &amp; QC status</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
               Track your order and the latest reported sensor readings. This view is read-only.
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#FF5500]/20 bg-[#FF5500]/[0.05] px-3 py-2 text-xs font-medium text-[#8B3100]">
-            <Wifi className="h-3.5 w-3.5" /> Read-only status
+          <span className="inline-flex items-center gap-2 rounded-full border border-accent-primary/25 bg-accent-subtle px-3 py-2 text-xs font-medium text-accent-hover">
+            <Wifi className="h-3.5 w-3.5 text-accent-primary" /> Read-only status
           </span>
         </header>
 
         {userId && (
-          <section className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)] transition-colors duration-200">
-            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-200">Your orders</h3>
+          <section className="rounded-3xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200">
+            <h3 className="text-sm font-medium text-primary">Your orders</h3>
             {ordersLoading ? (
-              <p role="status" className="mt-3 flex items-center gap-2 text-sm text-zinc-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading your orders…</p>
+              <p role="status" className="mt-3 flex items-center gap-2 text-sm text-secondary"><LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" /> Loading your orders…</p>
             ) : ordersError ? (
-              <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{ordersError}</p>
+              <p role="alert" className="mt-3 text-sm text-status-danger">{ordersError}</p>
             ) : orders.length ? (
               <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                 {orders.map((order) => (
                   <li key={order.id}>
-                    <button type="button" onClick={() => lookup(order.order_number || order.serial_number)} className="w-full rounded-lg border border-zinc-200 p-3 text-left transition-colors hover:border-emerald-500/40 dark:border-zinc-800">
-                      <span className="block font-mono text-xs text-emerald-700 dark:text-emerald-300">{order.order_number || "Order pending ID"}</span>
-                      <span className="mt-1 block truncate text-sm text-zinc-800 dark:text-zinc-200">{order.product_name}</span>
-                      <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-500">{order.status || "Processing"}</span>
+                    <button type="button" onClick={() => lookup(order.order_number || order.serial_number)} className="w-full rounded-lg border border-default p-3 text-left transition-colors hover:border-status-live/50">
+                      <span className="block font-mono text-xs text-status-live">{order.order_number || "Order pending ID"}</span>
+                      <span className="mt-1 block truncate text-sm text-primary">{order.product_name}</span>
+                      <span className="mt-1 block text-xs text-secondary">{order.status || "Processing"}</span>
                     </button>
                   </li>
                 ))}
               </ul>
-            ) : <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-500">No orders are linked to your account yet.</p>}
+            ) : <p className="mt-2 text-sm text-secondary">No orders are linked to your account yet.</p>}
           </section>
         )}
 
@@ -279,69 +279,72 @@ export default function IoTQCConsumer({ initialSerial }) {
             event.preventDefault();
             lookup(query);
           }}
-          className="rounded-3xl border border-black/[0.06] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)] transition-colors duration-200 sm:p-6"
+          className="rounded-3xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200 sm:p-6"
         >
-          <label htmlFor="qc-tracking-query" className="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">Serial number or order ID</label>
+          <label htmlFor="qc-tracking-query" className="mb-2 block text-sm font-medium text-primary">Serial number or order ID</label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
               <input
                 id="qc-tracking-query"
                 value={query}
                 onChange={(event) => setQuery(event.target.value.toUpperCase())}
                 placeholder="VT-PO-2026-0412 or VICI-SRV-2026-9042"
                 autoComplete="off"
-                className="w-full rounded-xl border border-black/10 bg-[#F6F5F2] py-3 pl-10 pr-3 font-mono text-sm text-[#141518] outline-none transition-colors placeholder:text-zinc-400 focus:border-[#FF5500]/50 focus:ring-2 focus:ring-[#FF5500]/15"
+                className="w-full rounded-xl border border-default bg-canvas py-3 pl-10 pr-3 font-mono text-sm text-primary outline-none transition-colors placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               />
             </div>
-            <button type="submit" disabled={status === "loading"} className="rounded-full bg-[#FF5500] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#E94B00] disabled:opacity-60">
+            <button type="submit" disabled={status === "loading"} className="min-h-11 rounded-full bg-accent-cta px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover disabled:opacity-60">
               {status === "loading" ? "Checking…" : "Track rig"}
             </button>
           </div>
-          {error && <p role="alert" className="mt-3 text-sm text-red-700 dark:text-red-300">{error}</p>}
+          {error && <p role="alert" className="mt-3 text-sm text-status-danger">{error}</p>}
         </form>
 
         {status === "loading" && (
-          <p role="status" className="mt-5 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <LoaderCircle className="h-4 w-4 animate-spin text-emerald-700 dark:text-emerald-300" /> Loading tracking status…
+          <p role="status" className="mt-5 flex items-center gap-2 text-sm text-secondary">
+            <LoaderCircle className="h-4 w-4 animate-spin text-status-live" /> Loading tracking status…
           </p>
         )}
-        {status === "notfound" && <p role="status" className="mt-5 rounded-xl border border-zinc-200 bg-white p-5 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-300">No order or public QC record was found for that ID.</p>}
+        {status === "notfound" && <p role="status" className="mt-5 rounded-xl border border-default bg-surface p-5 text-sm text-primary">No order or public QC record was found for that ID.</p>}
 
         {status === "ready" && record && typeof record === "object" && (
           <section aria-label="Rig tracking status" className="mt-6 space-y-5">
-            <div className="rounded-3xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_36px_rgba(20,21,24,0.04)] transition-colors duration-200">
+            <div className="rounded-3xl border border-default bg-surface p-6 shadow-sm transition-colors duration-200">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">{record.order_id || "Order tracking"}</p>
-                  <h2 className="mt-1 text-xl font-semibold">{record.device_name || "ViciTech custom rig"}</h2>
-                  <p className="mt-1 font-mono text-sm text-zinc-600 dark:text-zinc-400">{record.serial_number || "QC serial pending"}</p>
+                  <p className="text-xs uppercase tracking-[0.16em] text-secondary">{record.order_id || "Order tracking"}</p>
+                  <h2 className="mt-1 text-xl font-semibold text-primary">{record.device_name || "ViciTech custom rig"}</h2>
+                  <p className="mt-1 font-mono text-sm text-secondary">{record.serial_number || "QC serial pending"}</p>
                 </div>
-                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:text-emerald-200">
+                <span className="vt-badge-live">
                   {record.shipping_status || testLabel}
                 </span>
               </div>
               <div className="mt-6">
-                <div className="mb-2 flex justify-between text-xs text-zinc-600 dark:text-zinc-400">
-                  <span>Assembly and stress-test progress</span><span>{Math.round(progress)}%</span>
+                <div className="mb-2 flex justify-between text-xs text-secondary">
+                  <span>Assembly and stress-test progress</span><span className="tabular-nums">{Math.round(progress)}%</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Assembly and stress-test progress">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#FF5500] to-[#FF8A4C] transition-all" style={{ width: `${progress}%` }} />
+                <div className="h-2 overflow-hidden rounded-full bg-subtle" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Assembly and stress-test progress">
+                  <div
+                    className="h-full w-full origin-left rounded-full bg-accent-primary transition-transform duration-300 motion-reduce:transition-none"
+                    style={{ transform: `scaleX(${Math.max(0, Math.min(100, progress)) / 100})` }}
+                  />
                 </div>
-                <div className="mt-2 flex justify-between text-[11px] text-zinc-500 dark:text-zinc-600"><span>Assembly</span><span>Stress test</span><span>Dispatch</span></div>
+                <div className="mt-2 flex justify-between text-[11px] text-secondary"><span>Assembly</span><span>Stress test</span><span>Dispatch</span></div>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <Stat icon={Cpu} label="CPU temperature" value={telemetry?.cpu_temp_c == null ? "—" : `${Number(telemetry.cpu_temp_c).toFixed(1)} °C`} detail="Latest sensor payload" level={telemetry?.cpu_temp_c == null ? null : Number(telemetry.cpu_temp_c) / 120 * 100} />
-              <Stat icon={Thermometer} label="GPU temperature" value={telemetry?.gpu_temp_c == null ? "—" : `${Number(telemetry.gpu_temp_c).toFixed(1)} °C`} detail="Latest sensor payload" color="text-amber-700 dark:text-amber-300" level={telemetry?.gpu_temp_c == null ? null : Number(telemetry.gpu_temp_c) / 120 * 100} />
-              <Stat icon={Gauge} label="Fan speed" value={telemetry?.fan_rpm == null ? "—" : `${telemetry.fan_rpm} RPM`} detail="Latest sensor payload" color="text-violet-700 dark:text-violet-300" level={telemetry?.fan_rpm == null ? null : Number(telemetry.fan_rpm) / 2500 * 100} />
-              <Stat icon={Activity} label="Voltage stability" value={telemetry?.voltage_stability == null ? "—" : `${telemetry.voltage_stability}%`} detail="Latest sensor payload" color="text-emerald-700 dark:text-emerald-300" level={telemetry?.voltage_stability == null ? null : Number(telemetry.voltage_stability)} />
+              <Stat icon={Thermometer} label="GPU temperature" value={telemetry?.gpu_temp_c == null ? "—" : `${Number(telemetry.gpu_temp_c).toFixed(1)} °C`} detail="Latest sensor payload" color="text-status-sample" level={telemetry?.gpu_temp_c == null ? null : Number(telemetry.gpu_temp_c) / 120 * 100} />
+              <Stat icon={Gauge} label="Fan speed" value={telemetry?.fan_rpm == null ? "—" : `${telemetry.fan_rpm} RPM`} detail="Latest sensor payload" color="text-status-simulated" level={telemetry?.fan_rpm == null ? null : Number(telemetry.fan_rpm) / 2500 * 100} />
+              <Stat icon={Activity} label="Voltage stability" value={telemetry?.voltage_stability == null ? "—" : `${telemetry.voltage_stability}%`} detail="Latest sensor payload" color="text-status-live" level={telemetry?.voltage_stability == null ? null : Number(telemetry.voltage_stability)} />
               <Stat icon={Timer} label="Stress-test status" value={telemetry?.stress_test_status || testLabel} detail={`${burninHours} / 4 burn-in hours`} />
             </div>
 
-            <div className="rounded-2xl border border-black/[0.06] bg-white p-4 text-xs leading-relaxed text-zinc-600 shadow-sm">
-              <Radio className="mr-2 inline h-4 w-4 text-[#FF5500]" />
+            <div className="rounded-2xl border border-default bg-surface p-4 text-xs leading-relaxed text-secondary shadow-sm">
+              <Radio className="mr-2 inline h-4 w-4 text-accent-primary" />
               {telemetry
                 ? `${telemetry.source === "admin_simulation" ? "Admin-simulated payload" : "Reported telemetry"} · ${new Date(telemetry.created_at).toLocaleString()}`
                 : "Waiting for a telemetry payload. No sensor readings are fabricated or shown as live data."}

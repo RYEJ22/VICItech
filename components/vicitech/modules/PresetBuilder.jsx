@@ -4,6 +4,7 @@ import {
   Cpu, CircuitBoard, MemoryStick, HardDrive, Gauge, Monitor, ShieldCheck, Truck, Bookmark, Plus, Minus, X,
   LoaderCircle,
 } from "lucide-react";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { saveUserPreset } from "@/lib/supabase";
 import { useCheckout } from "@/context/CheckoutContext";
 import { listHardwareComponents } from "@/lib/hardware/components";
@@ -167,30 +168,6 @@ function summarize(sel, qty) {
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6F5F2]";
 
 /* ───────────────────────── Small UI pieces ───────────────────────── */
-
-function Header({ onOpenEngine }) {
-  return (
-    <header className="sticky top-0 z-30 border-b border-black/[0.06] bg-[#F6F5F2]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
-        <span className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight text-[#141518]">ViciTech</span>
-        </span>
-        <nav aria-label="Modules" className="ml-2 flex items-center gap-1 overflow-x-auto">
-          <button type="button" onClick={onOpenEngine} className={`shrink-0 rounded-md px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 ${focusRing}`}>
-            Hardware Engine
-          </button>
-          <button type="button" aria-current="page" className={`flex shrink-0 items-center gap-2 border-b-2 border-[#FF5500] px-3 py-1.5 text-sm font-medium text-[#C94300] ${focusRing}`}>
-            <Sliders className="h-4 w-4" /> Preset Builder
-          </button>
-        </nav>
-        <span className="ml-auto hidden items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-700 dark:text-emerald-400 md:inline-flex">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" /> ViciTech Engine v1.0
-        </span>
-      </div>
-    </header>
-  );
-}
 
 function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
@@ -560,13 +537,11 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
 
   const closeDrawer = () => { setDrawer(false); setNotice(""); };
 
-  const iconBtn = `grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/40 hover:text-[#C94300] ${focusRing}`;
+  const iconBtn = `vt-btn-tactile grid h-10 w-10 place-items-center rounded-xl border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/40 hover:text-[#C94300] ${focusRing}`;
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <Header onOpenEngine={onOpenEngine} />
-
-      <main className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
+    <div className="bg-[#F6F5F2] text-[#141518] antialiased">
+      <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Build with confidence</p>
         <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl">
           <Sliders className="h-8 w-8 text-[#FF5500]" /> Smart Preset Builder &amp; Configurator
@@ -587,7 +562,7 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`flex flex-col rounded-2xl border p-5 text-left transition-colors ${focusRing} ${active ? "border-[#FF5500]/30 bg-white ring-1 ring-[#FF5500]/15 shadow-[0_12px_32px_rgba(255,85,0,0.08)]" : "border-black/[0.07] bg-white/70 hover:border-black/15"}`}
+                className={`vt-card-interactive flex flex-col rounded-2xl border p-5 text-left ${focusRing} ${active ? "border-[#FF5500]/30 bg-white ring-1 ring-[#FF5500]/15 shadow-[0_12px_32px_rgba(255,85,0,0.08)]" : "border-black/[0.07] bg-white/70 hover:border-black/15"}`}
               >
                 <span className="flex items-center gap-3">
                   <span className={`grid h-10 w-10 place-items-center rounded-xl ${active ? "bg-[#FF5500] text-white" : "bg-[#F6F5F2] text-[#5A606A]"}`}><Icon className="h-5 w-5" /></span>
@@ -640,10 +615,12 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
           </section>
 
           {/* Live summary */}
-          <aside className="space-y-4 lg:sticky lg:top-[8.5rem] lg:self-start" aria-label="Build summary">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Build summary">
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
               <p className="text-sm text-zinc-500">Unit base price</p>
-              <p className="text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(calc.unit)}</p>
+              <p className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+                <AnimatedNumber value={calc.unit} format="currency" />
+              </p>
 
               <div className="mt-4 flex items-center justify-between gap-3">
                 <label htmlFor="qty" className="text-sm text-zinc-600 dark:text-zinc-400">Quantity</label>
@@ -653,21 +630,21 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
                   <button type="button" aria-label="Increase units" className={iconBtn} onClick={() => setQty((q) => clampQty(q + 1))}><Plus className="h-4 w-4" /></button>
                 </div>
               </div>
-              {calc.pct > 0 && <p className="mt-3 flex justify-between text-sm tabular-nums text-emerald-700 dark:text-emerald-400"><span>Bulk discount {calc.pct}%</span><span>-{idr(calc.discount)}</span></p>}
+              {calc.pct > 0 && <p className="mt-3 flex justify-between text-sm text-emerald-700 dark:text-emerald-400"><span>Bulk discount {calc.pct}%</span><AnimatedNumber value={calc.discount} format="currency" prefix="-" /></p>}
               {nextTier && <p className="mt-1 text-xs text-zinc-500">Add {nextTier.min - qty} more unit{nextTier.min - qty > 1 ? "s" : ""} for {nextTier.pct}% off.</p>}
 
               <div className="mt-4 space-y-1.5 border-t border-zinc-200 dark:border-zinc-800 pt-4">
                 <div className="flex justify-between text-xs text-zinc-600 dark:text-zinc-400">
                   <span>Base price ({qty}x)</span>
-                  <span className="tabular-nums">{idr(calc.basePrice)}</span>
+                  <AnimatedNumber value={calc.basePrice} format="currency" />
                 </div>
                 <div className="flex justify-between text-xs text-[#C94300] dark:text-[#C94300]">
                   <span className="flex items-center gap-1"><Zap className="h-3 w-3" /> JIT 5% Buffer</span>
-                  <span className="tabular-nums">+{idr(calc.jitBuffer)}</span>
+                  <AnimatedNumber value={calc.jitBuffer} format="currency" prefix="+" />
                 </div>
                 <div className="flex justify-between border-t border-zinc-200/80 dark:border-zinc-800/80 pt-2 text-base font-semibold">
                   <span className="text-zinc-800 dark:text-zinc-200">Order total</span>
-                  <span className="tabular-nums text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</span>
+                  <AnimatedNumber value={calc.total} format="currency" className="text-emerald-700 dark:text-emerald-400" />
                 </div>
               </div>
             </div>
@@ -675,12 +652,14 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
             <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-5">
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300"><Zap className="h-4 w-4 text-[#C94300] dark:text-[#C94300]" /> Estimated power draw</span>
-                <span className="font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{calc.watts} W</span>
+                <AnimatedNumber value={calc.watts} format="number" suffix=" W" className="font-semibold text-zinc-900 dark:text-zinc-50" />
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Power draw against PSU capacity">
                 <div className={`h-full rounded-full transition-all ${meter}`} style={{ width: `${Math.min(100, loadPct)}%` }} />
               </div>
-              <p className="mt-2 text-xs tabular-nums text-zinc-500">{loadPct}% of {calc.cap} W PSU capacity</p>
+              <p className="mt-2 text-xs tabular-nums text-zinc-500">
+                <AnimatedNumber value={loadPct} format="percent" /> of {calc.cap} W PSU capacity
+              </p>
               {!psuOk && <p className="mt-2 text-xs text-red-700 dark:text-red-400">Draw exceeds PSU capacity. Swap to a larger power supply.</p>}
               {psuOk && calc.load > 0.8 && <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">Little headroom left. A larger PSU leaves room to upgrade.</p>}
               <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-700 dark:text-emerald-400" title="The shortest warranty among the selected parts">
@@ -691,7 +670,7 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
             <button
               type="button"
               onClick={() => setDrawer(true)}
-              className={`hidden w-full items-center justify-center gap-2 rounded-full bg-[#FF5500] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] lg:inline-flex ${focusRing}`}
+              className={`vt-btn-tactile hidden w-full items-center justify-center gap-2 rounded-full bg-[#FF5500] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] lg:inline-flex ${focusRing}`}
             >
               <ShoppingCart className="h-4 w-4" /> Review Fast-Track Pre-Order
             </button>
@@ -713,15 +692,17 @@ export default function PresetBuilder({ onOpenEngine, onNavigate, role = "b2s", 
             )}
           </aside>
         </div>
-      </main>
+      </div>
 
       {/* Mobile action bar */}
       <div className="fixed inset-x-0 bottom-0 z-20 flex items-center gap-3 border-t border-black/[0.06] bg-[#F6F5F2]/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-zinc-500">Order total, {qtyLabel} (incl. 5% JIT)</p>
-          <p className="truncate font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{idr(calc.total)}</p>
+          <p className="truncate font-semibold text-emerald-700 dark:text-emerald-400">
+            <AnimatedNumber value={calc.total} format="currency" />
+          </p>
         </div>
-        <button type="button" onClick={() => setDrawer(true)} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E94B00] ${focusRing}`}>
+        <button type="button" onClick={() => setDrawer(true)} className={`vt-btn-tactile inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#E94B00] ${focusRing}`}>
           <ShoppingCart className="h-4 w-4" /> Checkout
         </button>
       </div>

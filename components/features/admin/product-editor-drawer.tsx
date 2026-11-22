@@ -3,21 +3,18 @@
 import {
   AlertCircle,
   Code2,
-  ImagePlus,
   LoaderCircle,
   Plus,
   Save,
-  Sparkles,
   Trash2,
-  Upload,
 } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
-import type { ChangeEvent, FormEvent, ReactElement } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent, ReactElement } from 'react';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   isProductCategory,
   isProductSellerType,
   isProductStockStatus,
-  isValidMediaUrl,
   parseJsonObject,
   parsePresetComponents,
   parseProductSpecs,
@@ -25,6 +22,7 @@ import {
   PRODUCT_CATEGORY_LABELS,
   PRODUCT_SELLER_TYPES,
   PRODUCT_STOCK_STATUSES,
+  resolveProductImages,
   SELLER_TYPE_LABELS,
   slugifyProductTitle,
   specEntriesToJson,
@@ -40,10 +38,11 @@ import type {
   ProductSpecEntry,
   ProductStockStatus,
 } from '@/lib/admin/products-validation';
-import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
+import { deleteProductImageFromStorage } from '@/lib/storage/uploadProductImage';
 import type { Json } from '@/types/database.types';
 import { createProductAction, updateProductAction } from '@/app/admin/products/actions';
 import { AdminDrawer } from './admin-drawer';
+import { ProductImageUploader } from './product-image-uploader';
 
 interface ProductEditorDrawerProps {
   readonly open: boolean;
@@ -51,13 +50,6 @@ interface ProductEditorDrawerProps {
   readonly onClose: () => void;
   readonly onSaved: (saved: ProductRow, mode: 'create' | 'edit') => void;
 }
-
-const ALLOWED_IMAGE_MIME: Readonly<Record<string, string>> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-};
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 const inputClass =
   'min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none transition placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-55';
@@ -70,7 +62,6 @@ export function ProductEditorDrawer({
   onSaved,
 }: ProductEditorDrawerProps): ReactElement {
   const isEditing = Boolean(product);
-  const uploadInputId = useId();
 
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -82,9 +73,11 @@ export function ProductEditorDrawer({
   const [stockStatus, setStockStatus] = useState<ProductStockStatus>('ready');
 
   const [images, setImages] = useState<string[]>([]);
-  const [imageUrlInput, setImageUrlInput] = useState('');
-  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [isUploading, setIsUploading] = useState(false);
+
+  const persistedImagesRef = useRef<Set<string>>(new Set());
+  const sessionUploadedUrlsRef = useRef<Set<string>>(new Set());
+  const removedPersistedUrlsRef = useRef<Set<string>>(new Set());
 
   const [specEntries, setSpecEntries] = useState<ProductSpecEntry[]>([]);
   const [rawSpecsText, setRawSpecsText] = useState('{}');
@@ -105,11 +98,13 @@ export function ProductEditorDrawer({
     if (!open) return;
 
     setErrorMessage('');
-    setFailedImages({});
-    setImageUrlInput('');
     setIsJsonMode(false);
+    sessionUploadedUrlsRef.current.clear();
+    removedPersistedUrlsRef.current.clear();
 
     if (product) {
+      const initialImages = resolveProductImages(product);
+      persistedImagesRef.current = new Set(initialImages);
       setTitle(product.title);
       setSlug(product.slug);
       setSlugTouched(true);
@@ -118,7 +113,7 @@ export function ProductEditorDrawer({
       setCategory(product.category);
       setSellerType(product.seller_type);
       setStockStatus(product.stock_status);
-      setImages([...product.images]);
+      setImages(initialImages);
       const parsedSpecs = parseProductSpecs(product.specs);
       setSpecEntries(
         parsedSpecs.length > 0 ? parsedSpecs : [{ id: 'spec-init', key: '', value: '' }],
@@ -134,6 +129,7 @@ export function ProductEditorDrawer({
       setReviewQuote(product.review_quote ?? '');
       setReviewVideoUrl(product.review_video_url ?? '');
     } else {
+      persistedImagesRef.current = new Set();
       setTitle('');
       setSlug('');
       setSlugTouched(false);
@@ -161,75 +157,30 @@ export function ProductEditorDrawer({
     }
   };
 
-  const handleAddImageUrl = () => {
-    const candidate = imageUrlInput.trim();
-    if (!candidate) return;
-    if (!isValidMediaUrl(candidate)) {
-      setErrorMessage('URL gambar harus diawali https://, http://, atau /images/...');
-      return;
-    }
-    setErrorMessage('');
-    if (!images.includes(candidate)) {
-      setImages((current) => [...current, candidate]);
-    }
-    setImageUrlInput('');
+  const handleSessionUploaded = (url: string) => {
+    sessionUploadedUrlsRef.current.add(url);
+    removedPersistedUrlsRef.current.delete(url);
   };
 
-  const handleUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-
-    const ext = ALLOWED_IMAGE_MIME[file.type];
-    if (!ext) {
-      setErrorMessage('Format gambar harus JPG, PNG, atau WebP.');
+  const handleRemoveImage = (url: string) => {
+    if (sessionUploadedUrlsRef.current.has(url)) {
+      sessionUploadedUrlsRef.current.delete(url);
+      void deleteProductImageFromStorage(url);
       return;
     }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      setErrorMessage('Ukuran file maksimal 10 MB.');
-      return;
+    if (persistedImagesRef.current.has(url)) {
+      removedPersistedUrlsRef.current.add(url);
     }
-    if (!isSupabaseAuthConfigured) {
-      setErrorMessage('Konfigurasi Supabase belum aktif untuk unggah media.');
-      return;
+  };
+
+  const handleCancelOrClose = () => {
+    if (isSaving || isUploading) return;
+    const unsavedUploads = Array.from(sessionUploadedUrlsRef.current);
+    sessionUploadedUrlsRef.current.clear();
+    if (unsavedUploads.length > 0) {
+      void Promise.allSettled(unsavedUploads.map((url) => deleteProductImageFromStorage(url)));
     }
-
-    setErrorMessage('');
-    setIsUploading(true);
-    try {
-      const supabase = getSupabaseBrowserClient();
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) {
-        throw new Error('Sesi tidak valid. Silakan login ulang.');
-      }
-
-      const objectPath = `${user.id}/products/${crypto.randomUUID()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('post-media')
-        .upload(objectPath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (uploadError) {
-        throw new Error('Unggah ke bucket post-media gagal. Pastikan kebijakan Storage aktif.');
-      }
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('post-media').getPublicUrl(objectPath);
-
-      setImages((current) => (current.includes(publicUrl) ? current : [...current, publicUrl]));
-    } catch (uploadErr: unknown) {
-      setErrorMessage(
-        uploadErr instanceof Error ? uploadErr.message : 'Gagal mengunggah gambar produk.',
-      );
-    } finally {
-      setIsUploading(false);
-    }
+    onClose();
   };
 
   const toggleSpecMode = () => {
@@ -276,6 +227,8 @@ export function ProductEditorDrawer({
       seller_type: sellerType,
       stock_status: stockStatus,
       images,
+      image_url: images[0] ?? null,
+      gallery_urls: images,
       specs: resolvedSpecs,
       is_preset: isPreset,
       preset_components: presetComponents.map((row) => ({
@@ -305,6 +258,19 @@ export function ProductEditorDrawer({
         return;
       }
 
+      const savedUrls = resolveProductImages(result.data);
+      const removedPersisted = Array.from(removedPersistedUrlsRef.current).filter(
+        (url) => !savedUrls.includes(url),
+      );
+      sessionUploadedUrlsRef.current.clear();
+      removedPersistedUrlsRef.current.clear();
+
+      if (removedPersisted.length > 0) {
+        void Promise.allSettled(
+          removedPersisted.map((url) => deleteProductImageFromStorage(url)),
+        );
+      }
+
       onSaved(result.data, product ? 'edit' : 'create');
     } catch (submitErr: unknown) {
       setErrorMessage(
@@ -318,7 +284,7 @@ export function ProductEditorDrawer({
   return (
     <AdminDrawer
       open={open}
-      onClose={onClose}
+      onClose={handleCancelOrClose}
       closeDisabled={isSaving || isUploading}
       badge={isEditing ? 'Edit Produk Market' : 'Produk Market Baru'}
       title={isEditing ? product?.title || 'Edit Produk' : 'Tambah Produk / Preset'}
@@ -332,7 +298,7 @@ export function ProductEditorDrawer({
           <button
             type="button"
             disabled={isSaving || isUploading}
-            onClick={onClose}
+            onClick={handleCancelOrClose}
             className="inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-subtle disabled:opacity-50"
           >
             Batal
@@ -341,7 +307,7 @@ export function ProductEditorDrawer({
             type="submit"
             form="admin-product-editor-form"
             disabled={isSaving || isUploading}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground disabled:cursor-wait disabled:opacity-55"
+            className="vt-btn-tactile inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover disabled:cursor-wait disabled:opacity-55"
           >
             {isSaving ? (
               <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={1.75} aria-hidden="true" />
@@ -518,101 +484,15 @@ export function ProductEditorDrawer({
         </section>
 
         {/* Images Section */}
-        <section className="space-y-3 rounded-xl border border-default bg-surface p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <ImagePlus className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-              <span>Galeri Foto Produk</span>
-            </h3>
-            <label
-              htmlFor={uploadInputId}
-              className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle ${
-                isUploading ? 'pointer-events-none opacity-55' : ''
-              }`}
-            >
-              {isUploading ? (
-                <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-              ) : (
-                <Upload className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-              )}
-              <span>{isUploading ? 'Mengunggah…' : 'Upload ke post-media'}</span>
-              <input
-                id={uploadInputId}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                disabled={isUploading}
-                onChange={(event) => void handleUploadImage(event)}
-                className="sr-only"
-              />
-            </label>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              type="text"
-              value={imageUrlInput}
-              onChange={(event) => setImageUrlInput(event.target.value)}
-              placeholder="/images/hero/pc-rig.jpg atau https://..."
-              aria-label="Tambah URL gambar produk"
-              className={`${inputClass} flex-1 font-mono text-xs`}
-            />
-            <button
-              type="button"
-              onClick={handleAddImageUrl}
-              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default bg-ink px-4 py-2 text-xs font-semibold text-white transition hover:bg-accent-hover"
-            >
-              <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-              <span>Tambah URL</span>
-            </button>
-          </div>
-
-          {images.length > 0 ? (
-            <ul className="space-y-2">
-              {images.map((url, index) => (
-                <li
-                  key={`${url}-${index}`}
-                  className="flex items-center gap-3 rounded-lg border border-default bg-canvas p-2"
-                >
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-default bg-surface">
-                    {failedImages[url] ? (
-                      <span className="grid h-full w-full place-items-center text-[10px] font-medium text-secondary">
-                        URL
-                      </span>
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={url}
-                        alt={`Pratinjau ${index + 1}`}
-                        loading="lazy"
-                        onError={() =>
-                          setFailedImages((current) => ({ ...current, [url]: true }))
-                        }
-                        className="h-full w-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <span className="min-w-0 flex-1 truncate font-mono text-xs text-secondary">
-                    {url}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setImages((current) => current.filter((_, itemIdx) => itemIdx !== index))
-                    }
-                    aria-label={`Hapus gambar ${index + 1}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-surface text-secondary transition hover:border-status-danger/45 hover:text-status-danger"
-                  >
-                    <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-xs text-secondary">
-              Belum ada gambar. Tambahkan path lokal (`/images/...`), URL HTTPS, atau unggah gambar.
-            </p>
-          )}
-        </section>
+        <ProductImageUploader
+          images={images}
+          productSlug={slug || slugifyProductTitle(title) || 'produk'}
+          isUploading={isUploading}
+          onUploadingChange={setIsUploading}
+          onChangeImages={setImages}
+          onSessionUploaded={handleSessionUploaded}
+          onRemoveImage={handleRemoveImage}
+        />
 
         {/* Specs Section */}
         <section className="space-y-3 rounded-xl border border-default bg-surface p-4">
@@ -707,18 +587,12 @@ export function ProductEditorDrawer({
 
         {/* Preset Builder Toggle & Components */}
         <section className="space-y-3 rounded-xl border border-default bg-surface p-4">
-          <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg border border-default bg-canvas px-3.5 py-2.5">
-            <span className="flex items-center gap-2.5 text-sm font-medium text-primary">
-              <Sparkles className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-              <span>Tandai sebagai Preset Rakitan Teruji</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={isPreset}
-              onChange={(event) => setIsPreset(event.target.checked)}
-              className="h-5 w-5 accent-[#EA580C]"
-            />
-          </label>
+          <ToggleSwitch
+            label="Tandai sebagai Preset Rakitan Teruji"
+            description="Tampilkan produk pada daftar preset siap pakai dan aktifkan rincian komponen per slot."
+            checked={isPreset}
+            onChange={setIsPreset}
+          />
 
           {isPreset ? (
             <div className="space-y-2 pt-1">

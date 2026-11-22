@@ -3,6 +3,7 @@ import {
   Swords, Scale, Cpu, Laptop, Smartphone, CheckCircle2, XCircle, Zap, ArrowRightLeft, Trophy, Sparkles,
   Search, ShieldCheck, X,
 } from "lucide-react";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 
 /* ───────────────────────── Sample catalog (prices in IDR) ───────────────────────── */
 // perf is a ViciTech performance index (0-100). It drives the "performance per Rp 1 juta" value score.
@@ -198,8 +199,10 @@ function ItemCard({ item, side, leader, line, Icon, onChange }) {
           <div className="mt-1.5"><CondBadge cond={item.cond} /></div>
         </div>
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">{idr(item.price)}</p>
-      <button type="button" onClick={onChange} className={`mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium text-[#30343A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}>
+      <p className="mt-3 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+        <AnimatedNumber value={item.price} format="currency" />
+      </p>
+      <button type="button" onClick={onChange} className={`vt-btn-tactile mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 px-4 py-2.5 text-sm font-medium text-[#30343A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}>
         <Search className="h-4 w-4" /> Change {s.label}
       </button>
     </article>
@@ -296,16 +299,8 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
   const valueGap = Math.round((Math.max(result.valA, result.valB) / Math.min(result.valA, result.valB) - 1) * 100);
 
   return (
-    <div className="min-h-screen bg-[#F6F5F2] text-[#141518] antialiased">
-      <header className="border-b border-black/[0.06] bg-[#F6F5F2]/90">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#FF5500] text-white"><Cpu className="h-5 w-5" /></span>
-          <span className="font-serif text-xl font-semibold tracking-tight">ViciTech</span>
-          <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#5A606A]">Versus Arena</span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="bg-[#F6F5F2] text-[#141518] antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#FF5500]">Make the comparison count</p>
         <h1 className="flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#141518] sm:text-5xl"><Swords className="h-8 w-8 text-[#FF5500]" /> Versus Arena</h1>
         <p className="mt-4 max-w-2xl leading-relaxed text-[#5A606A]">Put two products head to head, see who wins each spec, compare value per rupiah and get a clear verdict for the way you plan to use them.</p>
@@ -332,7 +327,7 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
             <ItemCard item={A} side="a" leader={result.leader === "a"} line={cfg.line} Icon={Icon} onChange={() => setPicker("a")} />
             <div className="flex items-center justify-center gap-3 md:flex-col">
               <span className="grid h-12 w-12 place-items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#C94300] dark:text-[#C94300]"><Swords className="h-6 w-6" /></span>
-              <button type="button" onClick={swap} aria-label="Swap Item A and Item B" className={`grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}><ArrowRightLeft className="h-4 w-4" /></button>
+              <button type="button" onClick={swap} aria-label="Swap Item A and Item B" className={`vt-btn-tactile grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#5A606A] hover:border-[#FF5500]/35 hover:text-[#C94300] ${focusRing}`}><ArrowRightLeft className="h-4 w-4" /></button>
             </div>
             <ItemCard item={B} side="b" leader={result.leader === "b"} line={cfg.line} Icon={Icon} onChange={() => setPicker("b")} />
           </div>
@@ -340,9 +335,9 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
           {/* Scoreboard */}
           <div className="rounded-2xl border border-black/[0.07] bg-white p-5 shadow-[0_8px_24px_rgba(20,21,24,0.035)]" aria-label="Scoreboard">
             <div className="flex items-center justify-between text-sm">
-              <span className={`font-medium ${SIDES.a.text}`}>{A.name}: {result.wonA} rows</span>
+              <span className={`font-medium ${SIDES.a.text}`}>{A.name}: <AnimatedNumber value={result.wonA} format="number" /> rows</span>
               <span className="text-xs text-zinc-500">{result.ranked} ranked rows</span>
-              <span className={`font-medium ${SIDES.b.text}`}>{B.name}: {result.wonB} rows</span>
+              <span className={`font-medium ${SIDES.b.text}`}>{B.name}: <AnimatedNumber value={result.wonB} format="number" /> rows</span>
             </div>
             <div className="mt-2 flex h-2.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" role="img" aria-label={`${A.name} wins ${result.wonA} rows, ${B.name} wins ${result.wonB}`}>
               <div className={`${SIDES.a.bar} transition-all duration-500`} style={{ width: `${(result.wonA / total) * 100}%` }} />
@@ -395,12 +390,12 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
               <div className="mt-4 space-y-4">
                 {[["a", A, result.valA], ["b", B, result.valB]].map(([side, item, v]) => (
                   <div key={side}>
-                    <div className="flex items-center justify-between gap-3 text-sm"><span className={`truncate ${SIDES[side].text}`}>{item.name}</span><span className={`flex items-center gap-1 tabular-nums ${better === side ? "font-semibold text-emerald-700 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"}`}><Zap className="h-3.5 w-3.5" /> {v.toFixed(1)}</span></div>
+                    <div className="flex items-center justify-between gap-3 text-sm"><span className={`truncate ${SIDES[side].text}`}>{item.name}</span><span className={`flex items-center gap-1 ${better === side ? "font-semibold text-emerald-700 dark:text-emerald-400" : "text-zinc-700 dark:text-zinc-300"}`}><Zap className="h-3.5 w-3.5" /> <AnimatedNumber value={v} format="number" decimals={1} /></span></div>
                     <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"><div className={`h-full rounded-full transition-all duration-500 ${better === side ? "bg-emerald-400" : "bg-zinc-500"}`} style={{ width: `${(v / Math.max(result.valA, result.valB)) * 100}%` }} /></div>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 text-sm text-zinc-700 dark:text-zinc-300">{valueGap === 0 ? "Both deliver the same value per rupiah." : <><span className="font-semibold text-emerald-700 dark:text-emerald-400">{(better === "a" ? A : B).name}</span> gives {valueGap}% more performance per rupiah.</>}</p>
+              <p className="mt-4 text-sm text-zinc-700 dark:text-zinc-300">{valueGap === 0 ? "Both deliver the same value per rupiah." : <><span className="font-semibold text-emerald-700 dark:text-emerald-400">{(better === "a" ? A : B).name}</span> gives <AnimatedNumber value={valueGap} format="percent" /> more performance per rupiah.</>}</p>
             </section>
 
             {/* Verdict */}
@@ -425,8 +420,8 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
               </ul>
 
               <div className="mt-5 flex flex-wrap gap-3">
-                <button type="button" onClick={deploy} className={`inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] ${focusRing}`}><Cpu className="h-4 w-4" /> Deploy to Preset Builder</button>
-                <button type="button" onClick={requestQuote} className={`inline-flex items-center gap-2 rounded-full border border-[#FF5500]/25 px-5 py-3 text-sm font-medium text-[#C94300] hover:bg-[#FF5500]/[0.06] ${focusRing}`}><ShieldCheck className="h-4 w-4" /> Request Official Quote</button>
+                <button type="button" onClick={deploy} className={`vt-btn-tactile inline-flex items-center gap-2 rounded-full bg-[#FF5500] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#E94B00] ${focusRing}`}><Cpu className="h-4 w-4" /> Deploy to Preset Builder</button>
+                <button type="button" onClick={requestQuote} className={`vt-btn-tactile inline-flex items-center gap-2 rounded-full border border-[#FF5500]/25 px-5 py-3 text-sm font-medium text-[#C94300] hover:bg-[#FF5500]/[0.06] ${focusRing}`}><ShieldCheck className="h-4 w-4" /> Request Official Quote</button>
               </div>
 
               <div aria-live="polite" className="mt-3 space-y-2 text-sm">
@@ -443,9 +438,7 @@ export default function VersusArena({ onDeployToPreset, onRequestQuote }) {
             </section>
           </div>
         </section>
-      </main>
-
-      <footer className="border-t border-black/[0.06] py-6 text-center text-xs text-[#777C83]">ViciTech Engine v1.0. Sample catalog, prices and scores.</footer>
+      </div>
 
       {picker && <Picker cat={tab} side={picker} otherId={sel[tab][picker === "a" ? "b" : "a"]} currentId={sel[tab][picker]} onPick={(id) => choose(picker, id)} onClose={() => setPicker(null)} />}
     </div>

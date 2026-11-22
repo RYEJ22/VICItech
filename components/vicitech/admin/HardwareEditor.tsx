@@ -634,7 +634,7 @@ export default function HardwareEditor({ componentId }: { readonly componentId?:
             <button
               type="submit"
               disabled={isSaving}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-accent-hover hover:text-accent-foreground disabled:cursor-wait disabled:opacity-55"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-cta-hover disabled:cursor-wait disabled:opacity-55"
             >
               {isSaving ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={1.75} aria-hidden="true" />

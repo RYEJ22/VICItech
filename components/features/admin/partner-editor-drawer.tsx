@@ -1,9 +1,10 @@
 'use client';
 
-import { AlertCircle, LoaderCircle, MapPin, Save, ShieldCheck } from 'lucide-react';
+import { AlertCircle, LoaderCircle, MapPin, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { FormEvent, ReactElement } from 'react';
 import { createPartnerAction, updatePartnerAction } from '@/app/admin/partners/actions';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
   isPartnerType,
   PARTNER_TYPE_LABELS,
@@ -145,7 +146,7 @@ export function PartnerEditorDrawer({
             type="submit"
             form="admin-partner-editor-form"
             disabled={isSaving}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground disabled:cursor-wait disabled:opacity-55"
+            className="vt-btn-tactile inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover disabled:cursor-wait disabled:opacity-55"
           >
             {isSaving ? (
               <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={1.75} aria-hidden="true" />
@@ -311,18 +312,12 @@ export function PartnerEditorDrawer({
             </div>
           </div>
 
-          <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg border border-default bg-canvas px-3.5 py-2.5">
-            <span className="flex items-center gap-2 text-sm font-medium text-primary">
-              <ShieldCheck className="h-4 w-4 text-status-live" strokeWidth={1.75} aria-hidden="true" />
-              <span>Tandai sebagai Mitra Terverifikasi</span>
-            </span>
-            <input
-              type="checkbox"
-              checked={isVerified}
-              onChange={(event) => setIsVerified(event.target.checked)}
-              className="h-5 w-5 accent-[#EA580C]"
-            />
-          </label>
+          <ToggleSwitch
+            label="Tandai sebagai Mitra Terverifikasi"
+            description="Tampilkan mitra ini secara publik pada direktori Service Center dan Toko Komponen."
+            checked={isVerified}
+            onChange={setIsVerified}
+          />
         </section>
       </form>
     </AdminDrawer>

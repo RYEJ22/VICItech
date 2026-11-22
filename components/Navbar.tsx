@@ -8,13 +8,11 @@ import {
   Bell,
   ChevronDown,
   Cpu,
-  Database,
   Gauge,
   LayoutGrid,
   MapPin,
   Menu,
   MessageSquare,
-  MoreHorizontal,
   RefreshCw,
   Search,
   ShoppingBag,
@@ -25,8 +23,9 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
+import { shouldInterceptRouteLink, startRouteTransition } from '@/lib/motion/view-transition';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
   DATA_SOURCES,
@@ -59,7 +58,7 @@ interface NavbarProps {
   readonly initialRole?: UserRole;
 }
 
-type OpenMenu = 'brand' | 'sources' | 'notifications' | 'more' | null;
+type OpenMenu = 'notifications' | 'account' | null;
 
 const SHELL_ROUTES = ['/home', '/market', '/community'];
 const MINIMIZE_AFTER_Y = 80;
@@ -67,7 +66,9 @@ const RESTORE_BELOW_Y = 40;
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60';
-const utilityBtn = `relative inline-flex h-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 text-xs font-medium transition-colors duration-150 ${focusRing}`;
+const utilityBtnBase = `vt-btn-tactile relative inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border ${focusRing}`;
+const desktopUtilityBtn = `${utilityBtnBase} h-10 w-10`;
+const mobileUtilityBtn = `${utilityBtnBase} h-11 w-11`;
 const utilityIdle = 'border-default bg-surface text-secondary hover:bg-subtle hover:text-primary';
 const utilityOpen = 'border-accent-primary bg-accent-subtle text-primary';
 const menuPanel = `absolute top-full z-[60] mt-2 rounded-xl border border-default bg-surface p-2 shadow-2xl ${styles.menuPop ?? ''}`;
@@ -125,7 +126,7 @@ function sourceBadgeClass(tone: DataSourceTone): string {
 function BrandMark({ compact = false }: { readonly compact?: boolean }): ReactElement {
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-full bg-accent-primary text-primary shadow-sm ${
+      className={`grid shrink-0 place-items-center rounded-full bg-accent-primary text-white shadow-sm ${
         compact ? 'h-8 w-8' : 'h-9 w-9'
       }`}
     >
@@ -149,18 +150,18 @@ function NotificationsPanel({
   return (
     <div
       role="dialog"
-      aria-label="Notifications"
+      aria-label="Notifikasi"
       className={`${menuPanel} ${align === 'right' ? 'right-0' : 'left-0'} w-[min(22rem,calc(100vw-1.5rem))]`}
     >
       <div className="flex items-center justify-between gap-2 px-2 pb-2 pt-1">
-        <p className="text-sm font-semibold text-primary">Notifications</p>
+        <p className="text-sm font-semibold text-primary">Notifikasi</p>
         <button
           type="button"
           onClick={onMarkAllRead}
           disabled={unread === 0}
           className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-secondary transition hover:bg-subtle hover:text-primary disabled:cursor-default disabled:opacity-50 ${focusRing}`}
         >
-          Mark all read
+          Tandai semua dibaca
         </button>
       </div>
       <ul className="grid gap-1">
@@ -226,6 +227,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   const toggleMenu = useCallback((menu: Exclude<OpenMenu, null>) => {
     setOpenMenu((current) => (current === menu ? null : menu));
+  }, []);
+
+  const toggleAccountMenu = useCallback(() => {
+    toggleMenu('account');
+  }, [toggleMenu]);
+
+  const closeAllMenus = useCallback(() => {
+    setOpenMenu(null);
   }, []);
 
   const triggerGlobalSearch = useCallback(() => {
@@ -485,15 +494,32 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const unreadNotifications = countUnreadNotifications(notifications);
   const notificationBadge = formatUnreadBadge(unreadNotifications);
 
+  const handleHrefClick = useCallback(
+    (event: ReactMouseEvent<HTMLAnchorElement>, href: string, closeMenus = false) => {
+      if (closeMenus) {
+        setOpenMenu(null);
+      }
+      if (shouldInterceptRouteLink(event, href, pathname)) {
+        event.preventDefault();
+        startRouteTransition(() => {
+          router.push(href);
+        });
+      }
+    },
+    [pathname, router],
+  );
+
   const handleNavClick = useCallback(
-    (item: NavItem) => {
+    (event: ReactMouseEvent<HTMLAnchorElement>, item: NavItem) => {
       if (item.targetModule && pathname === '/home') {
         window.dispatchEvent(
           new CustomEvent('vicitech:navigate-module', { detail: { module: item.targetModule } }),
         );
+        return;
       }
+      handleHrefClick(event, item.href);
     },
-    [pathname],
+    [handleHrefClick, pathname],
   );
 
   // Shared navigation for search results, notifications, data sources and More menu.
@@ -507,7 +533,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         );
         return;
       }
-      router.push(targetHref);
+      startRouteTransition(() => {
+        router.push(targetHref);
+      });
     },
     [pathname, router],
   );
@@ -517,7 +545,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       if (pathname === '/home') {
         window.dispatchEvent(new CustomEvent('vicitech:navigate-module', { detail: { module: mod } }));
       } else {
-        router.push(`/home?tab=${encodeURIComponent(mod)}`);
+        startRouteTransition(() => {
+          router.push(`/home?tab=${encodeURIComponent(mod)}`);
+        });
       }
     },
     [pathname, router],
@@ -547,9 +577,6 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const barState = isMinimized
     ? 'pointer-events-none invisible -translate-y-6 scale-95 opacity-0'
     : 'pointer-events-auto visible translate-y-0 scale-100 opacity-100';
-  const pillState = isMinimized
-    ? 'pointer-events-none invisible -translate-y-4 scale-95 opacity-0'
-    : 'pointer-events-auto visible translate-y-0 scale-100 opacity-100';
   const logoState = isMinimized
     ? 'pointer-events-auto visible translate-y-0 scale-100 opacity-100'
     : 'pointer-events-none invisible -translate-y-2 scale-90 opacity-0';
@@ -559,124 +586,85 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   return (
     <>
-      {/* ───────── Desktop Command Floating Pill (md and up) ───────── */}
+      {/* ───────── Single-Row Desktop Command Floating Bar (md and up) ───────── */}
       <header
         aria-hidden={isMinimized}
         className="pointer-events-none fixed inset-x-0 top-3 z-50 hidden justify-center px-4 md:flex"
       >
         <div
-          className={`flex h-14 w-full max-w-6xl items-center gap-2 rounded-full py-1.5 pl-1.5 pr-2 lg:gap-3 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
+          className={`flex h-14 w-full max-w-7xl items-center justify-between gap-2 rounded-full py-1.5 pl-2 pr-2 lg:h-[60px] lg:gap-3 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
         >
-          {/* Left: logo + brand dropdown */}
-          <div className="relative shrink-0" data-nav-menu>
+          {/* Left: Brand link */}
+          <Link
+            href="/"
+            onClick={(event) => handleHrefClick(event, '/', true)}
+            tabIndex={isMinimized ? -1 : undefined}
+            className={`vt-btn-tactile inline-flex h-10 shrink-0 items-center gap-2 rounded-full pl-0.5 pr-2 hover:bg-subtle ${focusRing}`}
+          >
+            <BrandMark compact />
+            <span className="font-serif text-base font-semibold tracking-tight text-primary">ViciTech</span>
+          </Link>
+
+          {/* Center: 6 primary destinations */}
+          <nav
+            aria-label="Navigasi utama ViciTech"
+            className="flex min-w-0 items-center gap-0.5 overflow-x-auto lg:gap-1"
+          >
+            {visibleDesktopItems.map((item) => {
+              const active = isActiveRoute(pathname, item.href, activeModule);
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={(event) => handleNavClick(event, item)}
+                  aria-current={active ? 'page' : undefined}
+                  tabIndex={isMinimized ? -1 : undefined}
+                  className={`vt-btn-tactile inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-xs lg:px-3 xl:px-3.5 xl:text-sm ${focusRing} ${
+                    active
+                      ? 'bg-accent-cta font-semibold text-white shadow-sm hover:bg-accent-cta-hover'
+                      : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
+                  }`}
+                >
+                  <NavIcon iconKey={item.iconKey} className="hidden h-4 w-4 shrink-0 xl:block" />
+                  <span className="xl:hidden">{item.shortLabel}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right: Compact Ctrl K search, Notifications & Account/System popover */}
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
-              onClick={() => toggleMenu('brand')}
-              aria-haspopup="menu"
-              aria-expanded={openMenu === 'brand'}
-              className={`group inline-flex h-11 items-center gap-2 rounded-full pl-1 pr-2.5 transition-colors hover:bg-subtle ${focusRing}`}
+              onClick={triggerGlobalSearch}
+              tabIndex={isMinimized ? -1 : undefined}
+              aria-label="Cari modul, nomor seri, panduan (Ctrl K)"
+              aria-keyshortcuts="Control+K Meta+K"
+              className={`vt-btn-tactile inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-default bg-surface px-2.5 text-xs text-secondary hover:bg-subtle hover:text-primary lg:px-3 ${focusRing}`}
             >
-              <BrandMark />
-              <span className="font-serif text-base font-semibold tracking-tight text-primary">ViciTech</span>
-              <ChevronDown
-                className={`h-3.5 w-3.5 text-secondary transition-transform duration-200 ${openMenu === 'brand' ? 'rotate-180' : ''}`}
-                strokeWidth={1.75}
-                aria-hidden="true"
-              />
+              <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+              <kbd className="hidden rounded-full bg-subtle px-2 py-0.5 font-mono text-[10px] font-semibold text-secondary lg:inline">
+                Ctrl K
+              </kbd>
             </button>
-            {openMenu === 'brand' && (
-              <div role="menu" aria-label="ViciTech workspace" className={`${menuPanel} left-0 w-64`}>
-                {[
-                  { label: 'Welcome page', hint: 'Circular tech ecosystem intro', href: '/' },
-                  { label: 'Workspace Home', hint: 'Role-based overview', href: '/home' },
-                  { label: 'Market', hint: 'Ready stock + Hardware Library', href: '/market' },
-                  { label: 'Service & Mitra', hint: 'Verified partners directory', href: '/partners' },
-                ].map((entry) => (
-                  <Link
-                    key={entry.href}
-                    role="menuitem"
-                    href={entry.href}
-                    onClick={() => setOpenMenu(null)}
-                    className={`flex min-h-11 flex-col justify-center rounded-lg px-3 py-2 transition-colors hover:bg-subtle ${focusRing}`}
-                  >
-                    <span className="text-sm font-medium text-primary">{entry.label}</span>
-                    <span className="text-xs text-secondary">{entry.hint}</span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Center-left: search trigger */}
-          <button
-            type="button"
-            onClick={triggerGlobalSearch}
-            aria-label="Search modules, serials, guides (Ctrl K)"
-            aria-keyshortcuts="Control+K Meta+K"
-            className={`inline-flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full border border-default bg-surface px-3 text-left text-sm text-secondary transition-colors hover:bg-subtle hover:text-primary lg:max-w-sm ${focusRing}`}
-          >
-            <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-            <span className="hidden min-w-0 flex-1 truncate lg:inline">Search modules, serials, guides</span>
-            <span className="min-w-0 flex-1 truncate lg:hidden">Search</span>
-            <kbd className="shrink-0 rounded-full bg-subtle px-2 py-0.5 font-mono text-[10px] font-semibold text-secondary">
-              Ctrl K
-            </kbd>
-          </button>
-
-          {/* Right utilities */}
-          <div className="ml-auto flex shrink-0 items-center gap-1.5">
-            {/* Data sources */}
-            <div className="relative" data-nav-menu>
-              <button
-                type="button"
-                onClick={() => toggleMenu('sources')}
-                aria-haspopup="dialog"
-                aria-expanded={openMenu === 'sources'}
-                aria-label="Data sources"
-                className={`${utilityBtn} ${openMenu === 'sources' ? utilityOpen : utilityIdle}`}
-              >
-                <span className="relative flex h-2 w-2" aria-hidden="true">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-live opacity-60 motion-reduce:animate-none" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-status-live" />
-                </span>
-                <Database className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-                <span className="hidden xl:inline">Data sources</span>
-              </button>
-              {openMenu === 'sources' && (
-                <div role="dialog" aria-label="Data sources" className={`${menuPanel} right-0 w-80`}>
-                  <p className="px-2 pb-2 pt-1 text-sm font-semibold text-primary">Data transparency</p>
-                  <ul className="grid gap-1">
-                    {DATA_SOURCES.map((source) => (
-                      <li key={source.id}>
-                        <button
-                          type="button"
-                          onClick={() => navigateTo(source.href, source.module, source.view)}
-                          className={`flex min-h-11 w-full flex-col items-start gap-1 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-subtle ${focusRing}`}
-                        >
-                          <span className={sourceBadgeClass(source.tone)}>{source.label}</span>
-                          <span className="text-sm font-medium text-primary">{source.title}</span>
-                          <span className="text-xs leading-relaxed text-secondary">{source.detail}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Notifications */}
             <div className="relative" data-nav-menu>
               <button
                 type="button"
                 onClick={() => toggleMenu('notifications')}
+                tabIndex={isMinimized ? -1 : undefined}
                 aria-haspopup="dialog"
                 aria-expanded={openMenu === 'notifications'}
-                aria-label={notificationBadge ? `Notifications (${unreadNotifications} unread)` : 'Notifications'}
-                className={`${utilityBtn} w-9 px-0 ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
+                aria-label={notificationBadge ? `Notifikasi (${unreadNotifications} belum dibaca)` : 'Notifikasi'}
+                className={`${desktopUtilityBtn} ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
               >
                 <Bell className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 {notificationBadge && (
-                  <span className="absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-accent-primary px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-primary">
+                  <span
+                    key={notificationBadge}
+                    className="vt-badge-pop vt-badge-pulse absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-accent-cta px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
+                  >
                     {notificationBadge}
                   </span>
                 )}
@@ -691,95 +679,23 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               )}
             </div>
 
-            {/* More menu */}
-            <div className="relative" data-nav-menu>
-              <button
-                type="button"
-                onClick={() => toggleMenu('more')}
-                aria-haspopup="menu"
-                aria-expanded={openMenu === 'more'}
-                aria-label={dmBadgeLabel ? `More (${unreadCount} unread messages)` : 'More'}
-                className={`${utilityBtn} ${openMenu === 'more' ? utilityOpen : utilityIdle}`}
-              >
-                <MoreHorizontal className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span className="hidden xl:inline">More</span>
-                {dmBadgeLabel && (
-                  <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-accent-primary" />
-                )}
-              </button>
-              {openMenu === 'more' && (
-                <div role="menu" aria-label="More tools" className={`${menuPanel} right-0 w-72`}>
-                  {MORE_MENU_ITEMS.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => navigateTo(entry.href, entry.module)}
-                      className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-subtle ${focusRing}`}
-                    >
-                      <MoreIcon iconKey={entry.iconKey} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-medium text-primary">{entry.label}</span>
-                        <span className="block text-xs text-secondary">{entry.hint}</span>
-                      </span>
-                      {entry.iconKey === 'messages' && dmBadgeLabel && (
-                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-accent-primary px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-primary">
-                          {dmBadgeLabel}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Profile pill, Admin QC Portal (admins only), Sign In / Sign Out */}
             <AuthNavigation
+              variant="desktop"
+              isMenuOpen={openMenu === 'account'}
+              onToggleMenu={toggleAccountMenu}
+              onCloseMenu={closeAllMenus}
+              dataSources={DATA_SOURCES}
+              moreItems={MORE_MENU_ITEMS}
+              dmBadgeLabel={dmBadgeLabel}
               onAuthState={undefined}
               onNotify={undefined}
               onNavigate={handleAuthNavigate}
+              onNavigateHref={navigateTo}
               onSignOut={undefined}
             />
           </div>
         </div>
       </header>
-
-      {/* ───────── Desktop Floating Pill Sub-Nav (merged Market) ───────── */}
-      <div
-        aria-hidden={isMinimized}
-        className="pointer-events-none fixed inset-x-0 top-[5rem] z-40 hidden justify-center px-4 md:flex"
-      >
-        <nav
-          aria-label="Navigasi utama ViciTech"
-          className={`max-w-full ${motion} ${pillState}`}
-        >
-          <div
-            className={`flex items-center gap-0.5 overflow-x-auto rounded-full p-1.5 lg:gap-1 ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
-          >
-            {visibleDesktopItems.map((item) => {
-              const active = isActiveRoute(pathname, item.href, activeModule);
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => handleNavClick(item)}
-                  aria-current={active ? 'page' : undefined}
-                  tabIndex={isMinimized ? -1 : undefined}
-                  className={`inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-xs transition-colors duration-200 lg:px-3.5 lg:text-sm ${focusRing} ${
-                    active
-                      ? 'bg-accent-primary font-semibold text-primary shadow-sm hover:bg-accent-hover hover:text-accent-foreground'
-                      : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
-                  }`}
-                >
-                  <NavIcon iconKey={item.iconKey} className="hidden h-4 w-4 shrink-0 xl:block" />
-                  <span className="lg:hidden">{item.shortLabel}</span>
-                  <span className="hidden lg:inline">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
 
       {/* ───────── Mobile Command Floating Pill (< md) ───────── */}
       <header
@@ -787,19 +703,25 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-3 md:hidden"
       >
         <div
-          className={`flex h-14 w-full items-center justify-between gap-2 rounded-full py-1.5 pl-1.5 pr-2 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
+          className={`flex h-[60px] w-full items-center justify-between gap-1.5 rounded-full py-1.5 pl-2 pr-1.5 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
         >
-          <Link href="/" className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full ${focusRing}`}>
+          <Link
+            href="/"
+            onClick={(event) => handleHrefClick(event, '/', true)}
+            className={`vt-btn-tactile inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full ${focusRing}`}
+          >
             <BrandMark compact />
-            <span className="font-serif text-base font-semibold tracking-tight text-primary">ViciTech</span>
+            <span className="font-serif text-sm font-semibold tracking-tight text-primary sm:text-base">
+              ViciTech
+            </span>
           </Link>
 
-          <div className="flex shrink-0 items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"
               onClick={triggerGlobalSearch}
-              aria-label="Search modules, serials, guides"
-              className={`${utilityBtn} w-9 px-0 ${utilityIdle}`}
+              aria-label="Cari modul, nomor seri, dan panduan"
+              className={`${mobileUtilityBtn} ${utilityIdle}`}
             >
               <Search className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -810,12 +732,15 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 onClick={() => toggleMenu('notifications')}
                 aria-haspopup="dialog"
                 aria-expanded={openMenu === 'notifications'}
-                aria-label={notificationBadge ? `Notifications (${unreadNotifications} unread)` : 'Notifications'}
-                className={`${utilityBtn} w-9 px-0 ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
+                aria-label={notificationBadge ? `Notifikasi (${unreadNotifications} belum dibaca)` : 'Notifikasi'}
+                className={`${mobileUtilityBtn} ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
               >
                 <Bell className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 {notificationBadge && (
-                  <span className="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-accent-primary px-1 py-0.5 font-mono text-[9px] font-bold leading-none tabular-nums text-primary">
+                  <span
+                    key={notificationBadge}
+                    className="vt-badge-pop vt-badge-pulse absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-accent-cta px-1 py-0.5 font-mono text-[9px] font-bold leading-none tabular-nums text-white"
+                  >
                     {notificationBadge}
                   </span>
                 )}
@@ -831,9 +756,17 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             </div>
 
             <AuthNavigation
+              variant="mobile"
+              isMenuOpen={openMenu === 'account'}
+              onToggleMenu={toggleAccountMenu}
+              onCloseMenu={closeAllMenus}
+              dataSources={DATA_SOURCES}
+              moreItems={MORE_MENU_ITEMS}
+              dmBadgeLabel={dmBadgeLabel}
               onAuthState={undefined}
               onNotify={undefined}
               onNavigate={handleAuthNavigate}
+              onNavigateHref={navigateTo}
               onSignOut={undefined}
             />
 
@@ -844,7 +777,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               aria-label="Buka menu navigasi lainnya"
               aria-expanded={sheetOpen}
               aria-controls="mobile-nav-bottom-sheet"
-              className={`${utilityBtn} w-9 px-0 ${utilityIdle}`}
+              className={`${mobileUtilityBtn} ${utilityIdle}`}
             >
               <Menu className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -874,8 +807,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         <ChevronDown className="h-3.5 w-3.5 text-secondary" strokeWidth={1.75} aria-hidden="true" />
       </button>
 
-      {/* Safe top clearance beneath the floating command + nav pills (Hero handles its own offset on "/") */}
-      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-20 md:h-36'} />
+      {/* Safe top clearance beneath the floating single-row bar (Hero handles its own offset on "/") */}
+      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-20 md:h-24'} />
 
       {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items) ───────── */}
       <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
@@ -886,9 +819,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  onClick={() => handleNavClick(item)}
+                  onClick={(event) => handleNavClick(event, item)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-[11px] leading-tight transition-colors duration-150 ${focusRing} ${
+                  className={`vt-btn-tactile flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-[11px] leading-tight ${focusRing} ${
                     active ? 'bg-accent-subtle font-semibold text-primary' : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
                   }`}
                 >
@@ -941,12 +874,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     key={item.id}
                     href={item.href}
                     aria-current={active ? 'page' : undefined}
-                    onClick={() => {
-                      handleNavClick(item);
+                    onClick={(event) => {
+                      handleNavClick(event, item);
                       closeSheet();
                     }}
-                    className={`flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm transition-colors ${focusRing} ${
-                      active ? 'bg-accent-primary font-semibold text-primary' : 'bg-subtle text-primary hover:bg-canvas'
+                    className={`vt-btn-tactile flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm ${focusRing} ${
+                      active ? 'bg-accent-cta font-semibold text-white' : 'bg-subtle text-primary hover:bg-canvas'
                     }`}
                   >
                     <NavIcon iconKey={item.iconKey} className="h-5 w-5 shrink-0" />
@@ -955,7 +888,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 );
               })}
 
-              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">More tools</p>
+              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">Alat Lainnya</p>
               {MORE_MENU_ITEMS.map((entry) => (
                 <button
                   key={entry.id}
@@ -964,19 +897,22 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     closeSheet();
                     navigateTo(entry.href, entry.module);
                   }}
-                  className={`flex min-h-11 items-center gap-3 rounded-lg border border-default bg-surface px-3.5 py-2.5 text-left text-sm font-medium text-primary transition-colors hover:bg-subtle ${focusRing}`}
+                  className={`vt-btn-tactile flex min-h-11 items-center gap-3 rounded-lg border border-default bg-surface px-3.5 py-2.5 text-left text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}
                 >
                   <MoreIcon iconKey={entry.iconKey} />
                   <span className="flex-1">{entry.label}</span>
                   {entry.iconKey === 'messages' && dmBadgeLabel && (
-                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-accent-primary px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-primary">
+                    <span
+                      key={dmBadgeLabel}
+                      className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-accent-cta px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
+                    >
                       {dmBadgeLabel}
                     </span>
                   )}
                 </button>
               ))}
 
-              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">Data sources</p>
+              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">Sumber Data</p>
               <div className="flex flex-wrap gap-1.5 px-1">
                 {DATA_SOURCES.map((source) => (
                   <span key={source.id} className={sourceBadgeClass(source.tone)}>

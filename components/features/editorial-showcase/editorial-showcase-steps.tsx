@@ -127,7 +127,7 @@ export function EditorialShowcaseSteps({
                               <button
                                 type="button"
                                 onClick={() => onNavigate(step.targetModule, step.targetView)}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
                                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -135,7 +135,7 @@ export function EditorialShowcaseSteps({
                             ) : (
                               <Link
                                 href={`/home?tab=${encodeURIComponent(step.targetModule)}`}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary transition hover:bg-accent-hover hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
                                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />

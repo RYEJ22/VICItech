@@ -1,0 +1,53 @@
+.track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  transition:
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background-color: var(--bg-surface);
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.22);
+  transform: translateX(0);
+  transform-origin: left center;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.switchControl[aria-checked='true'] .thumb {
+  transform: translateX(20px);
+  transform-origin: right center;
+}
+
+.switchControl:active:not(:disabled) .thumb {
+  transform: translateX(0) scaleX(1.15);
+}
+
+.switchControl[aria-checked='true']:active:not(:disabled) .thumb {
+  transform: translateX(20px) scaleX(1.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .thumb {
+    transition: none;
+  }
+  .switchControl:active:not(:disabled) .thumb {
+    transform: translateX(0);
+  }
+  .switchControl[aria-checked='true']:active:not(:disabled) .thumb {
+    transform: translateX(20px);
+  }
+}

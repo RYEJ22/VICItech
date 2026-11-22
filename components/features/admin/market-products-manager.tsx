@@ -10,7 +10,6 @@ import {
   Plus,
   RefreshCw,
   Search,
-  Sparkles,
   Trash2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -20,6 +19,8 @@ import {
   deleteProductAction,
   updateProductStockAction,
 } from '@/app/admin/products/actions';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import {
   formatIdr,
@@ -27,6 +28,7 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_LABELS,
   PRODUCT_STOCK_STATUSES,
+  resolveProductImages,
   SELLER_TYPE_LABELS,
   STOCK_STATUS_LABELS,
 } from '@/lib/admin/products-validation';
@@ -200,17 +202,17 @@ export function MarketProductsManager({
             <span>Katalog Market &amp; Preset</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Market Products Manager
+            Manajemen Produk Market
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
-            Kelola produk storefront, preset rakitan, spesifikasi JSONB, media, dan status ketersediaan stok.
+            Kelola produk Storefront, preset rakitan, spesifikasi JSONB, media, dan status ketersediaan stok.
           </p>
         </div>
 
         <button
           type="button"
           onClick={openCreateDrawer}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-accent-hover hover:text-accent-foreground"
+          className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover"
         >
           <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           <span>Tambah Produk</span>
@@ -221,29 +223,29 @@ export function MarketProductsManager({
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-xl border border-default bg-ink p-4 text-white shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-white/70">Total Produk</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums">
-            {counts.total.toLocaleString('id-ID')}
+          <p className="mt-2 text-3xl font-semibold">
+            <AnimatedNumber value={counts.total} format="number" />
           </p>
           <p className="mt-1 text-xs text-white/70">Terdaftar di `public.products`</p>
         </article>
         <article className="rounded-xl border border-default bg-surface p-4 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wider text-secondary">Ready Stock</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-primary">
-            {counts.ready.toLocaleString('id-ID')}
+          <p className="text-xs font-medium uppercase tracking-wider text-secondary">Stok Siap</p>
+          <p className="mt-2 text-3xl font-semibold text-primary">
+            <AnimatedNumber value={counts.ready} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Siap checkout langsung</p>
         </article>
         <article className="rounded-xl border border-default bg-surface p-4 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-secondary">Pre-Order / Habis</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-primary">
-            {counts.preorderOrOut.toLocaleString('id-ID')}
+          <p className="mt-2 text-3xl font-semibold text-primary">
+            <AnimatedNumber value={counts.preorderOrOut} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Butuh restok atau perakitan</p>
         </article>
         <article className="rounded-xl border border-default bg-accent-subtle p-4 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-accent-hover">Preset Rakitan</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums text-primary">
-            {counts.presets.toLocaleString('id-ID')}
+          <p className="mt-2 text-3xl font-semibold text-primary">
+            <AnimatedNumber value={counts.presets} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Tampil di showcase preset build</p>
         </article>
@@ -333,19 +335,12 @@ export function MarketProductsManager({
         </label>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-pressed={presetOnly}
-            onClick={() => setPresetOnly((current) => !current)}
-            className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition ${
-              presetOnly
-                ? 'border-accent-primary bg-accent-subtle text-accent-hover'
-                : 'border-default bg-canvas text-secondary hover:text-primary'
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-            <span>Hanya Preset</span>
-          </button>
+          <ToggleSwitch
+            compact
+            label="Hanya Preset"
+            checked={presetOnly}
+            onChange={setPresetOnly}
+          />
 
           {(search || categoryFilter !== 'all' || stockFilter !== 'all' || presetOnly) ? (
             <button
@@ -420,7 +415,7 @@ export function MarketProductsManager({
                 <button
                   type="button"
                   onClick={openCreateDrawer}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-accent-hover hover:text-accent-foreground"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover"
                 >
                   <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   <span>Tambah Produk Pertama</span>
@@ -444,7 +439,8 @@ export function MarketProductsManager({
                 </thead>
                 <tbody className="divide-y divide-default">
                   {paginatedProducts.map((item) => {
-                    const thumb = item.images[0];
+                    const resolvedImages = resolveProductImages(item);
+                    const thumb = resolvedImages[0];
                     const rowBusy = isPending && busyId === item.id;
                     return (
                       <tr key={item.id} className="transition-colors hover:bg-canvas/70">
@@ -474,6 +470,11 @@ export function MarketProductsManager({
                                 <span className="truncate font-mono text-xs text-secondary">
                                   {item.slug}
                                 </span>
+                                {resolvedImages.length > 1 ? (
+                                  <span className="rounded-md border border-default bg-canvas px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums text-secondary">
+                                    {resolvedImages.length} foto
+                                  </span>
+                                ) : null}
                                 {item.is_preset ? (
                                   <span className="inline-flex items-center gap-1 rounded-md border border-accent-primary/25 bg-accent-subtle px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-hover">
                                     Preset

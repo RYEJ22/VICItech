@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { getAdminOverviewData } from '@/lib/admin/overview';
 import { formatIdr } from '@/lib/admin/products-validation';
 import { createClient } from '@/lib/supabase/server';
@@ -32,6 +33,12 @@ function qcStatusBadge(status: string): string {
   return 'vt-badge-sample';
 }
 
+function qcStatusLabel(status: string): string {
+  if (status === 'Pass') return 'Lulus IoT QC';
+  if (status === 'In Progress') return 'Burn-In Berjalan';
+  return status || 'Menunggu';
+}
+
 export default async function AdminOverviewPage(): Promise<ReactElement> {
   const supabase = await createClient();
   const overview = await getAdminOverviewData(supabase);
@@ -45,10 +52,10 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
             <span>Ringkasan Ekosistem ViciTech OS</span>
           </span>
           <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-            Admin Command Overview
+            Ringkasan Komando Admin
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
-            Pantau metrik pendapatan, antrean quality control IoT, stok komponen, produk market, dan mitra resmi dari satu grid terpadu.
+            Pantau metrik pendapatan, antrean IoT QC, stok komponen, produk Market, dan mitra resmi dari satu grid terpadu.
           </p>
         </div>
 
@@ -59,7 +66,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
         >
           {overview.orderStats.source === 'rpc'
             ? 'Live RPC · get_admin_order_stats'
-            : 'Fallback Scan Active'}
+            : 'Pemindaian Cadangan Aktif'}
         </span>
       </header>
 
@@ -81,8 +88,8 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
                 Total Pendapatan Order
               </p>
-              <p className="mt-3 font-mono text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
-                {formatIdr(overview.orderStats.totalRevenue)}
+              <p className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+                <AnimatedNumber value={overview.orderStats.totalRevenue} format="currency" />
               </p>
             </div>
             <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-accent-primary">
@@ -93,8 +100,8 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-4 text-xs text-white/75">
             <span>
               Dihitung dari{' '}
-              <strong className="font-mono text-white">
-                {overview.orderStats.totalOrders.toLocaleString('id-ID')}
+              <strong className="text-white">
+                <AnimatedNumber value={overview.orderStats.totalOrders} format="number" />
               </strong>{' '}
               transaksi terekam
             </span>
@@ -102,7 +109,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
               href="/admin/dashboard"
               className="inline-flex items-center gap-1 font-semibold text-accent-primary hover:underline"
             >
-              <span>Kelola Orders</span>
+              <span>Kelola Pesanan</span>
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
             </Link>
           </div>
@@ -112,10 +119,10 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-accent-hover">
-                Pending QC
+                Menunggu IoT QC
               </p>
-              <p className="mt-3 font-mono text-3xl font-semibold tabular-nums text-primary">
-                {overview.orderStats.pendingQcCount.toLocaleString('id-ID')}
+              <p className="mt-3 text-3xl font-semibold text-primary">
+                <AnimatedNumber value={overview.orderStats.pendingQcCount} format="number" />
               </p>
             </div>
             <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-accent-primary/25 bg-surface text-accent-primary">
@@ -123,7 +130,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
             </span>
           </div>
           <p className="mt-5 text-xs leading-relaxed text-secondary">
-            Order baru yang menunggu antrean inspeksi dan registrasi serial QC.
+            Pesanan baru yang menunggu antrean inspeksi dan registrasi serial IoT QC.
           </p>
         </article>
 
@@ -131,10 +138,10 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                Total Orders
+                Total Pesanan
               </p>
-              <p className="mt-3 font-mono text-3xl font-semibold tabular-nums text-primary">
-                {overview.orderStats.totalOrders.toLocaleString('id-ID')}
+              <p className="mt-3 text-3xl font-semibold text-primary">
+                <AnimatedNumber value={overview.orderStats.totalOrders} format="number" />
               </p>
             </div>
             <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-default bg-canvas text-primary">
@@ -142,7 +149,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
             </span>
           </div>
           <p className="mt-5 text-xs leading-relaxed text-secondary">
-            Mencakup pembelian langsung, preset builder, dan refurbished/trade-in.
+            Mencakup pembelian langsung, Preset Builder, dan unit Trade-In/refurbished.
           </p>
         </article>
       </section>
@@ -151,7 +158,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
       <section aria-label="Status Modul Ekosistem" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link
           href="/admin/products"
-          className="group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-accent-primary/50"
+          className="vt-card-interactive group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm hover:border-accent-primary/50"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-canvas text-accent-primary">
@@ -161,20 +168,20 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           </div>
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-              Market Products
+              Produk Market
             </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-primary">
-              {overview.counts.productsTotal.toLocaleString('id-ID')}
+            <p className="mt-1 text-2xl font-semibold text-primary">
+              <AnimatedNumber value={overview.counts.productsTotal} format="number" />
             </p>
             <p className="mt-1 text-xs text-secondary">
-              <span className="font-mono text-primary">{overview.counts.presetsTotal}</span> preset rakitan aktif
+              <AnimatedNumber value={overview.counts.presetsTotal} format="number" className="text-primary" /> preset rakitan aktif
             </p>
           </div>
         </Link>
 
         <Link
           href="/admin/hardware"
-          className="group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-accent-primary/50"
+          className="vt-card-interactive group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm hover:border-accent-primary/50"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-canvas text-accent-primary">
@@ -184,21 +191,21 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           </div>
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-              Hardware Inventory
+              Inventori Hardware
             </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-primary">
-              {overview.counts.hardwareTotal.toLocaleString('id-ID')}
+            <p className="mt-1 text-2xl font-semibold text-primary">
+              <AnimatedNumber value={overview.counts.hardwareTotal} format="number" />
             </p>
             <p className="mt-1 text-xs text-secondary">
-              <span className="font-mono text-primary">{overview.counts.hardwareActive}</span> aktif ·{' '}
-              <span className="font-mono text-accent-hover">{overview.counts.hardwareLowStock}</span> stok rendah
+              <AnimatedNumber value={overview.counts.hardwareActive} format="number" className="text-primary" /> aktif ·{' '}
+              <AnimatedNumber value={overview.counts.hardwareLowStock} format="number" className="text-accent-hover" /> stok rendah
             </p>
           </div>
         </Link>
 
         <Link
           href="/admin/partners"
-          className="group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-accent-primary/50"
+          className="vt-card-interactive group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm hover:border-accent-primary/50"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-canvas text-accent-primary">
@@ -208,20 +215,20 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           </div>
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-              Partners &amp; Mitra
+              Mitra &amp; Service
             </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-primary">
-              {overview.counts.partnersTotal.toLocaleString('id-ID')}
+            <p className="mt-1 text-2xl font-semibold text-primary">
+              <AnimatedNumber value={overview.counts.partnersTotal} format="number" />
             </p>
             <p className="mt-1 text-xs text-secondary">
-              <span className="font-mono text-primary">{overview.counts.partnersVerified}</span> terverifikasi resmi
+              <AnimatedNumber value={overview.counts.partnersVerified} format="number" className="text-primary" /> terverifikasi resmi
             </p>
           </div>
         </Link>
 
         <Link
           href="/admin/iot-qc"
-          className="group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-accent-primary/50"
+          className="vt-card-interactive group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm hover:border-accent-primary/50"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-canvas text-accent-primary">
@@ -231,13 +238,13 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           </div>
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-              IoT QC Registry
+              Registri IoT QC
             </p>
-            <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-primary">
-              {overview.counts.qcTotal.toLocaleString('id-ID')}
+            <p className="mt-1 text-2xl font-semibold text-primary">
+              <AnimatedNumber value={overview.counts.qcTotal} format="number" />
             </p>
             <p className="mt-1 text-xs text-secondary">
-              <span className="font-mono text-primary">{overview.counts.qcInProgress}</span> unit sedang burn-in
+              <AnimatedNumber value={overview.counts.qcInProgress} format="number" className="text-primary" /> unit sedang Burn-In
             </p>
           </div>
         </Link>
@@ -247,7 +254,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-default bg-canvas/70 px-5 py-3.5">
-            <h2 className="font-serif text-lg font-semibold text-primary">Order Terbaru</h2>
+            <h2 className="font-serif text-lg font-semibold text-primary">Pesanan Terbaru</h2>
             <Link
               href="/admin/dashboard"
               className="text-xs font-semibold text-accent-hover hover:underline"
@@ -266,7 +273,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-primary">
-                      {order.product_name || 'Order'}
+                      {order.product_name || 'Pesanan'}
                     </p>
                     <p className="mt-0.5 font-mono text-xs text-secondary">
                       {order.order_number || order.id} · {formatDateTime(order.created_at)}
@@ -312,7 +319,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={qcStatusBadge(unit.status)}>{unit.status}</span>
+                    <span className={qcStatusBadge(unit.status)}>{qcStatusLabel(unit.status)}</span>
                     <span className="text-[11px] text-secondary">{unit.shipping_status}</span>
                   </div>
                 </li>

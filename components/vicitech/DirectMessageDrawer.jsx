@@ -23,14 +23,26 @@ const INBOX_FETCH_LIMIT = 120;
 const DM_COLUMNS = "id, sender_id, receiver_id, content, media_urls, media_type, is_read, created_at";
 
 function displayName(profile) {
-  return profile?.full_name || profile?.display_name || (profile?.username ? `@${profile.username}` : "ViciTech member");
+  return profile?.full_name || profile?.display_name || (profile?.username ? `@${profile.username}` : "Anggota ViciTech");
 }
 
 function formatMessageTime(value) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatInboxTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (diffMin < 1) return "baru saja";
+  if (diffMin < 60) return `${diffMin} mnt lalu`;
+  if (diffMin < 1440) return `${Math.floor(diffMin / 60)} jam lalu`;
+  if (diffMin < 10080) return `${Math.floor(diffMin / 1440)} hr lalu`;
+  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(date);
 }
 
 function profileInitial(profile) {
@@ -45,7 +57,7 @@ function latestPreview(latest, profile) {
   if (mediaUrls.length > 0) {
     return latest?.media_type === "video" ? "[Video]" : "[Foto]";
   }
-  return `@${profile?.username || "member"}`;
+  return `@${profile?.username || "anggota"}`;
 }
 
 export default function DirectMessageDrawer({ user, initialUsername, isAuthLoading }) {
@@ -83,7 +95,6 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
   }, []);
 
   const selectedProfile = profiles[selectedId] || null;
-  const conversationsById = useMemo(() => new Map(conversations.map((item) => [item.userId, item])), [conversations]);
 
   const upsertConversationFromMessage = useCallback(async (
     supabase,
@@ -142,7 +153,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
           .limit(INBOX_FETCH_LIMIT),
       ]);
 
-      if (ownProfileError) throw new Error(`Could not load your profile: ${ownProfileError.message}`);
+      if (ownProfileError) throw new Error(`Gagal memuat profil Anda: ${ownProfileError.message}`);
       setProfileReady(Boolean(ownProfile));
       if (ownProfile) setProfiles((current) => ({ ...current, [ownProfile.id]: ownProfile }));
       if (!ownProfile) {
@@ -151,7 +162,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         return;
       }
 
-      if (messagesError) throw new Error(`Could not load conversations: ${messagesError.message}`);
+      if (messagesError) throw new Error(`Gagal memuat daftar percakapan: ${messagesError.message}`);
 
       const latestByUser = new Map();
       for (const message of rows || []) {
@@ -172,14 +183,14 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
           .from("profiles")
           .select("id, username, display_name, full_name, avatar_url, bio")
           .in("id", participantIds);
-        if (participantsError) throw new Error(`Could not load conversation profiles: ${participantsError.message}`);
+        if (participantsError) throw new Error(`Gagal memuat profil lawan bicara: ${participantsError.message}`);
         setProfiles((current) => ({
           ...current,
           ...Object.fromEntries((participants || []).filter((profile) => profile?.id).map((profile) => [profile.id, profile])),
         }));
       }
     } catch (loadError) {
-      setError(loadError.message || "Could not load your messages.");
+      setError(loadError.message || "Gagal memuat pesan Anda.");
     } finally {
       setIsLoading(false);
     }
@@ -232,7 +243,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
               .eq("receiver_id", userId)
               .eq("is_read", false)
               .then(({ error: readError }) => {
-                if (readError && active) setError(`New message arrived, but it could not be marked read: ${readError.message}`);
+                if (readError && active) setError(`Pesan baru masuk, tetapi status dibaca gagal diperbarui: ${readError.message}`);
               });
           }
         }
@@ -259,7 +270,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
           setRealtimeStatus("connected");
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           setRealtimeStatus("error");
-          setError("Realtime messaging is unavailable. Check your connection and try again.");
+          setError("Koneksi pesan realtime terputus. Periksa jaringan Anda lalu coba lagi.");
         } else if (status === "CLOSED") {
           setRealtimeStatus("disconnected");
         }
@@ -282,22 +293,22 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
       .then(({ data, error: targetError }) => {
         if (!active) return;
         if (targetError) {
-          setError(`Could not find that profile: ${targetError.message}`);
+          setError(`Profil tujuan gagal dicari: ${targetError.message}`);
           return;
         }
         if (!data) {
-          setError("This user profile could not be found.");
+          setError("Profil pengguna ini tidak ditemukan.");
           return;
         }
         if (data.id === userId) {
-          setError("You cannot start a conversation with yourself.");
+          setError("Anda tidak dapat memulai percakapan dengan akun sendiri.");
           return;
         }
         setProfiles((current) => ({ ...current, [data.id]: data }));
         setSelectedId(data.id);
       })
       .catch((targetError) => {
-        if (active) setError(targetError.message || "Could not open this conversation.");
+        if (active) setError(targetError.message || "Gagal membuka percakapan ini.");
       });
     return () => { active = false; };
   }, [client, userId, initialUsername, profileReady]);
@@ -326,7 +337,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
       .then(async ({ data, error: messagesError }) => {
         if (!active) return;
         if (messagesError) {
-          setError(`Could not load this conversation: ${messagesError.message}`);
+          setError(`Gagal memuat percakapan ini: ${messagesError.message}`);
           return;
         }
         const rawRows = Array.isArray(data) ? data : [];
@@ -342,7 +353,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
             .update({ is_read: true })
             .in("id", unreadIds)
             .eq("receiver_id", userId);
-          if (readError && active) setError(`Messages loaded, but unread status could not be updated: ${readError.message}`);
+          if (readError && active) setError(`Pesan dimuat, namun status belum dibaca gagal diperbarui: ${readError.message}`);
           if (!readError && active) {
             setConversations((current) =>
               current.map((conv) => (conv.userId === selectedId ? { ...conv, unread: 0 } : conv)),
@@ -351,7 +362,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         }
       })
       .catch((messagesError) => {
-        if (active) setError(messagesError.message || "Could not load this conversation.");
+        if (active) setError(messagesError.message || "Gagal memuat percakapan ini.");
       });
     return () => { active = false; };
   }, [client, userId, selectedId]);
@@ -537,75 +548,80 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
 
   if (isAuthLoading) {
     return (
-      <section role="status" className="mx-auto flex min-h-64 max-w-3xl items-center justify-center gap-3 text-sm text-[#5A606A]">
-        <LoaderCircle className="h-5 w-5 animate-spin text-[#FF5500]" /> Checking your ViciTech session…
+      <section role="status" className="mx-auto flex min-h-64 max-w-3xl items-center justify-center gap-3 text-sm text-secondary">
+        <LoaderCircle className="h-5 w-5 animate-spin text-accent-primary" /> Memeriksa sesi ViciTech Anda…
       </section>
     );
   }
 
   if (!userId) {
     return (
-      <section className="mx-auto max-w-3xl rounded-3xl border border-black/[0.06] bg-white p-8 text-center shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
-        <MessageSquare className="mx-auto h-10 w-10 text-[#FF5500]" />
-        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-[#141518]">Sign in to your messages</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">Direct messages are private and available to signed-in ViciTech members.</p>
+      <section className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
+        <MessageSquare className="mx-auto h-10 w-10 text-accent-primary" />
+        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk.</p>
       </section>
     );
   }
 
   if (!isLoading && !profileReady) {
     return (
-      <section className="mx-auto max-w-3xl rounded-3xl border border-black/[0.06] bg-white p-8 shadow-[0_12px_36px_rgba(20,21,24,0.05)]">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-[#141518]">Finish setting up your profile</h1>
-        <p className="mt-2 text-sm leading-relaxed text-[#5A606A]">Save a unique username in Account Settings before starting direct messages.</p>
-        {error && <p role="alert" className="mt-4 text-sm text-red-700 dark:text-red-300">{error}</p>}
+      <section className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
+        <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Pengaturan Akun sebelum memulai pesan langsung.</p>
+        {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
       </section>
     );
   }
 
   return (
-    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col overflow-hidden rounded-3xl border border-black/[0.06] bg-white shadow-[0_16px_48px_rgba(20,21,24,0.06)] md:flex-row">
-      <aside className={`min-h-[58vh] w-full border-b border-black/[0.06] bg-white md:min-h-0 md:w-80 md:shrink-0 md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
-        <div className="border-b border-black/[0.06] px-5 py-5">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A83A00]">
-            <MessageSquare className="h-4 w-4" /> Inbox
-            <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-emerald-700" : realtimeStatus === "error" ? "text-red-700" : "text-[#777C83]"}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-emerald-500" : realtimeStatus === "error" ? "bg-red-500" : "bg-[#A3A6AA]"}`} />
-              {realtimeStatus === "connected" ? "Connected" : realtimeStatus === "error" ? "Offline" : "Connecting"}
+    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-sm md:flex-row">
+      <aside className={`min-h-[58vh] w-full border-b border-default bg-surface md:min-h-0 md:w-80 md:shrink-0 md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
+        <div className="border-b border-default px-5 py-5">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-hover">
+            <MessageSquare className="h-4 w-4 text-accent-primary" /> Kotak Masuk
+            <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-status-live" : realtimeStatus === "error" ? "text-status-danger" : "text-secondary"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-status-live" : realtimeStatus === "error" ? "bg-status-danger" : "bg-secondary/50"}`} />
+              {realtimeStatus === "connected" ? "Terhubung" : realtimeStatus === "error" ? "Terputus" : "Menghubungkan"}
             </span>
           </p>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[#141518]">Direct messages</h1>
-          <p className="mt-1 text-xs leading-relaxed text-[#777C83]">Private conversations with ViciTech members.</p>
+          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary">Pesan Langsung</h1>
+          <p className="mt-1 text-xs leading-relaxed text-secondary">Percakapan pribadi dengan teknisi dan sesama anggota ViciTech.</p>
         </div>
         <div className="max-h-[38vh] overflow-y-auto p-2 md:max-h-[620px]">
           {isLoading ? (
-            <p className="flex items-center gap-2 p-4 text-sm text-zinc-500"><LoaderCircle className="h-4 w-4 animate-spin" /> Loading conversations…</p>
+            <p className="flex items-center gap-2 p-4 text-sm text-secondary"><LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" /> Memuat daftar percakapan…</p>
           ) : conversations.length ? conversations.map((item) => {
             const profile = profiles[item?.userId];
             if (!item?.userId || !profile) return null;
             return (
-              <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-[#FF5500]/[0.06] ring-1 ring-[#FF5500]/20" : "hover:bg-[#F6F5F2]"}`}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FF5500]/[0.08] text-sm font-semibold text-[#A83A00]">{profileInitial(profile)}</span>}
+              <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
+                {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile)}</span>}
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-[#141518]">{displayName(profile)}</span>
-                  <span className="mt-0.5 block truncate text-xs text-[#777C83]">{latestPreview(item.latest, profile)}</span>
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="truncate text-sm font-semibold text-primary">{displayName(profile)}</span>
+                    {item.latest?.created_at && (
+                      <span className="shrink-0 font-mono text-[10px] text-secondary">{formatInboxTime(item.latest.created_at)}</span>
+                    )}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-secondary">{latestPreview(item.latest, profile)}</span>
                 </span>
-                {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#FF5500] px-1 text-[11px] font-semibold text-white">{item.unread}</span>}
+                {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent-cta px-1 font-mono text-[11px] font-semibold text-white">{item.unread}</span>}
               </button>
             );
-          }) : !error ? <p className="p-4 text-sm text-zinc-500">No conversations yet. Visit a public profile to send a message.</p> : null}
+          }) : !error ? <p className="p-4 text-sm text-secondary">Belum ada percakapan. Kunjungi profil pengguna lain untuk mulai berkirim pesan.</p> : null}
         </div>
       </aside>
 
-      <div className={`flex min-h-[58vh] min-w-0 flex-1 flex-col bg-[#FCFBF9] md:min-h-0 ${!selectedId ? "hidden md:flex" : ""}`}>
+      <div className={`flex min-h-[58vh] min-w-0 flex-1 flex-col bg-canvas md:min-h-0 ${!selectedId ? "hidden md:flex" : ""}`}>
         {selectedId && selectedProfile ? (
           <>
-            <header className="flex items-center gap-3 border-b border-black/[0.06] bg-white px-4 py-3.5 sm:px-6">
-              <button type="button" aria-label="Back to conversations" onClick={() => setSelectedId("")} className="rounded-full p-2 text-[#5A606A] transition-colors hover:bg-[#F6F5F2] hover:text-[#141518] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
-              {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-[#FF5500]/[0.08] font-semibold text-[#A83A00]">{profileInitial(selectedProfile)}</span>}
+            <header className="flex items-center gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-6">
+              <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="rounded-full p-2 text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
+              {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-[#141518]">{displayName(selectedProfile)}</span>
-                <span className="block text-xs text-[#777C83]">@{selectedProfile.username || "member"}</span>
+                <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
+                <span className="block text-xs text-secondary">@{selectedProfile.username || "anggota"}</span>
               </span>
             </header>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
@@ -615,7 +631,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                     type="button"
                     onClick={loadOlderMessages}
                     disabled={loadingOlder}
-                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-1.5 text-xs font-medium text-[#141518] shadow-sm transition hover:border-[#FF5500]/40 hover:text-[#A83A00] disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-default bg-surface px-4 py-1.5 text-xs font-medium text-primary shadow-sm transition hover:border-accent-primary/40 hover:text-accent-hover disabled:opacity-50"
                   >
                     {loadingOlder && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                     <span>{loadingOlder ? "Memuat…" : "Muat pesan sebelumnya"}</span>
@@ -637,10 +653,10 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
 
                 return (
                   <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
-                    <article className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-[#FF5500] text-white" : "rounded-bl-md border border-black/[0.06] bg-white text-[#30343A]"}`}>
+                    <article className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-accent-cta text-white" : "rounded-bl-md border border-default bg-surface text-primary"}`}>
                       {mediaUrls.length > 0 && (
                         isVideo ? (
-                          <div className="mb-2 overflow-hidden rounded-xl bg-[#141518]">
+                          <div className="mb-2 overflow-hidden rounded-xl bg-ink">
                             <video
                               src={mediaUrls[0]}
                               controls
@@ -676,21 +692,21 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                       {text.trim() ? (
                         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{text}</p>
                       ) : null}
-                      <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/75" : "text-[#777C83]"}`}>{formatMessageTime(message.created_at)}</p>
+                      <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/90" : "text-secondary"}`}>{formatMessageTime(message.created_at)}</p>
                     </article>
                   </div>
                 );
-              }) : <p className="py-12 text-center text-sm text-zinc-500">No messages yet. Send a hello to start the conversation.</p>}
+              }) : <p className="py-12 text-center text-sm text-secondary">Belum ada pesan. Kirim sapaan untuk memulai percakapan.</p>}
               <div ref={bottomRef} />
             </div>
 
             {pendingAttachments.length > 0 && (
-              <div className="border-t border-black/[0.06] bg-[#FAF9F6] px-3 py-2.5 sm:px-4">
+              <div className="border-t border-default bg-canvas px-3 py-2.5 sm:px-4">
                 <div className="flex flex-wrap items-center gap-2.5">
                   {pendingAttachments.map((item) => (
                     <div
                       key={item.id}
-                      className="relative flex items-center gap-2 overflow-hidden rounded-xl border border-black/10 bg-white p-1.5 pr-2 shadow-sm"
+                      className="relative flex items-center gap-2 overflow-hidden rounded-xl border border-default bg-surface p-1.5 pr-2 shadow-sm"
                     >
                       {item.mediaType === "video" ? (
                         <video
@@ -698,7 +714,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                           muted
                           playsInline
                           preload="metadata"
-                          className="h-12 w-16 rounded-lg bg-[#141518] object-cover"
+                          className="h-12 w-16 rounded-lg bg-ink object-cover"
                         />
                       ) : (
                         <img
@@ -711,15 +727,15 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                         />
                       )}
                       <div className="max-w-36 min-w-0">
-                        <p className="truncate text-xs font-medium text-[#141518]">{item.name}</p>
-                        <p className="font-mono text-[10px] text-[#5A606A]">{formatMediaFileSize(item.size)}</p>
+                        <p className="truncate text-xs font-medium text-primary">{item.name}</p>
+                        <p className="font-mono text-[10px] text-secondary">{formatMediaFileSize(item.size)}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => removeAttachment(item.id)}
                         disabled={isSending}
                         aria-label={`Hapus lampiran ${item.name}`}
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F6F5F2] text-[#141518] transition hover:bg-red-50 hover:text-red-700"
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-primary transition hover:bg-red-50 hover:text-status-danger"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -729,7 +745,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-black/[0.06] bg-white p-3 sm:gap-3 sm:p-4">
+            <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-default bg-surface p-3 sm:gap-3 sm:p-4">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -744,7 +760,7 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSending}
                 aria-label="Lampirkan foto atau video"
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-black/10 bg-[#F6F5F2] text-[#141518] transition hover:border-[#FF5500]/50 hover:text-[#A83A00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 disabled:cursor-not-allowed disabled:opacity-45"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-default bg-subtle text-primary transition hover:border-accent-primary/50 hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <ImagePlus className="h-5 w-5" />
               </button>
@@ -753,12 +769,12 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
                   event.preventDefault();
                   event.currentTarget.form?.requestSubmit();
                 }
-              }} maxLength={4000} rows={1} placeholder={pendingAttachments.length ? "Tambahkan keterangan (opsional)…" : "Write a message…"} aria-label="Message" className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-black/10 bg-[#F6F5F2] px-4 py-3 text-sm text-[#141518] outline-none transition-colors placeholder:text-[#777C83] focus:border-[#FF5500]/50 focus:ring-2 focus:ring-[#FF5500]/10" />
+              }} maxLength={4000} rows={1} placeholder={pendingAttachments.length ? "Tambahkan keterangan (opsional)…" : "Tulis pesan…"} aria-label="Tulis pesan" className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20" />
               <button
                 type="submit"
                 disabled={(!draft.trim() && pendingAttachments.length === 0) || isSending}
                 aria-label={sendStage === "uploading" ? "Mengunggah media" : "Kirim pesan"}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#FF5500] text-white shadow-sm transition-colors hover:bg-[#E94B00] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF5500]/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-cta text-white shadow-sm transition-colors hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </button>
@@ -767,13 +783,13 @@ export default function DirectMessageDrawer({ user, initialUsername, isAuthLoadi
         ) : (
           <div className="grid flex-1 place-items-center p-8 text-center">
             <div>
-              <UserRound className="mx-auto h-10 w-10 text-[#FF5500]/70" />
-              <p className="mt-3 font-serif text-lg font-medium text-[#30343A]">Your conversations live here.</p>
-              <p className="mt-1 text-sm text-[#777C83]">Select a thread to read and reply.</p>
+              <UserRound className="mx-auto h-10 w-10 text-accent-primary/80" />
+              <p className="mt-3 font-serif text-lg font-medium text-primary">Percakapan Anda tampil di sini.</p>
+              <p className="mt-1 text-sm text-secondary">Pilih salah satu utas untuk membaca dan membalas.</p>
             </div>
           </div>
         )}
-        {error && <p role="alert" className="border-t border-red-500/20 bg-red-500/5 px-4 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p role="alert" className="border-t border-status-danger/20 bg-red-50 px-4 py-2 text-sm text-status-danger">{error}</p>}
       </div>
 
       {lightbox && (

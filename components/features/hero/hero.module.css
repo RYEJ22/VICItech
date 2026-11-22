@@ -1,14 +1,8 @@
 /*
- * Visual identity from CORE_CONTEXT (Clean Editorial Light-Mode). Map these
- * custom properties to the semantic tokens in DESIGN.md once they exist.
- * Colors are space-separated RGB channels so alpha can be applied with `/`.
+ * Visual identity aligned with DESIGN.md canonical semantic CSS custom properties.
+ * Alpha overlays consume the matching -rgb channel tokens from app/globals.css.
  */
 .hero {
-  --hero-surface: 244 244 242; /* ViciTech Soft White Matte (#F4F4F2) */
-  --hero-ink: 20 21 24; /* Dark Gunmetal (#141518) */
-  --hero-ink-soft: 58 63 71; /* High-contrast Pewter */
-  --hero-accent: 255 85 0; /* Signal Orange (#FF5500) */
-  --hero-accent-hover: 224 75 0;
   position: relative;
   isolation: isolate;
   display: flex;
@@ -21,24 +15,23 @@
 /*
  * Light editorial overlay. Below 64rem the copy spans the full width, so the
  * wash is uniform. From 64rem the copy sits on the left and the photo opens up
- * on the right. Opacity stops are chosen so body copy keeps high contrast
- * even over dark hardware photography.
+ * on the right. Opacity stops keep body copy legible over dark hardware photography.
  */
 .overlay {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  background: rgb(var(--hero-surface) / 0.84);
+  background: rgb(var(--bg-canvas-rgb) / 0.84);
 }
 
 @media (min-width: 64rem) {
   .overlay {
     background: linear-gradient(
       to right,
-      rgb(var(--hero-surface) / 0.94) 0%,
-      rgb(var(--hero-surface) / 0.85) 62%,
-      rgb(var(--hero-surface) / 0.25) 100%
+      rgb(var(--bg-canvas-rgb) / 0.94) 0%,
+      rgb(var(--bg-canvas-rgb) / 0.85) 62%,
+      rgb(var(--bg-canvas-rgb) / 0.25) 100%
     );
   }
 }
@@ -50,47 +43,47 @@
 }
 
 .headline {
-  color: rgb(var(--hero-ink));
-  font-family: var(--font-serif, ui-serif, Georgia, 'Times New Roman', serif);
+  color: var(--text-primary);
+  font-family: var(--font-serif, 'Playfair Display', ui-serif, Georgia, 'Times New Roman', serif);
 }
 
 .description {
-  color: rgb(var(--hero-ink-soft));
+  color: var(--text-secondary);
 }
 
-/* Dark gunmetal ink on Signal Orange keeps high readability across displays. */
+/* Crisp white text on burnt orange CTA passes WCAG AA (>= 5.1:1) without hover polarity inversion. */
 .ctaPrimary {
-  background: rgb(var(--hero-accent));
-  color: rgb(var(--hero-ink));
+  background: var(--accent-cta);
+  color: var(--accent-foreground);
   font-weight: 600;
-  box-shadow: 0 8px 20px -6px rgb(var(--hero-accent) / 0.45);
+  box-shadow: 0 8px 20px -6px rgb(var(--accent-cta-rgb) / 0.45);
   transition: background-color 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
 }
 
 .ctaPrimary:hover {
-  background: rgb(var(--hero-accent-hover));
-  color: #ffffff;
+  background: var(--accent-cta-hover);
+  color: var(--accent-foreground);
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px -6px rgb(var(--hero-accent) / 0.55);
+  box-shadow: 0 10px 24px -6px rgb(var(--accent-cta-hover-rgb) / 0.55);
 }
 
 .ctaSecondary {
-  background: rgb(255 255 255 / 0.88);
-  color: rgb(var(--hero-ink));
-  border: 1px solid rgb(var(--hero-ink) / 0.16);
+  background: rgb(var(--bg-surface-rgb) / 0.88);
+  color: var(--text-primary);
+  border: 1px solid rgb(var(--text-primary-rgb) / 0.16);
   backdrop-filter: blur(8px);
   transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
 }
 
 .ctaSecondary:hover {
-  background: rgb(255 255 255 / 0.98);
-  border-color: rgb(var(--hero-ink) / 0.35);
+  background: rgb(var(--bg-surface-rgb) / 0.98);
+  border-color: rgb(var(--text-primary-rgb) / 0.35);
   transform: translateY(-1px);
 }
 
 .ctaPrimary:focus-visible,
 .ctaSecondary:focus-visible {
-  outline: 2px solid rgb(var(--hero-ink));
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
 
