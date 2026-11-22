@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { ReactElement } from 'react';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import type {
+  DataBadgeVariant,
   NonEmptyReadonlyArray,
   ShowcasePillarRow,
   WorkflowStepCard,
@@ -19,6 +20,12 @@ interface EditorialShowcaseInteractiveProps {
   readonly onNavigate?: (moduleId: string, view?: string) => void;
 }
 
+function getBadgeClassName(variant: DataBadgeVariant): string {
+  if (variant === 'live') return 'vt-badge-live';
+  if (variant === 'simulated') return 'vt-badge-simulated';
+  return 'vt-badge-sample';
+}
+
 export function EditorialShowcaseSteps({
   steps,
   pillars,
@@ -26,38 +33,47 @@ export function EditorialShowcaseSteps({
 }: EditorialShowcaseInteractiveProps): ReactElement {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
+  const [activePillarId, setActivePillarId] = useState<string>(pillars[0].id);
 
   const activeStep = steps[activeStepIndex] ?? steps[0];
 
   return (
-    <>
-      {/* Band 3: Progressive Disclosure Alur Kerja Terpadu */}
-      <section
-        aria-labelledby="workflow-deck-heading"
-        className="border-t border-[#E4E4E7] bg-[#FFFFFF] py-20 md:py-28"
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
-            <div className="space-y-6 lg:col-span-6">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-                  Alur Kerja Terpadu
-                </p>
+    <div className="space-y-16">
+      {/* Reference 00:14–00:21: Stacked Workflow Deck over Framed Hardware Photography */}
+      <section aria-labelledby="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-primary">
+        <div className="relative min-h-[28rem] w-full p-5 sm:p-8 lg:p-10">
+          <Image
+            src={activeStep.imageSrc}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 1200px, 100vw"
+            className="object-cover opacity-35"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/45"
+          />
+
+          <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+            {/* Stacked Interactive Step Deck */}
+            <div className="space-y-2.5 lg:col-span-6">
+              <div className="mb-4">
+                <span className="vt-badge-sample">Alur Kerja Terpadu</span>
                 <h2
                   id="workflow-deck-heading"
-                  className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl"
+                  className="mt-3 font-serif text-2xl font-semibold text-surface [text-wrap:balance] sm:text-3xl"
                 >
-                  Empat langkah rapi dari riset hingga verifikasi.
+                  Setiap perangkat melalui siklus riset hingga verifikasi yang rapi.
                 </h2>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {steps.map((step, index) => {
                   const isActive = index === activeStepIndex;
                   return (
                     <div
                       key={step.id}
-                      className={`rounded-2xl transition-transform ${
+                      className={`rounded-xl transition-transform ${
                         isActive
                           ? styles.stepDeckCardActive
                           : `${styles.stepDeckCard ?? ''} ${prefersReducedMotion ? '' : 'hover:translate-x-1'}`
@@ -67,23 +83,23 @@ export function EditorialShowcaseSteps({
                         type="button"
                         aria-expanded={isActive}
                         onClick={() => setActiveStepIndex(index)}
-                        className="flex min-h-11 w-full items-center justify-between gap-3 px-5 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/70"
+                        className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/70"
                       >
                         <span className="min-w-0">
                           <span
                             className={`block font-mono text-[11px] font-semibold uppercase tracking-wider ${
-                              isActive ? 'text-[#EA580C]' : 'text-[#71717A]'
+                              isActive ? 'text-accent-cta' : 'text-white'
                             }`}
                           >
                             {step.phaseLabel}
                           </span>
-                          <span className="mt-1 block font-serif text-base font-semibold text-[#18181B] sm:text-lg">
+                          <span className="mt-0.5 block font-serif text-base font-semibold sm:text-lg">
                             {step.title}
                           </span>
                         </span>
                         <ChevronDown
                           className={`h-5 w-5 shrink-0 transition-transform ${
-                            isActive ? 'rotate-180 text-[#EA580C]' : 'text-[#71717A]'
+                            isActive ? 'rotate-180 text-accent-cta' : 'text-white'
                           }`}
                           strokeWidth={1.75}
                           aria-hidden="true"
@@ -91,15 +107,15 @@ export function EditorialShowcaseSteps({
                       </button>
 
                       {isActive && (
-                        <div className={`border-t border-[#E4E4E7] px-5 pb-5 pt-4 ${styles.stepPanelReveal ?? ''}`}>
-                          <p className="max-w-xl text-sm leading-relaxed text-[#71717A]">
+                        <div className={`border-t border-default px-4 pb-4 pt-3 ${styles.stepPanelReveal ?? ''}`}>
+                          <p className="max-w-[65ch] text-sm leading-relaxed text-secondary">
                             {step.summary}
                           </p>
-                          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                          <ul className="mt-3 flex flex-wrap gap-2">
                             {step.deliverables.map((item) => (
                               <li
                                 key={item}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#18181B]"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-subtle px-2.5 py-1 text-xs font-medium text-primary"
                               >
                                 <CheckCircle2
                                   className="h-3.5 w-3.5 text-status-live"
@@ -110,12 +126,12 @@ export function EditorialShowcaseSteps({
                               </li>
                             ))}
                           </ul>
-                          <div className="mt-5">
+                          <div className="mt-4">
                             {onNavigate ? (
                               <button
                                 type="button"
                                 onClick={() => onNavigate(step.targetModule, step.targetView)}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#C2410C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
                                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -123,7 +139,7 @@ export function EditorialShowcaseSteps({
                             ) : (
                               <Link
                                 href={`/home?tab=${encodeURIComponent(step.targetModule)}`}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#C2410C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
                                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -138,108 +154,139 @@ export function EditorialShowcaseSteps({
               </div>
             </div>
 
-            {/* Foto visual bersih tanpa kartu duplikat yang berebut perhatian */}
+            {/* Active Visual Card Callout on Desktop */}
             <div className="hidden lg:col-span-6 lg:block">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[#E4E4E7] bg-[#FAF9F6]">
-                <Image
-                  src={activeStep.imageSrc}
-                  alt={activeStep.imageAlt}
-                  fill
-                  sizes="(min-width: 1024px) 560px, 100vw"
-                  className="object-cover transition-opacity duration-300"
-                />
+              <div className="ml-auto max-w-md rounded-xl border border-default bg-surface p-5 text-primary shadow-xl">
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-subtle">
+                  <Image
+                    src={activeStep.imageSrc}
+                    alt={activeStep.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 420px, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+                <p className="mt-3 font-mono text-xs font-semibold text-accent-cta">
+                  {activeStep.phaseLabel}
+                </p>
+                <p className="mt-1 font-serif text-lg font-semibold text-primary">
+                  {activeStep.title}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-secondary">
+                  {activeStep.imageAlt}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Band 4: Direktori Pilar ViciTech Berbasis Hairline & Whitespace */}
-      <section
-        aria-labelledby="editorial-pillars-heading"
-        className="border-t border-[#E4E4E7] bg-[#FAF9F6] py-20 md:py-28"
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-end justify-between gap-6 pb-10">
-            <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-                Jelajahi Ekosistem
-              </p>
-              <h2
-                id="editorial-pillars-heading"
-                className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl"
-              >
-                Setiap kebutuhan perangkat dalam satu jalur transparan.
-              </h2>
-            </div>
-            <Link
-              href="/market"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-5 py-2.5 text-sm font-medium text-[#18181B] transition-colors hover:border-[#EA580C]/50 hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+      {/* Reference 00:22–00:27: Editorial Pillar Rows with Tags & Hover/Focus Image Preview */}
+      <section aria-labelledby="editorial-pillars-heading">
+        <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
+          <div>
+            <span className="vt-badge-sample">Direktori Pilar ViciTech</span>
+            <h2
+              id="editorial-pillars-heading"
+              className="mt-3 max-w-xl font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
             >
-              <span>Lihat Etalase Market</span>
-              <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            </Link>
+              Setiap komponen dan perangkat punya jejak verifikasi yang transparan.
+            </h2>
           </div>
+          <Link
+            href="/market"
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+          >
+            <span>Lihat Etalase Market</span>
+            <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+          </Link>
+        </div>
 
-          <ul className="divide-y divide-[#E4E4E7] border-y border-[#E4E4E7]">
-            {pillars.map((row) => (
-              <li key={row.id} className={`py-7 sm:py-8 ${styles.pillarRow ?? ''}`}>
-                <div className="grid gap-6 md:grid-cols-12 md:items-center">
-                  <div className="md:col-span-6">
-                    <h3 className="font-serif text-xl font-semibold text-[#18181B] sm:text-2xl">
+        <ul className="divide-y divide-default border-y border-default">
+          {pillars.map((row) => {
+            const isPreviewed = activePillarId === row.id;
+            return (
+              <li
+                key={row.id}
+                onMouseEnter={() => setActivePillarId(row.id)}
+                onFocus={() => setActivePillarId(row.id)}
+                className={`py-5 px-2 sm:px-4 ${styles.pillarRow ?? ''}`}
+              >
+                <div className="grid gap-4 md:grid-cols-12 md:items-center">
+                  <div className="md:col-span-4">
+                    <span className={getBadgeClassName(row.badgeVariant)}>{row.badgeLabel}</span>
+                    <h3 className="mt-2 font-serif text-xl font-semibold text-primary">
                       {row.title}
                     </h3>
-                    <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#71717A] sm:text-base">
+                    <p className="mt-1 max-w-[65ch] text-xs leading-relaxed text-secondary sm:text-sm">
                       {row.description}
                     </p>
                   </div>
 
-                  <div className="hidden md:col-span-3 md:block">
-                    <div className="relative aspect-[16/10] w-full max-w-[200px] overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#FFFFFF]">
+                  {/* Preview Image (revealed cleanly when active/focused or shown neatly inline) */}
+                  <div className="md:col-span-3">
+                    <div
+                      className={`relative aspect-video w-full max-w-[220px] overflow-hidden rounded-lg border border-default bg-subtle transition-opacity duration-150 ${
+                        isPreviewed ? 'opacity-100' : 'opacity-80 md:opacity-65'
+                      }`}
+                    >
                       <Image
                         src={row.previewSrc}
                         alt={row.previewAlt}
                         fill
-                        sizes="200px"
+                        sizes="(min-width: 768px) 220px, 90vw"
                         className="object-cover"
                       />
                     </div>
                   </div>
 
-                  <div className="flex md:col-span-3 md:justify-end">
+                  {/* 3 Technical Pill Tags */}
+                  <div className="flex flex-wrap gap-1.5 md:col-span-3">
+                    {row.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-default bg-surface px-3 py-1 text-xs font-medium text-secondary"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Action Trigger (>= 44x44px) */}
+                  <div className="flex md:col-span-2 md:justify-end">
                     {row.targetHref ? (
                       <Link
                         href={row.targetHref}
-                        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#18181B] transition-colors hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                       >
                         <span>{row.actionLabel}</span>
-                        <ArrowRight className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                        <ArrowRight className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                       </Link>
                     ) : row.targetModule && onNavigate ? (
                       <button
                         type="button"
                         onClick={() => onNavigate(row.targetModule ?? 'home')}
-                        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#18181B] transition-colors hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                       >
                         <span>{row.actionLabel}</span>
-                        <ArrowRight className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                        <ArrowRight className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                       </button>
                     ) : (
                       <Link
                         href={`/home?tab=${encodeURIComponent(row.targetModule ?? 'library')}`}
-                        className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[#18181B] transition-colors hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                       >
                         <span>{row.actionLabel}</span>
-                        <ArrowRight className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                        <ArrowRight className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                       </Link>
                     )}
                   </div>
                 </div>
               </li>
-            ))}
-          </ul>
-        </div>
+            );
+          })}
+        </ul>
       </section>
-    </>
+    </div>
   );
 }

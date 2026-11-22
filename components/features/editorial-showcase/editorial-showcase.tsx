@@ -15,10 +15,12 @@ import {
   SHOWCASE_PILLAR_ROWS,
   TECHNICAL_CALLOUTS,
   WORKFLOW_STEP_CARDS,
+  type DataBadgeVariant,
   type ShowcaseIconKey,
   type TechnicalCallout,
 } from './editorial-showcase-content';
 import { EditorialShowcaseSteps } from './editorial-showcase-steps';
+import styles from './editorial-showcase.module.css';
 
 interface EditorialShowcaseProps {
   readonly onNavigate?: (moduleId: string, view?: string) => void;
@@ -47,6 +49,12 @@ function CalloutIcon({
   }
 }
 
+function badgeClass(variant: DataBadgeVariant): string {
+  if (variant === 'live') return 'vt-badge-live';
+  if (variant === 'simulated') return 'vt-badge-simulated';
+  return 'vt-badge-sample';
+}
+
 function CalloutCard({
   item,
   onNavigate,
@@ -55,21 +63,22 @@ function CalloutCard({
   readonly onNavigate?: (moduleId: string, view?: string) => void;
 }): ReactElement {
   const content = (
-    <div className="flex items-start gap-4">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FAF9F6] text-[#EA580C]">
+    <div className="flex items-start gap-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary">
         <CalloutIcon iconKey={item.iconKey} className="h-5 w-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <h3 className="font-serif text-base font-semibold leading-snug text-[#18181B]">
+        <span className={badgeClass(item.badgeVariant)}>{item.badgeLabel}</span>
+        <h3 className="mt-2 font-serif text-base font-semibold text-primary [text-wrap:balance]">
           {item.title}
         </h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-[#71717A]">{item.summary}</p>
+        <p className="mt-1 text-xs leading-relaxed text-secondary">{item.summary}</p>
       </div>
     </div>
   );
 
   const sharedClasses =
-    'block min-h-11 w-full rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-5 text-left transition-colors hover:border-[#EA580C]/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
+    'block min-h-11 w-full rounded-xl border border-default bg-surface p-4 text-left shadow-sm transition-colors hover:border-accent-primary/50 hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60';
 
   if (onNavigate) {
     return (
@@ -102,25 +111,25 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
   );
 
   return (
-    <div aria-label="Ringkasan ekosistem ViciTech">
-      {/* Band 1: Manifesto Editorial yang Tenang & Fokus Tunggal */}
-      <section className="border-t border-[#E4E4E7] bg-[#FFFFFF] py-20 md:py-28">
-        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
+    <section
+      aria-label="Ringkasan arsitektur Circular IT ViciTech"
+      className="border-t border-default bg-surface py-14 sm:py-16"
+    >
+      <div className="mx-auto max-w-shell space-y-16 px-4 sm:px-6">
+        {/* Reference 00:07–00:08: Vibrant Tech Orange Editorial Manifesto Band */}
+        <div className={`rounded-xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
+          <span className="inline-flex items-center rounded-md bg-surface px-3 py-1 text-xs font-semibold text-primary shadow-sm">
             {SHOWCASE_MANIFESTO.badgeLabel}
-          </p>
-          <h2 className="mx-auto mt-4 max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl lg:text-5xl">
+          </span>
+          <h2 className="mx-auto mt-5 max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             {SHOWCASE_MANIFESTO.headline}
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[#71717A]">
-            {SHOWCASE_MANIFESTO.subtitle}
-          </p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             {onNavigate ? (
               <button
                 type="button"
                 onClick={() => onNavigate(SHOWCASE_MANIFESTO.ctaModule)}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#C2410C] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -128,7 +137,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             ) : (
               <Link
                 href={`/home?tab=${SHOWCASE_MANIFESTO.ctaModule}`}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#C2410C] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -136,35 +145,37 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             )}
             <Link
               href={SHOWCASE_MANIFESTO.secondaryHref}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-6 py-3 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span>{SHOWCASE_MANIFESTO.secondaryLabel}</span>
             </Link>
           </div>
         </div>
-      </section>
 
-      {/* Band 2: 4 Pilar Pengujian & Jaminan di Atas Kanvas Bersih */}
-      <section className="border-t border-[#E4E4E7] bg-[#FAF9F6] py-20 md:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-              Standar Jaminan Unit
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl">
-              Empat pilar kualitas di setiap perangkat ViciTech.
+        {/* Reference 00:09–00:13: 4-Corner Hardware Diagram with Technical Callouts */}
+        <div className={`rounded-xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
+          <div className="mb-6 max-w-2xl">
+            <span className="vt-badge-live">Verifikasi Teknis Multi-Perangkat</span>
+            <h2 className="mt-3 font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+              Empat pilar pengujian dan jaminan di setiap unit ViciTech.
             </h2>
           </div>
 
-          <div className="mt-12 grid gap-6 lg:grid-cols-12 lg:items-center lg:gap-8">
-            <div className="space-y-5 lg:col-span-4">
+          <div className="grid gap-4 lg:grid-cols-12 lg:items-center">
+            <div className="space-y-4 lg:col-span-4">
               {leftCallouts.map((item) => (
-                <CalloutCard key={item.id} item={item} onNavigate={onNavigate} />
+                <div key={item.id} className="relative flex items-center gap-3">
+                  <CalloutCard item={item} onNavigate={onNavigate} />
+                  <span
+                    aria-hidden="true"
+                    className={`hidden w-6 shrink-0 lg:block ${styles.connectorLineLeft ?? ''}`}
+                  />
+                </div>
               ))}
             </div>
 
             <div className="lg:col-span-4">
-              <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF]">
+              <div className="relative mx-auto aspect-[4/3] w-full max-w-sm overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
                 <Image
                   src="/images/hero/pc-rig.jpg"
                   alt="Unit workstation ViciTech yang melalui 15 titik inspeksi QC"
@@ -175,53 +186,74 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
               </div>
             </div>
 
-            <div className="space-y-5 lg:col-span-4">
+            <div className="space-y-4 lg:col-span-4">
               {rightCallouts.map((item) => (
-                <CalloutCard key={item.id} item={item} onNavigate={onNavigate} />
+                <div key={item.id} className="relative flex items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className={`hidden w-6 shrink-0 lg:block ${styles.connectorLineRight ?? ''}`}
+                  />
+                  <CalloutCard item={item} onNavigate={onNavigate} />
+                </div>
               ))}
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Band 3 & 4: Alur Kerja Interaktif & Direktori Ekosistem */}
-      <EditorialShowcaseSteps
-        steps={WORKFLOW_STEP_CARDS}
-        pillars={SHOWCASE_PILLAR_ROWS}
-        onNavigate={onNavigate}
-      />
+        {/* Interactive Stacked Step Deck (00:14–00:21) + Editorial Pillar List (00:22–00:27) */}
+        <EditorialShowcaseSteps
+          steps={WORKFLOW_STEP_CARDS}
+          pillars={SHOWCASE_PILLAR_ROWS}
+          onNavigate={onNavigate}
+        />
 
-      {/* Band 5: Closing Editorial CTA */}
-      <section className="border-t border-[#E4E4E7] bg-[#FFFFFF] py-20 md:py-28">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 px-4 sm:px-6 md:flex-row md:items-end lg:px-8">
-          <div className="max-w-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-              Terbuka &amp; Terverifikasi
-            </p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] [text-wrap:balance] sm:text-4xl">
-              Rakit, diagnosa, dan kelola perangkat keras bersama komunitas.
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-[#71717A]">
-              Terhubung dengan builder, teknisi mitra lokal, dan panduan perawatan dalam satu ekosistem sirkular.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/community"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#C2410C] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#9A3412] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+        {/* Reference 00:28–00:30: Closing Watermark Banner CTA */}
+        <div className={`rounded-xl p-6 sm:p-10 ${styles.watermarkBanner ?? ''}`}>
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            viewBox="0 0 430 104"
+            className={`block h-12 w-auto max-w-full sm:h-[4.5rem] lg:h-24 ${styles.watermarkText ?? ''}`}
+          >
+            <text
+              x="0"
+              y="82"
+              fill="currentColor"
+              fontSize="94"
+              fontWeight="700"
+              letterSpacing="-0.025em"
+              style={{ fontFamily: 'var(--font-serif), Georgia, serif' }}
             >
-              <span>Buka Komunitas</span>
-              <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            </Link>
-            <Link
-              href="/partners"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-6 py-3 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
-            >
-              <span>Cari Mitra Servis</span>
-            </Link>
+              ViciTech
+            </text>
+          </svg>
+          <div className="relative -mt-3 flex flex-wrap items-center justify-between gap-6 sm:-mt-5">
+            <div className="max-w-xl">
+              <h2 className="font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+                Rakit, diagnosa, dan kelola siklus hidup perangkat keras Anda.
+              </h2>
+              <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
+                Dari rakitan PC kustom dan laptop enterprise hingga smartphone dan aksesori, semua terhubung dalam satu ekosistem transparan.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/community"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                <span>Buka Community Hub</span>
+                <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              </Link>
+              <Link
+                href="/partners"
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                <span>Cari Mitra Servis</span>
+              </Link>
+            </div>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }

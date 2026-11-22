@@ -10,7 +10,6 @@ import {
   Cpu,
   Gauge,
   LayoutGrid,
-  Layers,
   MapPin,
   Menu,
   MessageSquare,
@@ -21,37 +20,35 @@ import {
   Swords,
   User,
   Users,
-  Wrench,
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { FocusEvent as ReactFocusEvent, MouseEvent as ReactMouseEvent, ReactElement } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
 import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { formatDmBadgeCount } from '@/lib/chat/dm-notifications';
 import { shouldInterceptRouteLink, startRouteTransition } from '@/lib/motion/view-transition';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
-  DESKTOP_NAV_GROUPS,
+  DATA_SOURCES,
   MOBILE_BOTTOM_NAV_ITEMS,
+  MORE_MENU_ITEMS,
+  PRIMARY_NAV_ITEMS,
+  SEED_NOTIFICATIONS,
   countUnreadNotifications,
-  formatNotificationRelativeTime,
+  formatUnreadBadge,
   getVisibleNavItems,
   isActiveRoute,
   isShellOwnedRoute,
-  isSubItemActive,
-  mapNotificationRow,
   normalizeUserRole,
-  resolveActiveUmbrellaId,
 } from './navigation/navbar-state';
 import type {
-  DatabaseNotificationRow,
-  DesktopNavUmbrellaId,
+  DataSourceTone,
+  MoreMenuIconKey,
   NavIconKey,
   NavItem,
   NavNotification,
-  NavSubIconKey,
-  NavSubItem,
   UserRole,
 } from './navigation/navbar-state';
 import styles from './navigation/navbar.module.css';
@@ -64,14 +61,20 @@ interface NavbarProps {
   readonly initialRole?: UserRole;
 }
 
-type OpenMenu = DesktopNavUmbrellaId | 'notifications' | 'account' | null;
+type OpenMenu = 'notifications' | 'account' | null;
 
 const SHELL_ROUTES = ['/home', '/market', '/community'];
+const MINIMIZE_AFTER_Y = 80;
+const RESTORE_BELOW_Y = 40;
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
-const iconBtnBase =
-  `relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${focusRing}`;
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60';
+const utilityBtnBase = `vt-btn-tactile relative inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-full border ${focusRing}`;
+const desktopUtilityBtn = `${utilityBtnBase} h-10 w-10`;
+const mobileUtilityBtn = `${utilityBtnBase} h-11 w-11`;
+const utilityIdle = 'border-default bg-surface text-secondary hover:bg-subtle hover:text-primary';
+const utilityOpen = 'border-accent-primary bg-accent-subtle text-primary';
+const menuPanel = `absolute top-full z-[60] mt-2 rounded-xl border border-default bg-surface p-2 shadow-2xl ${styles.menuPop ?? ''}`;
 
 function NavIcon({
   iconKey,
@@ -86,7 +89,7 @@ function NavIcon({
     case 'market':
       return <ShoppingBag className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'builder':
-      return <Wrench className={className} strokeWidth={1.75} aria-hidden="true" />;
+      return <Sliders className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'tradein':
       return <RefreshCw className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'partners':
@@ -96,149 +99,96 @@ function NavIcon({
   }
 }
 
-function SubNavIcon({
-  iconKey,
-  active,
-}: {
-  readonly iconKey: NavSubIconKey;
-  readonly active?: boolean;
-}): ReactElement {
-  const cls = `mt-0.5 h-4 w-4 shrink-0 transition-colors ${
-    active ? 'text-[#EA580C]' : 'text-[#71717A] group-hover:text-[#EA580C]'
-  }`;
+function MoreIcon({ iconKey }: { readonly iconKey: MoreMenuIconKey }): ReactElement {
+  const cls = 'h-4 w-4 shrink-0 text-accent-primary';
   switch (iconKey) {
-    case 'home':
-      return <LayoutGrid className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'market':
-      return <ShoppingBag className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'library':
-      return <Layers className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'builder':
-      return <Sliders className={cls} strokeWidth={1.75} aria-hidden="true" />;
+    case 'qc':
+      return <Activity className={cls} strokeWidth={1.75} aria-hidden="true" />;
+    case 'messages':
+      return <MessageSquare className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'bottleneck':
       return <Gauge className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'versus':
       return <Swords className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'upgrade':
-      return <Wrench className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'qc':
-      return <Activity className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'tradein':
-      return <RefreshCw className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'partners':
-      return <MapPin className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'community':
-      return <Users className={cls} strokeWidth={1.75} aria-hidden="true" />;
-    case 'messages':
-      return <MessageSquare className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'account':
       return <User className={cls} strokeWidth={1.75} aria-hidden="true" />;
   }
 }
 
-function BrandMark(): ReactElement {
+function sourceBadgeClass(tone: DataSourceTone): string {
+  switch (tone) {
+    case 'live':
+      return 'vt-badge-live';
+    case 'simulated':
+      return 'vt-badge-simulated';
+    case 'sample':
+      return 'vt-badge-sample';
+  }
+}
+
+function BrandMark({ compact = false }: { readonly compact?: boolean }): ReactElement {
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#EA580C] text-white">
-      <Cpu className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+    <span
+      className={`grid shrink-0 place-items-center rounded-full bg-accent-primary text-white shadow-sm ${
+        compact ? 'h-8 w-8' : 'h-9 w-9'
+      }`}
+    >
+      <Cpu className={compact ? 'h-4 w-4' : 'h-[18px] w-[18px]'} strokeWidth={1.75} aria-hidden="true" />
     </span>
   );
 }
 
 function NotificationsPanel({
   items,
-  isAuthenticated,
-  isLoading,
   onSelect,
   onMarkAllRead,
-  onLoginClick,
+  align,
 }: {
   readonly items: readonly NavNotification[];
-  readonly isAuthenticated: boolean;
-  readonly isLoading: boolean;
   readonly onSelect: (item: NavNotification) => void;
   readonly onMarkAllRead: () => void;
-  readonly onLoginClick: () => void;
+  readonly align: 'left' | 'right';
 }): ReactElement {
   const unread = countUnreadNotifications(items);
   return (
     <div
       role="dialog"
       aria-label="Notifikasi"
-      className={`absolute right-0 top-full z-[60] mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
+      className={`${menuPanel} ${align === 'right' ? 'right-0' : 'left-0'} w-[min(22rem,calc(100vw-1.5rem))]`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-[#E4E4E7] px-2.5 pb-2 pt-1">
-        <p className="text-sm font-semibold text-[#18181B]">Notifikasi</p>
-        {isAuthenticated && (
-          <button
-            type="button"
-            onClick={onMarkAllRead}
-            disabled={unread === 0}
-            className={`min-h-8 rounded-full px-2.5 text-xs font-medium text-[#71717A] transition-colors hover:bg-[#F3F1ED] hover:text-[#18181B] disabled:cursor-default disabled:opacity-50 ${focusRing}`}
-          >
-            Tandai dibaca
-          </button>
-        )}
+      <div className="flex items-center justify-between gap-2 px-2 pb-2 pt-1">
+        <p className="text-sm font-semibold text-primary">Notifikasi</p>
+        <button
+          type="button"
+          onClick={onMarkAllRead}
+          disabled={unread === 0}
+          className={`min-h-9 rounded-full px-2.5 text-xs font-medium text-secondary transition hover:bg-subtle hover:text-primary disabled:cursor-default disabled:opacity-50 ${focusRing}`}
+        >
+          Tandai semua dibaca
+        </button>
       </div>
-
-      {!isAuthenticated ? (
-        <div className="mt-2 space-y-2.5 rounded-xl bg-[#FAF9F6] px-3 py-4 text-center">
-          <p className="text-xs leading-relaxed text-[#71717A]">
-            Masuk untuk melihat notifikasi pesanan, komentar, dan pesan langsung Anda.
-          </p>
-          <Link
-            href="/login"
-            onClick={onLoginClick}
-            className={`inline-flex min-h-9 items-center justify-center rounded-full bg-accent-cta px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-cta-hover ${focusRing}`}
-          >
-            Masuk ke Akun
-          </Link>
-        </div>
-      ) : isLoading ? (
-        <div className="mt-2 space-y-2 p-1" aria-hidden="true">
-          <div className="h-12 animate-pulse rounded-xl bg-[#F3F1ED]" />
-          <div className="h-12 animate-pulse rounded-xl bg-[#F3F1ED]" />
-        </div>
-      ) : items.length === 0 ? (
-        <p className="mt-2 rounded-xl bg-[#FAF9F6] px-3 py-5 text-center text-xs text-[#71717A]">
-          Belum ada notifikasi baru.
-        </p>
-      ) : (
-        <ul className="mt-1 grid max-h-80 gap-0.5 overflow-y-auto">
-          {items.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => onSelect(item)}
-                className={`flex min-h-11 w-full items-start gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                    item.unread ? 'bg-[#EA580C]' : 'bg-[#E4E4E7]'
-                  }`}
-                />
-                <span className="min-w-0 flex-1">
-                  <span
-                    className={`block text-sm leading-snug ${
-                      item.unread ? 'font-semibold text-[#18181B]' : 'text-[#52525B]'
-                    }`}
-                  >
-                    {item.title}
-                  </span>
-                  {item.body && (
-                    <span className="mt-0.5 line-clamp-2 block text-xs text-[#71717A]">
-                      {item.body}
-                    </span>
-                  )}
-                  <span className="mt-0.5 block text-[11px] text-[#71717A]">
-                    {formatNotificationRelativeTime(item.createdAt)}
-                  </span>
+      <ul className="grid gap-1">
+        {items.map((item) => (
+          <li key={item.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(item)}
+              className={`flex min-h-11 w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-subtle ${focusRing}`}
+            >
+              <span
+                aria-hidden="true"
+                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.unread ? 'bg-accent-primary' : 'bg-subtle'}`}
+              />
+              <span className="min-w-0 flex-1">
+                <span className={`block text-sm leading-snug ${item.unread ? 'font-semibold text-primary' : 'text-secondary'}`}>
+                  {item.text}
                 </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+                <span className="mt-0.5 block text-xs text-secondary">{item.ago}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -251,15 +201,15 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const [role, setRole] = useState<UserRole>(initialRole);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeModule, setActiveModule] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<string | null>(null);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
-  const [notifications, setNotifications] = useState<readonly NavNotification[]>([]);
-  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notifications, setNotifications] = useState<readonly NavNotification[]>(SEED_NOTIFICATIONS);
 
   const menuTriggerRef = useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const hoverCloseTimerRef = useRef<number | null>(null);
-  const lastHoverOpenRef = useRef<{ readonly id: DesktopNavUmbrellaId; readonly ts: number } | null>(null);
+  const lastScrollYRef = useRef(0);
+  const isMinimizedRef = useRef(false);
+  const scrollRafRef = useRef<number | null>(null);
   const currentUserIdRef = useRef<string | null>(null);
   currentUserIdRef.current = currentUserId;
 
@@ -269,14 +219,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     enabled: Boolean(currentUserId) && !isShellOwnedRoute(pathname ?? ''),
   });
 
-  const clearHoverCloseTimer = useCallback(() => {
-    if (hoverCloseTimerRef.current !== null) {
-      window.clearTimeout(hoverCloseTimerRef.current);
-      hoverCloseTimerRef.current = null;
-    }
+  const setMinimizedSynced = useCallback((next: boolean) => {
+    if (isMinimizedRef.current === next) return;
+    isMinimizedRef.current = next;
+    setIsMinimized(next);
   }, []);
-
-  useEffect(() => clearHoverCloseTimer, [clearHoverCloseTimer]);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -289,107 +236,42 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     });
   }, []);
 
-  const closeAllMenus = useCallback(() => {
-    clearHoverCloseTimer();
-    setOpenMenu(null);
-  }, [clearHoverCloseTimer]);
-
-  const toggleMenu = useCallback(
-    (menu: Exclude<OpenMenu, null>) => {
-      clearHoverCloseTimer();
-      setOpenMenu((current) => (current === menu ? null : menu));
-    },
-    [clearHoverCloseTimer],
-  );
-
-  const openUmbrellaOnHover = useCallback(
-    (id: DesktopNavUmbrellaId) => {
-      clearHoverCloseTimer();
-      setOpenMenu((current) => {
-        if (current !== id) {
-          lastHoverOpenRef.current = { id, ts: Date.now() };
-        }
-        return id;
-      });
-    },
-    [clearHoverCloseTimer],
-  );
-
-  const scheduleUmbrellaClose = useCallback(
-    (id: DesktopNavUmbrellaId) => {
-      clearHoverCloseTimer();
-      hoverCloseTimerRef.current = window.setTimeout(() => {
-        setOpenMenu((current) => (current === id ? null : current));
-        hoverCloseTimerRef.current = null;
-      }, 140);
-    },
-    [clearHoverCloseTimer],
-  );
-
-  const toggleUmbrellaClick = useCallback(
-    (id: DesktopNavUmbrellaId) => {
-      clearHoverCloseTimer();
-      const recentHover = lastHoverOpenRef.current;
-      if (recentHover && recentHover.id === id && Date.now() - recentHover.ts < 220) {
-        lastHoverOpenRef.current = null;
-        setOpenMenu(id);
-        return;
-      }
-      lastHoverOpenRef.current = null;
-      setOpenMenu((current) => (current === id ? null : id));
-    },
-    [clearHoverCloseTimer],
-  );
-
-  const handleUmbrellaBlur = useCallback(
-    (id: DesktopNavUmbrellaId, event: ReactFocusEvent<HTMLDivElement>) => {
-      const nextTarget = event.relatedTarget;
-      if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
-      setOpenMenu((current) => (current === id ? null : current));
-    },
-    [],
-  );
+  const toggleMenu = useCallback((menu: Exclude<OpenMenu, null>) => {
+    setOpenMenu((current) => (current === menu ? null : menu));
+  }, []);
 
   const toggleAccountMenu = useCallback(() => {
     toggleMenu('account');
   }, [toggleMenu]);
 
+  const closeAllMenus = useCallback(() => {
+    setOpenMenu(null);
+  }, []);
+
   const triggerGlobalSearch = useCallback(() => {
-    closeAllMenus();
+    setOpenMenu(null);
     const commandEvent = new CustomEvent('vicitech:open-command-palette', { cancelable: true });
     const notHandledByShell = window.dispatchEvent(commandEvent);
     if (notHandledByShell) {
       setSearchOpen((prev) => !prev);
     }
-  }, [closeAllMenus]);
+  }, []);
 
-  // Track active module + sub-view across route transitions and client-side workspace tabs.
+  // Track active tab/module when moving inside the client-side ViciTechApp workspace.
   useEffect(() => {
     const syncModuleFromUrl = () => {
-      const hashParts = window.location.hash.slice(1).split('/');
-      const hashId = hashParts[0] || null;
-      const hashView = hashParts[1] || null;
+      const hashId = window.location.hash.slice(1).split('/')[0];
       if (hashId) {
         setActiveModule(hashId);
-        setActiveView(hashView);
         return;
       }
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      const viewParam = params.get('view');
-      const normalizedView = viewParam === 'library' ? 'catalog' : viewParam;
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
       setActiveModule(tabParam || null);
-      setActiveView(normalizedView || null);
     };
 
     const handleModuleChange = (event: Event) => {
       if (event instanceof CustomEvent && typeof event.detail?.module === 'string') {
         setActiveModule(event.detail.module);
-        setActiveView(
-          typeof event.detail.view === 'string' && event.detail.view.length > 0
-            ? event.detail.view
-            : null,
-        );
       } else {
         syncModuleFromUrl();
       }
@@ -414,31 +296,71 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         triggerGlobalSearch();
       } else if (event.key === 'Escape') {
         setSearchOpen(false);
-        closeAllMenus();
+        setOpenMenu(null);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [closeAllMenus, triggerGlobalSearch]);
+  }, [triggerGlobalSearch]);
 
-  // Outside click closes any open dropdown.
+  // Outside click closes any open command-bar dropdown.
   useEffect(() => {
     if (!openMenu) return undefined;
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (target instanceof Element && target.closest('[data-nav-menu]')) return;
-      closeAllMenus();
+      setOpenMenu(null);
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [closeAllMenus, openMenu]);
+  }, [openMenu]);
 
-  // Reset open overlays on route or sub-module change.
   useEffect(() => {
     setSheetOpen(false);
     setSearchOpen(false);
-    closeAllMenus();
-  }, [pathname, activeModule, activeView, closeAllMenus]);
+    setOpenMenu(null);
+    setMinimizedSynced(false);
+  }, [pathname, setMinimizedSynced]);
+
+  // Scroll-to-minimize: collapse into the compact logo button when scrolling down,
+  // restore automatically near the top of the page. Updates only on threshold transitions.
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+    const evaluateScroll = () => {
+      scrollRafRef.current = null;
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollYRef.current;
+
+      if (currentY <= RESTORE_BELOW_Y) {
+        setMinimizedSynced(false);
+        lastScrollYRef.current = currentY;
+        return;
+      }
+      if (currentY > MINIMIZE_AFTER_Y && delta > 10) {
+        if (!isMinimizedRef.current) {
+          setMinimizedSynced(true);
+          setOpenMenu(null);
+        }
+        lastScrollYRef.current = currentY;
+      } else if (delta < -5) {
+        lastScrollYRef.current = currentY;
+      }
+    };
+
+    const handleScroll = () => {
+      if (scrollRafRef.current !== null) return;
+      scrollRafRef.current = window.requestAnimationFrame(evaluateScroll);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, [setMinimizedSynced]);
 
   useEffect(() => {
     if (!sheetOpen) return undefined;
@@ -456,7 +378,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     };
   }, [closeSheet, sheetOpen]);
 
-  // Sync authenticated role + current user ID from Supabase.
+  // Sync authenticated role + current user ID from Supabase (Realtime DMs handled by useUnreadMessages).
   useEffect(() => {
     if (!isSupabaseAuthConfigured) {
       setRole('guest');
@@ -530,93 +452,18 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     };
   }, []);
 
-  // Load real notifications from Supabase public.notifications and subscribe to live updates.
-  useEffect(() => {
-    if (!isSupabaseAuthConfigured || !currentUserId) {
-      setNotifications([]);
-      setNotificationsLoading(false);
-      return undefined;
-    }
-
-    let isMounted = true;
-    const supabase = getSupabaseBrowserClient();
-    setNotificationsLoading(true);
-
-    async function loadNotifications(): Promise<void> {
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('id, actor_id, type, entity_id, title, body, is_read, created_at')
-          .eq('user_id', currentUserId)
-          .order('created_at', { ascending: false })
-          .limit(20);
-
-        if (!isMounted) return;
-        if (!error && Array.isArray(data)) {
-          setNotifications(data.map((row) => mapNotificationRow(row as DatabaseNotificationRow)));
-        }
-      } catch {
-        // Pertahankan state terakhir jika terjadi gangguan jaringan sementara.
-      } finally {
-        if (isMounted) setNotificationsLoading(false);
-      }
-    }
-
-    void loadNotifications();
-
-    const channel = supabase
-      .channel(`navbar-notifications-${currentUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${currentUserId}`,
-        },
-        (payload: {
-          readonly eventType: string;
-          readonly new?: DatabaseNotificationRow;
-          readonly old?: { readonly id?: string };
-        }) => {
-          if (!isMounted) return;
-          if (payload.eventType === 'INSERT' && payload.new) {
-            const incoming = mapNotificationRow(payload.new);
-            setNotifications((prev) => [
-              incoming,
-              ...prev.filter((item) => item.id !== incoming.id),
-            ].slice(0, 20));
-          } else if (payload.eventType === 'UPDATE' && payload.new) {
-            const updated = mapNotificationRow(payload.new);
-            setNotifications((prev) =>
-              prev.map((item) => (item.id === updated.id ? updated : item)),
-            );
-          } else if (payload.eventType === 'DELETE' && payload.old?.id) {
-            const deletedId = payload.old.id;
-            setNotifications((prev) => prev.filter((item) => item.id !== deletedId));
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      isMounted = false;
-      void supabase.removeChannel(channel);
-    };
-  }, [currentUserId]);
-
-  const visibleDesktopGroups = useMemo(() => getVisibleNavItems(DESKTOP_NAV_GROUPS, role), [role]);
+  const visibleDesktopItems = useMemo(() => getVisibleNavItems(PRIMARY_NAV_ITEMS, role), [role]);
   const visibleBottomItems = useMemo(() => getVisibleNavItems(MOBILE_BOTTOM_NAV_ITEMS, role), [role]);
+  const dmBadgeLabel = formatDmBadgeCount(unreadCount);
   const unreadNotifications = countUnreadNotifications(notifications);
-  const hasUnreadAlerts = unreadNotifications > 0 || unreadCount > 0;
-  const activeUmbrella = resolveActiveUmbrellaId(pathname, activeModule, activeView);
+  const notificationBadge = formatUnreadBadge(unreadNotifications);
   const isMessagesRoute = pathname === '/messages' || Boolean(pathname?.startsWith('/messages/'));
-  const isProfileRoute = pathname === '/profile' || Boolean(pathname?.startsWith('/profile/'));
 
   const handleHrefClick = useCallback(
-    (event: ReactMouseEvent<HTMLAnchorElement>, href: string) => {
-      closeAllMenus();
-      setSheetOpen(false);
+    (event: ReactMouseEvent<HTMLAnchorElement>, href: string, closeMenus = false) => {
+      if (closeMenus) {
+        setOpenMenu(null);
+      }
       if (shouldInterceptRouteLink(event, href, pathname)) {
         event.preventDefault();
         startRouteTransition(() => {
@@ -624,44 +471,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         });
       }
     },
-    [closeAllMenus, pathname, router],
+    [pathname, router],
   );
 
-  const handleSubItemClick = useCallback(
-    (event: ReactMouseEvent<HTMLAnchorElement>, item: NavSubItem) => {
-      closeAllMenus();
-      setSheetOpen(false);
-
-      if (item.href.startsWith('/home') && pathname === '/home' && item.targetModule) {
-        event.preventDefault();
-        window.dispatchEvent(
-          new CustomEvent('vicitech:navigate-module', {
-            detail: { module: item.targetModule, view: item.targetView },
-          }),
-        );
-        return;
-      }
-
-      if (item.href.startsWith('/market') && pathname === '/market' && item.targetModule === 'market') {
-        event.preventDefault();
-        window.dispatchEvent(
-          new CustomEvent('vicitech:navigate-module', {
-            detail: { module: 'market', view: item.targetView ?? 'ready' },
-          }),
-        );
-        return;
-      }
-
-      handleHrefClick(event, item.href);
-    },
-    [closeAllMenus, handleHrefClick, pathname],
-  );
-
-  const handleBottomNavClick = useCallback(
+  const handleNavClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>, item: NavItem) => {
-      closeAllMenus();
       if (item.targetModule && pathname === '/home') {
-        event.preventDefault();
         window.dispatchEvent(
           new CustomEvent('vicitech:navigate-module', { detail: { module: item.targetModule } }),
         );
@@ -669,29 +484,25 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       }
       handleHrefClick(event, item.href);
     },
-    [closeAllMenus, handleHrefClick, pathname],
+    [handleHrefClick, pathname],
   );
 
+  // Shared navigation for search results, notifications, data sources and More menu.
   const navigateTo = useCallback(
     (targetHref: string, moduleName?: string, viewName?: string) => {
       setSearchOpen(false);
-      closeAllMenus();
-      setSheetOpen(false);
+      setOpenMenu(null);
       if (moduleName && pathname && SHELL_ROUTES.includes(pathname)) {
-        const isMarketSwitch = pathname === '/market' && moduleName === 'market';
-        const isHomeSwitch = pathname === '/home';
-        if (isMarketSwitch || isHomeSwitch) {
-          window.dispatchEvent(
-            new CustomEvent('vicitech:navigate-module', { detail: { module: moduleName, view: viewName } }),
-          );
-          return;
-        }
+        window.dispatchEvent(
+          new CustomEvent('vicitech:navigate-module', { detail: { module: moduleName, view: viewName } }),
+        );
+        return;
       }
       startRouteTransition(() => {
         router.push(targetHref);
       });
     },
-    [closeAllMenus, pathname, router],
+    [pathname, router],
   );
 
   const handleAuthNavigate = useCallback(
@@ -709,313 +520,316 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   const selectNotification = useCallback(
     (item: NavNotification) => {
-      const wasUnread = item.unread;
-      if (wasUnread && currentUserId && isSupabaseAuthConfigured) {
-        setNotifications((list) => list.map((n) => (n.id === item.id ? { ...n, unread: false } : n)));
-        const supabase = getSupabaseBrowserClient();
-        void supabase
-          .from('notifications')
-          .update({ is_read: true })
-          .eq('id', item.id)
-          .eq('user_id', currentUserId)
-          .then(({ error }: { readonly error: unknown }) => {
-            if (error) {
-              setNotifications((list) => list.map((n) => (n.id === item.id ? { ...n, unread: true } : n)));
-            }
-          });
-      }
+      setNotifications((list) => list.map((n) => (n.id === item.id ? { ...n, unread: false } : n)));
       navigateTo(item.href, item.module, item.view);
     },
-    [currentUserId, navigateTo],
+    [navigateTo],
   );
 
   const markAllNotificationsRead = useCallback(() => {
-    if (!currentUserId || !isSupabaseAuthConfigured) return;
-    let previousSnapshot: readonly NavNotification[] = [];
-    setNotifications((list) => {
-      previousSnapshot = list;
-      return list.map((n) => ({ ...n, unread: false }));
-    });
-    const supabase = getSupabaseBrowserClient();
-    void supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('user_id', currentUserId)
-      .eq('is_read', false)
-      .then(({ error }: { readonly error: unknown }) => {
-        if (error && previousSnapshot.length > 0) {
-          setNotifications(previousSnapshot);
-        }
-      });
-  }, [currentUserId]);
+    setNotifications((list) => list.map((n) => ({ ...n, unread: false })));
+  }, []);
+
+  const expandNavbar = useCallback(() => {
+    setMinimizedSynced(false);
+    lastScrollYRef.current = window.scrollY;
+  }, [setMinimizedSynced]);
 
   if (pathname && isShellOwnedRoute(pathname)) return null;
 
+  // In/out animation states (elements stay mounted so exit transitions can play).
+  // Wrappers are pointer-events-none so only the pills themselves catch clicks.
+  const barState = isMinimized
+    ? 'pointer-events-none invisible -translate-y-6 scale-95 opacity-0'
+    : 'pointer-events-auto visible translate-y-0 scale-100 opacity-100';
+  const logoState = isMinimized
+    ? 'pointer-events-auto visible translate-y-0 scale-100 opacity-100'
+    : 'pointer-events-none invisible -translate-y-2 scale-90 opacity-0';
+  const motion = 'transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-none';
+
+  const activeItem = visibleDesktopItems.find((item) => isActiveRoute(pathname, item.href, activeModule));
+
   return (
     <>
-      {/* ───────── Calm Editorial Sticky Navbar (Progressive Disclosure) ───────── */}
-      <header className={`sticky top-0 z-50 w-full ${styles.navbarHeader ?? ''}`}>
-        <div className="mx-auto flex h-[68px] w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 md:grid md:h-[72px] md:grid-cols-[1fr_auto_1fr] md:items-center lg:px-8">
-          {/* Left: Brand Logo -> Beranda ("/") */}
+      {/* ───────── Single-Row Desktop Command Floating Bar (md and up) ───────── */}
+      <header
+        aria-hidden={isMinimized}
+        className="pointer-events-none fixed inset-x-0 top-3 z-50 hidden justify-center px-4 md:flex"
+      >
+        <div
+          className={`flex h-14 w-full max-w-7xl items-center justify-between gap-2 rounded-full py-1.5 pl-2 pr-2 lg:h-[60px] lg:gap-3 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
+        >
+          {/* Left: Brand link */}
           <Link
             href="/"
-            onClick={(event) => handleHrefClick(event, '/')}
-            aria-label="ViciTech Beranda"
-            className={`inline-flex w-fit shrink-0 items-center gap-2.5 justify-self-start rounded-full pr-1 transition-opacity hover:opacity-85 ${focusRing}`}
+            onClick={(event) => handleHrefClick(event, '/', true)}
+            tabIndex={isMinimized ? -1 : undefined}
+            className={`vt-btn-tactile inline-flex h-10 shrink-0 items-center gap-2 rounded-full pl-0.5 pr-2 hover:bg-subtle ${focusRing}`}
           >
-            <BrandMark />
-            <span className="hidden font-serif text-lg font-semibold tracking-tight text-[#18181B] min-[375px]:inline">
-              ViciTech
-            </span>
+            <BrandMark compact />
+            <span className="font-serif text-base font-semibold tracking-tight text-primary">ViciTech</span>
           </Link>
 
-          {/* Center (Desktop): 4 Clean Umbrella Menus */}
+          {/* Center: 6 primary destinations */}
           <nav
             aria-label="Navigasi utama ViciTech"
-            className="hidden items-center gap-7 justify-self-center md:flex lg:gap-8"
+            className="flex min-w-0 items-center gap-0.5 overflow-x-auto lg:gap-1"
           >
-            {visibleDesktopGroups.map((group) => {
-              const isOpen = openMenu === group.id;
-              const isActive = activeUmbrella === group.id;
-
-              if (!group.items?.length && group.href) {
-                return (
-                  <Link
-                    key={group.id}
-                    href={group.href}
-                    onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
-                      isActive ? 'text-[#EA580C]' : 'text-[#18181B]/80 hover:text-[#EA580C]'
-                    }`}
-                  >
-                    <span>{group.label}</span>
-                    {isActive && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-x-0 bottom-0.5 h-[2px] rounded-full bg-[#EA580C]"
-                      />
-                    )}
-                  </Link>
-                );
-              }
-
+            {visibleDesktopItems.map((item) => {
+              const active = isActiveRoute(pathname, item.href, activeModule);
               return (
-                <div
-                  key={group.id}
-                  className="relative"
-                  data-nav-menu
-                  onMouseEnter={() => openUmbrellaOnHover(group.id)}
-                  onMouseLeave={() => scheduleUmbrellaClose(group.id)}
-                  onBlur={(event) => handleUmbrellaBlur(group.id, event)}
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={(event) => handleNavClick(event, item)}
+                  aria-current={active ? 'page' : undefined}
+                  tabIndex={isMinimized ? -1 : undefined}
+                  className={`vt-btn-tactile inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 text-xs lg:px-3 xl:px-3.5 xl:text-sm ${focusRing} ${
+                    active
+                      ? 'bg-accent-cta font-semibold text-white shadow-sm hover:bg-accent-cta-hover'
+                      : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
+                  }`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleUmbrellaClick(group.id)}
-                    aria-expanded={isOpen}
-                    aria-haspopup="true"
-                    aria-controls={`nav-panel-${group.id}`}
-                    className={`relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
-                      isActive || isOpen
-                        ? 'text-[#EA580C]'
-                        : 'text-[#18181B]/80 hover:text-[#EA580C]'
-                    }`}
-                  >
-                    <span>{group.label}</span>
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 shrink-0 transition-transform duration-150 ${
-                        isOpen ? 'rotate-180 text-[#EA580C]' : 'text-[#71717A]'
-                      }`}
-                      strokeWidth={1.75}
-                      aria-hidden="true"
-                    />
-                    {isActive && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-x-0 bottom-0.5 h-[2px] rounded-full bg-[#EA580C]"
-                      />
-                    )}
-                  </button>
-
-                  {isOpen && group.items && (
-                    <div className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-2">
-                      <div
-                        id={`nav-panel-${group.id}`}
-                        className={`w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.dropdownPop ?? ''}`}
-                      >
-                        <ul className="grid gap-0.5">
-                          {group.items.map((subItem) => {
-                            const subActive = isSubItemActive(subItem, pathname, activeModule, activeView);
-                            return (
-                              <li key={subItem.id}>
-                                <Link
-                                  href={subItem.href}
-                                  onClick={(event) => handleSubItemClick(event, subItem)}
-                                  aria-current={subActive ? 'page' : undefined}
-                                  className={`group flex items-start gap-3 rounded-xl px-3.5 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                                    subActive ? 'bg-[#F3F1ED]/70' : ''
-                                  }`}
-                                >
-                                  <SubNavIcon iconKey={subItem.iconKey} active={subActive} />
-                                  <span className="min-w-0 flex-1">
-                                    <span
-                                      className={`block text-sm font-semibold transition-colors ${
-                                        subActive
-                                          ? 'text-[#EA580C]'
-                                          : 'text-[#18181B] group-hover:text-[#EA580C]'
-                                      }`}
-                                    >
-                                      {subItem.label}
-                                    </span>
-                                    <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                                      {subItem.description}
-                                    </span>
-                                  </span>
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  <NavIcon iconKey={item.iconKey} className="hidden h-4 w-4 shrink-0 xl:block" />
+                  <span className="xl:hidden">{item.shortLabel}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
+                </Link>
               );
             })}
           </nav>
 
-          {/* Right: Streamlined Utilities (Search, Notif & DM, Account) */}
-          <div className="flex shrink-0 items-center justify-self-end gap-1 sm:gap-1.5">
-            {/* 1. Search (Ctrl+K) */}
+          {/* Right: Compact Ctrl K search, Notifications & Account/System popover */}
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={triggerGlobalSearch}
-              title="Cari cepat (Ctrl+K)"
-              aria-label="Cari di ViciTech (Ctrl+K)"
+              tabIndex={isMinimized ? -1 : undefined}
+              aria-label="Cari modul, nomor seri, panduan (Ctrl K)"
               aria-keyshortcuts="Control+K Meta+K"
-              className={`${iconBtnBase} text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]`}
+              className={`vt-btn-tactile inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-default bg-surface px-2.5 text-xs text-secondary hover:bg-subtle hover:text-primary lg:px-3 ${focusRing}`}
             >
-              <Search className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+              <Search className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+              <kbd className="hidden rounded-full bg-subtle px-2 py-0.5 font-mono text-[10px] font-semibold text-secondary lg:inline">
+                Ctrl K
+              </kbd>
             </button>
 
-            {/* 2. Pesan Langsung & Notifikasi (grouped with quiet indicator dots) */}
-            <div className="flex items-center gap-0.5">
-              <Link
-                href="/messages"
-                onClick={(event) => handleHrefClick(event, '/messages')}
-                aria-current={isMessagesRoute ? 'page' : undefined}
-                aria-label={unreadCount > 0 ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
-                className={`${iconBtnBase} ${
-                  isMessagesRoute
-                    ? 'bg-[#F3F1ED] text-[#EA580C]'
-                    : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
-                }`}
-              >
-                <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
-                {unreadCount > 0 && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#EA580C] ring-2 ring-white"
-                  />
-                )}
-              </Link>
-
-              <div className="relative" data-nav-menu>
-                <button
-                  type="button"
-                  onClick={() => toggleMenu('notifications')}
-                  aria-haspopup="dialog"
-                  aria-expanded={openMenu === 'notifications'}
-                  aria-label={
-                    unreadNotifications > 0
-                      ? `Notifikasi (${unreadNotifications} belum dibaca)`
-                      : 'Notifikasi'
-                  }
-                  className={`${iconBtnBase} ${
-                    openMenu === 'notifications'
-                      ? 'bg-[#F3F1ED] text-[#EA580C]'
-                      : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
-                  }`}
+            <Link
+              href="/messages"
+              onClick={(event) => handleHrefClick(event, '/messages', true)}
+              tabIndex={isMinimized ? -1 : undefined}
+              aria-current={isMessagesRoute ? 'page' : undefined}
+              aria-label={dmBadgeLabel ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
+              className={`${desktopUtilityBtn} ${isMessagesRoute ? utilityOpen : utilityIdle}`}
+            >
+              <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              {dmBadgeLabel && (
+                <span
+                  key={dmBadgeLabel}
+                  className="vt-badge-pop vt-badge-pulse absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#C2410C] px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
                 >
-                  <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
-                  {unreadNotifications > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#EA580C] ring-2 ring-white"
-                    />
-                  )}
-                </button>
-                {openMenu === 'notifications' && (
-                  <NotificationsPanel
-                    items={notifications}
-                    isAuthenticated={Boolean(currentUserId)}
-                    isLoading={notificationsLoading}
-                    onSelect={selectNotification}
-                    onMarkAllRead={markAllNotificationsRead}
-                    onLoginClick={closeAllMenus}
-                  />
-                )}
-              </div>
-            </div>
+                  {dmBadgeLabel}
+                </span>
+              )}
+            </Link>
 
-            <span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-[#E4E4E7] sm:block" />
-
-            {/* 3. Akun */}
-            <div className="hidden md:flex md:items-center">
-              <AuthNavigation
-                variant="desktop"
-                isMenuOpen={openMenu === 'account'}
-                onToggleMenu={toggleAccountMenu}
-                onCloseMenu={closeAllMenus}
-                onNavigate={handleAuthNavigate}
-              />
-            </div>
-            <div className="flex items-center gap-1 md:hidden">
-              <AuthNavigation
-                variant="mobile"
-                isMenuOpen={openMenu === 'account'}
-                onToggleMenu={toggleAccountMenu}
-                onCloseMenu={closeAllMenus}
-                onNavigate={handleAuthNavigate}
-              />
+            <div className="relative" data-nav-menu>
               <button
-                ref={menuTriggerRef}
                 type="button"
-                onClick={() => setSheetOpen(true)}
-                aria-label="Buka menu navigasi ViciTech"
-                aria-expanded={sheetOpen}
-                aria-controls="mobile-nav-bottom-sheet"
-                className={`${iconBtnBase} text-[#18181B] hover:bg-[#F3F1ED]`}
+                onClick={() => toggleMenu('notifications')}
+                tabIndex={isMinimized ? -1 : undefined}
+                aria-haspopup="dialog"
+                aria-expanded={openMenu === 'notifications'}
+                aria-label={notificationBadge ? `Notifikasi (${unreadNotifications} belum dibaca)` : 'Notifikasi'}
+                className={`${desktopUtilityBtn} ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
               >
-                <Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                <Bell className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                {notificationBadge && (
+                  <span
+                    key={notificationBadge}
+                    className="vt-badge-pop vt-badge-pulse absolute -right-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-accent-cta px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
+                  >
+                    {notificationBadge}
+                  </span>
+                )}
               </button>
+              {openMenu === 'notifications' && (
+                <NotificationsPanel
+                  items={notifications}
+                  onSelect={selectNotification}
+                  onMarkAllRead={markAllNotificationsRead}
+                  align="right"
+                />
+              )}
             </div>
+
+            <AuthNavigation
+              variant="desktop"
+              isMenuOpen={openMenu === 'account'}
+              onToggleMenu={toggleAccountMenu}
+              onCloseMenu={closeAllMenus}
+              dataSources={DATA_SOURCES}
+              moreItems={MORE_MENU_ITEMS}
+              dmBadgeLabel={dmBadgeLabel}
+              onAuthState={undefined}
+              onNotify={undefined}
+              onNavigate={handleAuthNavigate}
+              onNavigateHref={navigateTo}
+              onSignOut={undefined}
+            />
           </div>
         </div>
       </header>
 
+      {/* ───────── Mobile Command Floating Pill (< md) ───────── */}
+      <header
+        aria-hidden={isMinimized}
+        className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-3 md:hidden"
+      >
+        <div
+          className={`flex h-[60px] w-full items-center justify-between gap-1.5 rounded-full py-1.5 pl-2 pr-1.5 ${motion} ${barState} ${styles.floatingPill ?? ''} ${styles.pillEnter ?? ''}`}
+        >
+          <Link
+            href="/"
+            onClick={(event) => handleHrefClick(event, '/', true)}
+            className={`vt-btn-tactile inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full ${focusRing}`}
+          >
+            <BrandMark compact />
+            <span className="hidden font-serif text-sm font-semibold tracking-tight text-primary min-[410px]:inline sm:text-base">
+              ViciTech
+            </span>
+          </Link>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={triggerGlobalSearch}
+              aria-label="Cari modul, nomor seri, dan panduan"
+              className={`${mobileUtilityBtn} ${utilityIdle}`}
+            >
+              <Search className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+            </button>
+
+            <Link
+              href="/messages"
+              onClick={(event) => handleHrefClick(event, '/messages', true)}
+              aria-current={isMessagesRoute ? 'page' : undefined}
+              aria-label={dmBadgeLabel ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
+              className={`${mobileUtilityBtn} ${isMessagesRoute ? utilityOpen : utilityIdle}`}
+            >
+              <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              {dmBadgeLabel && (
+                <span
+                  key={dmBadgeLabel}
+                  className="vt-badge-pop vt-badge-pulse absolute -right-0.5 -top-0.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#C2410C] px-1 py-0.5 font-mono text-[10px] font-bold leading-none tabular-nums text-white"
+                >
+                  {dmBadgeLabel}
+                </span>
+              )}
+            </Link>
+
+            <div className="relative" data-nav-menu>
+              <button
+                type="button"
+                onClick={() => toggleMenu('notifications')}
+                aria-haspopup="dialog"
+                aria-expanded={openMenu === 'notifications'}
+                aria-label={notificationBadge ? `Notifikasi (${unreadNotifications} belum dibaca)` : 'Notifikasi'}
+                className={`${mobileUtilityBtn} ${openMenu === 'notifications' ? utilityOpen : utilityIdle}`}
+              >
+                <Bell className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                {notificationBadge && (
+                  <span
+                    key={notificationBadge}
+                    className="vt-badge-pop vt-badge-pulse absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-accent-cta px-1 py-0.5 font-mono text-[9px] font-bold leading-none tabular-nums text-white"
+                  >
+                    {notificationBadge}
+                  </span>
+                )}
+              </button>
+              {openMenu === 'notifications' && (
+                <NotificationsPanel
+                  items={notifications}
+                  onSelect={selectNotification}
+                  onMarkAllRead={markAllNotificationsRead}
+                  align="right"
+                />
+              )}
+            </div>
+
+            <AuthNavigation
+              variant="mobile"
+              isMenuOpen={openMenu === 'account'}
+              onToggleMenu={toggleAccountMenu}
+              onCloseMenu={closeAllMenus}
+              dataSources={DATA_SOURCES}
+              moreItems={MORE_MENU_ITEMS}
+              dmBadgeLabel={dmBadgeLabel}
+              onAuthState={undefined}
+              onNotify={undefined}
+              onNavigate={handleAuthNavigate}
+              onNavigateHref={navigateTo}
+              onSignOut={undefined}
+            />
+
+            <button
+              ref={menuTriggerRef}
+              type="button"
+              onClick={() => setSheetOpen(true)}
+              aria-label="Buka menu navigasi lainnya"
+              aria-expanded={sheetOpen}
+              aria-controls="mobile-nav-bottom-sheet"
+              className={`${mobileUtilityBtn} ${utilityIdle}`}
+            >
+              <Menu className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ───────── Minimized ViciTech logo button (all breakpoints) ───────── */}
+      <button
+        type="button"
+        onClick={expandNavbar}
+        aria-hidden={!isMinimized}
+        tabIndex={isMinimized ? 0 : -1}
+        aria-label="Buka navigasi ViciTech"
+        className={`group fixed left-3 top-3 z-50 flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-primary md:left-4 md:top-4 ${motion} ${logoState} ${styles.floatingPill ?? ''} ${styles.floatingPillMinimized ?? ''} ${focusRing}`}
+      >
+        <BrandMark compact />
+        <span className="font-serif text-sm font-semibold tracking-tight">ViciTech</span>
+        {activeItem && (
+          <span className="hidden rounded-full bg-subtle px-2 py-0.5 text-[11px] font-medium text-secondary sm:inline">
+            {activeItem.shortLabel}
+          </span>
+        )}
+        {(unreadNotifications > 0 || unreadCount > 0) && (
+          <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-accent-primary" />
+        )}
+        <ChevronDown className="h-3.5 w-3.5 text-secondary" strokeWidth={1.75} aria-hidden="true" />
+      </button>
+
+      {/* Safe top clearance beneath the floating single-row bar (Hero handles its own offset on "/") */}
+      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-20 md:h-24'} />
+
       {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items) ───────── */}
       <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
-        <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-1.5 pt-1.5">
+        <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-1.5 pt-1">
           {visibleBottomItems.map((item) => {
-            const active = isActiveRoute(pathname, item.href, activeModule, activeView);
+            const active = isActiveRoute(pathname, item.href, activeModule);
             return (
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  onClick={(event) => handleBottomNavClick(event, item)}
+                  onClick={(event) => handleNavClick(event, item)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] leading-tight transition-colors ${focusRing} ${
-                    active
-                      ? 'bg-[#EA580C]/10 font-semibold text-[#EA580C]'
-                      : 'font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]'
+                  className={`vt-btn-tactile flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-[11px] leading-tight ${focusRing} ${
+                    active ? 'bg-accent-subtle font-semibold text-primary' : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
                   }`}
                 >
-                  <NavIcon
-                    iconKey={item.iconKey}
-                    className={`h-5 w-5 ${active ? 'text-[#EA580C]' : 'text-[#71717A]'}`}
-                  />
+                  <NavIcon iconKey={item.iconKey} className={`h-5 w-5 ${active ? 'text-accent-primary' : 'text-secondary'}`} />
                   <span className="truncate">{item.shortLabel}</span>
+                  {active && <span aria-hidden="true" className="mt-0.5 h-1 w-4 rounded-full bg-accent-primary" />}
                 </Link>
               </li>
             );
@@ -1023,7 +837,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         </ul>
       </nav>
 
-      {/* ───────── Mobile Bottom Sheet Drawer (Synced Umbrella Taxonomy) ───────── */}
+      {/* ───────── Mobile Bottom Sheet (full menu + utilities) ───────── */}
       {sheetOpen && (
         <div className={`md:hidden ${styles.sheetBackdrop ?? ''}`} onClick={closeSheet}>
           <div
@@ -1038,162 +852,75 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               <span className={styles.dragHandle} />
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E4E4E7] px-4 pb-3 pt-1">
+            <div className="flex items-center justify-between border-b border-default px-4 pb-3 pt-1">
               <div>
-                <p className="font-serif text-base font-semibold text-[#18181B]">ViciTech</p>
-                <p className="text-xs text-[#71717A]">Ekosistem Circular IT &amp; Hardware QC</p>
+                <p className="font-serif text-base font-semibold text-primary">Navigasi ViciTech</p>
+                <p className="text-xs text-secondary">Ekosistem Circular IT &amp; Hardware</p>
               </div>
               <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={closeSheet}
                 aria-label="Tutup menu navigasi"
-                className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] text-[#18181B] transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
+                className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition-colors hover:bg-canvas ${focusRing}`}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </button>
             </div>
 
-            <nav aria-label="Menu lengkap mobile" className="grid gap-4 p-4">
-              {visibleDesktopGroups.map((group) => {
-                if (!group.items?.length && group.href) {
-                  const active = activeUmbrella === group.id;
-                  return (
-                    <div key={group.id}>
-                      <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
-                        Sosial &amp; Panduan
-                      </p>
-                      <Link
-                        href={group.href}
-                        onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
-                        aria-current={active ? 'page' : undefined}
-                        className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                          active ? 'bg-[#F3F1ED]' : ''
-                        }`}
-                      >
-                        <SubNavIcon iconKey="community" active={active} />
-                        <span className="min-w-0 flex-1">
-                          <span
-                            className={`block text-sm font-semibold ${
-                              active ? 'text-[#EA580C]' : 'text-[#18181B] group-hover:text-[#EA580C]'
-                            }`}
-                          >
-                            {group.label}
-                          </span>
-                          {group.description && (
-                            <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                              {group.description}
-                            </span>
-                          )}
-                        </span>
-                      </Link>
-                    </div>
-                  );
-                }
-
+            <nav aria-label="Menu lengkap mobile" className="grid gap-1.5 p-4">
+              {visibleDesktopItems.map((item) => {
+                const active = isActiveRoute(pathname, item.href, activeModule);
                 return (
-                  <div key={group.id}>
-                    <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
-                      {group.label}
-                    </p>
-                    <div className="grid gap-1">
-                      {group.items?.map((subItem) => {
-                        const subActive = isSubItemActive(subItem, pathname, activeModule, activeView);
-                        return (
-                          <Link
-                            key={subItem.id}
-                            href={subItem.href}
-                            onClick={(event) => handleSubItemClick(event, subItem)}
-                            aria-current={subActive ? 'page' : undefined}
-                            className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                              subActive ? 'bg-[#F3F1ED]' : ''
-                            }`}
-                          >
-                            <SubNavIcon iconKey={subItem.iconKey} active={subActive} />
-                            <span className="min-w-0 flex-1">
-                              <span
-                                className={`block text-sm font-semibold ${
-                                  subActive
-                                    ? 'text-[#EA580C]'
-                                    : 'text-[#18181B] group-hover:text-[#EA580C]'
-                                }`}
-                              >
-                                {subItem.label}
-                              </span>
-                              <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                                {subItem.description}
-                              </span>
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    onClick={(event) => {
+                      handleNavClick(event, item);
+                      closeSheet();
+                    }}
+                    className={`vt-btn-tactile flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm ${focusRing} ${
+                      active ? 'bg-accent-cta font-semibold text-white' : 'bg-subtle text-primary hover:bg-canvas'
+                    }`}
+                  >
+                    <NavIcon iconKey={item.iconKey} className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </Link>
                 );
               })}
 
-              <div className="border-t border-[#E4E4E7] pt-3">
-                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
-                  Workspace &amp; Akun
-                </p>
-                <div className="grid gap-1">
-                  <Link
-                    href="/home"
-                    onClick={(event) => handleHrefClick(event, '/home')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
-                  >
-                    <SubNavIcon iconKey="home" active={pathname === '/home' && (!activeModule || activeModule === 'home')} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
-                        Beranda Workspace
-                      </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                        Ringkasan modul rakit PC, market &amp; layanan ViciTech.
-                      </span>
+              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">Alat Lainnya</p>
+              {MORE_MENU_ITEMS.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => {
+                    closeSheet();
+                    navigateTo(entry.href, entry.module);
+                  }}
+                  className={`vt-btn-tactile flex min-h-11 items-center gap-3 rounded-lg border border-default bg-surface px-3.5 py-2.5 text-left text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}
+                >
+                  <MoreIcon iconKey={entry.iconKey} />
+                  <span className="flex-1">{entry.label}</span>
+                  {entry.iconKey === 'messages' && dmBadgeLabel && (
+                    <span
+                      key={dmBadgeLabel}
+                      className="vt-badge-pop inline-flex min-w-5 items-center justify-center rounded-full bg-[#C2410C] px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-white"
+                    >
+                      {dmBadgeLabel}
                     </span>
-                  </Link>
+                  )}
+                </button>
+              ))}
 
-                  <Link
-                    href="/messages"
-                    onClick={(event) => handleHrefClick(event, '/messages')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      isMessagesRoute ? 'bg-[#F3F1ED]' : ''
-                    }`}
-                  >
-                    <SubNavIcon iconKey="messages" active={isMessagesRoute} />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2 text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
-                        <span>Pesan Langsung</span>
-                        {hasUnreadAlerts && (
-                          <span className="inline-flex h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
-                        )}
-                      </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                        {unreadCount > 0
-                          ? `${unreadCount} pesan belum dibaca`
-                          : 'Obrolan langsung dengan teknisi & builder.'}
-                      </span>
-                    </span>
-                  </Link>
-
-                  <Link
-                    href="/profile"
-                    onClick={(event) => handleHrefClick(event, '/profile')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      isProfileRoute ? 'bg-[#F3F1ED]' : ''
-                    }`}
-                  >
-                    <SubNavIcon iconKey="account" active={isProfileRoute} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
-                        Profil &amp; Akun
-                      </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                        Pesanan, preset tersimpan &amp; preferensi akun.
-                      </span>
-                    </span>
-                  </Link>
-                </div>
+              <p className="mt-2 px-1 text-xs font-semibold uppercase tracking-wide text-secondary">Sumber Data</p>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {DATA_SOURCES.map((source) => (
+                  <span key={source.id} className={sourceBadgeClass(source.tone)}>
+                    {source.label}
+                  </span>
+                ))}
               </div>
             </nav>
           </div>

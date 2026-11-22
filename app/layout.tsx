@@ -29,16 +29,16 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://vicitech.id"),
-  title: "ViciTech — Marketplace & Ekosistem Circular IT Terverifikasi IoT QC",
+  title: "ViciTech OS v2 | Minimalist Hardware Hub & CRM",
   description:
-    "Beli, rakit, dan tukar tambah PC, laptop, serta perangkat teknologi dengan jaminan uji telemetri IoT QC 15 titik yang transparan dan anti-zonk.",
+    "ViciTech OS v2: modern minimalist hardware hub and CRM with semi-metallic unibody Bento Grid architecture.",
   openGraph: {
     type: "website",
     locale: "id_ID",
     siteName: "ViciTech",
-    title: "ViciTech — Marketplace & Ekosistem Circular IT Terverifikasi IoT QC",
+    title: "ViciTech | Ekosistem Circular IT, Market & Hardware Hub",
     description:
-      "Beli, rakit, dan tukar tambah PC, laptop, serta perangkat teknologi dengan jaminan uji telemetri IoT QC 15 titik yang transparan dan anti-zonk.",
+      "Rakit PC, cek telemetri QC burn-in, tukar tambah aset IT, dan temukan mitra servis terverifikasi dalam satu platform.",
     images: [
       {
         url: "/images/hero/pc-rig.jpg",
@@ -61,7 +61,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html
-      lang="id"
+      lang="en"
       className={`${poppins.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >

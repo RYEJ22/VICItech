@@ -2,7 +2,7 @@ import ViciTechApp from "@/components/vicitech/ViciTechApp";
 import DirectMessageDrawer from "@/components/vicitech/DirectMessageDrawer";
 
 export const metadata = {
-  title: "Pesan Langsung | ViciTech",
+  title: "Pesan Langsung | ViciTech OS",
   robots: {
     index: false,
     follow: false,

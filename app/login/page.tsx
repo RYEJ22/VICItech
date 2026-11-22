@@ -4,7 +4,7 @@ import { AuthPageShell } from "@/components/auth/AuthPageShell";
 import { sanitizeNextPath } from "@/lib/auth/redirect";
 
 export const metadata: Metadata = {
-  title: "Masuk | ViciTech",
+  title: "Masuk | ViciTech OS",
   robots: { index: false, follow: false },
 };
 

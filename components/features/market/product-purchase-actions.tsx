@@ -74,7 +74,7 @@ export function ProductPurchaseActions({
       <div className="flex flex-wrap items-center gap-2.5 pt-1">
         {showBuilderCta && (
           <Link
-            href={`/home?tab=builder&productId=${encodeURIComponent(product.id)}`}
+            href="/home?tab=builder"
             className="vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2 text-xs font-medium text-primary hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <Sliders className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
