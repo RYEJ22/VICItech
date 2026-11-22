@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Github, LoaderCircle, ShieldCheck, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Github, LoaderCircle, Mail, ShieldCheck, X } from "lucide-react";
 import { createOrder, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 import { PENDING_CHECKOUT_STORAGE_KEY } from "@/lib/checkout/constants";
@@ -23,21 +24,51 @@ const emptyBuyerDetails = {
   postalCode: "",
 };
 
+const ORDER_TYPE_LABELS = {
+  direct_buy: "Pembelian Langsung",
+  preset_builder: "Rakitan Preset Builder",
+  trade_in_refurbished: "Unit Refurbished Trade-In",
+};
+
+function isPresetBuilderOrder(itemData) {
+  return String(itemData?.type || "").toLowerCase() === "preset_builder";
+}
+
+function formatOrderTypeLabel(rawType, fallbackName) {
+  const key = String(rawType || "").toLowerCase();
+  if (ORDER_TYPE_LABELS[key]) return ORDER_TYPE_LABELS[key];
+  return fallbackName || "Pembelian Langsung";
+}
+
 function normalizeOrderSummary(itemData) {
   if (!itemData) return null;
 
+  const isPresetBuilder = isPresetBuilderOrder(itemData);
+
   if (itemData.productName && itemData.pricing && Array.isArray(itemData.items)) {
+    const basePrice = Math.max(0, Number(itemData.pricing?.basePrice ?? 0));
+    const jitBuffer = isPresetBuilder
+      ? Math.max(0, Number(itemData.pricing?.jitBuffer) || Math.round(basePrice * 0.05))
+      : 0;
+
     return {
       ...itemData,
+      type: itemData.type || "preset_builder",
+      isPresetBuilder,
       userRole: itemData.userRole || "b2c",
       quantity: itemData.quantity || 1,
       specs: itemData.specs || {},
       tradeInDiscount: Number(itemData.tradeInDiscount) || 0,
+      pricing: {
+        basePrice,
+        jitBuffer,
+        total: basePrice + jitBuffer,
+      },
       buyerDetails: itemData.buyerDetails || emptyBuyerDetails,
     };
   }
 
-  const productName = itemData.itemTitle || itemData.productName || itemData.title || "ViciTech product";
+  const productName = itemData.itemTitle || itemData.productName || itemData.title || "Produk ViciTech";
   const quantity = Math.max(1, Number(itemData.quantity) || 1);
   const unitPrice = Number(itemData.price ?? itemData.basePrice ?? 0);
   const listedPrice = Number(itemData.pricing?.basePrice ?? itemData.basePrice ?? unitPrice * quantity);
@@ -46,8 +77,10 @@ function normalizeOrderSummary(itemData) {
     Math.max(0, Number(itemData.tradeInDiscount) || 0)
   );
   const basePrice = Math.max(0, listedPrice - tradeInDiscount);
-  const jitBuffer = Number(itemData.pricing?.jitBuffer ?? itemData.jitBuffer ?? Math.round(basePrice * 0.05));
-  const specs = typeof itemData.specs === "string" ? { details: itemData.specs } : itemData.specs || {};
+  const jitBuffer = isPresetBuilder
+    ? Math.max(0, Number(itemData.pricing?.jitBuffer ?? itemData.jitBuffer ?? Math.round(basePrice * 0.05)))
+    : 0;
+  const specs = typeof itemData.specs === "string" ? { detail: itemData.specs } : itemData.specs || {};
   const itemSpec = Object.entries(specs)
     .filter(([, value]) => value !== undefined && value !== null && value !== "")
     .map(([key, value]) => `${key}: ${value}`)
@@ -61,13 +94,14 @@ function normalizeOrderSummary(itemData) {
       ? itemData.items
       : [{
         id: itemData.id || productName,
-        label: itemData.type || "Product",
+        label: itemData.type || "Produk",
         name: productName,
         spec: itemSpec,
         unitPrice,
       }],
     specs,
-    type: itemData.type || "Product",
+    type: itemData.type || "direct_buy",
+    isPresetBuilder,
     tradeInDiscount,
     pricing: {
       basePrice,
@@ -79,6 +113,9 @@ function normalizeOrderSummary(itemData) {
   };
 }
 
+const inputClass =
+  "min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20";
+
 export default function CheckoutModal({
   itemData,
   isOpen,
@@ -87,6 +124,7 @@ export default function CheckoutModal({
   onClose,
   onOrderCreated,
 }) {
+  const router = useRouter();
   const checkoutData = itemData || legacyOrderSummary;
   const orderSummary = useMemo(() => normalizeOrderSummary(checkoutData), [checkoutData]);
   const modalIsOpen = isOpen ?? open;
@@ -108,14 +146,16 @@ export default function CheckoutModal({
 
     let unsubscribe = () => {};
     if (supabase) {
-      supabase.auth.getSession().then(({ data, error: sessionError }) => {
+      supabase.auth.getUser().then(({ data, error: userError }) => {
         if (!active) return;
-        if (sessionError) setError(`Could not check your session: ${sessionError.message}`);
-        setSession(data?.session || null);
+        if (userError && !/session missing/i.test(userError.message || "")) {
+          setError(`Sesi akun tidak dapat diperiksa: ${userError.message}`);
+        }
+        setSession(data?.user ? { user: data.user } : null);
         setIsLoadingSession(false);
-      }).catch((sessionError) => {
+      }).catch((userError) => {
         if (!active) return;
-        setError(`Could not check your session: ${sessionError.message}`);
+        setError(`Sesi akun tidak dapat diperiksa: ${userError.message}`);
         setIsLoadingSession(false);
       });
 
@@ -143,9 +183,26 @@ export default function CheckoutModal({
     };
   }, [checkoutData, modalIsOpen, onClose]);
 
+  const goToEmailLogin = useCallback(() => {
+    if (!orderSummary) return;
+    setError("");
+    try {
+      window.sessionStorage.setItem(PENDING_CHECKOUT_STORAGE_KEY, JSON.stringify({
+        ...orderSummary,
+        buyerDetails,
+      }));
+    } catch {
+      // Abaikan error penyimpanan sesi lokal.
+    }
+    const currentPath =
+      `${window.location.pathname}${window.location.search}${window.location.hash}` || "/market";
+    onClose();
+    router.push(`/login?next=${encodeURIComponent(currentPath)}`);
+  }, [buyerDetails, onClose, orderSummary, router]);
+
   const signInWithGitHub = useCallback(async () => {
     if (!supabase || !orderSummary) {
-      setError("Supabase authentication is not configured. Add the public Supabase URL and anon key to enable checkout.");
+      setError("Autentikasi Supabase belum dikonfigurasi. Tambahkan URL dan anon key Supabase untuk melanjutkan checkout.");
       return;
     }
 
@@ -166,7 +223,7 @@ export default function CheckoutModal({
       if (authError) throw authError;
     } catch (authError) {
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
-      setError(`GitHub sign-in failed: ${authError.message}`);
+      setError(`Gagal masuk dengan GitHub: ${authError.message}`);
     }
   }, [buyerDetails, orderSummary]);
 
@@ -174,17 +231,17 @@ export default function CheckoutModal({
     event.preventDefault();
     if (!orderSummary || isSubmitting) return;
     if (!supabase) {
-      setError("Supabase is not configured. Add the public Supabase URL and anon key to enable checkout.");
+      setError("Supabase belum dikonfigurasi. Tambahkan URL dan anon key Supabase untuk membuat pesanan.");
       return;
     }
     setIsSubmitting(true);
     setError("");
     try {
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw new Error(`Could not verify your session: ${sessionError.message}`);
-      if (!data.session) {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw new Error(`Sesi Anda tidak dapat diverifikasi: ${userError.message}`);
+      if (!userData?.user) {
         setSession(null);
-        setError("Sign in with GitHub before placing your order.");
+        setError("Silakan masuk dengan Email atau GitHub terlebih dahulu sebelum membuat pesanan.");
         return;
       }
 
@@ -192,7 +249,7 @@ export default function CheckoutModal({
         userRole: orderSummary.userRole,
         productName: orderSummary.productName,
         basePrice: orderSummary.pricing.basePrice,
-        jitBuffer: orderSummary.pricing.jitBuffer,
+        jitBuffer: orderSummary.isPresetBuilder ? orderSummary.pricing.jitBuffer : 0,
         notes: orderSummary.notes || "",
         orderSummary: { ...orderSummary, buyerDetails },
       });
@@ -200,7 +257,7 @@ export default function CheckoutModal({
       setConfirmedOrder(order);
       onOrderCreated?.(order);
     } catch (submitError) {
-      setError(`Order could not be placed: ${submitError.message}`);
+      setError(`Pesanan tidak dapat diproses: ${submitError.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -209,63 +266,101 @@ export default function CheckoutModal({
   if (!modalIsOpen || !orderSummary) return null;
 
   return (
-    <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/75 p-4" onMouseDown={(event) => {
-      if (event.target === event.currentTarget && !isSubmitting) onClose();
-    }}>
+    <div
+      className="fixed inset-0 z-[75] flex items-center justify-center bg-black/60 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isSubmitting) onClose();
+      }}
+    >
       <form
         onSubmit={submitOrder}
         role="dialog"
         aria-modal="true"
         aria-labelledby="checkout-title"
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl shadow-black/60"
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-default bg-surface text-primary shadow-2xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 p-5 sm:p-6">
+        <header className="flex items-start justify-between gap-4 border-b border-default p-5 sm:p-6">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">Secure checkout</p>
-            <h2 id="checkout-title" className="mt-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">Review your order</h2>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{orderSummary.productName}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-accent-cta">
+              Checkout Aman
+            </p>
+            <h2 id="checkout-title" className="mt-1 font-serif text-xl font-semibold text-primary">
+              Ringkasan Pesanan
+            </h2>
+            <p className="mt-1 text-sm text-secondary">{orderSummary.productName}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close checkout" className="rounded-lg p-2 text-zinc-600 dark:text-zinc-400 hover:bg-white dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-100">
-            <X className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup checkout"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+          >
+            <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </button>
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
           {confirmedOrder ? (
-            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-              <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-400"><CheckCircle2 className="h-5 w-5" /> Order placed</p>
-              <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">Order ID: <span className="font-medium text-zinc-900 dark:text-zinc-100">{confirmedOrder.id}</span></p>
-              <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">Status: <span className="text-zinc-900 dark:text-zinc-100">{confirmedOrder.status || "IoT Stress-Test Pending"}</span></p>
+            <div className="rounded-xl border border-status-live/30 bg-emerald-50 p-4 text-emerald-900">
+              <p className="flex items-center gap-2 font-semibold text-status-live">
+                <CheckCircle2 className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                <span>Pesanan Berhasil Dibuat</span>
+              </p>
+              <p className="mt-2 text-sm">
+                Nomor Pesanan:{" "}
+                <span className="font-mono font-semibold text-primary">
+                  {confirmedOrder.order_number || confirmedOrder.id}
+                </span>
+              </p>
+              <p className="mt-1 text-sm">
+                Status:{" "}
+                <span className="font-medium text-primary">
+                  {confirmedOrder.status || "Menunggu IoT Stress-Test"}
+                </span>
+              </p>
             </div>
           ) : (
             <>
               <section>
-                <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">Build items · {orderSummary.quantity} unit{orderSummary.quantity === 1 ? "" : "s"}</h3>
-                <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <h3 className="mb-2 text-sm font-semibold text-primary">
+                  Item Pesanan · {orderSummary.quantity} unit
+                </h3>
+                <ul className="divide-y divide-default rounded-xl border border-default bg-canvas">
                   {orderSummary.items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-4 px-3 py-2.5 text-sm">
+                    <li key={item.id} className="flex items-center justify-between gap-4 px-3.5 py-2.5 text-sm">
                       <span className="min-w-0">
-                        <span className="block text-zinc-900 dark:text-zinc-100">{item.label}: {item.name}</span>
-                        <span className="block text-xs text-zinc-500">{item.spec}</span>
+                        <span className="block font-medium text-primary">
+                          {item.label}: {item.name}
+                        </span>
+                        {item.spec && (
+                          <span className="block text-xs text-secondary">{item.spec}</span>
+                        )}
                       </span>
-                      <span className="shrink-0 text-right tabular-nums text-zinc-700 dark:text-zinc-300">{idr(item.unitPrice)} × {orderSummary.quantity}</span>
+                      <span className="shrink-0 text-right font-mono tabular-nums text-primary">
+                        {idr(item.unitPrice)} × {orderSummary.quantity}
+                      </span>
                     </li>
                   ))}
                 </ul>
               </section>
 
               <section>
-                <h3 className="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">Buyer and shipping details</h3>
+                <h3 className="mb-3 text-sm font-semibold text-primary">
+                  Detail Pembeli &amp; Pengiriman
+                </h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[
-                    ["fullName", "Full name", "text", "name"],
-                    ["email", "Email address", "email", "email"],
-                    ["phone", "Phone number", "tel", "tel"],
-                    ["address", "Street address", "text", "street-address"],
-                    ["city", "City", "text", "address-level2"],
-                    ["postalCode", "Postal code", "text", "postal-code"],
+                    ["fullName", "Nama Lengkap", "text", "name"],
+                    ["email", "Alamat Email", "email", "email"],
+                    ["phone", "Nomor Telepon / WhatsApp", "tel", "tel"],
+                    ["address", "Alamat Lengkap", "text", "street-address"],
+                    ["city", "Kota / Kabupaten", "text", "address-level2"],
+                    ["postalCode", "Kode Pos", "text", "postal-code"],
                   ].map(([field, label, type, autoComplete]) => (
-                    <label key={field} className={`space-y-1 text-xs text-zinc-600 dark:text-zinc-400 ${field === "address" ? "sm:col-span-2" : ""}`}>
+                    <label
+                      key={field}
+                      className={`space-y-1 text-xs font-medium text-secondary ${field === "address" ? "sm:col-span-2" : ""}`}
+                    >
                       <span>{label}</span>
                       <input
                         type={type}
@@ -276,64 +371,140 @@ export default function CheckoutModal({
                           ...details,
                           [field]: event.target.value,
                         }))}
-                        className="w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 outline-none transition focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20"
+                        className={inputClass}
                       />
                     </label>
                   ))}
                 </div>
               </section>
 
-              <section className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-3">
-                  <p className="text-xs text-zinc-500">Power draw / PSU</p>
-                  <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">{orderSummary.specs.powerDrawWatts ?? "—"} W / {orderSummary.specs.psuCapacityWatts ?? "—"} W</p>
-                </div>
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-3">
-                  <p className="text-xs text-zinc-500">Warranty</p>
-                  <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">{orderSummary.specs.warrantyMonths ?? "—"} months</p>
-                </div>
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-3">
-                  <p className="text-xs text-zinc-500">Preset</p>
-                  <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-100">{orderSummary.specs.presetName || orderSummary.productName}</p>
-                </div>
-              </section>
+              {orderSummary.isPresetBuilder && (
+                <section className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-default bg-canvas p-3">
+                    <p className="text-xs text-secondary">Beban Daya / PSU</p>
+                    <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-primary">
+                      {orderSummary.specs.powerDrawWatts ?? "—"} W / {orderSummary.specs.psuCapacityWatts ?? "—"} W
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-default bg-canvas p-3">
+                    <p className="text-xs text-secondary">Garansi</p>
+                    <p className="mt-1 font-mono text-sm font-semibold tabular-nums text-primary">
+                      {orderSummary.specs.warrantyMonths ?? "—"} bulan
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-default bg-canvas p-3">
+                    <p className="text-xs text-secondary">Preset</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-primary">
+                      {orderSummary.specs.presetName || orderSummary.productName}
+                    </p>
+                  </div>
+                </section>
+              )}
 
-              <dl className="space-y-2 border-t border-zinc-200 dark:border-zinc-800 pt-4 text-sm">
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>Item type</dt><dd className="capitalize">{String(orderSummary.type || orderSummary.specs.presetName || "Product").replaceAll("_", " ")}</dd></div>
+              <dl className="space-y-2 border-t border-default pt-4 text-sm">
+                <div className="flex justify-between text-secondary">
+                  <dt>Tipe Pesanan</dt>
+                  <dd className="font-medium text-primary">
+                    {formatOrderTypeLabel(orderSummary.type, orderSummary.specs.presetName)}
+                  </dd>
+                </div>
                 {orderSummary.tradeInDiscount > 0 && (
-                  <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><dt>Trade-in discount</dt><dd className="tabular-nums">−{idr(orderSummary.tradeInDiscount)}</dd></div>
+                  <div className="flex justify-between text-status-live">
+                    <dt>Potongan Trade-In</dt>
+                    <dd className="font-mono tabular-nums">−{idr(orderSummary.tradeInDiscount)}</dd>
+                  </div>
                 )}
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>{orderSummary.tradeInDiscount > 0 ? "Price after discount" : "Base price"}</dt><dd className="tabular-nums">{idr(orderSummary.pricing.basePrice)}</dd></div>
-                <div className="flex justify-between text-zinc-600 dark:text-zinc-400"><dt>JIT market buffer</dt><dd className="tabular-nums">+{idr(orderSummary.pricing.jitBuffer)}</dd></div>
-                <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-800 pt-3 text-base font-semibold text-zinc-900 dark:text-zinc-50">
-                  <dt>Total</dt><dd className="tabular-nums text-emerald-700 dark:text-emerald-400">{idr(orderSummary.pricing.total)}</dd>
+                <div className="flex justify-between text-secondary">
+                  <dt>{orderSummary.tradeInDiscount > 0 ? "Harga Setelah Diskon" : "Subtotal"}</dt>
+                  <dd className="font-mono tabular-nums text-primary">{idr(orderSummary.pricing.basePrice)}</dd>
+                </div>
+                {orderSummary.isPresetBuilder && orderSummary.pricing.jitBuffer > 0 && (
+                  <div className="flex justify-between text-secondary">
+                    <dt>JIT Market Buffer (5%)</dt>
+                    <dd className="font-mono tabular-nums text-primary">
+                      +{idr(orderSummary.pricing.jitBuffer)}
+                    </dd>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-default pt-3 text-base font-semibold text-primary">
+                  <dt>Total Pembayaran</dt>
+                  <dd className="font-mono font-bold tabular-nums text-accent-cta">
+                    {idr(orderSummary.pricing.total)}
+                  </dd>
                 </div>
               </dl>
             </>
           )}
 
-          {error && <p role="alert" className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{error}</p>}
+          {error && (
+            <p
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-status-danger/30 bg-red-50 p-3 text-sm text-status-danger"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+              <span>{error}</span>
+            </p>
+          )}
         </div>
 
-        <footer className="space-y-3 border-t border-zinc-200 dark:border-zinc-800 p-5 sm:p-6">
+        <footer className="space-y-2.5 border-t border-default bg-surface p-5 sm:p-6">
           {confirmedOrder ? (
-            <button type="button" onClick={onClose} className="w-full rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-zinc-950 hover:bg-emerald-400">Done</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="vt-btn-tactile flex min-h-11 w-full items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              Selesai
+            </button>
           ) : isLoadingSession ? (
-            <p role="status" className="flex items-center justify-center gap-2 py-2 text-sm text-zinc-600 dark:text-zinc-400"><LoaderCircle className="h-4 w-4 animate-spin" /> Checking your account…</p>
+            <p role="status" className="flex items-center justify-center gap-2 py-2 text-sm text-secondary">
+              <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />
+              <span>Memeriksa sesi akun…</span>
+            </p>
           ) : session ? (
-            <button type="submit" disabled={isSubmitting} className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 disabled:cursor-wait disabled:opacity-60">
-              {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-              {isSubmitting ? "Placing order…" : "Confirm Order"}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-wait disabled:opacity-60"
+            >
+              {isSubmitting ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <ShieldCheck className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              )}
+              <span>{isSubmitting ? "Memproses pesanan…" : "Konfirmasi Pesanan"}</span>
             </button>
           ) : (
-            <>
-              {!isSupabaseConfigured && <p className="text-center text-xs text-zinc-500">Supabase credentials are required to sign in and place orders.</p>}
-              <button type="button" onClick={signInWithGitHub} disabled={!isSupabaseConfigured} className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-3 text-sm font-semibold text-zinc-950 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-500">
-                <Github className="h-4 w-4" /> Continue with GitHub
+            <div className="space-y-2">
+              {!isSupabaseConfigured && (
+                <p className="text-center text-xs text-secondary">
+                  Konfigurasi Supabase diperlukan untuk masuk dan membuat pesanan.
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={goToEmailLogin}
+                className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                <Mail className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <span>Masuk / Daftar dengan Email</span>
               </button>
-            </>
+              <button
+                type="button"
+                onClick={signInWithGitHub}
+                disabled={!isSupabaseConfigured}
+                className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Github className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                <span>Lanjutkan dengan GitHub</span>
+              </button>
+            </div>
           )}
-          {!confirmedOrder && <p className="text-center text-xs text-zinc-500">Your order will be saved to your authenticated ViciTech account.</p>}
+          {!confirmedOrder && (
+            <p className="text-center text-xs text-secondary">
+              Pesanan akan tersimpan ke akun ViciTech Anda yang terautentikasi.
+            </p>
+          )}
         </footer>
       </form>
     </div>
