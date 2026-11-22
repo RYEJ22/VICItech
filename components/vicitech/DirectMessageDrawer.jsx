@@ -187,7 +187,7 @@ export default function DirectMessageDrawer({
   const [error, setError] = useState("");
   const [profileReady, setProfileReady] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState("connecting");
-  const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const pickerTriggerRef = useRef(null);
@@ -199,6 +199,7 @@ export default function DirectMessageDrawer({
   const profilesRef = useRef(profiles);
   profilesRef.current = profiles;
   const shouldAutoScrollRef = useRef(true);
+  const scrollBehaviorRef = useRef("auto");
   const isSending = Boolean(sendStage);
   const userId = user?.id || "";
 
@@ -352,6 +353,7 @@ export default function DirectMessageDrawer({
           message.sender_id === selectedConversationId || message.receiver_id === selectedConversationId;
         if (isCurrentThread) {
           shouldAutoScrollRef.current = true;
+          scrollBehaviorRef.current = "smooth";
           setMessages((current) => (current.some((item) => item?.id === message.id) ? current : [...current, message]));
           if (message.receiver_id === userId && message.sender_id === selectedConversationId) {
             void supabase
@@ -383,6 +385,7 @@ export default function DirectMessageDrawer({
         if (!active || !message?.id) return;
         if (message.receiver_id === selectedIdRef.current) {
           shouldAutoScrollRef.current = true;
+          scrollBehaviorRef.current = "smooth";
           setMessages((current) => (current.some((item) => item?.id === message.id) ? current : [...current, message]));
         }
         void upsertConversationFromMessage(supabase, message, userId, { incrementUnread: false });
@@ -486,6 +489,7 @@ export default function DirectMessageDrawer({
         const pageRows = hasMore ? rawRows.slice(0, DM_PAGE_SIZE) : rawRows;
         setHasOlderMessages(hasMore);
         shouldAutoScrollRef.current = true;
+        scrollBehaviorRef.current = "auto";
         setMessages([...pageRows].reverse());
         const pageUnreadIds = pageRows.filter((item) => item?.receiver_id === userId && !item.is_read).map((item) => item.id);
         const { data: markedRows, error: readError } = await client
@@ -519,6 +523,9 @@ export default function DirectMessageDrawer({
     if (!client || !userId || !selectedId || !oldest?.created_at || loadingOlder) return;
     setLoadingOlder(true);
     try {
+      const container = messagesContainerRef.current;
+      const prevScrollHeight = container?.scrollHeight ?? 0;
+      const prevScrollTop = container?.scrollTop ?? 0;
       const { data, error: olderError } = await client
         .from("direct_messages")
         .select(DM_COLUMNS)
@@ -537,6 +544,12 @@ export default function DirectMessageDrawer({
           const seen = new Set(current.map((item) => item?.id));
           return [...olderRows.filter((item) => item?.id && !seen.has(item.id)), ...current];
         });
+        if (container && typeof window !== "undefined") {
+          window.requestAnimationFrame(() => {
+            const delta = container.scrollHeight - prevScrollHeight;
+            container.scrollTop = prevScrollTop + delta;
+          });
+        }
       }
     } catch (olderErr) {
       setError(olderErr instanceof Error ? olderErr.message : "Gagal memuat pesan sebelumnya.");
@@ -546,10 +559,18 @@ export default function DirectMessageDrawer({
   }, [client, loadingOlder, messages, selectedId, userId]);
 
   useEffect(() => {
-    if (shouldAutoScrollRef.current) {
-      bottomRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
-    }
-  }, [messages]);
+    const container = messagesContainerRef.current;
+    if (!container || !shouldAutoScrollRef.current) return;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const behavior =
+      prefersReduced || scrollBehaviorRef.current === "auto" ? "auto" : "smooth";
+    const rafId = window.requestAnimationFrame(() => {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [messages, selectedId]);
 
   const handleFilesSelected = (event) => {
     const fileList = Array.from(event.target.files || []);
@@ -648,6 +669,7 @@ export default function DirectMessageDrawer({
       selectionRangeRef.current = { start: 0, end: 0 };
       setIsPickerOpen(false);
       shouldAutoScrollRef.current = true;
+      scrollBehaviorRef.current = "smooth";
       setMessages((current) =>
         current.some((item) => item?.id === sentMessage?.id) ? current : [...current, sentMessage],
       );
@@ -717,6 +739,7 @@ export default function DirectMessageDrawer({
           mediaType,
         });
         shouldAutoScrollRef.current = true;
+        scrollBehaviorRef.current = "smooth";
         setMessages((current) =>
           current.some((item) => item?.id === sentMessage?.id) ? current : [...current, sentMessage],
         );
@@ -756,101 +779,112 @@ export default function DirectMessageDrawer({
 
   if (isAuthLoading) {
     return (
-      <section role="status" className="mx-auto flex min-h-64 max-w-3xl items-center justify-center gap-3 text-sm text-secondary">
-        <LoaderCircle className="h-5 w-5 animate-spin text-accent-primary" /> Memeriksa sesi ViciTech Anda…
-      </section>
+      <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
+        <section role="status" className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-sm text-secondary">
+          <LoaderCircle className="h-5 w-5 animate-spin text-accent-primary" /> Memeriksa sesi ViciTech Anda…
+        </section>
+      </div>
     );
   }
 
   if (!userId) {
     return (
-      <section className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
-        <MessageSquare className="mx-auto h-10 w-10 text-accent-primary" />
-        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
-        <p className="mt-2 text-sm leading-relaxed text-secondary">Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk.</p>
-      </section>
+      <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
+        <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
+          <MessageSquare className="mx-auto h-10 w-10 text-accent-primary" />
+          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk.</p>
+        </section>
+      </div>
     );
   }
 
   if (!isLoading && !profileReady) {
     return (
-      <section className="mx-auto max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
-        <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
-        <Link href="/profile?tab=settings" className="vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
-          Buka Pengaturan Profil
-        </Link>
-        {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
-      </section>
+      <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
+        <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
+          <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
+          <Link href="/profile?tab=settings" className="vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
+            Buka Pengaturan Profil
+          </Link>
+          {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
+        </section>
+      </div>
     );
   }
 
   return (
-    <section className="mx-auto flex min-h-[min(74vh,760px)] max-w-7xl flex-col rounded-xl border border-default bg-surface shadow-sm md:flex-row">
-      <aside className={`min-h-[58vh] w-full rounded-t-xl border-b border-default bg-surface md:min-h-0 md:w-80 md:shrink-0 md:rounded-l-xl md:rounded-tr-none md:border-b-0 md:border-r ${selectedId ? "hidden md:block" : ""}`}>
-        <div className="border-b border-default px-5 py-5">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-hover">
-            <MessageSquare className="h-4 w-4 text-accent-primary" /> Kotak Masuk
-            <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-status-live" : realtimeStatus === "error" ? "text-status-danger" : "text-secondary"}`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-status-live" : realtimeStatus === "error" ? "bg-status-danger" : "bg-secondary/50"}`} />
-              {realtimeStatus === "connected" ? "Terhubung" : realtimeStatus === "error" ? "Terputus" : "Menghubungkan"}
-            </span>
-          </p>
-          <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary">Pesan Langsung</h1>
-          <p className="mt-1 text-xs leading-relaxed text-secondary">Percakapan pribadi dengan teknisi dan sesama anggota ViciTech.</p>
-        </div>
-        <div className="max-h-[38vh] overflow-y-auto p-2 md:max-h-[620px]">
-          {isLoading ? (
-            <p className="flex items-center gap-2 p-4 text-sm text-secondary"><LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" /> Memuat daftar percakapan…</p>
-          ) : conversations.length ? conversations.map((item) => {
-            const profile = profiles[item?.userId];
-            if (!item?.userId || !profile) return null;
-            return (
-              <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
-                {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile)}</span>}
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-primary">{displayName(profile)}</span>
-                    {item.latest?.created_at && (
-                      <span className="shrink-0 font-mono text-[10px] text-secondary">{formatInboxTime(item.latest.created_at)}</span>
-                    )}
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-7xl flex-col overflow-hidden px-2 pb-2 pt-1 sm:px-4 sm:pb-3 md:px-6 md:pb-4">
+      <section className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-sm md:flex-row">
+        <aside className={`flex h-full min-h-0 w-full flex-col border-default bg-surface md:w-80 md:shrink-0 md:border-r ${selectedId ? "hidden md:flex" : "flex"}`}>
+          <div className="shrink-0 border-b border-default px-5 py-4">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-hover">
+              <MessageSquare className="h-4 w-4 text-accent-primary" /> Kotak Masuk
+              <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-status-live" : realtimeStatus === "error" ? "text-status-danger" : "text-secondary"}`}>
+                <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-status-live" : realtimeStatus === "error" ? "bg-status-danger" : "bg-secondary/50"}`} />
+                {realtimeStatus === "connected" ? "Terhubung" : realtimeStatus === "error" ? "Terputus" : "Menghubungkan"}
+              </span>
+            </p>
+            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary">Pesan Langsung</h1>
+            <p className="mt-1 text-xs leading-relaxed text-secondary">Percakapan pribadi dengan teknisi dan sesama anggota ViciTech.</p>
+          </div>
+          <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 ${pickerStyles.pickerScroll}`}>
+            {isLoading ? (
+              <p className="flex items-center gap-2 p-4 text-sm text-secondary"><LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" /> Memuat daftar percakapan…</p>
+            ) : conversations.length ? conversations.map((item) => {
+              const profile = profiles[item?.userId];
+              if (!item?.userId || !profile) return null;
+              return (
+                <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
+                  {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile)}</span>}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="truncate text-sm font-semibold text-primary">{displayName(profile)}</span>
+                      {item.latest?.created_at && (
+                        <span className="shrink-0 font-mono text-[10px] text-secondary">{formatInboxTime(item.latest.created_at)}</span>
+                      )}
+                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-secondary">{latestPreview(item.latest, profile)}</span>
                   </span>
-                  <span className="mt-0.5 block truncate text-xs text-secondary">{latestPreview(item.latest, profile)}</span>
-                </span>
-                {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent-cta px-1 font-mono text-[11px] font-semibold text-white">{item.unread}</span>}
-              </button>
-            );
-          }) : !error ? <p className="p-4 text-sm text-secondary">Belum ada percakapan. Kunjungi profil pengguna lain untuk mulai berkirim pesan.</p> : null}
-        </div>
-      </aside>
+                  {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent-cta px-1 font-mono text-[11px] font-semibold text-white">{item.unread}</span>}
+                </button>
+              );
+            }) : !error ? <p className="p-4 text-sm text-secondary">Belum ada percakapan. Kunjungi profil pengguna lain untuk mulai berkirim pesan.</p> : null}
+          </div>
+        </aside>
 
-      <div className={`flex min-h-[58vh] min-w-0 flex-1 flex-col bg-canvas md:min-h-0 ${!selectedId ? "hidden md:flex" : ""}`}>
-        {selectedId && selectedProfile ? (
-          <>
-            <header className="flex items-center gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-6">
-              <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="rounded-full p-2 text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
-              {selectedProfile.username ? (
-                <Link
-                  href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
-                  className="flex min-w-0 items-center gap-3 rounded-lg transition-colors hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
-                >
-                  {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile)}</span>
-                    <span className="block font-mono text-xs text-secondary">@{selectedProfile.username}</span>
-                  </span>
-                </Link>
-              ) : (
-                <>
-                  {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
-                    <span className="block text-xs text-secondary">@anggota</span>
-                  </span>
-                </>
-              )}
-            </header>
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+        <div className={`flex h-full min-h-0 min-w-0 flex-1 flex-col bg-canvas ${!selectedId ? "hidden md:flex" : "flex"}`}>
+          {selectedId && selectedProfile ? (
+            <>
+              <header className="flex shrink-0 items-center gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-6">
+                <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="rounded-full p-2 text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
+                {selectedProfile.username ? (
+                  <Link
+                    href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
+                    className="flex min-w-0 items-center gap-3 rounded-lg transition-colors hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                  >
+                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile)}</span>
+                      <span className="block font-mono text-xs text-secondary">@{selectedProfile.username}</span>
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
+                      <span className="block text-xs text-secondary">@anggota</span>
+                    </span>
+                  </>
+                )}
+              </header>
+              <div
+                ref={messagesContainerRef}
+                className={`min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6 ${pickerStyles.pickerScroll}`}
+                aria-live="polite"
+              >
               {hasOlderMessages && (
                 <div className="flex justify-center">
                   <button
@@ -952,11 +986,10 @@ export default function DirectMessageDrawer({
                   </div>
                 );
               }) : <p className="py-12 text-center text-sm text-secondary">Belum ada pesan. Kirim sapaan untuk memulai percakapan.</p>}
-              <div ref={bottomRef} />
             </div>
 
             {pendingAttachments.length > 0 && (
-              <div className="border-t border-default bg-canvas px-3 py-2.5 sm:px-4">
+              <div className="shrink-0 border-t border-default bg-canvas px-3 py-2.5 sm:px-4">
                 <div className="flex flex-wrap items-center gap-2.5">
                   {pendingAttachments.map((item) => (
                     <div
@@ -1000,7 +1033,7 @@ export default function DirectMessageDrawer({
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="relative flex items-end gap-2 rounded-b-xl border-t border-default bg-surface p-3 sm:gap-3 sm:p-4 md:rounded-br-xl md:rounded-bl-none">
+            <form onSubmit={sendMessage} className="relative flex shrink-0 items-end gap-2 rounded-b-xl border-t border-default bg-surface p-3 sm:gap-3 sm:p-4 md:rounded-br-xl md:rounded-bl-none">
               <ChatMediaPicker
                 isOpen={isPickerOpen}
                 onClose={() => setIsPickerOpen(false)}
@@ -1092,7 +1125,7 @@ export default function DirectMessageDrawer({
             </div>
           </div>
         )}
-        {error && <p role="alert" className="border-t border-status-danger/20 bg-red-50 px-4 py-2 text-sm text-status-danger">{error}</p>}
+        {error && <p role="alert" className="shrink-0 border-t border-status-danger/20 bg-red-50 px-4 py-2 text-sm text-status-danger">{error}</p>}
       </div>
 
       {lightbox && (
@@ -1104,5 +1137,6 @@ export default function DirectMessageDrawer({
         />
       )}
     </section>
+    </div>
   );
 }

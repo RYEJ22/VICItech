@@ -617,8 +617,17 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
 /* ───────────────────────── Module container ───────────────────────── */
 
 // Keeps inactive tabs mounted via [hidden] without hiding duplicate headers/footers via CSS.
-function Chromeless({ active = true, children }) {
-  return <div hidden={!active} className="vt-module vt-in [&>div]:min-h-0">{children}</div>;
+function Chromeless({ active = true, fillHeight = false, children }) {
+  return (
+    <div
+      hidden={!active}
+      className={`vt-module vt-in [&>div]:min-h-0 ${
+        fillHeight ? "flex h-full min-h-0 flex-1 flex-col overflow-hidden" : ""
+      }`}
+    >
+      {children}
+    </div>
+  );
 }
 
 function SubTabs({ label, items, value, onChange }) {
@@ -666,7 +675,7 @@ class ModuleErrorBoundary extends Component {
   }
 }
 
-const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
+const ModuleSlot = memo(function ModuleSlot({ Comp, active, fillHeight = false, extra }) {
   if (typeof Comp !== "function") {
     return (
       <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-default bg-surface p-6 text-primary shadow-sm">
@@ -678,7 +687,7 @@ const ModuleSlot = memo(function ModuleSlot({ Comp, active, extra }) {
 
   return (
     <ModuleErrorBoundary>
-      <Chromeless active={active}><Comp {...(extra || {})} /></Chromeless>
+      <Chromeless active={active} fillHeight={fillHeight}><Comp {...(extra || {})} /></Chromeless>
     </ModuleErrorBoundary>
   );
 });
@@ -1282,13 +1291,21 @@ export default function ViciTechApp({
     },
   }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername, initialMessagePeerId, initialMarketProducts]);
 
+  const isViewportLockedChat = active === "messages";
+
   return (
-    <div className="flex min-h-screen flex-col bg-canvas text-primary font-sans antialiased">
+    <div
+      className={`flex flex-col bg-canvas text-primary font-sans antialiased ${
+        isViewportLockedChat
+          ? "h-[calc(100dvh-10rem)] overflow-hidden md:h-[calc(100dvh-6rem)]"
+          : "min-h-screen"
+      }`}
+    >
       <Suspense fallback={null}>
         <QueryParamSync onSync={handleQuerySync} />
       </Suspense>
 
-      <main className="flex-1">
+      <main className={isViewportLockedChat ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex-1"}>
         {active === "home" && (
           <div className="vt-in">
             <HomeDashboard
@@ -1359,11 +1376,17 @@ export default function ViciTechApp({
           </div>
         )}
         {MODULE_IDS.filter((id) => visited.has(id)).map((id) => (
-          <ModuleSlot key={id} Comp={C[id]} active={active === id} extra={extras[id]} />
+          <ModuleSlot
+            key={id}
+            Comp={C[id]}
+            active={active === id}
+            fillHeight={id === "messages"}
+            extra={extras[id]}
+          />
         ))}
       </main>
 
-      <Footer onNavigate={navigate} />
+      {!isViewportLockedChat && <Footer onNavigate={navigate} />}
       {palette && (
         <WorkspaceCommandPalette
           onClose={closePalette}

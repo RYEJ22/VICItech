@@ -188,7 +188,7 @@ export function ChatMediaPicker({
       className={`${styles.pickerPanel} ${
         isMobileViewport
           ? "fixed inset-x-0 bottom-0 z-50 flex max-h-[76dvh] w-full flex-col rounded-t-2xl border-t border-default bg-surface shadow-2xl"
-          : `absolute bottom-full z-40 mb-2.5 flex max-h-[420px] w-[364px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-default bg-surface shadow-xl ${
+          : `absolute bottom-full z-40 mb-2.5 flex max-h-[min(410px,calc(100dvh-16rem))] w-[364px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-default bg-surface shadow-xl ${
               align === "right" ? "right-0" : "left-0"
             }`
       }`}
