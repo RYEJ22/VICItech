@@ -209,12 +209,24 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
 
         {/* Reference 00:28–00:30: Closing Watermark Banner CTA */}
         <div className={`rounded-xl p-6 sm:p-10 ${styles.watermarkBanner ?? ''}`}>
-          <span
+          <svg
             aria-hidden="true"
-            className={`block font-serif text-5xl font-bold tracking-tight sm:text-7xl lg:text-8xl ${styles.watermarkText ?? ''}`}
+            focusable="false"
+            viewBox="0 0 430 104"
+            className={`block h-12 w-auto max-w-full sm:h-[4.5rem] lg:h-24 ${styles.watermarkText ?? ''}`}
           >
-            ViciTech
-          </span>
+            <text
+              x="0"
+              y="82"
+              fill="currentColor"
+              fontSize="94"
+              fontWeight="700"
+              letterSpacing="-0.025em"
+              style={{ fontFamily: 'var(--font-serif), Georgia, serif' }}
+            >
+              ViciTech
+            </text>
+          </svg>
           <div className="relative -mt-3 flex flex-wrap items-center justify-between gap-6 sm:-mt-5">
             <div className="max-w-xl">
               <h2 className="font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">

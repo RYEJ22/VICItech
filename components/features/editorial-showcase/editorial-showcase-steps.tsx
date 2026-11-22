@@ -86,7 +86,11 @@ export function EditorialShowcaseSteps({
                         className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/70"
                       >
                         <span className="min-w-0">
-                          <span className="block font-mono text-[11px] font-semibold uppercase tracking-wider opacity-85">
+                          <span
+                            className={`block font-mono text-[11px] font-semibold uppercase tracking-wider ${
+                              isActive ? 'text-accent-cta' : 'text-white'
+                            }`}
+                          >
                             {step.phaseLabel}
                           </span>
                           <span className="mt-0.5 block font-serif text-base font-semibold sm:text-lg">
@@ -95,7 +99,7 @@ export function EditorialShowcaseSteps({
                         </span>
                         <ChevronDown
                           className={`h-5 w-5 shrink-0 transition-transform ${
-                            isActive ? 'rotate-180 text-accent-primary' : 'opacity-80'
+                            isActive ? 'rotate-180 text-accent-cta' : 'text-white'
                           }`}
                           strokeWidth={1.75}
                           aria-hidden="true"
@@ -152,7 +156,7 @@ export function EditorialShowcaseSteps({
 
             {/* Active Visual Card Callout on Desktop */}
             <div className="hidden lg:col-span-6 lg:block">
-              <div className="ml-auto max-w-md rounded-xl border border-default bg-surface/95 p-5 text-primary shadow-xl">
+              <div className="ml-auto max-w-md rounded-xl border border-default bg-surface p-5 text-primary shadow-xl">
                 <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-subtle">
                   <Image
                     src={activeStep.imageSrc}
@@ -162,7 +166,7 @@ export function EditorialShowcaseSteps({
                     className="object-cover"
                   />
                 </div>
-                <p className="mt-3 font-mono text-xs font-semibold text-accent-primary">
+                <p className="mt-3 font-mono text-xs font-semibold text-accent-cta">
                   {activeStep.phaseLabel}
                 </p>
                 <p className="mt-1 font-serif text-lg font-semibold text-primary">
