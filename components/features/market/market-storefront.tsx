@@ -97,7 +97,7 @@ export function MarketStorefront({
     const filtered = initialProducts.filter((product) => {
       if (selectedCategory !== 'all' && product.category !== selectedCategory) return false;
       if (stockFilter !== 'all' && product.stock_status !== stockFilter) return false;
-      if (iotQcOnly && getProductTrustBadge(product).tone !== 'live') return false;
+      if (iotQcOnly && !getProductTrustBadge(product).hasVerifiedQc) return false;
       if (!normalizedQuery) return true;
 
       const specsValues =

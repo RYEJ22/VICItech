@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Radio } from "lucide-react";
+import { Activity, Cpu, Radio, ShieldCheck } from "lucide-react";
+import SpotlightCard from "./SpotlightCard";
 
 const IoTQCConsumer = dynamic(() => import("./IoTQCConsumer"), {
   loading: () => (
@@ -10,18 +11,24 @@ const IoTQCConsumer = dynamic(() => import("./IoTQCConsumer"), {
       role="status"
       aria-live="polite"
       aria-label="Memuat engine telemetri IoT QC"
-      className="space-y-4 rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6"
+      className="space-y-4 rounded-xl border border-default bg-surface p-6"
     >
-      <div className="h-6 w-48 animate-pulse rounded-md bg-[#F3F1ED]" />
-      <div className="h-11 w-full animate-pulse rounded-xl bg-[#F3F1ED]" />
+      <div className="h-6 w-48 animate-pulse rounded-md bg-subtle" />
+      <div className="h-11 w-full animate-pulse rounded-xl bg-subtle" />
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="h-24 animate-pulse rounded-xl bg-[#F3F1ED]" />
-        <div className="h-24 animate-pulse rounded-xl bg-[#F3F1ED]" />
-        <div className="h-24 animate-pulse rounded-xl bg-[#F3F1ED]" />
+        <div className="h-24 animate-pulse rounded-xl bg-subtle" />
+        <div className="h-24 animate-pulse rounded-xl bg-subtle" />
+        <div className="h-24 animate-pulse rounded-xl bg-subtle" />
       </div>
     </div>
   ),
 });
+
+const SYSTEM_STATS = [
+  { label: "Mesin Telemetri", value: "IoT QC 15-Titik", icon: Cpu },
+  { label: "Penyimpanan Laporan", value: "Supabase Realtime", icon: ShieldCheck },
+  { label: "Mode Inspeksi", value: "Pelacakan Serial & Order", icon: Radio },
+];
 
 export default function QCPanelDashboard() {
   const [clock, setClock] = useState("00:00:00");
@@ -47,7 +54,7 @@ export default function QCPanelDashboard() {
       ? {
           badgeClass: "vt-badge-live",
           badgeLabel: "Live ESP32",
-          description: "Pembacaan suhu, kipas, dan voltase langsung dari sensor smart bench ESP32.",
+          description: "Menampilkan pembacaan suhu, kipas, dan voltase langsung dari sensor smart bench ESP32.",
           footerLabel: "Live ESP32",
           statusLabel: "Aktif (Sensor Fisik)",
         }
@@ -55,70 +62,98 @@ export default function QCPanelDashboard() {
         ? {
             badgeClass: "vt-badge-simulated",
             badgeLabel: "Simulasi Admin",
-            description: "Data berasal dari profil simulasi admin dan dipisahkan dari sensor fisik.",
+            description: "Data yang tampil saat ini berasal dari profil simulasi admin dan dipisahkan secara eksplisit dari sensor fisik.",
             footerLabel: "Simulasi Admin",
             statusLabel: "Simulasi Terkontrol",
           }
         : {
             badgeClass: "vt-badge-sample",
             badgeLabel: "Menunggu Data Serial",
-            description: "Masukkan nomor seri unit atau pesanan untuk melacak telemetri IoT QC secara transparan.",
+            description: "Masukkan nomor seri unit atau nomor pesanan untuk melihat status telemetri ESP32 maupun profil simulasi admin secara jujur.",
             footerLabel: "Menunggu pencarian serial",
             statusLabel: "Siap Melacak",
           };
 
   return (
-    <main className="qc-dashboard min-h-[calc(100vh-4.5rem)] bg-canvas px-4 py-12 text-primary sm:px-6 md:py-16">
+    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 py-8 text-primary transition-colors sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-10 flex flex-wrap items-end justify-between gap-6 border-b border-[#E4E4E7] pb-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-              IoT QC 15-Titik · Pelacakan Serial
-            </p>
-            <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] sm:text-4xl lg:text-5xl">
-              Panel Diagnostik IoT QC
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#71717A] sm:text-base">
-              Verifikasi kesehatan perangkat, progres burn-in, dan sumber data sensor secara transparan.
-            </p>
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="mt-1 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent-primary text-white shadow-sm">
+              <Activity className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+                ViciTech · Kontrol Kualitas
+              </p>
+              <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
+                Panel Diagnostik IoT QC
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
+                Periksa kesehatan perangkat, pantau progres pesanan, dan verifikasi sumber data IoT QC secara transparan.
+              </p>
+            </div>
           </div>
           <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
         </header>
 
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-10">
+        <section className="mb-6 grid gap-3 sm:grid-cols-3" aria-label="Status ruang kerja">
+          {SYSTEM_STATS.map(({ label, value, icon: Icon }) => (
+            <SpotlightCard key={label} className="flex items-center justify-between p-5">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">{label}</p>
+                <p className="mt-2 text-sm font-semibold tracking-wide text-primary">{value}</p>
+              </div>
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent-subtle text-accent-primary">
+                <Icon className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </SpotlightCard>
+          ))}
+        </section>
+
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="min-w-0">
             <section id="qc-panel-tracking" aria-label="Pelacakan pesanan" className="[&_h2]:font-serif">
               <IoTQCConsumer
-                embedded
                 initialSerial={initialSerial}
                 onTelemetrySourceChange={setTelemetrySource}
               />
             </section>
           </div>
 
-          <aside className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] divide-y divide-[#E4E4E7] lg:sticky lg:top-24">
-            <div className="p-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#71717A]">Waktu Lokal</p>
-              <p className="mt-2 font-serif text-3xl font-semibold tabular-nums tracking-tight text-[#18181B]">{clock}</p>
-            </div>
-
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-[#18181B]">
-                <Radio className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#71717A]">Sumber Data</h2>
+          <aside className="space-y-4">
+            <SpotlightCard className="p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">Waktu Lokal</p>
+                <span className="h-1.5 w-1.5 rounded-full bg-accent-primary" aria-hidden="true" />
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#18181B]">{sourceMeta.statusLabel}</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#71717A]">
+              <p className="mt-3 font-serif text-3xl font-semibold tabular-nums tracking-tight text-primary">{clock}</p>
+              <p className="mt-1 text-[10px] text-secondary">Waktu perangkat Anda</p>
+            </SpotlightCard>
+            <SpotlightCard className="p-5">
+              <div className="flex items-center gap-2 text-accent-cta">
+                <Radio className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <h2 className="text-xs font-semibold">Sumber Data Aktif</h2>
+              </div>
+              <div className="mt-2">
+                <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-secondary">
                 {sourceMeta.description}
               </p>
-            </div>
-
-            <div className="p-5 text-xs leading-6 text-[#71717A]">
-              <p>Penyimpanan · <span className="font-medium text-[#18181B]">Supabase Realtime</span></p>
-              <p>Mode · <span className="font-medium text-[#18181B]">{sourceMeta.footerLabel}</span></p>
+            </SpotlightCard>
+            <div className="rounded-xl border border-default bg-surface px-4 py-3 text-xs leading-6 text-secondary">
+              <p><span className="font-medium text-primary">Status</span> · {sourceMeta.statusLabel}</p>
+              <p><span className="font-medium text-primary">Sumber</span> · {sourceMeta.footerLabel}</p>
+              <p><span className="font-medium text-primary">Jam</span> · Lokal</p>
             </div>
           </aside>
         </div>
+
+        <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-default pt-4 text-xs text-secondary">
+          <span>ViciTech · Panel Diagnostik IoT QC</span>
+          <span>Mode telemetri: {sourceMeta.footerLabel}</span>
+        </footer>
       </div>
     </main>
   );

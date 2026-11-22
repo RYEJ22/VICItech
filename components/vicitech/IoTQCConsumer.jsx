@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Activity, Cpu, Gauge, LoaderCircle, Radio, Search, ShieldCheck, Thermometer, Timer } from "lucide-react";
+import { Activity, Cpu, Gauge, LoaderCircle, Radio, Search, ShieldCheck, Thermometer, Timer, Wifi } from "lucide-react";
 import { getQcTrackingRecord, listMyOrders } from "@/lib/supabase";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -70,7 +70,7 @@ function Stat({ icon: Icon, label, value, detail, color = "text-accent-primary",
   );
 }
 
-export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange, embedded = false }) {
+export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }) {
   const [query, setQuery] = useState(typeof initialSerial === "string" ? initialSerial.trim().toUpperCase() : "");
   const [record, setRecord] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
@@ -285,59 +285,59 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange, 
   );
 
   return (
-    <div className="space-y-6 text-primary">
-      {!embedded && (
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E4E4E7] pb-6">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-              <ShieldCheck className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-              <span>Pelacakan Pelanggan</span>
-            </p>
-            <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-[#18181B] sm:text-3xl">
-              Status Perakitan &amp; Telemetri IoT QC
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#71717A]">
-              Lacak progres pesanan dan pembacaan sensor perangkat Anda dengan pemisahan sensor ESP32 dan simulasi admin.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {sourceBadge}
-          </div>
-        </header>
-      )}
+    <div className="space-y-5 text-primary">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+            <ShieldCheck className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            <span>Pelacakan Pelanggan</span>
+          </p>
+          <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+            Status Perakitan &amp; Telemetri IoT QC
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
+            Lacak progres pesanan serta pembacaan sensor perangkat Anda. Tampilan ini bersifat baca-saja dan memisahkan data sensor ESP32 dari simulasi admin.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {sourceBadge}
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-default bg-surface px-3 py-1.5 text-xs font-medium text-secondary">
+            <Wifi className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            <span>Status Baca-Saja</span>
+          </span>
+        </div>
+      </header>
 
       {userId && (
-        <section className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6">
-          <h3 className="text-sm font-semibold text-[#18181B]">Pesanan Akun Anda</h3>
+        <section className="rounded-xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200">
+          <h3 className="text-sm font-semibold text-primary">Pesanan Akun Anda</h3>
           {ordersLoading ? (
-            <p role="status" className="mt-3 flex items-center gap-2 text-sm text-[#71717A]">
-              <LoaderCircle className="h-4 w-4 animate-spin text-[#EA580C]" aria-hidden="true" />
+            <p role="status" className="mt-3 flex items-center gap-2 text-sm text-secondary">
+              <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />
               <span>Memuat daftar pesanan…</span>
             </p>
           ) : ordersError ? (
             <p role="alert" className="mt-3 text-sm text-status-danger">{ordersError}</p>
           ) : orders.length ? (
-            <ul className="mt-3 divide-y divide-[#E4E4E7]">
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {orders.map((order) => (
                 <li key={order.id}>
                   <button
                     type="button"
                     onClick={() => lookup(order.order_number || order.serial_number)}
-                    className="flex min-h-11 w-full items-center justify-between gap-4 py-3 text-left transition-colors hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                    className="min-h-11 w-full rounded-lg border border-default bg-canvas p-3 text-left transition-colors hover:border-accent-primary/50 hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-mono text-xs font-semibold text-status-live">
-                        {order.order_number || "Menunggu ID Pesanan"}
-                      </span>
-                      <span className="mt-0.5 block truncate text-sm font-medium text-[#18181B]">{order.product_name}</span>
+                    <span className="block font-mono text-xs font-semibold text-status-live">
+                      {order.order_number || "Menunggu ID Pesanan"}
                     </span>
-                    <span className="shrink-0 text-xs text-[#71717A]">{translateStressStatus(order.status)}</span>
+                    <span className="mt-1 block truncate text-sm font-medium text-primary">{order.product_name}</span>
+                    <span className="mt-1 block text-xs text-secondary">{translateStressStatus(order.status)}</span>
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-[#71717A]">Belum ada pesanan yang terhubung dengan akun Anda.</p>
+            <p className="mt-2 text-sm text-secondary">Belum ada pesanan yang terhubung dengan akun Anda.</p>
           )}
         </section>
       )}
@@ -347,7 +347,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange, 
           event.preventDefault();
           lookup(query);
         }}
-        className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-6"
+        className="rounded-xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200 sm:p-6"
       >
         <label htmlFor="qc-tracking-query" className="mb-2 block text-sm font-medium text-primary">
           Nomor Seri Unit atau Nomor Pesanan

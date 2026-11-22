@@ -28,14 +28,14 @@ const MediaLightbox = dynamic(
 
 const CATEGORIES = {
   all: { label: "Semua Postingan", icon: MessageSquare },
-  hardware: { label: "Hardware & Rakit", icon: Cpu, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  gaming: { label: "Gaming & Mabar", icon: Gamepad2, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  dev: { label: "Dev & Coding", icon: Code2, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  creative: { label: "Desain & Kreatif", icon: Palette, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  guide: { label: "Panduan & Diskusi", icon: BookOpen, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  meme: { label: "Meme Tech", icon: Laugh, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
+  hardware: { label: "Hardware & Rakit", icon: Cpu, cls: "border-accent-primary/30 bg-accent-subtle text-accent-hover" },
+  gaming: { label: "Gaming & Mabar", icon: Gamepad2, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
+  dev: { label: "Dev & Coding", icon: Code2, cls: "border-default bg-subtle text-primary" },
+  creative: { label: "Desain & Kreatif", icon: Palette, cls: "border-accent-primary/25 bg-accent-subtle text-primary" },
+  qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
+  guide: { label: "Panduan & Diskusi", icon: BookOpen, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
+  meme: { label: "Meme Tech", icon: Laugh, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
+  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
 };
 
 const CAT_ORDER = ["all", "hardware", "gaming", "dev", "creative", "qa", "guide", "meme", "news"];
@@ -103,11 +103,11 @@ function mapDatabasePost(row) {
 }
 
 const ROLES = {
-  tech: { label: "Teknisi Tersertifikasi", cls: "border-[#E4E4E7] bg-[#F3F1ED] text-[#18181B]", verified: true },
-  lab: { label: "Admin Lab CBT", cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  fan: { label: "Penggemar Hardware", cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#71717A]" },
-  buyer: { label: "Tim Pengadaan IT", cls: "border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B]" },
-  team: { label: "Tim ViciTech", cls: "border-[#EA580C]/25 bg-[#FFF7ED] text-[#C2410C]", verified: true },
+  tech: { label: "Teknisi Tersertifikasi", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800", verified: true },
+  lab: { label: "Admin Lab CBT", cls: "border-accent-primary/30 bg-accent-subtle text-accent-hover" },
+  fan: { label: "Penggemar Hardware", cls: "border-default bg-subtle text-secondary" },
+  buyer: { label: "Tim Pengadaan IT", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
+  team: { label: "Tim ViciTech", cls: "border-accent-cta bg-accent-cta text-white", verified: true },
 };
 
 const AUTHORS = {
@@ -168,7 +168,7 @@ const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency:
 const num = (n) => new Intl.NumberFormat("id-ID").format(n);
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 const TAG_RE = /#[A-Za-z0-9_]+/g;
-const AVATAR_TONES = ["bg-[#F3F1ED] text-[#18181B]", "bg-[#FFF7ED] text-[#C2410C]", "bg-[#F4F4F5] text-[#52525B]", "bg-[#FAF9F6] text-[#18181B]"];
+const AVATAR_TONES = ["bg-accent-subtle text-accent-hover", "bg-emerald-50 text-emerald-800", "bg-violet-50 text-violet-800", "bg-amber-50 text-amber-800"];
 
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - ts) / 60000);
@@ -719,34 +719,34 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
       )}
 
       {post.specs && (
-        <div className="mt-4 rounded-xl bg-[#FAF9F6] p-4">
-          <p className="flex items-center gap-1.5 border-b border-[#E4E4E7] pb-2 text-xs font-medium text-[#71717A]"><Cpu className="h-3.5 w-3.5 text-[#EA580C]" /> Rincian Spesifikasi Hardware</p>
-          <dl className="mt-2 grid gap-x-6 text-sm sm:grid-cols-2">
+        <div className="mt-3 rounded-lg border border-default bg-canvas">
+          <p className="flex items-center gap-1.5 border-b border-default px-3 py-2 text-xs text-secondary"><Cpu className="h-3.5 w-3.5 text-accent-primary" /> Rincian Spesifikasi Hardware</p>
+          <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
             {post.specs.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-[#71717A]">{k}</dt><dd className="text-right text-[#18181B]">{v}</dd></div>
+              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-secondary">{k}</dt><dd className="text-right text-primary">{v}</dd></div>
             ))}
           </dl>
-          {post.cost && <p className="mt-2 flex justify-between border-t border-[#E4E4E7] pt-2 text-sm"><span className="text-[#71717A]">Total estimasi rakitan</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
+          {post.cost && <p className="flex justify-between border-t border-default px-3 py-2 text-sm"><span className="text-secondary">Total estimasi rakitan</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-[#E4E4E7] pt-3">
-        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-[#F3F1ED] font-semibold text-[#EA580C]" : "text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"}`}>
+      <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-default pt-3">
+        <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-accent-subtle text-accent-hover" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
           <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="font-mono tabular-nums">{post.likes}</span>
           <span className="sr-only">{post.liked ? "suka, Anda menyukai postingan ini" : "suka"}</span>
         </button>
-        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-[#F3F1ED] text-[#18181B]" : "text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"}`}>
+        <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-subtle text-primary" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
           <MessageSquare className="h-4 w-4" /> <span className="font-mono tabular-nums">{post.comments.length}</span> Komentar
         </button>
-        <button type="button" onClick={share} className={`${action} ml-auto text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]`}>
+        <button type="button" onClick={share} className={`${action} ml-auto text-secondary hover:bg-subtle hover:text-primary`}>
           <Share2 className="h-4 w-4" /> {post.specs ? "Bagikan Spek" : "Bagikan"}
         </button>
       </div>
       <p role="status" className="min-h-0 text-right text-xs text-status-live">{shareNote}</p>
 
       {open && (
-        <div className="mt-4 space-y-3 border-t border-[#E4E4E7] pt-4">
-          {post.comments.length === 0 && <p className="text-sm text-[#71717A]">Belum ada komentar. Jadilah yang pertama membalas.</p>}
+        <div className="mt-2 space-y-3 rounded-lg border border-default bg-canvas p-3">
+          {post.comments.length === 0 && <p className="text-sm text-secondary">Belum ada komentar. Jadilah yang pertama membalas.</p>}
           {post.comments.map((c) => {
             const commenter = resolve(c.by);
             return (
@@ -755,16 +755,16 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-x-2 text-sm">
                     {commenter.href
-                      ? <a href={commenter.href} className="font-medium text-[#18181B] hover:text-[#EA580C]">{commenter.name}</a>
-                      : <span className="font-medium text-[#18181B]">{commenter.name}</span>}
-                    <span className="text-xs text-[#71717A]">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
+                      ? <a href={commenter.href} className="font-medium text-primary hover:text-accent-hover">{commenter.name}</a>
+                      : <span className="font-medium text-primary">{commenter.name}</span>}
+                    <span className="text-xs text-secondary">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
                   </p>
-                  <p className="text-sm text-[#71717A]">{c.text}</p>
+                  <p className="text-sm text-secondary">{c.text}</p>
                 </div>
               </div>
             );
           })}
-          <form onSubmit={submitComment} className="relative flex items-center gap-2 pt-1">
+          <form onSubmit={submitComment} className="relative flex items-center gap-2">
             <ChatMediaPicker
               isOpen={emojiOpen}
               onClose={() => setEmojiOpen(false)}
@@ -782,8 +782,8 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               aria-label="Sisipkan emoji ke balasan"
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border transition active:scale-[0.95] ${focusRing} ${
                 emojiOpen
-                  ? "border-[#EA580C] bg-[#F3F1ED] text-[#EA580C]"
-                  : "border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] hover:border-[#EA580C]/50 hover:text-[#18181B]"
+                  ? "border-accent-primary bg-accent-subtle text-accent-hover"
+                  : "border-default bg-surface text-secondary hover:border-accent-primary/50 hover:text-primary"
               }`}
             >
               <Smile className="h-4 w-4" strokeWidth={1.75} />
@@ -802,7 +802,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               onKeyUp={(e) => syncCommentSelection(e.currentTarget)}
               onSelect={(e) => syncCommentSelection(e.currentTarget)}
               placeholder="Tulis balasan…"
-              className={`min-w-0 flex-1 rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-sm text-[#18181B] placeholder:text-[#71717A] ${focusRing}`}
+              className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`}
             />
             <button
               type="submit"
@@ -823,51 +823,51 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
   return (
-    <aside className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] divide-y divide-[#E4E4E7] lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
-      <section className="p-6">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-[#18181B]">
-          <Award className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+          <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
           <span>Kontributor Aktif</span>
         </h2>
         {contributors.length > 0 ? (
-          <ol className="mt-4 space-y-3.5">
+          <ol className="mt-3 space-y-3">
             {contributors.map(([key, postCount, likeTotal], i) => {
               const author = resolve(key);
               return (
                 <li key={key} className="flex items-center gap-3">
-                  <span className={`w-5 text-center font-mono text-sm font-semibold tabular-nums ${i === 0 ? "text-[#EA580C]" : "text-[#71717A]"}`}>{i + 1}</span>
+                  <span className={`w-5 text-center font-mono text-sm font-semibold tabular-nums ${i === 0 ? "text-status-live" : "text-secondary"}`}>{i + 1}</span>
                   <Avatar author={author} size="h-9 w-9" />
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-1 truncate text-sm font-medium text-[#18181B]">
+                    <p className="flex items-center gap-1 truncate text-sm font-medium text-primary">
                       {author.href
-                        ? <Link href={author.href} className="truncate hover:text-[#EA580C]">{author.name}</Link>
+                        ? <Link href={author.href} className="truncate hover:text-accent-hover">{author.name}</Link>
                         : <span className="truncate">{author.name}</span>}
-                      {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-[#EA580C]" aria-label="Kontributor teraktif" />}
+                      {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-status-live" aria-label="Kontributor teraktif" />}
                     </p>
-                    <p className="text-xs text-[#71717A]">{ROLES[author.role]?.label || "Anggota"}</p>
+                    <p className="text-xs text-secondary">{ROLES[author.role]?.label || "Anggota"}</p>
                   </div>
                   <div className="text-right font-mono text-xs tabular-nums">
-                    <p className="font-medium text-[#18181B]">{num(likeTotal)} suka</p>
-                    <p className="text-[#71717A]">{postCount} pos</p>
+                    <p className="font-medium text-accent-cta">{num(likeTotal)} suka</p>
+                    <p className="text-secondary">{postCount} postingan</p>
                   </div>
                 </li>
               );
             })}
           </ol>
         ) : (
-          <p className="mt-3 text-xs text-[#71717A]">Belum ada aktivitas kontributor yang dimuat.</p>
+          <p className="mt-3 text-xs text-secondary">Belum ada aktivitas kontributor yang dimuat.</p>
         )}
       </section>
 
-      <section className="p-6">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-[#18181B]">
-          <BookOpen className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+          <BookOpen className="h-5 w-5 text-accent-primary" aria-hidden="true" />
           <span>Topik Panduan Cepat</span>
         </h2>
-        <ul className="mt-3 divide-y divide-[#E4E4E7]">
+        <ul className="mt-3 divide-y divide-default">
           {TOPIC_GUIDES.map((g) => (
             <li key={g.title}>
-              <button type="button" onClick={() => onGuide(g.q)} className={`min-h-11 w-full py-2.5 text-left text-sm text-[#18181B] transition-colors hover:text-[#EA580C] ${focusRing}`}>
+              <button type="button" onClick={() => onGuide(g.q)} className={`min-h-11 w-full py-2.5 text-left text-sm text-primary hover:text-accent-hover ${focusRing}`}>
                 {g.title}
               </button>
             </li>
@@ -875,21 +875,21 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
         </ul>
       </section>
 
-      <section className="p-6">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-[#18181B]">
-          <Tag className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
-          <span>Tag Populer</span>
+      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+          <Tag className="h-5 w-5 text-accent-primary" aria-hidden="true" />
+          <span>Tag Hardware Populer</span>
         </h2>
         {topTags.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {topTags.map(([tag, count]) => (
-              <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-full border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-1 text-xs text-[#18181B] transition-colors hover:border-[#EA580C]/45 hover:text-[#EA580C] ${focusRing}`}>
-                {tag} <span className="font-mono text-[#71717A]">{count}</span>
+              <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-md border border-default bg-canvas px-2.5 py-1 text-xs text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>
+                {tag} <span className="font-mono text-secondary">{count}</span>
               </button>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-xs text-[#71717A]">Tag akan muncul otomatis dari postingan komunitas.</p>
+          <p className="mt-3 text-xs text-secondary">Tag akan muncul otomatis dari postingan komunitas.</p>
         )}
       </section>
     </aside>
@@ -1376,44 +1376,43 @@ export default function CommunityHub() {
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16">
-        <div className="flex flex-wrap items-center gap-3">
-          {isSampleFallback ? (
-            <span className="vt-badge-sample">Feed Sampel Lokal</span>
-          ) : (
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-              Berbagi Rakitan &amp; Solusi Teknis
-            </p>
-          )}
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
+            {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+            Berbagi rakitan &amp; solusi teknis
+          </span>
         </div>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-[#18181B] sm:text-5xl">
-          <MessageSquare className="h-8 w-8 text-[#EA580C]" /> Komunitas ViciTech
+        <h1 className="mt-3 flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
+          <MessageSquare className="h-8 w-8 text-accent-primary" /> Komunitas &amp; Pusat Pengetahuan
         </h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-[#71717A]">
-          Bagikan hasil rakitan PC, pelajari panduan teknis lab, dan diskusikan kendala perangkat keras bersama sesama builder.
+        <p className="mt-3 max-w-2xl text-secondary">
+          Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
         </p>
         <button
           type="button"
           onClick={handleFocusComposer}
-          className={`mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-5 py-2.5 text-sm font-medium text-[#18181B] transition-colors hover:border-[#EA580C]/45 hover:bg-[#F3F1ED] ${focusRing}`}
+          className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
         >
-          <PenSquare className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+          <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
           <span>Buat Postingan Lengkap</span>
         </button>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-3 lg:gap-10">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <div className="space-y-5 lg:col-span-2">
             <Composer
               onPublish={publish}
               sectionRef={composerSectionRef}
               titleInputRef={composerTitleInputRef}
             />
-            {publishError && <p role="alert" className="rounded-xl border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
+            {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
 
             <div className="relative">
               <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#71717A]" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-full border border-[#E4E4E7] bg-[#FFFFFF] py-3 pl-11 pr-4 text-sm text-[#18181B] placeholder:text-[#71717A] ${focusRing}`} />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-3 pl-12 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
             </div>
 
             <div role="group" aria-label="Filter postingan berdasarkan kategori" className="flex flex-wrap gap-2">
@@ -1421,24 +1420,24 @@ export default function CommunityHub() {
                 const Icon = CATEGORIES[k].icon;
                 const active = category === k;
                 return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-[#18181B] bg-[#18181B] font-medium text-white" : "border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]"}`}>
-                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className={`font-mono text-xs ${active ? "text-white/75" : "text-[#71717A]"}`}>{counts[k]}</span>
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
                   </button>
                 );
               })}
             </div>
 
-            <p className="text-sm text-[#71717A]" aria-live="polite">
-              Menampilkan <span className="font-mono font-semibold text-[#18181B]">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
+            <p className="text-sm text-secondary" aria-live="polite">
+              Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
 
             {isLoadingPosts ? (
               <div className="space-y-4" aria-label="Memuat postingan komunitas">
-                <div className="h-40 animate-pulse rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF]" />
-                <div className="h-40 animate-pulse rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF]" />
+                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
               </div>
             ) : paginatedPosts.length ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {paginatedPosts.map((p) => (
                   <PostCard
                     key={p.id}

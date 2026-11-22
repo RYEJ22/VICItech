@@ -313,32 +313,32 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
   return (
-    <li className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF]">
-      <div className="flex flex-wrap items-center gap-4 p-5">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FAF9F6] text-[#EA580C]">
+    <li className="rounded-xl border border-default bg-surface shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 p-4">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-accent-primary">
           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-xs text-[#71717A]">{slot.label}</p>
-          <p className="font-medium text-[#18181B]">{current.name}</p>
-          <p className="text-xs text-[#71717A]">{current.spec}</p>
+          <p className="text-xs text-secondary">{slot.label}</p>
+          <p className="font-medium text-primary">{current.name}</p>
+          <p className="text-xs text-secondary">{current.spec}</p>
         </div>
         <div className="text-right">
-          <p className="font-mono font-semibold tabular-nums text-[#18181B]">{idr(current.price)}</p>
-          <p className="font-mono text-xs tabular-nums text-[#71717A]">{current.w} W · garansi {current.wr} bln</p>
+          <p className="font-mono font-semibold tabular-nums text-primary">{idr(current.price)}</p>
+          <p className="font-mono text-xs tabular-nums text-secondary">{current.w} W · garansi {current.wr} bln</p>
         </div>
         <button
           type="button"
           aria-expanded={open}
           onClick={onToggle}
-          className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors ${focusRing} ${
+          className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
             open
-              ? "border-[#18181B] bg-[#18181B] text-white"
-              : "border-[#E4E4E7] bg-[#FFFFFF] text-[#18181B] hover:border-[#EA580C]/45 hover:bg-[#F3F1ED]"
+              ? "border-accent-primary bg-accent-subtle text-accent-cta"
+              : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
           }`}
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${open ? "text-white" : "text-[#EA580C]"}`} strokeWidth={1.75} aria-hidden="true" />
-          <span>Ganti</span>
+          <RefreshCw className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          <span>Ganti / Upgrade</span>
         </button>
       </div>
 
@@ -429,15 +429,15 @@ function OrderDrawer({
 
         <div className="flex-1 space-y-6 overflow-y-auto p-5">
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-[#18181B]">Rincian harga per unit</h3>
-            <ul className="divide-y divide-[#E4E4E7] border-y border-[#E4E4E7]">
+            <h3 className="mb-2 text-sm font-semibold text-primary">Rincian harga per unit</h3>
+            <ul className="divide-y divide-default rounded-xl border border-default bg-canvas">
               {calc.rows.map((r) => (
-                <li key={r.key} className="flex items-baseline justify-between gap-3 py-2.5 text-sm">
+                <li key={r.key} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
                   <span className="min-w-0">
-                    <span className="text-[#71717A]">{r.label}: </span>
-                    <span className="font-medium text-[#18181B]">{r.part.name}</span>
+                    <span className="text-secondary">{r.label}: </span>
+                    <span className="font-medium text-primary">{r.part.name}</span>
                   </span>
-                  <span className="shrink-0 font-mono tabular-nums text-[#18181B]">{idr(r.part.price)}</span>
+                  <span className="shrink-0 font-mono tabular-nums text-primary">{idr(r.part.price)}</span>
                 </li>
               ))}
             </ul>
@@ -817,20 +817,23 @@ export default function PresetBuilder({
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 pb-28 pt-12 sm:px-6 md:py-16 lg:pb-16">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#EA580C]">
-          Rakit dengan Kepastian Kompatibilitas
-        </p>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-[#18181B] sm:text-5xl">
-          <Sliders className="h-8 w-8 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+      <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
+            Rakit dengan Kepastian Kompatibilitas
+          </span>
+        </div>
+        <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
+          <Sliders className="h-8 w-8 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
           <span>Smart Preset Builder &amp; Konfigurator</span>
         </h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-[#71717A]">
-          Mulai dari preset teruji, sesuaikan komponen, dan pantau beban daya PSU beserta estimasi JIT 5% secara otomatis.
+        <p className="mt-4 max-w-2xl leading-relaxed text-secondary">
+          Mulai dari preset teruji sesuai segmen kebutuhan, ganti komponen apa saja, dan pantau harga, estimasi beban daya PSU, serta Buffer Pasar JIT 5% secara langsung.
         </p>
 
         {/* Pemilih Preset */}
-        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-10 grid gap-5 md:grid-cols-3">
+        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-8 grid gap-4 md:grid-cols-3">
           {Object.values(PRESETS).map((p) => {
             const active = p.id === presetId;
             const Icon = p.icon;
@@ -841,50 +844,59 @@ export default function PresetBuilder({
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`flex flex-col rounded-2xl border p-6 text-left transition-colors ${focusRing} ${
+                className={`vt-card-interactive flex flex-col rounded-xl border p-5 text-left ${focusRing} ${
                   active
-                    ? "border-[#EA580C] bg-[#FFFFFF] ring-1 ring-[#EA580C]/20"
-                    : "border-[#E4E4E7] bg-[#FFFFFF] hover:border-[#18181B]/30"
+                    ? "border-accent-primary bg-accent-subtle shadow-sm"
+                    : "border-default bg-surface hover:bg-subtle"
                 }`}
               >
                 <span className="flex items-center gap-3">
-                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${active ? "bg-[#EA580C] text-white" : "bg-[#FAF9F6] text-[#71717A]"}`}>
+                  <span className={`grid h-10 w-10 place-items-center rounded-lg ${active ? "bg-accent-primary text-white" : "bg-subtle text-secondary"}`}>
                     <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
                   </span>
                   <span>
-                    <span className="block font-mono text-xs font-semibold text-[#EA580C]">{p.seg}</span>
-                    <span className="block font-serif text-base font-semibold text-[#18181B]">{p.name}</span>
+                    <span className="block font-mono text-xs font-semibold text-accent-cta">{p.seg}</span>
+                    <span className="block font-serif text-base font-semibold text-primary">{p.name}</span>
                   </span>
                 </span>
-                <span className="mt-3 text-sm leading-relaxed text-[#71717A]">{p.blurb}</span>
-                <span className="mt-3 text-xs text-[#71717A]">{p.focus.join(" · ")}</span>
-                <span className="mt-4 text-sm text-[#71717A]">
-                  Mulai <span className="font-mono font-semibold tabular-nums text-[#18181B]">{idr(presetUnit[p.id])}</span> / unit
+                <span className="mt-3 text-sm text-secondary">{p.blurb}</span>
+                <span className="mt-3 flex flex-wrap gap-1.5">
+                  {p.focus.map((f) => (
+                    <span key={f} className="rounded-full border border-default bg-surface px-2.5 py-0.5 text-xs text-secondary">
+                      {f}
+                    </span>
+                  ))}
+                </span>
+                <span className="mt-4 text-sm text-secondary">
+                  Mulai <span className="font-mono font-semibold tabular-nums text-primary">{idr(presetUnit[p.id])}</span> per unit
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-3 lg:gap-10">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {/* Daftar Komponen */}
           <section className="lg:col-span-2" aria-label="Daftar komponen rakitan">
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <h2 className="font-serif text-xl font-semibold text-[#18181B]">Komponen Rakitan</h2>
+            <div className="mb-3 flex flex-wrap items-center gap-3">
+              <h2 className="font-serif text-lg font-semibold text-primary">Komponen Rakitan</h2>
+              {isCustom && (
+                <span className="vt-badge-sample">Disesuaikan</span>
+              )}
               {isCustom && (
                 <button
                   type="button"
                   onClick={() => choosePreset(presetId)}
-                  className={`ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#E4E4E7] bg-[#FFFFFF] px-3.5 py-1.5 text-xs font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B] ${focusRing}`}
+                  className={`ml-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-secondary hover:bg-subtle hover:text-accent-cta ${focusRing}`}
                 >
-                  <RefreshCw className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                  <RefreshCw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                   <span>Reset ke preset awal</span>
                 </button>
               )}
             </div>
             {autoNote && (
-              <p role="status" className="mb-4 flex items-center gap-2 rounded-xl border border-[#EA580C]/25 bg-[#FFFFFF] p-4 text-sm text-[#18181B]">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+              <p role="status" className="mb-3 flex items-center gap-2 rounded-xl border border-accent-primary/25 bg-accent-subtle p-3.5 text-sm text-primary">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                 <span>{autoNote}</span>
               </p>
             )}
@@ -905,117 +917,115 @@ export default function PresetBuilder({
           </section>
 
           {/* Ringkasan Langsung */}
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan konfigurasi">
-            <div className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] divide-y divide-[#E4E4E7]">
-              <div className="p-6">
-                <p className="text-xs font-medium uppercase tracking-wider text-[#71717A]">Harga dasar per unit</p>
-                <p className="mt-1.5 font-mono text-2xl font-semibold text-[#18181B]">
-                  <AnimatedNumber value={calc.unit} format="currency" />
-                </p>
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan konfigurasi">
+            <div className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+              <p className="text-sm text-secondary">Harga dasar per unit</p>
+              <p className="mt-1 font-mono text-2xl font-semibold text-primary">
+                <AnimatedNumber value={calc.unit} format="currency" />
+              </p>
 
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <label htmlFor="qty" className="text-sm font-medium text-[#71717A]">Jumlah unit</label>
-                  <div className="flex items-center gap-2">
-                    <button type="button" aria-label="Kurangi jumlah unit" className={iconBtn} onClick={() => setQty((q) => clampQty(q - 1))}>
-                      <Minus className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                    <input
-                      id="qty"
-                      type="number"
-                      min={1}
-                      max={MAX_QTY}
-                      value={qty}
-                      onChange={(e) => setQty(clampQty(e.target.value))}
-                      className={`h-11 w-20 rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] text-center font-mono text-sm tabular-nums text-[#18181B] ${focusRing}`}
-                    />
-                    <button type="button" aria-label="Tambah jumlah unit" className={iconBtn} onClick={() => setQty((q) => clampQty(q + 1))}>
-                      <Plus className="h-4 w-4" aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-                {calc.pct > 0 && (
-                  <p className="mt-3 flex justify-between font-mono text-sm text-status-live">
-                    <span className="font-sans">Diskon grosir {calc.pct}%</span>
-                    <AnimatedNumber value={calc.discount} format="currency" prefix="-" />
-                  </p>
-                )}
-                {nextTier && (
-                  <p className="mt-1.5 text-xs text-[#71717A]">
-                    Tambah {nextTier.min - qty} unit lagi untuk diskon grosir {nextTier.pct}%.
-                  </p>
-                )}
-
-                <div className="mt-5 space-y-2 border-t border-[#E4E4E7] pt-4">
-                  <div className="flex justify-between text-xs text-[#71717A]">
-                    <span>Subtotal ({qty}×)</span>
-                    <AnimatedNumber value={calc.basePrice} format="currency" className="font-mono text-[#18181B]" />
-                  </div>
-                  <div className="flex justify-between text-xs text-[#EA580C]">
-                    <span className="flex items-center gap-1"><Zap className="h-3 w-3" aria-hidden="true" /> JIT 5% Buffer</span>
-                    <AnimatedNumber value={calc.jitBuffer} format="currency" prefix="+" className="font-mono" />
-                  </div>
-                  <div className="flex justify-between border-t border-[#E4E4E7] pt-2.5 text-base font-semibold">
-                    <span className="text-[#18181B]">Total Pesanan</span>
-                    <AnimatedNumber value={calc.total} format="currency" className="font-mono text-[#EA580C]" />
-                  </div>
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <label htmlFor="qty" className="text-sm font-medium text-secondary">Jumlah unit</label>
+                <div className="flex items-center gap-2">
+                  <button type="button" aria-label="Kurangi jumlah unit" className={iconBtn} onClick={() => setQty((q) => clampQty(q - 1))}>
+                    <Minus className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <input
+                    id="qty"
+                    type="number"
+                    min={1}
+                    max={MAX_QTY}
+                    value={qty}
+                    onChange={(e) => setQty(clampQty(e.target.value))}
+                    className={`h-11 w-20 rounded-lg border border-default bg-canvas text-center font-mono text-sm tabular-nums text-primary ${focusRing}`}
+                  />
+                  <button type="button" aria-label="Tambah jumlah unit" className={iconBtn} onClick={() => setQty((q) => clampQty(q + 1))}>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                  </button>
                 </div>
               </div>
+              {calc.pct > 0 && (
+                <p className="mt-3 flex justify-between font-mono text-sm text-status-live">
+                  <span className="font-sans">Diskon grosir {calc.pct}%</span>
+                  <AnimatedNumber value={calc.discount} format="currency" prefix="-" />
+                </p>
+              )}
+              {nextTier && (
+                <p className="mt-1 text-xs text-secondary">
+                  Tambah {nextTier.min - qty} unit lagi untuk diskon grosir {nextTier.pct}%.
+                </p>
+              )}
 
-              <div className="p-6">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2 font-medium text-[#18181B]">
-                    <Zap className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
-                    <span>Estimasi beban daya</span>
-                  </span>
-                  <AnimatedNumber value={calc.watts} format="number" suffix=" W" className="font-mono font-semibold text-[#18181B]" />
+              <div className="mt-4 space-y-1.5 border-t border-default pt-4">
+                <div className="flex justify-between text-xs text-secondary">
+                  <span>Subtotal ({qty}×)</span>
+                  <AnimatedNumber value={calc.basePrice} format="currency" className="font-mono text-primary" />
                 </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#F3F1ED]" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Beban daya terhadap kapasitas PSU">
-                  <div className={`h-full rounded-full transition-all ${meter}`} style={{ width: `${Math.min(100, loadPct)}%` }} />
+                <div className="flex justify-between text-xs text-accent-cta">
+                  <span className="flex items-center gap-1"><Zap className="h-3 w-3" aria-hidden="true" /> JIT 5% Buffer</span>
+                  <AnimatedNumber value={calc.jitBuffer} format="currency" prefix="+" className="font-mono" />
                 </div>
-                <p className="mt-2 font-mono text-xs tabular-nums text-[#71717A]">
-                  <AnimatedNumber value={loadPct} format="percent" /> dari kapasitas PSU {calc.cap} W
-                </p>
-                {!psuOk && (
-                  <p className="mt-2 text-xs text-status-danger">
-                    Kebutuhan daya melebihi kapasitas PSU. Pilih PSU berkapasitas lebih besar.
-                  </p>
-                )}
-                {psuOk && calc.load > 0.8 && (
-                  <p className="mt-2 text-xs text-status-sample">
-                    Margin daya tersisa tipis. PSU lebih besar memberi ruang upgrade lebih aman.
-                  </p>
-                )}
-                <p className="mt-4 flex items-center gap-2 text-xs text-[#71717A]" title="Garansi terpendek di antara komponen terpilih">
-                  <ShieldCheck className="h-4 w-4 text-status-live" aria-hidden="true" />
-                  <span>Garansi komponen {calc.warranty} bulan</span>
-                </p>
+                <div className="flex justify-between border-t border-default pt-2 text-base font-semibold">
+                  <span className="text-primary">Total Pesanan</span>
+                  <AnimatedNumber value={calc.total} format="currency" className="font-mono text-accent-cta" />
+                </div>
               </div>
+            </div>
+
+            <div className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 font-medium text-primary">
+                  <Zap className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                  <span>Estimasi beban daya</span>
+                </span>
+                <AnimatedNumber value={calc.watts} format="number" suffix=" W" className="font-mono font-semibold text-primary" />
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-subtle" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Beban daya terhadap kapasitas PSU">
+                <div className={`h-full rounded-full transition-all ${meter}`} style={{ width: `${Math.min(100, loadPct)}%` }} />
+              </div>
+              <p className="mt-2 font-mono text-xs tabular-nums text-secondary">
+                <AnimatedNumber value={loadPct} format="percent" /> dari kapasitas PSU {calc.cap} W
+              </p>
+              {!psuOk && (
+                <p className="mt-2 text-xs text-status-danger">
+                  Kebutuhan daya melebihi kapasitas PSU. Pilih PSU berkapasitas lebih besar.
+                </p>
+              )}
+              {psuOk && calc.load > 0.8 && (
+                <p className="mt-2 text-xs text-status-sample">
+                  Margin daya tersisa tipis. PSU lebih besar memberi ruang upgrade lebih aman.
+                </p>
+              )}
+              <p className="vt-badge-live mt-4" title="Garansi terpendek di antara komponen terpilih">
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>Garansi komponen {calc.warranty} bulan</span>
+              </p>
             </div>
 
             <button
               type="button"
               onClick={() => setDrawer(true)}
-              className={`vt-btn-tactile hidden min-h-11 w-full items-center justify-center gap-2 rounded-full bg-accent-cta px-5 py-3 text-sm font-semibold text-white hover:bg-accent-cta-hover lg:inline-flex ${focusRing}`}
+              className={`vt-btn-tactile hidden min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover lg:inline-flex ${focusRing}`}
             >
               <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Tinjau Pre-Order Cepat</span>
             </button>
 
             {saved.length > 0 && (
-              <div className="rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-5">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#18181B]">
-                  <Bookmark className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+              <div className="rounded-xl border border-default bg-surface p-4 shadow-sm">
+                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Bookmark className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                   <span>Preset Tersimpan Sesi Ini</span>
                 </h3>
-                <ul className="divide-y divide-[#E4E4E7]">
+                <ul className="space-y-1">
                   {saved.map((s) => (
-                    <li key={s.id} className="flex items-center gap-2 py-2 text-sm">
-                      <span className="min-w-0 flex-1 truncate text-[#18181B]">{s.label}</span>
-                      <span className="font-mono text-xs tabular-nums text-[#71717A]">{idr(s.unit)}</span>
-                      <button type="button" onClick={() => loadSaved(s)} className={`min-h-9 rounded px-2 py-1 text-xs font-medium text-[#EA580C] hover:bg-[#F3F1ED] ${focusRing}`}>
+                    <li key={s.id} className="flex items-center gap-2 text-sm">
+                      <span className="min-w-0 flex-1 truncate text-primary">{s.label}</span>
+                      <span className="font-mono text-xs tabular-nums text-secondary">{idr(s.unit)}</span>
+                      <button type="button" onClick={() => loadSaved(s)} className={`min-h-9 rounded px-2 py-1 text-xs font-medium text-accent-cta hover:bg-accent-subtle ${focusRing}`}>
                         Muat
                       </button>
-                      <button type="button" aria-label={`Hapus ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`inline-flex h-9 w-9 items-center justify-center rounded text-[#71717A] hover:text-[#18181B] ${focusRing}`}>
+                      <button type="button" aria-label={`Hapus ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`inline-flex h-9 w-9 items-center justify-center rounded text-secondary hover:text-primary ${focusRing}`}>
                         <X className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     </li>

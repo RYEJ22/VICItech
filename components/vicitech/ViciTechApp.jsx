@@ -125,9 +125,10 @@ function QueryParamSync({ onSync }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
   const view = searchParams.get("view");
+  const productId = searchParams.get("productId");
   useEffect(() => {
-    onSync(tab, view);
-  }, [tab, view, onSync]);
+    onSync(tab, view, productId);
+  }, [tab, view, productId, onSync]);
   return null;
 }
 
@@ -198,9 +199,14 @@ function DataSourceLink({ badgeClass, badgeLabel, title, detail, onClick }) {
 }
 
 const COMMUNITY_CATEGORY_LABELS = {
+  hardware: "Hardware",
   build_showcase: "Showcase",
-  general: "Panduan",
+  gaming: "Gaming",
+  dev: "Dev & Coding",
+  creative: "Kreatif",
   troubleshooting: "Tanya Jawab",
+  general: "Panduan",
+  meme: "Meme",
   news: "Info Resmi",
 };
 
@@ -888,6 +894,7 @@ const MODULE_IDS = ["builder", "tradein", "qc", "bottleneck", "versus", "account
  * @param {readonly import('@/lib/admin/products-validation').ProductRow[]} [props.initialMarketProducts]
  * @param {string | null} [props.initialMarketError]
  * @param {string} [props.initialMarketCategory]
+ * @param {string} [props.initialBuilderProductId]
  * @param {string} [props.homeUrl]
  * @param {() => Promise<void> | void} [props.onSignOut]
  */
@@ -903,6 +910,7 @@ export default function ViciTechApp({
   initialMarketProducts = [],
   initialMarketError = null,
   initialMarketCategory = "all",
+  initialBuilderProductId = "",
   homeUrl = undefined,
   onSignOut = undefined,
 }) {
@@ -922,6 +930,7 @@ export default function ViciTechApp({
   const [authState, setAuthState] = useState({ user: null, profile: null, session: null, isLoading: true });
   const [upgradeDevice, setUpgradeDevice] = useState("t14");
   const [builderConfig, setBuilderConfig] = useState(null);
+  const [builderProductId, setBuilderProductId] = useState(initialBuilderProductId);
   const [qcSerial, setQcSerial] = useState(initialSerial);
   const [palette, setPalette] = useState(false);
   const [toast, setToast] = useState(null);
@@ -1117,7 +1126,10 @@ export default function ViciTechApp({
     window.scrollTo(0, 0);
   }, [show, notify, homeUrl]);
 
-  const handleQuerySync = useCallback((tab, view) => {
+  const handleQuerySync = useCallback((tab, view, productId) => {
+    if (productId) {
+      setBuilderProductId(productId);
+    }
     if (window.location.hash) return;
     if (tab) {
       const [normId, normView] = normalizeModuleTarget(tab, view);
@@ -1183,7 +1195,7 @@ export default function ViciTechApp({
 
   useEffect(() => {
     if (BY_ID[active]) {
-      document.title = `${BY_ID[active].label} | ViciTech OS`;
+      document.title = `${BY_ID[active].label} | ViciTech`;
     }
     window.dispatchEvent(new CustomEvent("vicitech:module-change", { detail: { module: active, view: views[active] } }));
   }, [active, views]);
@@ -1222,6 +1234,8 @@ export default function ViciTechApp({
       role,
       userId: authState.user?.id,
       importedConfig: builderConfig,
+      initialProductId: builderProductId,
+      marketProducts: initialMarketProducts,
       onNavigate: navigate,
       onOpenEngine: (serial) => {
         if (serial) setQcSerial(serial);

@@ -15,6 +15,7 @@ import {
   getProductTrustBadge,
   getSellerLabel,
   getStockMeta,
+  getTrustBadgeClassName,
 } from '@/lib/market/product-presenter';
 import { MarketProductImage } from './market-product-image';
 
@@ -36,8 +37,7 @@ export function MarketProductCard({
   const trustBadge = getProductTrustBadge(product);
   const specs = getHighlightSpecs(product, 2);
 
-  const trustBadgeClass =
-    trustBadge.tone === 'simulated' ? 'vt-badge-simulated' : 'vt-badge-live';
+  const trustBadgeClass = getTrustBadgeClassName(trustBadge.tone);
 
   const handleQuickAdd = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
