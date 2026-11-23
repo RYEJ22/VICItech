@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
@@ -21,6 +21,29 @@ import {
   isExpiredOrInvalidTokenError,
 } from "@/lib/supabase/profile";
 
+function GoogleIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 48 48" className="h-4 w-4">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" transform="translate(0 4)" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 38.02 46.98 31.9 46.98 24.55Z" />
+      <path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.98-6.19a23.9 23.9 0 0 0 0 21.56l7.98-6.19Z" transform="translate(0 4)" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.44-4.88 2.3-8.18 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" transform="translate(0 -4)" />
+    </svg>
+  );
+}
+
+function MessageNotice({ message, messageType, hasTokenError, isResetting, onReset }) {
+  return (
+    <div role={messageType === "error" ? "alert" : "status"} className={`space-y-2 rounded-lg border p-3 text-sm ${messageType === "error" ? "border-status-danger/30 bg-status-danger/10 text-primary" : "border-status-live/30 bg-status-live/10 text-primary"}`}>
+      <p className="flex items-start gap-2">
+        {messageType === "error" ? <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-danger" strokeWidth={1.75} /> : <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-live" strokeWidth={1.75} />}
+        <span>{message}</span>
+      </p>
+      {hasTokenError && <button type="button" onClick={onReset} disabled={isResetting} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-status-danger/30 bg-surface px-3 py-2 text-xs font-semibold text-primary transition hover:bg-subtle disabled:opacity-50">{isResetting ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5 text-status-danger" strokeWidth={1.75} />}Force Logout / Reset Session</button>}
+    </div>
+  );
+}
+
 function getCallbackUrl() {
   const currentPath =
     window.location.pathname === "/"
@@ -35,11 +58,22 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authMethod, setAuthMethod] = useState("password");
+  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [hasTokenError, setHasTokenError] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("error");
+  const otpRefs = useRef([]);
+
+  useEffect(() => {
+    if (resendSeconds <= 0) return undefined;
+    const timer = window.setTimeout(() => setResendSeconds((seconds) => seconds - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
 
   useEffect(() => {
     if (!open || user) return undefined;
@@ -60,6 +94,9 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
       setMessage("");
       setPassword("");
       setHasTokenError(false);
+      setOtp(Array(6).fill(""));
+      setOtpSent(false);
+      setAuthMethod("password");
     }
   }, [mode, open]);
 
@@ -113,6 +150,86 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
       if (error) throw error;
     } catch (error) {
       setError(`GitHub sign-in failed: ${error.message}`, error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: getCallbackUrl() },
+      });
+      if (error) throw error;
+    } catch (error) {
+      setError(`Google sign-in failed: ${error.message}`, error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const sendOtp = async () => {
+    if (!email.trim()) {
+      setError("Enter your email address to receive a sign-in code.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          shouldCreateUser: true,
+          ...(mode === "sign-up" && fullName.trim() ? { data: { full_name: fullName.trim(), display_name: fullName.trim() } } : {}),
+        },
+      });
+      if (error) throw error;
+      setOtpSent(true);
+      setOtp(Array(6).fill(""));
+      setResendSeconds(60);
+      setMessage(`A 6-digit code was sent to ${email.trim()}.`);
+      setMessageType("success");
+      window.setTimeout(() => otpRefs.current[0]?.focus(), 0);
+    } catch (error) {
+      setError(error.message || "Could not send your code. Please try again.", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const updateOtp = (index, value) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length > 1) {
+      const pasted = digits.slice(0, 6).split("");
+      setOtp((current) => current.map((_, i) => pasted[i] || ""));
+      otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+      return;
+    }
+    setOtp((current) => current.map((digit, i) => (i === index ? digits : digit)));
+    if (digits && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const verifyOtp = async (event) => {
+    event.preventDefault();
+    const token = otp.join("");
+    if (token.length !== 6) {
+      setError("Enter all 6 digits from your email.");
+      return;
+    }
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.verifyOtp({ email: email.trim(), token, type: "email" });
+      if (error) throw error;
+      onNotify?.("Signed in successfully.");
+      await completePostAuth(supabase, data?.user || data?.session?.user);
+    } catch (error) {
+      setError(error.message || "That code could not be verified. Please try again.", error);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -206,6 +323,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
           >
             <X className="h-5 w-5" strokeWidth={1.75} />
           </button>
+
         </header>
 
         <div className="space-y-4 p-5 sm:p-6">
@@ -228,13 +346,46 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
             Continue with GitHub
           </button>
 
+          <button
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={isSubmitting || isResetting || !configured}
+            className="flex min-h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-default bg-canvas px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <GoogleIcon />}
+            Continue with Google
+          </button>
+
           <div className="flex items-center gap-3 text-xs uppercase tracking-wider text-secondary">
             <span className="h-px flex-1 bg-default" />
             or use email
             <span className="h-px flex-1 bg-default" />
           </div>
 
-          <form onSubmit={submitEmail} className="space-y-4">
+          {(mode === "sign-in" || mode === "sign-up") && (
+            <div className="flex rounded-lg border border-default bg-canvas p-1 text-sm">
+              <button type="button" onClick={() => { setAuthMethod("password"); setOtpSent(false); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "password" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Email + password</button>
+              <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>6-digit OTP code</button>
+            </div>
+          )}
+
+          {authMethod === "otp" ? (
+            <form onSubmit={verifyOtp} className="space-y-4">
+              {mode === "sign-up" && <label className="block space-y-1.5"><span className="text-sm font-medium text-primary">Full Name</span><input type="text" autoComplete="name" minLength={2} maxLength={80} required value={fullName} onChange={(event) => setFullName(event.target.value)} disabled={isSubmitting || isResetting || otpSent} className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50" placeholder="Your display name" /></label>}
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium text-primary">Email</span>
+                <input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={isSubmitting || isResetting || otpSent} className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50" placeholder="you@example.com" />
+              </label>
+              {otpSent && <>
+                <div className="space-y-1.5"><span className="text-sm font-medium text-primary">6-digit code</span><div className="flex justify-between gap-2" onPaste={(event) => { const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); if (pasted) { event.preventDefault(); updateOtp(0, pasted); } }}>
+                  {otp.map((digit, index) => <input key={index} ref={(element) => { otpRefs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} aria-label={`Code digit ${index + 1}`} maxLength={6} value={digit} onChange={(event) => updateOtp(index, event.target.value)} onKeyDown={(event) => { if (event.key === "Backspace" && !otp[index] && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowLeft" && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 5) otpRefs.current[index + 1]?.focus(); }} disabled={isSubmitting || isResetting} className="h-12 min-w-0 w-full rounded-lg border border-default bg-surface text-center text-lg font-semibold text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50" />)}
+                </div></div>
+                <button type="button" onClick={sendOtp} disabled={isSubmitting || resendSeconds > 0 || !configured} className="text-sm font-medium text-accent-primary underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">{resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : "Resend code"}</button>
+              </>}
+              {message && <MessageNotice message={message} messageType={messageType} hasTokenError={hasTokenError} isResetting={isResetting} onReset={handleForceResetSession} />}
+              <button type={otpSent ? "submit" : "button"} onClick={!otpSent ? sendOtp : undefined} disabled={isSubmitting || isResetting || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}{otpSent ? "Verify code" : "Send 6-digit code"}</button>
+            </form>
+          ) : <form onSubmit={submitEmail} className="space-y-4">
             {mode === "sign-up" && (
               <label className="block space-y-1.5">
                 <span className="text-sm font-medium text-primary">Full Name</span>
@@ -325,7 +476,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
               {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}
               {mode === "sign-in" ? "Sign in with email" : "Create account"}
             </button>
-          </form>
+          </form>}
 
           <p className="text-center text-sm text-secondary">
             {mode === "sign-in" ? "New to ViciTech?" : "Already have an account?"}{" "}
