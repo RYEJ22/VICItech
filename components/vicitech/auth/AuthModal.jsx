@@ -60,7 +60,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
   const [password, setPassword] = useState("");
   const [step, setStep] = useState("credentials");
   const [authMethod, setAuthMethod] = useState("password");
-  const [otp, setOtp] = useState(Array(6).fill(""));
+  const [otp, setOtp] = useState(Array(8).fill(""));
   const [otpType, setOtpType] = useState("email");
   const [resendSeconds, setResendSeconds] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,7 +95,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
       setMessage("");
       setPassword("");
       setHasTokenError(false);
-      setOtp(Array(6).fill(""));
+      setOtp(Array(8).fill(""));
       setStep("credentials");
       setOtpType("email");
       setAuthMethod("password");
@@ -193,11 +193,11 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
         },
       });
       if (error) throw error;
-      setOtp(Array(6).fill(""));
+      setOtp(Array(8).fill(""));
       setOtpType("email");
       setStep("verify-otp");
       setResendSeconds(60);
-      setMessage(`A 6-digit code was sent to ${email.trim()}.`);
+      setMessage(`An 8-digit code was sent to ${email.trim()}.`);
       setMessageType("success");
       window.setTimeout(() => otpRefs.current[0]?.focus(), 0);
     } catch (error) {
@@ -210,20 +210,20 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
   const updateOtp = (index, value) => {
     const digits = value.replace(/\D/g, "");
     if (digits.length > 1) {
-      const pasted = digits.slice(0, 6).split("");
+      const pasted = digits.slice(0, 8).split("");
       setOtp((current) => current.map((_, i) => pasted[i] || ""));
-      otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+      otpRefs.current[Math.min(pasted.length, 7)]?.focus();
       return;
     }
     setOtp((current) => current.map((digit, i) => (i === index ? digits : digit)));
-    if (digits && index < 5) otpRefs.current[index + 1]?.focus();
+    if (digits && index < 7) otpRefs.current[index + 1]?.focus();
   };
 
   const verifyOtp = async (event) => {
     event.preventDefault();
     const token = otp.join("");
-    if (token.length !== 6) {
-      setError("Enter all 6 digits from your email.");
+    if (token.length !== 8) {
+      setError("Enter all 8 digits from your email.");
       return;
     }
     setIsSubmitting(true);
@@ -280,10 +280,10 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
         await completePostAuth(supabase, data.session.user);
       } else {
         setOtpType("signup");
-        setOtp(Array(6).fill(""));
+        setOtp(Array(8).fill(""));
         setResendSeconds(60);
         setStep("verify-otp");
-        setMessage(`A confirmation code was sent to ${email.trim()}.`);
+        setMessage(`An 8-digit confirmation code was sent to ${email.trim()}.`);
         setMessageType("success");
         window.setTimeout(() => otpRefs.current[0]?.focus(), 0);
       }
@@ -309,7 +309,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
         ? await supabase.auth.resend({ type: "signup", email: email.trim() })
         : await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true } });
       if (result.error) throw result.error;
-      setOtp(Array(6).fill(""));
+      setOtp(Array(8).fill(""));
       setResendSeconds(60);
       setMessage(`A new code was sent to ${email.trim()}.`);
       setMessageType("success");
@@ -323,7 +323,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
 
   const returnToCredentials = () => {
     setStep("credentials");
-    setOtp(Array(6).fill(""));
+    setOtp(Array(8).fill(""));
     setResendSeconds(0);
     setMessage("");
   };
@@ -350,7 +350,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
             </h2>
             <p className="mt-1 text-sm text-secondary">
               {step === "verify-otp"
-                ? `Enter the 6-digit code sent to ${email}.`
+                ? `Enter the 8-digit code sent to ${email}.`
                 : mode === "sign-in"
                 ? "Sign in to access your profile, presets, and community hub."
                 : "Join the ViciTech Circular IT ecosystem."}
@@ -407,7 +407,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
           {step === "credentials" && (mode === "sign-in" || mode === "sign-up") && (
             <div className="flex rounded-lg border border-default bg-canvas p-1 text-sm">
               <button type="button" onClick={() => { setAuthMethod("password"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "password" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Email + password</button>
-              <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Sign in with 6-digit OTP code</button>
+              <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Sign in with 8-digit OTP code</button>
             </div>
           )}
 
@@ -416,16 +416,16 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
               {mode === "sign-up" && <label className="block space-y-1.5"><span className="text-sm font-medium text-primary">Full Name</span><input type="text" autoComplete="name" minLength={2} maxLength={80} required value={fullName} onChange={(event) => setFullName(event.target.value)} disabled={isSubmitting || isResetting} className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50" placeholder="Your display name" /></label>}
               <label className="block space-y-1.5"><span className="text-sm font-medium text-primary">Email</span><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} disabled={isSubmitting || isResetting} className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50" placeholder="you@example.com" /></label>
               {message && <MessageNotice message={message} messageType={messageType} hasTokenError={hasTokenError} isResetting={isResetting} onReset={handleForceResetSession} />}
-              <button type="submit" disabled={isSubmitting || isResetting || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}Send 6-digit code</button>
+              <button type="submit" disabled={isSubmitting || isResetting || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}Send 8-digit code</button>
             </form>
           ) : step === "verify-otp" ? (
             <form onSubmit={verifyOtp} className="space-y-4">
               <div className="flex items-center justify-between text-sm"><span className="text-secondary">Code sent to <strong className="font-medium text-primary">{email}</strong></span><button type="button" onClick={returnToCredentials} disabled={isSubmitting} className="font-semibold text-accent-primary underline underline-offset-4">Change email</button></div>
-              <div className="flex justify-between gap-2" onPaste={(event) => { const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6); if (pasted) { event.preventDefault(); updateOtp(0, pasted); } }}>
-                {otp.map((digit, index) => <input key={index} ref={(element) => { otpRefs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} aria-label={`Code digit ${index + 1}`} maxLength={1} value={digit} onChange={(event) => updateOtp(index, event.target.value)} onKeyDown={(event) => { if (event.key === "Backspace") { if (digit) setOtp((current) => current.map((value, i) => i === index ? "" : value)); if (index > 0) otpRefs.current[index - 1]?.focus(); } if (event.key === "ArrowLeft" && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 5) otpRefs.current[index + 1]?.focus(); }} disabled={isSubmitting || isResetting} className="h-12 min-w-0 w-full rounded-lg border border-default bg-canvas text-center text-lg font-semibold text-primary outline-none transition focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20 disabled:opacity-50" />)}
+              <div className="flex justify-between gap-1.5" onPaste={(event) => { const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8); if (pasted) { event.preventDefault(); updateOtp(0, pasted); } }}>
+                {otp.map((digit, index) => <input key={index} ref={(element) => { otpRefs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} aria-label={`Code digit ${index + 1}`} maxLength={1} value={digit} onChange={(event) => updateOtp(index, event.target.value)} onKeyDown={(event) => { if (event.key === "Backspace") { if (digit) setOtp((current) => current.map((value, i) => i === index ? "" : value)); if (index > 0) otpRefs.current[index - 1]?.focus(); } if (event.key === "ArrowLeft" && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 7) otpRefs.current[index + 1]?.focus(); }} disabled={isSubmitting || isResetting} className="h-12 min-w-0 w-full rounded-lg border border-default bg-canvas text-center text-lg font-semibold text-primary outline-none transition focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20 disabled:opacity-50" />)}
               </div>
               {message && <MessageNotice message={message} messageType={messageType} hasTokenError={hasTokenError} isResetting={isResetting} onReset={handleForceResetSession} />}
-              <button type="submit" disabled={isSubmitting || isResetting || otp.join("").length !== 6 || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}Verify &amp; Continue</button>
+              <button type="submit" disabled={isSubmitting || isResetting || otp.join("").length !== 8 || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}Verify &amp; Continue</button>
               <button type="button" onClick={resendOtp} disabled={isSubmitting || resendSeconds > 0 || !configured} className="w-full text-center text-sm font-medium text-accent-primary underline underline-offset-4 disabled:cursor-not-allowed disabled:opacity-50">{resendSeconds > 0 ? `Resend code in ${resendSeconds}s` : "Resend code"}</button>
             </form>
           ) : step === "credentials" && <form onSubmit={submitEmail} className="space-y-4">
