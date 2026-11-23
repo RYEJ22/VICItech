@@ -18,7 +18,6 @@ import {
   parseCommentBody,
   sanitizeCommentGifUrl,
 } from "./CommunityGifPicker";
-import communityStyles from "./community-hub.module.css";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
   MAX_IMAGE_ATTACHMENTS,
@@ -902,7 +901,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
   return (
-    <aside className="space-y-4" aria-label="Sorotan komunitas">
+    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
       <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
         <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
           <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
@@ -1020,7 +1019,6 @@ export default function CommunityHub() {
   const [lightbox, setLightbox] = useState(null);
   const requestedProfiles = useRef(new Set());
   const likingIdsRef = useRef(new Set());
-  const feedScrollRef = useRef(null);
   const composerSectionRef = useRef(null);
   const composerTitleInputRef = useRef(null);
 
@@ -1499,21 +1497,10 @@ export default function CommunityHub() {
     const prefersReduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    if (
-      typeof window !== "undefined" &&
-      feedScrollRef.current &&
-      window.matchMedia("(min-width: 1024px)").matches
-    ) {
-      feedScrollRef.current.scrollTo({
-        top: 0,
-        behavior: prefersReduced ? "auto" : "smooth",
-      });
-    } else {
-      composerSectionRef.current?.scrollIntoView({
-        behavior: prefersReduced ? "auto" : "smooth",
-        block: "start",
-      });
-    }
+    composerSectionRef.current?.scrollIntoView({
+      behavior: prefersReduced ? "auto" : "smooth",
+      block: "start",
+    });
     if (typeof window !== "undefined") {
       window.requestAnimationFrame(() => {
         composerTitleInputRef.current?.focus({ preventScroll: true });
@@ -1522,163 +1509,116 @@ export default function CommunityHub() {
   }, []);
 
   return (
-    <div className="flex h-auto flex-col overflow-visible bg-canvas text-primary antialiased lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden">
-      <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden lg:py-4">
-        {/* Header diam (stationary di desktop) */}
-        <header className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
-                {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
-                Berbagi rakitan &amp; solusi teknis
-              </span>
-            </div>
-            <h1 className="mt-2 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
-              <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-7 sm:w-7" /> Komunitas &amp; Pusat Pengetahuan
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-secondary">
-              Pamerkan rakitan PC, pelajari praktik lab CBT, dan diskusikan solusi hardware harian.
-            </p>
+    <div className="bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <header>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
+              {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+              Berbagi rakitan &amp; solusi teknis
+            </span>
           </div>
+          <h1 className="mt-3 flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
+            <MessageSquare className="h-8 w-8 text-accent-primary" /> Komunitas &amp; Pusat Pengetahuan
+          </h1>
+          <p className="mt-3 max-w-2xl text-secondary">
+            Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
+          </p>
           <button
             type="button"
             onClick={handleFocusComposer}
-            className={`inline-flex min-h-11 w-fit shrink-0 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
+            className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
           >
             <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
             <span>Buat Postingan Lengkap</span>
           </button>
         </header>
 
-        {/* Toolbar pencarian & filter kategori (diam di desktop) */}
-        <div className="mt-4 shrink-0 space-y-2.5 border-b border-default pb-3.5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative flex-1">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <div className="space-y-5 lg:col-span-2">
+            <Composer
+              onPublish={publish}
+              sectionRef={composerSectionRef}
+              titleInputRef={composerTitleInputRef}
+            />
+            {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
+
+            <div className="relative">
               <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
-              <input
-                id="feed-search"
-                type="search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari topik, hardware, atau tag seperti #RTX4060"
-                className={`w-full rounded-lg border border-default bg-surface py-2.5 pl-10 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`}
-              />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-3 pl-12 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
             </div>
-            <p className="shrink-0 text-xs text-secondary sm:text-sm" aria-live="polite">
+
+            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="flex flex-wrap gap-2">
+              {CAT_ORDER.map((k) => {
+                const Icon = CATEGORIES[k].icon;
+                const active = category === k;
+                return (
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-sm text-secondary" aria-live="polite">
               Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
+
+            {isLoadingPosts ? (
+              <div className="space-y-4" aria-label="Memuat postingan komunitas">
+                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+              </div>
+            ) : paginatedPosts.length ? (
+              <div className="space-y-4">
+                {paginatedPosts.map((p) => (
+                  <PostCard
+                    key={p.id}
+                    post={p}
+                    onLike={like}
+                    onComment={addComment}
+                    onTag={searchTag}
+                    resolve={resolve}
+                    onOpenMedia={handleOpenMedia}
+                  />
+                ))}
+                {visible.length > visibleLimit && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextVisible = visibleLimit + FEED_PAGE_SIZE;
+                        setVisibleLimit(nextVisible);
+                        if (nextVisible >= dbFetchLimit - 4) {
+                          setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
+                        }
+                      }}
+                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
+                    >
+                      Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
+                <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
+                <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
+                <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>Reset Filter</button>
+              </div>
+            )}
           </div>
 
-          <div
-            role="group"
-            aria-label="Filter postingan berdasarkan kategori"
-            className="no-scrollbar flex flex-wrap gap-1.5 pb-0.5 lg:flex-nowrap lg:overflow-x-auto"
-          >
-            {CAT_ORDER.map((k) => {
-              const Icon = CATEGORIES[k].icon;
-              const active = category === k;
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setCategory(k)}
-                  className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors sm:text-sm ${focusRing} ${
-                    active
-                      ? "border-accent-primary/30 bg-accent-subtle text-accent-hover"
-                      : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" /> {CATEGORIES[k].label}{" "}
-                  <span className="font-mono text-xs text-secondary">{counts[k]}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Dua kolom dengan area scroll mandiri di desktop */}
-        <div className="mt-4 grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:overflow-hidden">
-          <div className="flex flex-col lg:col-span-2 lg:min-h-0 lg:overflow-hidden">
-            <div
-              ref={feedScrollRef}
-              className={`flex-1 min-h-0 space-y-4 lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:pb-6 ${communityStyles.feedScroll ?? ""}`}
-            >
-              <Composer
-                onPublish={publish}
-                sectionRef={composerSectionRef}
-                titleInputRef={composerTitleInputRef}
-              />
-              {publishError && (
-                <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">
-                  {publishError}
-                </p>
-              )}
-
-              {isLoadingPosts ? (
-                <div className="space-y-4" aria-label="Memuat postingan komunitas">
-                  <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
-                  <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
-                </div>
-              ) : paginatedPosts.length ? (
-                <div className="space-y-4">
-                  {paginatedPosts.map((p) => (
-                    <PostCard
-                      key={p.id}
-                      post={p}
-                      onLike={like}
-                      onComment={addComment}
-                      onTag={searchTag}
-                      resolve={resolve}
-                      onOpenMedia={handleOpenMedia}
-                    />
-                  ))}
-                  {visible.length > visibleLimit && (
-                    <div className="flex justify-center pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const nextVisible = visibleLimit + FEED_PAGE_SIZE;
-                          setVisibleLimit(nextVisible);
-                          if (nextVisible >= dbFetchLimit - 4) {
-                            setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
-                          }
-                        }}
-                        className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
-                      >
-                        Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
-                  <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
-                  <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}
-                  >
-                    Reset Filter
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className={`lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-6 ${communityStyles.feedScroll ?? ""}`}>
-            <Sidebar
-              topTags={topTags}
-              contributors={activeContributors}
-              onTag={searchTag}
-              onGuide={searchTag}
-              resolve={resolve}
-            />
-          </div>
+          <Sidebar
+            topTags={topTags}
+            contributors={activeContributors}
+            onTag={searchTag}
+            onGuide={searchTag}
+            resolve={resolve}
+          />
         </div>
       </div>
 

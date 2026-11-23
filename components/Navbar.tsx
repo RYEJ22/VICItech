@@ -136,10 +136,20 @@ function SubNavIcon({
   }
 }
 
-function BrandMark(): ReactElement {
+function BrandMark({ compact = false }: { readonly compact?: boolean }): ReactElement {
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#EA580C] text-white">
-      <Cpu className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+    <span
+      className={`grid shrink-0 place-items-center rounded-full bg-[#EA580C] text-white transition-all duration-300 ease-out motion-reduce:transition-none ${
+        compact ? 'h-8 w-8' : 'h-9 w-9'
+      }`}
+    >
+      <Cpu
+        className={`transition-all duration-300 ease-out motion-reduce:transition-none ${
+          compact ? 'h-4 w-4' : 'h-[18px] w-[18px]'
+        }`}
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
     </span>
   );
 }
@@ -253,6 +263,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const [activeModule, setActiveModule] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [notifications, setNotifications] = useState<readonly NavNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
 
@@ -277,6 +288,17 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   }, []);
 
   useEffect(() => clearHoverCloseTimer, [clearHoverCloseTimer]);
+
+  useEffect(() => {
+    const handleScroll = (): void => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -749,19 +771,35 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   return (
     <>
       {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
-      <header className="pointer-events-none fixed inset-x-0 top-3 z-50 px-3 sm:px-4 md:top-4 md:px-6">
+      <header
+        className={`pointer-events-none fixed inset-x-0 z-50 px-3 transition-all duration-300 ease-out motion-reduce:transition-none sm:px-4 md:px-6 ${
+          isScrolled ? 'top-2 md:top-2.5' : 'top-3 md:top-4'
+        }`}
+      >
         <div
-          className={`pointer-events-auto mx-auto flex h-[60px] w-full max-w-6xl items-center justify-between gap-4 rounded-full pl-3 pr-2.5 sm:pl-4 sm:pr-3 md:grid md:h-[64px] md:grid-cols-[1fr_auto_1fr] md:items-center md:pl-5 md:pr-3.5 ${styles.floatingPill ?? ''}`}
+          className={`pointer-events-auto mx-auto flex w-full items-center justify-between rounded-full transition-all duration-300 ease-out motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center ${
+            styles.floatingPill ?? ''
+          } ${
+            isScrolled
+              ? `${styles.floatingPillScrolled ?? ''} h-[52px] max-w-4xl gap-2.5 pl-2.5 pr-2 sm:pl-3 sm:pr-2.5 md:h-[54px] md:pl-4 md:pr-2.5`
+              : 'h-[60px] max-w-6xl gap-4 pl-3 pr-2.5 sm:pl-4 sm:pr-3 md:h-[66px] md:pl-5 md:pr-3.5'
+          }`}
         >
           {/* Left: Brand Logo -> Beranda ("/") */}
           <Link
             href="/"
             onClick={(event) => handleHrefClick(event, '/')}
             aria-label="ViciTech Beranda"
-            className={`inline-flex w-fit shrink-0 items-center gap-2.5 justify-self-start rounded-full pr-1 transition-opacity hover:opacity-85 ${focusRing}`}
+            className={`inline-flex w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-out hover:opacity-85 motion-reduce:transition-none ${
+              isScrolled ? 'gap-2' : 'gap-2.5'
+            } ${focusRing}`}
           >
-            <BrandMark />
-            <span className="hidden font-serif text-lg font-semibold tracking-tight text-[#18181B] min-[375px]:inline">
+            <BrandMark compact={isScrolled} />
+            <span
+              className={`hidden font-serif font-semibold tracking-tight text-[#18181B] transition-all duration-300 ease-out motion-reduce:transition-none min-[375px]:inline ${
+                isScrolled ? 'text-base' : 'text-lg'
+              }`}
+            >
               ViciTech
             </span>
           </Link>
@@ -769,7 +807,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           {/* Center (Desktop): 4 Clean Umbrella Menus */}
           <nav
             aria-label="Navigasi utama ViciTech"
-            className="hidden items-center gap-7 justify-self-center md:flex lg:gap-8"
+            className={`hidden items-center justify-self-center transition-all duration-300 ease-out motion-reduce:transition-none md:flex ${
+              isScrolled ? 'gap-5 lg:gap-6' : 'gap-7 lg:gap-8'
+            }`}
           >
             {visibleDesktopGroups.map((group) => {
               const isOpen = openMenu === group.id;

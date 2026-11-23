@@ -624,17 +624,12 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
 
 // Keeps inactive tabs mounted via [hidden] without hiding duplicate headers/footers via CSS.
 function Chromeless({ active = true, fillHeight = false, children }) {
-  const heightClasses =
-    fillHeight === true || fillHeight === "always"
-      ? "flex h-full min-h-0 flex-1 flex-col overflow-hidden"
-      : fillHeight === "desktop"
-        ? "lg:flex lg:h-full lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden"
-        : "";
-
   return (
     <div
       hidden={!active}
-      className={`vt-module vt-in [&>div]:min-h-0 ${heightClasses}`}
+      className={`vt-module vt-in [&>div]:min-h-0 ${
+        fillHeight ? "flex h-full min-h-0 flex-1 flex-col overflow-hidden" : ""
+      }`}
     >
       {children}
     </div>
@@ -1332,31 +1327,20 @@ export default function ViciTechApp({
   }), [role, authState, builderConfig, qcSerial, navigate, notify, handleSignOut, initialProfileUsername, initialMessageUsername, initialMessagePeerId, initialMarketProducts]);
 
   const isViewportLockedChat = active === "messages";
-  const isDesktopLockedCommunity = active === "community";
 
   return (
     <div
       className={`flex flex-col bg-canvas text-primary font-sans antialiased ${
         isViewportLockedChat
           ? "h-[calc(100dvh-10rem)] overflow-hidden md:h-[calc(100dvh-6rem)]"
-          : isDesktopLockedCommunity
-            ? "min-h-screen lg:h-[calc(100dvh-92px)] lg:min-h-0 lg:overflow-hidden"
-            : "min-h-screen"
+          : "min-h-screen"
       }`}
     >
       <Suspense fallback={null}>
         <QueryParamSync onSync={handleQuerySync} />
       </Suspense>
 
-      <main
-        className={
-          isViewportLockedChat
-            ? "flex min-h-0 flex-1 flex-col overflow-hidden"
-            : isDesktopLockedCommunity
-              ? "flex-1 lg:flex lg:min-h-0 lg:flex-col lg:overflow-hidden"
-              : "flex-1"
-        }
-      >
+      <main className={isViewportLockedChat ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex-1"}>
         {active === "home" && (
           <div className="vt-in">
             <HomeDashboard
@@ -1431,19 +1415,13 @@ export default function ViciTechApp({
             key={id}
             Comp={C[id]}
             active={active === id}
-            fillHeight={id === "messages" ? "always" : id === "community" ? "desktop" : false}
+            fillHeight={id === "messages"}
             extra={extras[id]}
           />
         ))}
       </main>
 
-      {isViewportLockedChat ? null : isDesktopLockedCommunity ? (
-        <div className="lg:hidden">
-          <Footer onNavigate={navigate} />
-        </div>
-      ) : (
-        <Footer onNavigate={navigate} />
-      )}
+      {!isViewportLockedChat && <Footer onNavigate={navigate} />}
       {palette && (
         <WorkspaceCommandPalette
           onClose={closePalette}
