@@ -8,6 +8,7 @@ import type {
   ProfileAuthFallback,
   ProfileCommunityPost,
   ProfileFormDraft,
+  ProfileOrderItemSummary,
   ProfileOrderRecord,
   ProfileQcReportRecord,
   ProfileSavedPreset,
@@ -181,6 +182,25 @@ export async function fetchPublicProfileByUsername(
   }
 }
 
+function parseOrderItemsSummary(rawSummary: unknown): readonly ProfileOrderItemSummary[] {
+  const summaryRec = toRecord(rawSummary);
+  const rawItems = summaryRec.items;
+  if (!Array.isArray(rawItems)) return [];
+
+  const defaultQty = Math.max(1, numVal(summaryRec, 'quantity', 1));
+  const items: ProfileOrderItemSummary[] = [];
+  for (const entry of rawItems) {
+    const rec = toRecord(entry);
+    const name = strVal(rec, 'name').trim();
+    if (!name) continue;
+    const label = strVal(rec, 'label').trim() || null;
+    const quantity = Math.max(1, numVal(rec, 'quantity', defaultQty));
+    const unitPrice = Math.max(0, numVal(rec, 'unitPrice', 0));
+    items.push({ name, label, quantity, unitPrice });
+  }
+  return items;
+}
+
 export async function fetchProfileWorkspaceData(
   profileUserId: string,
   isOwner: boolean,
@@ -198,7 +218,7 @@ export async function fetchProfileWorkspaceData(
 
   const supabase = getSupabaseBrowserClient();
 
-  const [postsRes, buildsRes, statsRes, presetsRes, ordersRes, qcRes] = await Promise.all([
+  let [postsRes, buildsRes, statsRes, presetsRes, ordersRes, qcRes] = await Promise.all([
     supabase
       .from('community_posts')
       .select('id, title, category, likes_count, media_urls, created_at')
@@ -223,7 +243,7 @@ export async function fetchProfileWorkspaceData(
     isOwner
       ? supabase
           .from('orders')
-          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, created_at')
+          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, cancel_reason, cancelled_at, created_at')
           .eq('user_id', profileUserId)
           .order('created_at', { ascending: false })
           .limit(30)
@@ -237,6 +257,15 @@ export async function fetchProfileWorkspaceData(
           .limit(10)
       : Promise.resolve({ data: [], error: null }),
   ]);
+
+  if (isOwner && ordersRes.error && isMissingColumnError(ordersRes.error)) {
+    ordersRes = await supabase
+      .from('orders')
+      .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at')
+      .eq('user_id', profileUserId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+  }
 
   const rawPosts: readonly unknown[] = Array.isArray(postsRes.data) ? postsRes.data : [];
   const posts: ProfileCommunityPost[] = [];
@@ -303,6 +332,9 @@ export async function fetchProfileWorkspaceData(
       status: strVal(rec, 'status', 'Diproses'),
       totalPrice: Math.max(0, numVal(rec, 'total_price', basePlusJit)),
       serialNumber: strVal(rec, 'serial_number') || null,
+      cancelReason: strVal(rec, 'cancel_reason') || null,
+      cancelledAt: strVal(rec, 'cancelled_at') || null,
+      itemsSummary: parseOrderItemsSummary(rec.order_summary),
       createdAt: strVal(rec, 'created_at'),
     });
   }
@@ -461,5 +493,108 @@ export async function saveProfileCustomization(
     ok: true,
     profile: normalized,
     usedMetadataFallback,
+  };
+}
+
+export type CancelOrderResult =
+  | {
+      readonly ok: true;
+      readonly status: 'cancelled';
+      readonly cancelReason: string | null;
+      readonly cancelledAt: string;
+    }
+  | {
+      readonly ok: false;
+      readonly error: string;
+    };
+
+export async function cancelUserOrder({
+  orderId,
+  userId,
+  reason = '',
+}: {
+  readonly orderId: string;
+  readonly userId: string;
+  readonly reason?: string;
+}): Promise<CancelOrderResult> {
+  if (!orderId.trim() || !userId.trim()) {
+    return { ok: false, error: 'Identitas pesanan atau akun tidak valid.' };
+  }
+  if (!isSupabaseAuthConfigured) {
+    return { ok: false, error: 'Konfigurasi Supabase belum aktif.' };
+  }
+
+  const supabase = getSupabaseBrowserClient();
+  const cleanReason = reason.trim().slice(0, 240) || null;
+  const nowIso = new Date().toISOString();
+
+  const extendedUpdate = await supabase
+    .from('orders')
+    .update({
+      status: 'cancelled',
+      cancel_reason: cleanReason,
+      cancelled_at: nowIso,
+    })
+    .eq('id', orderId)
+    .eq('user_id', userId)
+    .select('id, status, cancel_reason, cancelled_at')
+    .maybeSingle();
+
+  if (extendedUpdate.error && isMissingColumnError(extendedUpdate.error)) {
+    const legacyUpdate = await supabase
+      .from('orders')
+      .update({ status: 'cancelled' })
+      .eq('id', orderId)
+      .eq('user_id', userId)
+      .select('id, status')
+      .maybeSingle();
+
+    if (legacyUpdate.error) {
+      return {
+        ok: false,
+        error: `Gagal membatalkan pesanan: ${legacyUpdate.error.message}`,
+      };
+    }
+    if (!legacyUpdate.data) {
+      return {
+        ok: false,
+        error:
+          'Pesanan tidak dapat dibatalkan. Pastikan status pesanan masih menunggu/diproses dan migrasi RLS UPDATE sudah diterapkan.',
+      };
+    }
+    return {
+      ok: true,
+      status: 'cancelled',
+      cancelReason: cleanReason,
+      cancelledAt: nowIso,
+    };
+  }
+
+  if (extendedUpdate.error) {
+    return {
+      ok: false,
+      error: `Gagal membatalkan pesanan: ${extendedUpdate.error.message}`,
+    };
+  }
+
+  if (!extendedUpdate.data) {
+    return {
+      ok: false,
+      error:
+        'Pesanan tidak dapat dibatalkan. Status pesanan mungkin sudah berubah atau izin RLS UPDATE belum aktif.',
+    };
+  }
+
+  return {
+    ok: true,
+    status: 'cancelled',
+    cancelReason:
+      typeof extendedUpdate.data.cancel_reason === 'string'
+        ? extendedUpdate.data.cancel_reason
+        : cleanReason,
+    cancelledAt:
+      typeof extendedUpdate.data.cancelled_at === 'string'
+        ? extendedUpdate.data.cancelled_at
+        : nowIso,
   };
 }

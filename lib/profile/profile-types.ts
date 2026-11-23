@@ -108,6 +108,13 @@ export interface ProfileSharedBuild {
   readonly createdAt: string;
 }
 
+export interface ProfileOrderItemSummary {
+  readonly name: string;
+  readonly label: string | null;
+  readonly quantity: number;
+  readonly unitPrice: number;
+}
+
 export interface ProfileOrderRecord {
   readonly id: string;
   readonly orderNumber: string | null;
@@ -115,7 +122,103 @@ export interface ProfileOrderRecord {
   readonly status: string;
   readonly totalPrice: number;
   readonly serialNumber: string | null;
+  readonly cancelReason: string | null;
+  readonly cancelledAt: string | null;
+  readonly itemsSummary: readonly ProfileOrderItemSummary[];
   readonly createdAt: string;
+}
+
+export const ORDER_CANCEL_REASONS: readonly string[] = [
+  'Salah pilih spesifikasi',
+  'Ubah metode pembayaran',
+  'Ingin ganti produk lain',
+  'Ingin menggabungkan dengan pesanan lain',
+] as const;
+
+export interface OrderStatusMeta {
+  readonly label: string;
+  readonly badgeClass: string;
+  readonly canCancel: boolean;
+  readonly isCancelled: boolean;
+}
+
+export function getOrderStatusMeta(rawStatus: string): OrderStatusMeta {
+  const normalized = rawStatus.trim().toLowerCase();
+
+  if (normalized === 'cancelled' || normalized === 'canceled' || normalized === 'dibatalkan') {
+    return {
+      label: 'Dibatalkan',
+      badgeClass: 'border-red-200 bg-red-50 text-red-700',
+      canCancel: false,
+      isCancelled: true,
+    };
+  }
+
+  if (
+    normalized === 'completed' ||
+    normalized === 'done' ||
+    normalized === 'delivered' ||
+    normalized === 'selesai'
+  ) {
+    return {
+      label: 'Selesai',
+      badgeClass: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+      canCancel: false,
+      isCancelled: false,
+    };
+  }
+
+  if (normalized === 'shipped' || normalized === 'in_transit' || normalized === 'dikirim') {
+    return {
+      label: 'Dikirim',
+      badgeClass: 'border-sky-200 bg-sky-50 text-sky-800',
+      canCancel: false,
+      isCancelled: false,
+    };
+  }
+
+  if (
+    normalized === 'processing' ||
+    normalized === 'qc_in_progress' ||
+    normalized === 'diproses'
+  ) {
+    return {
+      label: 'Diproses',
+      badgeClass: 'border-amber-200 bg-amber-50 text-amber-800',
+      canCancel: true,
+      isCancelled: false,
+    };
+  }
+
+  if (
+    normalized === 'pending' ||
+    normalized === 'unpaid' ||
+    normalized === 'awaiting_payment' ||
+    normalized === 'menunggu pembayaran'
+  ) {
+    return {
+      label: 'Menunggu Pembayaran',
+      badgeClass: 'border-[#EA580C]/25 bg-[#FFF7ED] text-[#C2410C]',
+      canCancel: true,
+      isCancelled: false,
+    };
+  }
+
+  if (normalized === 'pending_qc' || normalized === 'iot stress-test pending') {
+    return {
+      label: 'Menunggu Uji QC',
+      badgeClass: 'border-[#EA580C]/25 bg-[#FFF7ED] text-[#C2410C]',
+      canCancel: true,
+      isCancelled: false,
+    };
+  }
+
+  return {
+    label: rawStatus.trim() || 'Diproses',
+    badgeClass: 'border-[#E4E4E7] bg-[#F3F1ED] text-[#18181B]',
+    canCancel: false,
+    isCancelled: false,
+  };
 }
 
 export interface ProfileQcReportRecord {

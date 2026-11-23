@@ -64,7 +64,7 @@ export function MarketStorefront({
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebouncedValue(query, 250);
 
-  const { totalCartItems, totalCartPrice, triggerCartCheckout } = useCheckout();
+  const { totalCartItems, totalCartPrice, openCart, triggerCartCheckout } = useCheckout();
 
   const searchInputId = useId();
   const sortSelectId = useId();
@@ -192,14 +192,23 @@ export function MarketStorefront({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={triggerCartCheckout}
-            className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-accent-foreground shadow-sm hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
-          >
-            <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Lanjut Checkout</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={openCart}
+              className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              <span>Lihat Keranjang</span>
+            </button>
+            <button
+              type="button"
+              onClick={triggerCartCheckout}
+              className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-accent-foreground shadow-sm hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              <span>Lanjut Checkout</span>
+            </button>
+          </div>
         </div>
       )}
 

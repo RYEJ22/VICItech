@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Search,
   ShoppingBag,
+  ShoppingCart,
   Sliders,
   Swords,
   User,
@@ -27,6 +28,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FocusEvent as ReactFocusEvent, MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
+import { useCheckout } from '@/context/CheckoutContext';
 import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { shouldInterceptRouteLink, startRouteTransition } from '@/lib/motion/view-transition';
@@ -71,7 +73,7 @@ const SHELL_ROUTES = ['/market', '/community'];
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
 const iconBtnBase =
-  `relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors md:h-10 md:w-10 ${focusRing}`;
+  `relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
 
 function NavIcon({
   iconKey,
@@ -279,6 +281,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     pathname,
     enabled: Boolean(currentUserId) && !isShellOwnedRoute(pathname ?? ''),
   });
+  const { totalCartItems, openCart } = useCheckout();
 
   const clearHoverCloseTimer = useCallback(() => {
     if (hoverCloseTimerRef.current !== null) {
@@ -921,9 +924,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             })}
           </nav>
 
-          {/* Right: Streamlined Utilities (Search, Notif & DM, Account) */}
-          <div className="flex shrink-0 items-center justify-self-end gap-1 sm:gap-1.5">
-            {/* 1. Search (Ctrl+K) */}
+          {/* Right: Streamlined Utilities (Search, Cart, Notif & DM, Account) */}
+          <div className="flex shrink-0 items-center justify-self-end gap-0.5 sm:gap-1.5">
+            {/* 1. Search (Ctrl+K) & Cart */}
             <button
               type="button"
               onClick={triggerGlobalSearch}
@@ -933,6 +936,31 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               className={`${iconBtnBase} text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]`}
             >
               <Search className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                closeAllMenus();
+                openCart();
+              }}
+              title="Keranjang Belanja"
+              aria-label={
+                totalCartItems > 0
+                  ? `Keranjang Belanja (${totalCartItems} item)`
+                  : 'Keranjang Belanja'
+              }
+              className={`${iconBtnBase} text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]`}
+            >
+              <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+              {totalCartItems > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#EA580C] px-1 font-mono text-[10px] font-bold leading-none text-white ring-2 ring-white"
+                >
+                  {totalCartItems > 99 ? '99+' : totalCartItems}
+                </span>
+              )}
             </button>
 
             {/* 2. Pesan Langsung & Notifikasi (grouped with quiet indicator dots) */}

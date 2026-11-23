@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { RefreshCw, ShoppingBag, ShoppingCart, Sliders } from 'lucide-react';
+import { Check, RefreshCw, ShoppingBag, ShoppingCart, Sliders } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { ShareMenu } from '@/components/features/share/share-menu';
 import { useCheckout } from '@/context/CheckoutContext';
@@ -26,11 +27,18 @@ export function ProductPurchaseActions({
   canonicalPath,
 }: ProductPurchaseActionsProps): ReactElement {
   const { addToCart, triggerCheckout } = useCheckout();
+  const [justAdded, setJustAdded] = useState(false);
   const stockMeta = getStockMeta(product.stock_status);
   const showBuilderCta = canOpenInPresetBuilder(product);
   const showTradeInCta = canSimulateTradeIn(product);
   const primaryImage = getProductPrimaryImage(product);
   const checkoutPayload = buildCheckoutPayloadFromProduct(product);
+
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    const timer = window.setTimeout(() => setJustAdded(false), 1400);
+    return () => window.clearTimeout(timer);
+  }, [justAdded]);
 
   const handleBuyNow = () => {
     if (!stockMeta.isAvailable) return;
@@ -41,10 +49,14 @@ export function ProductPurchaseActions({
     if (!stockMeta.isAvailable) return;
     addToCart({
       ...checkoutPayload,
+      name: product.title,
       slug: product.slug,
       category: getCategoryLabel(product.category),
       image: primaryImage,
+      seller_type: product.seller_type,
+      source: 'market',
     });
+    setJustAdded(true);
   };
 
   return (
@@ -66,8 +78,12 @@ export function ProductPurchaseActions({
           disabled={!stockMeta.isAvailable}
           className="vt-btn-tactile inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-default bg-surface px-5 py-3 text-sm font-semibold text-primary hover:border-accent-primary/50 hover:bg-subtle disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
         >
-          <ShoppingCart className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-          <span>Tambah ke Keranjang</span>
+          {justAdded ? (
+            <Check className="h-4 w-4 shrink-0 text-status-live" strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <ShoppingCart className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          )}
+          <span>{justAdded ? 'Ditambahkan ke Keranjang' : '+ Keranjang'}</span>
         </button>
       </div>
 

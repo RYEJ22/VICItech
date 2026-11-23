@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Sliders,
   UserRound,
+  XCircle,
 } from 'lucide-react';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import {
@@ -26,6 +27,7 @@ import {
   isSupabaseAuthConfigured,
 } from '@/lib/supabase/client';
 import {
+  cancelUserOrder,
   fetchOwnProfile,
   fetchProfileWorkspaceData,
   fetchPublicProfileByUsername,
@@ -33,13 +35,16 @@ import {
 import {
   formatProfileFullDate,
   formatProfileIdr,
+  getOrderStatusMeta,
   parseProfileTabParam,
 } from '@/lib/profile/profile-types';
 import type {
+  ProfileOrderRecord,
   ProfileTabId,
   ProfileWorkspaceData,
   UnifiedProfile,
 } from '@/lib/profile/profile-types';
+import { CancelOrderModal } from './cancel-order-modal';
 import { ProfileCustomizationTab } from './profile-customization-tab';
 import { ProfileHeaderCard } from './profile-header-card';
 import styles from './profile-hub.module.css';
@@ -121,6 +126,9 @@ export function ProfileAccountHub({
   const [activeTab, setActiveTab] = useState<ProfileTabId>('overview');
   const [toast, setToast] = useState('');
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<ProfileOrderRecord | null>(null);
+  const [isCancellingOrder, setIsCancellingOrder] = useState(false);
+  const [cancelOrderError, setCancelOrderError] = useState('');
 
   // Sync auth automatically when rendered standalone at /profile or /profile/[username]
   useEffect(() => {
@@ -237,10 +245,54 @@ export function ProfileAccountHub({
   }, [loadAll]);
 
   useEffect(() => {
+    if (mode !== 'self' || !activeUser?.id || typeof window === 'undefined') return undefined;
+    const handleOrderCreated = (): void => {
+      void loadAll();
+    };
+    window.addEventListener('vicitech:order_created', handleOrderCreated);
+    return () => window.removeEventListener('vicitech:order_created', handleOrderCreated);
+  }, [activeUser?.id, loadAll, mode]);
+
+  useEffect(() => {
     if (!toast) return undefined;
     const timer = window.setTimeout(() => setToast(''), 3800);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  const handleConfirmCancelOrder = async (reason: string): Promise<void> => {
+    if (!orderToCancel || !activeUser?.id || isCancellingOrder) return;
+    setIsCancellingOrder(true);
+    setCancelOrderError('');
+
+    const res = await cancelUserOrder({
+      orderId: orderToCancel.id,
+      userId: activeUser.id,
+      reason,
+    });
+
+    setIsCancellingOrder(false);
+    if (!res.ok) {
+      setCancelOrderError(res.error);
+      return;
+    }
+
+    setWorkspace((current) => ({
+      ...current,
+      orders: current.orders.map((ord) =>
+        ord.id === orderToCancel.id
+          ? {
+              ...ord,
+              status: res.status,
+              cancelReason: res.cancelReason,
+              cancelledAt: res.cancelledAt,
+            }
+          : ord,
+      ),
+    }));
+    setOrderToCancel(null);
+    setCancelOrderError('');
+    setToast('Pesanan berhasil dibatalkan.');
+  };
 
   const handleSignOut = async (): Promise<void> => {
     setIsSigningOut(true);
@@ -591,57 +643,98 @@ export function ProfileAccountHub({
 
               {workspace.orders.length > 0 ? (
                 <ul className="space-y-3">
-                  {workspace.orders.map((order) => (
-                    <li
-                      key={order.id}
-                      className="rounded-lg border border-default bg-canvas p-4"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-md border border-default bg-surface px-2 py-0.5 text-xs font-semibold text-primary">
-                              {order.status}
-                            </span>
-                            <span className="font-mono text-xs text-secondary">
-                              {order.orderNumber || order.id}
-                            </span>
+                  {workspace.orders.map((order) => {
+                    const statusMeta = getOrderStatusMeta(order.status);
+                    return (
+                      <li
+                        key={order.id}
+                        className="rounded-lg border border-default bg-canvas p-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${statusMeta.badgeClass}`}
+                              >
+                                {statusMeta.label}
+                              </span>
+                              <span className="font-mono text-xs text-secondary">
+                                {order.orderNumber || order.id}
+                              </span>
+                            </div>
+                            <p className="mt-1.5 text-sm font-semibold text-primary">
+                              {order.productName}
+                            </p>
+                            {order.itemsSummary.length > 0 && (
+                              <ul className="mt-1.5 space-y-0.5 text-xs text-secondary">
+                                {order.itemsSummary.slice(0, 4).map((item, idx) => (
+                                  <li key={`${order.id}-item-${idx}`} className="truncate">
+                                    · {item.quantity}× {item.name}
+                                  </li>
+                                ))}
+                                {order.itemsSummary.length > 4 && (
+                                  <li className="text-[11px] text-secondary">
+                                    +{order.itemsSummary.length - 4} item lainnya
+                                  </li>
+                                )}
+                              </ul>
+                            )}
+                            <p className="mt-1 font-mono text-xs text-secondary">
+                              {formatProfileFullDate(order.createdAt)}
+                              {order.serialNumber ? ` · Serial ${order.serialNumber}` : ''}
+                            </p>
+                            {statusMeta.isCancelled && order.cancelReason && (
+                              <p className="mt-1 text-xs text-red-700/85">
+                                Alasan: {order.cancelReason}
+                              </p>
+                            )}
                           </div>
-                          <p className="mt-1.5 text-sm font-semibold text-primary">
-                            {order.productName}
-                          </p>
-                          <p className="mt-0.5 font-mono text-xs text-secondary">
-                            {formatProfileFullDate(order.createdAt)}
-                            {order.serialNumber ? ` · Serial ${order.serialNumber}` : ''}
+                          <p className="shrink-0 text-base font-semibold text-primary">
+                            <AnimatedNumber value={order.totalPrice} format="currency" />
                           </p>
                         </div>
-                        <p className="text-base font-semibold text-primary">
-                          <AnimatedNumber value={order.totalPrice} format="currency" />
-                        </p>
-                      </div>
-                      {order.serialNumber && (
-                        <div className="mt-3">
-                          {onNavigateModule ? (
-                            <button
-                              type="button"
-                              onClick={() => onNavigateModule('qc', order.serialNumber)}
-                              className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
-                            >
-                              <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-                              <span>Periksa Log IoT QC</span>
-                            </button>
-                          ) : (
-                            <Link
-                              href="/qc-panel"
-                              className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
-                            >
-                              <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-                              <span>Periksa Log IoT QC</span>
-                            </Link>
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  ))}
+
+                        {(order.serialNumber && !statusMeta.isCancelled) || statusMeta.canCancel ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-default pt-3">
+                            {order.serialNumber && !statusMeta.isCancelled && (
+                              onNavigateModule ? (
+                                <button
+                                  type="button"
+                                  onClick={() => onNavigateModule('qc', order.serialNumber)}
+                                  className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
+                                >
+                                  <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                                  <span>Periksa Log IoT QC</span>
+                                </button>
+                              ) : (
+                                <Link
+                                  href="/qc-panel"
+                                  className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
+                                >
+                                  <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                                  <span>Periksa Log IoT QC</span>
+                                </Link>
+                              )
+                            )}
+
+                            {statusMeta.canCancel && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCancelOrderError('');
+                                  setOrderToCancel(order);
+                                }}
+                                className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 ${focusRing}`}
+                              >
+                                <XCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                                <span>Batalkan Pesanan</span>
+                              </button>
+                            )}
+                          </div>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="rounded-lg border border-dashed border-default bg-canvas p-6 text-center">
@@ -721,6 +814,18 @@ export function ProfileAccountHub({
           </div>
         )}
       </div>
+      <CancelOrderModal
+        order={orderToCancel}
+        isSubmitting={isCancellingOrder}
+        error={cancelOrderError}
+        onClose={() => {
+          if (!isCancellingOrder) {
+            setOrderToCancel(null);
+            setCancelOrderError('');
+          }
+        }}
+        onConfirm={(reason) => void handleConfirmCancelOrder(reason)}
+      />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, CheckCircle2, Github, LoaderCircle, Mail, ShieldCheck, X } from "lucide-react";
 import { createOrder, isSupabaseConfigured, supabase } from "@/lib/supabase";
@@ -47,8 +48,14 @@ function normalizeOrderSummary(itemData) {
 
   if (itemData.productName && itemData.pricing && Array.isArray(itemData.items)) {
     const basePrice = Math.max(0, Number(itemData.pricing?.basePrice ?? 0));
+    const rawJit = itemData.pricing?.jitBuffer;
     const jitBuffer = isPresetBuilder
-      ? Math.max(0, Number(itemData.pricing?.jitBuffer) || Math.round(basePrice * 0.05))
+      ? Math.max(
+          0,
+          rawJit !== undefined && rawJit !== null
+            ? Number(rawJit) || 0
+            : Math.round(basePrice * 0.05),
+        )
       : 0;
 
     return {
@@ -326,21 +333,24 @@ export default function CheckoutModal({
                   Item Pesanan · {orderSummary.quantity} unit
                 </h3>
                 <ul className="divide-y divide-default rounded-xl border border-default bg-canvas">
-                  {orderSummary.items.map((item) => (
-                    <li key={item.id} className="flex items-center justify-between gap-4 px-3.5 py-2.5 text-sm">
-                      <span className="min-w-0">
-                        <span className="block font-medium text-primary">
-                          {item.label}: {item.name}
+                  {orderSummary.items.map((item) => {
+                    const lineQty = Math.max(1, Number(item.quantity ?? orderSummary.quantity) || 1);
+                    return (
+                      <li key={item.id} className="flex items-center justify-between gap-4 px-3.5 py-2.5 text-sm">
+                        <span className="min-w-0">
+                          <span className="block font-medium text-primary">
+                            {item.label}: {item.name}
+                          </span>
+                          {item.spec && (
+                            <span className="block text-xs text-secondary">{item.spec}</span>
+                          )}
                         </span>
-                        {item.spec && (
-                          <span className="block text-xs text-secondary">{item.spec}</span>
-                        )}
-                      </span>
-                      <span className="shrink-0 text-right font-mono tabular-nums text-primary">
-                        {idr(item.unitPrice)} × {orderSummary.quantity}
-                      </span>
-                    </li>
-                  ))}
+                        <span className="shrink-0 text-right font-mono tabular-nums text-primary">
+                          {idr(item.unitPrice)} × {lineQty}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
 
@@ -449,13 +459,22 @@ export default function CheckoutModal({
 
         <footer className="space-y-2.5 border-t border-default bg-surface p-5 sm:p-6">
           {confirmedOrder ? (
-            <button
-              type="button"
-              onClick={onClose}
-              className="vt-btn-tactile flex min-h-11 w-full items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
-            >
-              Selesai
-            </button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Link
+                href="/profile?tab=orders"
+                onClick={onClose}
+                className="vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg border border-default bg-canvas px-4 py-3 text-sm font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                Lihat Riwayat Pesanan
+              </Link>
+              <button
+                type="button"
+                onClick={onClose}
+                className="vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                Selesai
+              </button>
+            </div>
           ) : isLoadingSession ? (
             <p role="status" className="flex items-center justify-center gap-2 py-2 text-sm text-secondary">
               <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />

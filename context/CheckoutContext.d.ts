@@ -9,11 +9,16 @@ export interface CheckoutItemPayload {
   readonly category?: string;
   readonly image?: string | null;
   readonly title?: string;
+  readonly name?: string;
   readonly itemTitle?: string;
   readonly productName?: string;
   readonly price?: number;
   readonly basePrice?: number;
   readonly quantity?: number;
+  readonly qty?: number;
+  readonly seller_type?: string;
+  readonly source?: 'market' | 'preset_builder' | string;
+  readonly fromCart?: boolean;
   readonly type?: string;
   readonly specs?: string | { readonly [key: string]: string | number | boolean | null | undefined };
   readonly items?: readonly MarketCheckoutItem[];
@@ -30,8 +35,12 @@ export interface CheckoutItemPayload {
 export interface MarketCartItem extends CheckoutItemPayload {
   readonly id: string;
   readonly title: string;
+  readonly name?: string;
   readonly price: number;
   readonly quantity: number;
+  readonly qty?: number;
+  readonly seller_type?: string;
+  readonly source?: 'market' | 'preset_builder' | string;
 }
 
 export interface CheckoutContextValue {
@@ -39,11 +48,16 @@ export interface CheckoutContextValue {
   readonly checkoutData: CheckoutItemPayload | null;
   readonly triggerCheckout: (itemData: CheckoutItemPayload) => void;
   readonly closeCheckout: () => void;
+  readonly isCartOpen: boolean;
+  readonly openCart: () => void;
+  readonly closeCart: () => void;
+  readonly toggleCart: () => void;
   readonly cartItems: readonly MarketCartItem[];
   readonly totalCartItems: number;
   readonly totalCartPrice: number;
   readonly triggerCartCheckout: () => void;
   readonly addToCart: (item: CheckoutItemPayload) => void;
+  readonly updateCartQuantity: (id: string, nextQuantity: number) => void;
   readonly removeFromCart: (id: string) => void;
   readonly clearCart: () => void;
   readonly dismissCartToast: () => void;

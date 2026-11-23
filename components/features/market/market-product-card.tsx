@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Check, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
 import type { ProductRow } from '@/lib/admin/products-validation';
@@ -31,6 +32,7 @@ export function MarketProductCard({
   className = '',
 }: MarketProductCardProps): ReactElement {
   const { addToCart } = useCheckout();
+  const [justAdded, setJustAdded] = useState(false);
   const href = getProductHref(product);
   const primaryImage = getProductPrimaryImage(product);
   const stockMeta = getStockMeta(product.stock_status);
@@ -38,6 +40,12 @@ export function MarketProductCard({
   const specs = getHighlightSpecs(product, 2);
 
   const trustBadgeClass = getTrustBadgeClassName(trustBadge.tone);
+
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    const timer = window.setTimeout(() => setJustAdded(false), 1400);
+    return () => window.clearTimeout(timer);
+  }, [justAdded]);
 
   const handleQuickAdd = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -47,10 +55,14 @@ export function MarketProductCard({
     const checkoutPayload = buildCheckoutPayloadFromProduct(product);
     addToCart({
       ...checkoutPayload,
+      name: product.title,
       slug: product.slug,
       category: getCategoryLabel(product.category),
       image: primaryImage,
+      seller_type: product.seller_type,
+      source: 'market',
     });
+    setJustAdded(true);
   };
 
   return (
@@ -132,8 +144,12 @@ export function MarketProductCard({
           }
           className="vt-btn-tactile inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-cta px-3.5 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
         >
-          <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-          <span>{stockMeta.isAvailable ? 'Keranjang' : 'Habis'}</span>
+          {justAdded ? (
+            <Check className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <ShoppingCart className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+          )}
+          <span>{!stockMeta.isAvailable ? 'Habis' : justAdded ? 'Ditambahkan' : '+ Keranjang'}</span>
         </button>
       </div>
     </article>
