@@ -12,6 +12,14 @@ import { sanitizeSingleLineText, sanitizeUserText } from "@/lib/validation/sanit
 import { insertTextAtCursor } from "@/lib/chat/chat-media-catalog";
 import { ChatMediaPicker } from "@/components/chat/ChatMediaPicker";
 import {
+  CommentGifDisplay,
+  CommunityGifPicker,
+  encodeCommentGifFallback,
+  parseCommentBody,
+  sanitizeCommentGifUrl,
+} from "./CommunityGifPicker";
+import communityStyles from "./community-hub.module.css";
+import {
   MEDIA_ACCEPT_ATTRIBUTE,
   MAX_IMAGE_ATTACHMENTS,
   formatMediaFileSize,
@@ -523,12 +531,16 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
 const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolve, onOpenMedia }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  const [selectedGif, setSelectedGif] = useState(null);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [gifOpen, setGifOpen] = useState(false);
   const [shareNote, setShareNote] = useState("");
   const commentInputRef = useRef(null);
   const commentEmojiTriggerRef = useRef(null);
+  const commentGifTriggerRef = useRef(null);
   const commentSelectionRef = useRef({ start: 0, end: 0 });
+  const canSubmitComment = (draft.trim().length > 0 || Boolean(selectedGif)) && !submittingComment;
   const author = resolve(post.by);
   const cat = CATEGORIES[post.cat] || CATEGORIES.guide;
   const CatIcon = cat.icon;
@@ -555,13 +567,18 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
   const submitComment = async (e) => {
     e.preventDefault();
-    if (!draft.trim() || submittingComment) return;
+    if (!canSubmitComment) return;
     setSubmittingComment(true);
     try {
-      const ok = await onComment(post.id, draft.trim());
+      const ok = await onComment(post.id, {
+        text: draft.trim(),
+        gifUrl: selectedGif?.url || null,
+      });
       if (ok) {
         setDraft("");
+        setSelectedGif(null);
         setEmojiOpen(false);
+        setGifOpen(false);
         commentSelectionRef.current = { start: 0, end: 0 };
       }
     } finally {
@@ -749,6 +766,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
           {post.comments.length === 0 && <p className="text-sm text-secondary">Belum ada komentar. Jadilah yang pertama membalas.</p>}
           {post.comments.map((c) => {
             const commenter = resolve(c.by);
+            const { text: commentText, gifUrl: commentGifUrl } = parseCommentBody(c.text, c.gifUrl);
             return (
               <div key={c.id} className="flex gap-2.5">
                 <Avatar author={commenter} size="h-8 w-8" />
@@ -759,11 +777,40 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                       : <span className="font-medium text-primary">{commenter.name}</span>}
                     <span className="text-xs text-secondary">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
                   </p>
-                  <p className="text-sm text-secondary">{c.text}</p>
+                  {commentText ? (
+                    <p className="whitespace-pre-line text-sm text-secondary">{commentText}</p>
+                  ) : null}
+                  {commentGifUrl ? (
+                    <CommentGifDisplay src={commentGifUrl} alt={commentText || "GIF komentar"} />
+                  ) : null}
                 </div>
               </div>
             );
           })}
+          {selectedGif && (
+            <div className="flex items-center gap-3 rounded-xl border border-[#E4E4E7] bg-white p-2">
+              <img
+                src={selectedGif.url}
+                alt={selectedGif.title}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="h-14 w-20 shrink-0 rounded-lg border border-[#E4E4E7] bg-[#F3F1ED] object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold text-[#18181B]">{selectedGif.title}</p>
+                <p className="text-[11px] text-[#71717A]">GIF siap dikirim bersama komentar</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedGif(null)}
+                aria-label="Hapus GIF terpilih"
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#E4E4E7] text-[#71717A] transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 ${focusRing}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <form onSubmit={submitComment} className="relative flex items-center gap-2">
             <ChatMediaPicker
               isOpen={emojiOpen}
@@ -773,10 +820,23 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               restoreFocusTo={commentEmojiTriggerRef}
               align="left"
             />
+            <CommunityGifPicker
+              isOpen={gifOpen}
+              onClose={() => setGifOpen(false)}
+              onSelectGif={(gif) => {
+                setSelectedGif(gif);
+                setGifOpen(false);
+              }}
+              triggerRef={commentGifTriggerRef}
+              disabled={submittingComment}
+            />
             <button
               ref={commentEmojiTriggerRef}
               type="button"
-              onClick={() => setEmojiOpen((current) => !current)}
+              onClick={() => {
+                setGifOpen(false);
+                setEmojiOpen((current) => !current);
+              }}
               aria-expanded={emojiOpen}
               aria-haspopup="dialog"
               aria-label="Sisipkan emoji ke balasan"
@@ -787,6 +847,25 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               }`}
             >
               <Smile className="h-4 w-4" strokeWidth={1.75} />
+            </button>
+            <button
+              ref={commentGifTriggerRef}
+              type="button"
+              disabled={submittingComment}
+              onClick={() => {
+                setEmojiOpen(false);
+                setGifOpen((current) => !current);
+              }}
+              aria-expanded={gifOpen}
+              aria-haspopup="dialog"
+              aria-label="Pilih GIF untuk komentar"
+              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg border px-2.5 font-mono text-[11px] font-bold tracking-wider transition active:scale-[0.95] ${focusRing} ${
+                gifOpen
+                  ? "border-accent-primary bg-accent-subtle text-accent-hover"
+                  : "border-default bg-surface text-secondary hover:border-accent-primary/50 hover:text-primary"
+              }`}
+            >
+              GIF
             </button>
             <label htmlFor={`reply-${post.id}`} className="sr-only">Tulis balasan</label>
             <input
@@ -801,12 +880,12 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               onClick={(e) => syncCommentSelection(e.currentTarget)}
               onKeyUp={(e) => syncCommentSelection(e.currentTarget)}
               onSelect={(e) => syncCommentSelection(e.currentTarget)}
-              placeholder="Tulis balasan…"
+              placeholder="Tulis balasan atau pilih GIF…"
               className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`}
             />
             <button
               type="submit"
-              disabled={!draft.trim() || submittingComment}
+              disabled={!canSubmitComment}
               aria-label="Kirim balasan"
               className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-cta text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}
             >
@@ -823,7 +902,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
+    <aside className="space-y-4" aria-label="Sorotan komunitas">
       <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
         <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
           <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
@@ -941,6 +1020,7 @@ export default function CommunityHub() {
   const [lightbox, setLightbox] = useState(null);
   const requestedProfiles = useRef(new Set());
   const likingIdsRef = useRef(new Set());
+  const feedScrollRef = useRef(null);
   const composerSectionRef = useRef(null);
   const composerTitleInputRef = useRef(null);
 
@@ -1026,10 +1106,10 @@ export default function CommunityHub() {
       let likedSet = new Set();
 
       if (postIds.length > 0) {
-        const [commentsRes, likesRes] = await Promise.all([
+        let [commentsRes, likesRes] = await Promise.all([
           supabase
             .from("community_comments")
-            .select("id, post_id, user_id, content, created_at")
+            .select("id, post_id, user_id, content, gif_url, created_at")
             .in("post_id", postIds)
             .order("created_at", { ascending: true }),
           currentUser?.id
@@ -1041,17 +1121,32 @@ export default function CommunityHub() {
             : Promise.resolve({ data: [], error: null }),
         ]);
 
+        if (
+          commentsRes.error &&
+          (commentsRes.error.code === "42703" ||
+            commentsRes.error.code === "PGRST204" ||
+            /gif_url/i.test(commentsRes.error.message || ""))
+        ) {
+          commentsRes = await supabase
+            .from("community_comments")
+            .select("id, post_id, user_id, content, created_at")
+            .in("post_id", postIds)
+            .order("created_at", { ascending: true });
+        }
+
         if (!isActive) return;
 
         if (!commentsRes.error && Array.isArray(commentsRes.data)) {
           commentsByPost = new Map();
           for (const row of commentsRes.data) {
             authorIds.push(row.user_id);
+            const parsedComment = parseCommentBody(row.content, row.gif_url);
             const list = commentsByPost.get(row.post_id) || [];
             list.push({
               id: row.id,
               by: row.user_id,
-              text: row.content,
+              text: parsedComment.text,
+              gifUrl: parsedComment.gifUrl,
               createdAt: new Date(row.created_at).getTime(),
             });
             commentsByPost.set(row.post_id, list);
@@ -1212,15 +1307,27 @@ export default function CommunityHub() {
     }
   }, [currentUser?.id, patch, posts]);
 
-  const addComment = useCallback(async (id, text) => {
+  const addComment = useCallback(async (id, payload) => {
     setPublishError("");
-    const cleanText = sanitizeUserText(text, 1000);
-    if (!cleanText) return false;
+    const rawText = typeof payload === "string" ? payload : (payload?.text ?? "");
+    const rawGifUrl = typeof payload === "string" ? null : (payload?.gifUrl ?? null);
+    const cleanText = sanitizeUserText(rawText, 1000);
+    const cleanGifUrl = sanitizeCommentGifUrl(rawGifUrl);
+    if (!cleanText && !cleanGifUrl) return false;
 
     if (!isUuid(id)) {
       patch(id, (p) => ({
         ...p,
-        comments: [...p.comments, { id: `${id}-c${p.comments.length + 1}`, by: currentUser?.id ?? "you", text: cleanText, createdAt: Date.now() }],
+        comments: [
+          ...p.comments,
+          {
+            id: `${id}-c${p.comments.length + 1}`,
+            by: currentUser?.id ?? "you",
+            text: cleanText,
+            gifUrl: cleanGifUrl,
+            createdAt: Date.now(),
+          },
+        ],
       }));
       return true;
     }
@@ -1232,18 +1339,46 @@ export default function CommunityHub() {
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { data, error } = await supabase
+      const insertRow = {
+        post_id: id,
+        user_id: currentUser.id,
+        content: cleanText,
+        ...(cleanGifUrl ? { gif_url: cleanGifUrl } : {}),
+      };
+
+      let { data, error } = await supabase
         .from("community_comments")
-        .insert({
-          post_id: id,
-          user_id: currentUser.id,
-          content: cleanText,
-        })
-        .select("id, post_id, user_id, content, created_at")
+        .insert(insertRow)
+        .select("id, post_id, user_id, content, gif_url, created_at")
         .single();
+
+      const needsLegacyFallback =
+        Boolean(error) &&
+        (error.code === "42703" ||
+          error.code === "PGRST204" ||
+          error.code === "23514" ||
+          /gif_url/i.test(error.message || ""));
+
+      if (needsLegacyFallback) {
+        const fallbackContent = cleanGifUrl
+          ? encodeCommentGifFallback(cleanText, cleanGifUrl)
+          : cleanText;
+        const retryRes = await supabase
+          .from("community_comments")
+          .insert({
+            post_id: id,
+            user_id: currentUser.id,
+            content: fallbackContent,
+          })
+          .select("id, post_id, user_id, content, created_at")
+          .single();
+        data = retryRes.data;
+        error = retryRes.error;
+      }
 
       if (error) throw error;
 
+      const parsedComment = parseCommentBody(data.content, data.gif_url);
       void loadProfiles(supabase, [currentUser.id]);
       patch(id, (p) => ({
         ...p,
@@ -1252,7 +1387,8 @@ export default function CommunityHub() {
           {
             id: data.id,
             by: data.user_id,
-            text: data.content,
+            text: parsedComment.text,
+            gifUrl: parsedComment.gifUrl ?? cleanGifUrl,
             createdAt: new Date(data.created_at).getTime(),
           },
         ],
@@ -1363,10 +1499,21 @@ export default function CommunityHub() {
     const prefersReduced =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    composerSectionRef.current?.scrollIntoView({
-      behavior: prefersReduced ? "auto" : "smooth",
-      block: "start",
-    });
+    if (
+      typeof window !== "undefined" &&
+      feedScrollRef.current &&
+      window.matchMedia("(min-width: 1024px)").matches
+    ) {
+      feedScrollRef.current.scrollTo({
+        top: 0,
+        behavior: prefersReduced ? "auto" : "smooth",
+      });
+    } else {
+      composerSectionRef.current?.scrollIntoView({
+        behavior: prefersReduced ? "auto" : "smooth",
+        block: "start",
+      });
+    }
     if (typeof window !== "undefined") {
       window.requestAnimationFrame(() => {
         composerTitleInputRef.current?.focus({ preventScroll: true });
@@ -1375,114 +1522,163 @@ export default function CommunityHub() {
   }, []);
 
   return (
-    <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
-            {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
-          </span>
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
-            Berbagi rakitan &amp; solusi teknis
-          </span>
-        </div>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-          <MessageSquare className="h-8 w-8 text-accent-primary" /> Komunitas &amp; Pusat Pengetahuan
-        </h1>
-        <p className="mt-3 max-w-2xl text-secondary">
-          Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
-        </p>
-        <button
-          type="button"
-          onClick={handleFocusComposer}
-          className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
-        >
-          <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-          <span>Buat Postingan Lengkap</span>
-        </button>
+    <div className="flex h-auto flex-col overflow-visible bg-canvas text-primary antialiased lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+      <div className="mx-auto flex w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden lg:py-4">
+        {/* Header diam (stationary di desktop) */}
+        <header className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
+                {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
+              </span>
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+                Berbagi rakitan &amp; solusi teknis
+              </span>
+            </div>
+            <h1 className="mt-2 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+              <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-7 sm:w-7" /> Komunitas &amp; Pusat Pengetahuan
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-secondary">
+              Pamerkan rakitan PC, pelajari praktik lab CBT, dan diskusikan solusi hardware harian.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleFocusComposer}
+            className={`inline-flex min-h-11 w-fit shrink-0 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
+          >
+            <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+            <span>Buat Postingan Lengkap</span>
+          </button>
+        </header>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
-            <Composer
-              onPublish={publish}
-              sectionRef={composerSectionRef}
-              titleInputRef={composerTitleInputRef}
-            />
-            {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
-
-            <div className="relative">
+        {/* Toolbar pencarian & filter kategori (diam di desktop) */}
+        <div className="mt-4 shrink-0 space-y-2.5 border-b border-default pb-3.5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative flex-1">
               <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-3 pl-12 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" />
+              <input
+                id="feed-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Cari topik, hardware, atau tag seperti #RTX4060"
+                className={`w-full rounded-lg border border-default bg-surface py-2.5 pl-10 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+              />
             </div>
-
-            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="flex flex-wrap gap-2">
-              {CAT_ORDER.map((k) => {
-                const Icon = CATEGORIES[k].icon;
-                const active = category === k;
-                return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
-                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <p className="text-sm text-secondary" aria-live="polite">
+            <p className="shrink-0 text-xs text-secondary sm:text-sm" aria-live="polite">
               Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
-
-            {isLoadingPosts ? (
-              <div className="space-y-4" aria-label="Memuat postingan komunitas">
-                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
-                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
-              </div>
-            ) : paginatedPosts.length ? (
-              <div className="space-y-4">
-                {paginatedPosts.map((p) => (
-                  <PostCard
-                    key={p.id}
-                    post={p}
-                    onLike={like}
-                    onComment={addComment}
-                    onTag={searchTag}
-                    resolve={resolve}
-                    onOpenMedia={handleOpenMedia}
-                  />
-                ))}
-                {visible.length > visibleLimit && (
-                  <div className="flex justify-center pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextVisible = visibleLimit + FEED_PAGE_SIZE;
-                        setVisibleLimit(nextVisible);
-                        if (nextVisible >= dbFetchLimit - 4) {
-                          setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
-                        }
-                      }}
-                      className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
-                    >
-                      Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
-                <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
-                <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
-                <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>Reset Filter</button>
-              </div>
-            )}
           </div>
 
-          <Sidebar
-            topTags={topTags}
-            contributors={activeContributors}
-            onTag={searchTag}
-            onGuide={searchTag}
-            resolve={resolve}
-          />
+          <div
+            role="group"
+            aria-label="Filter postingan berdasarkan kategori"
+            className="no-scrollbar flex flex-wrap gap-1.5 pb-0.5 lg:flex-nowrap lg:overflow-x-auto"
+          >
+            {CAT_ORDER.map((k) => {
+              const Icon = CATEGORIES[k].icon;
+              const active = category === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setCategory(k)}
+                  className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors sm:text-sm ${focusRing} ${
+                    active
+                      ? "border-accent-primary/30 bg-accent-subtle text-accent-hover"
+                      : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {CATEGORIES[k].label}{" "}
+                  <span className="font-mono text-xs text-secondary">{counts[k]}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dua kolom dengan area scroll mandiri di desktop */}
+        <div className="mt-4 grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-3 lg:overflow-hidden">
+          <div className="flex flex-col lg:col-span-2 lg:min-h-0 lg:overflow-hidden">
+            <div
+              ref={feedScrollRef}
+              className={`flex-1 min-h-0 space-y-4 lg:overflow-y-auto lg:overscroll-contain lg:pr-2 lg:pb-6 ${communityStyles.feedScroll ?? ""}`}
+            >
+              <Composer
+                onPublish={publish}
+                sectionRef={composerSectionRef}
+                titleInputRef={composerTitleInputRef}
+              />
+              {publishError && (
+                <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">
+                  {publishError}
+                </p>
+              )}
+
+              {isLoadingPosts ? (
+                <div className="space-y-4" aria-label="Memuat postingan komunitas">
+                  <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+                  <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+                </div>
+              ) : paginatedPosts.length ? (
+                <div className="space-y-4">
+                  {paginatedPosts.map((p) => (
+                    <PostCard
+                      key={p.id}
+                      post={p}
+                      onLike={like}
+                      onComment={addComment}
+                      onTag={searchTag}
+                      resolve={resolve}
+                      onOpenMedia={handleOpenMedia}
+                    />
+                  ))}
+                  {visible.length > visibleLimit && (
+                    <div className="flex justify-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextVisible = visibleLimit + FEED_PAGE_SIZE;
+                          setVisibleLimit(nextVisible);
+                          if (nextVisible >= dbFetchLimit - 4) {
+                            setDbFetchLimit((current) => current + SUPABASE_FETCH_STEP);
+                          }
+                        }}
+                        className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
+                      >
+                        Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
+                  <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
+                  <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}
+                  >
+                    Reset Filter
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={`lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:pb-6 ${communityStyles.feedScroll ?? ""}`}>
+            <Sidebar
+              topTags={topTags}
+              contributors={activeContributors}
+              onTag={searchTag}
+              onGuide={searchTag}
+              resolve={resolve}
+            />
+          </div>
         </div>
       </div>
 
