@@ -232,7 +232,7 @@ export function PartnersDirectory({
               <span>Konsultasi Teknisi via DM</span>
             </Link>
             <Link
-              href="/home?tab=tradein"
+              href="/trade-in"
               className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas ${focusRing}`}
             >
               <span>Ajukan Inspeksi Trade-In</span>

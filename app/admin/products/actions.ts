@@ -62,7 +62,8 @@ function revalidateMarketAndAdmin(slug?: string): void {
   revalidatePath('/admin/products');
   revalidatePath('/admin');
   revalidatePath('/market');
-  revalidatePath('/home');
+  revalidatePath('/builder');
+  revalidatePath('/versus');
   revalidatePath('/market/[id]', 'page');
   if (slug) {
     revalidatePath(`/market/${encodeURIComponent(slug)}`);

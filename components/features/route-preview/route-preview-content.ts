@@ -41,7 +41,7 @@ export const MARKET_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewIt
     metricLabel: 'Referensi Paket',
     metricValue: 'Rp 14.950.000',
     actionLabel: 'Ubah di Preset Builder',
-    actionHref: '/home?tab=builder',
+    actionHref: '/builder',
     isFeatured: true,
   },
   {
@@ -56,7 +56,7 @@ export const MARKET_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewIt
     metricLabel: 'Referensi Per Unit',
     metricValue: 'Rp 5.650.000',
     actionLabel: 'Susun Kebutuhan Lab',
-    actionHref: '/home?tab=builder',
+    actionHref: '/builder',
   },
   {
     id: 'mk-esports-1080p',
@@ -70,7 +70,7 @@ export const MARKET_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewIt
     metricLabel: 'Referensi Paket',
     metricValue: 'Rp 11.400.000',
     actionLabel: 'Buka di Preset Builder',
-    actionHref: '/home?tab=builder',
+    actionHref: '/builder',
   },
   {
     id: 'mk-thinkpad-t14',
@@ -98,7 +98,7 @@ export const MARKET_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewIt
     metricLabel: 'Valuasi Trade-In',
     metricValue: 'Mulai Rp 3.200.000',
     actionLabel: 'Hitung Trade-In',
-    actionHref: '/home?tab=tradein',
+    actionHref: '/trade-in',
   },
   {
     id: 'mk-gpu-rtx4060',
@@ -167,7 +167,7 @@ export const PARTNER_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewI
     metricLabel: 'Fokus Layanan',
     metricValue: 'B2S & Trade-In Lokal',
     actionLabel: 'Buka Portal Trade-In',
-    actionHref: '/home?tab=tradein',
+    actionHref: '/trade-in',
   },
   {
     id: 'pt-surabaya-parts',

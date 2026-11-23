@@ -44,18 +44,18 @@ export default function GlobalRouteError({ error, reset }: GlobalErrorProps): Re
             <span>Coba Lagi</span>
           </button>
           <Link
-            href="/home"
+            href="/market"
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <LayoutGrid className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            <span>Buka Workspace</span>
+            <span>Jelajahi Market</span>
           </Link>
           <Link
             href="/"
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-secondary transition hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Halaman Awal</span>
+            <span>Beranda</span>
           </Link>
         </div>
       </section>

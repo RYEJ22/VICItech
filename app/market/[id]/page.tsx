@@ -124,7 +124,7 @@ export default async function ProductDetailPage({
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-secondary sm:text-sm">
             <li>
               <Link
-                href="/home"
+                href="/"
                 className="inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 Beranda
@@ -281,7 +281,7 @@ export default async function ProductDetailPage({
                     <span>Komponen dalam Preset</span>
                   </h2>
                   <Link
-                    href={`/home?tab=builder&productId=${encodeURIComponent(product.id)}`}
+                    href={`/builder?productId=${encodeURIComponent(product.id)}`}
                     className="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold text-accent-cta hover:text-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
                     <span>Sesuaikan di Preset Builder</span>

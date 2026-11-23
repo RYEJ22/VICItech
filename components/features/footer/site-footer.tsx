@@ -3,10 +3,10 @@ import Link from 'next/link';
 import type { ReactElement } from 'react';
 
 const ECOSYSTEM_LINKS: readonly { readonly href: string; readonly label: string }[] = [
-  { href: '/home', label: 'Beranda Workspace' },
+  { href: '/', label: 'Beranda' },
   { href: '/market', label: 'Market & Hardware Library' },
-  { href: '/home?tab=builder', label: 'Smart Preset Builder' },
-  { href: '/home?tab=tradein', label: 'Circular Trade-In' },
+  { href: '/builder', label: 'Smart Preset Builder' },
+  { href: '/trade-in', label: 'Circular Trade-In' },
   { href: '/partners', label: 'Mitra & Service' },
   { href: '/community', label: 'Komunitas' },
 ];

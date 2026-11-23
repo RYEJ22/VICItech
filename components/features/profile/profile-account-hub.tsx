@@ -292,10 +292,10 @@ export function ProfileAccountHub({
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
-              href="/home"
+              href="/"
               className={`vt-btn-tactile inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
             >
-              Ke Workspace
+              Ke Beranda
             </Link>
             <Link
               href="/community"
@@ -508,7 +508,7 @@ export function ProfileAccountHub({
                     <span>{isOwner ? 'Preset & Rakitan Tersimpan' : 'Showcase Rakitan Publik'}</span>
                   </h2>
                   <Link
-                    href="/home?tab=builder"
+                    href="/builder"
                     className={`text-xs font-semibold text-accent-cta hover:underline ${focusRing}`}
                   >
                     Preset Builder
@@ -539,7 +539,7 @@ export function ProfileAccountHub({
                           </button>
                         ) : (
                           <Link
-                            href="/home?tab=builder"
+                            href="/builder"
                             className={`vt-btn-tactile inline-flex min-h-11 items-center rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
                           >
                             Buka di Builder
@@ -631,7 +631,7 @@ export function ProfileAccountHub({
                             </button>
                           ) : (
                             <Link
-                              href="/home?tab=qc"
+                              href="/qc-panel"
                               className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
                             >
                               <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
@@ -692,7 +692,7 @@ export function ProfileAccountHub({
               )}
 
               <Link
-                href="/home?tab=tradein"
+                href="/trade-in"
                 className={`vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
               >
                 <RefreshCw className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />

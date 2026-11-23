@@ -1084,8 +1084,9 @@ export default function ViciTechApp({
   const navigate = useCallback((rawId, rawViewOrData) => {
     let [id, viewOrData] = normalizeModuleTarget(rawId, rawViewOrData);
 
-    if (id === "home" && homeUrl && window.location.pathname !== homeUrl) {
-      window.location.assign(homeUrl);
+    if (id === "home") {
+      setPalette(false);
+      router.push(homeUrl || "/");
       return;
     }
 
@@ -1096,25 +1097,52 @@ export default function ViciTechApp({
       return;
     }
 
-    // Direct serial lookup hand-off to IoT QC Engine
-    if (id === "qc" && typeof viewOrData === "string" && SERIAL_RE.test(viewOrData.trim().toUpperCase())) {
-      const serial = viewOrData.trim().toUpperCase();
-      setQcSerial(serial);
-      notify(`Memeriksa nomor seri ${serial} di Mesin IoT QC.`);
-      viewOrData = undefined;
+    if (id === "qc") {
+      setPalette(false);
+      if (typeof viewOrData === "string" && SERIAL_RE.test(viewOrData.trim().toUpperCase())) {
+        const serial = viewOrData.trim().toUpperCase();
+        router.push(`/qc-panel?order=${encodeURIComponent(serial)}`);
+        return;
+      }
+      router.push("/qc-panel");
+      return;
     }
 
-    // Custom configuration or hardware parts hand-off to Preset Builder
-    if (id === "builder" && viewOrData && typeof viewOrData === "object") {
-      setBuilderConfig(viewOrData);
-      if (viewOrData.name) {
-        notify(`Preset "${viewOrData.name}" dimuat ke Preset Builder.`);
-      } else if (viewOrData.items?.length) {
-        notify(`${viewOrData.items.length} item dikirim ke Preset Builder.`);
-      } else {
-        notify("Konfigurasi perangkat keras diteruskan ke Preset Builder.");
+    if (id === "builder") {
+      setPalette(false);
+      if (viewOrData && typeof viewOrData === "object") {
+        try {
+          window.sessionStorage.setItem("vicitech:pending-builder-config", JSON.stringify(viewOrData));
+        } catch {
+          // Abaikan kesalahan sessionStorage di mode privat.
+        }
       }
-      viewOrData = undefined;
+      router.push("/builder");
+      return;
+    }
+
+    if (id === "bottleneck") {
+      setPalette(false);
+      router.push("/bottleneck");
+      return;
+    }
+
+    if (id === "versus") {
+      setPalette(false);
+      router.push("/versus");
+      return;
+    }
+
+    if (id === "tradein" || id === "trade-in") {
+      setPalette(false);
+      router.push("/trade-in");
+      return;
+    }
+
+    if (id === "community") {
+      setPalette(false);
+      router.push("/community");
+      return;
     }
 
     const v = validView(id, viewOrData) ? viewOrData : undefined;
@@ -1124,7 +1152,7 @@ export default function ViciTechApp({
     if (window.location.hash !== hash) window.history.pushState(null, "", hash);
     window.dispatchEvent(new CustomEvent("vicitech:module-change", { detail: { module: id, view: v } }));
     window.scrollTo(0, 0);
-  }, [show, notify, homeUrl]);
+  }, [show, router, homeUrl]);
 
   const handleQuerySync = useCallback((tab, view, productId) => {
     if (productId) {
@@ -1223,10 +1251,8 @@ export default function ViciTechApp({
   const handlePaletteSelect = useCallback((it) => navigate(it.module, it.view), [navigate]);
   const marketView = useCallback((v) => navigate("market", v), [navigate]);
   const handleMarketOpenBuilder = useCallback((items) => {
-    setBuilderConfig({ items });
-    notify("Perangkat terpilih dikirim ke Preset Builder.");
-    navigate("builder");
-  }, [navigate, notify]);
+    navigate("builder", { items });
+  }, [navigate]);
 
   // Cross-module prop hand-offs
   const extras = useMemo(() => ({
@@ -1245,8 +1271,7 @@ export default function ViciTechApp({
     tradein: {
       onNavigate: navigate,
       onOpenBuilder: (items) => {
-        if (items) setBuilderConfig({ items });
-        navigate("builder");
+        navigate("builder", items ? { items } : undefined);
       },
       onOpenEngine: () => navigate("qc"),
     },
@@ -1258,9 +1283,7 @@ export default function ViciTechApp({
     },
     bottleneck: {
       onSwapToPreset: (parts) => {
-        setBuilderConfig(parts);
-        notify("Konfigurasi hasil penyeimbangan dikirim ke Preset Builder.");
-        navigate("builder");
+        navigate("builder", parts);
       },
     },
     versus: {
@@ -1269,9 +1292,7 @@ export default function ViciTechApp({
         const partHint = item?.builderPartHint && typeof item.builderPartHint === "object"
           ? item.builderPartHint
           : {};
-        setBuilderConfig({ ...partHint, items: [item] });
-        notify(`${item.name} dimasukkan ke antrean Preset Builder.`);
-        navigate("builder");
+        navigate("builder", { ...partHint, items: [item] });
       },
       onRequestQuote: (item) => notify(`Permintaan penawaran dibuat untuk ${item.name}.`),
     },

@@ -33,10 +33,10 @@ export default function ProfileError({ reset }: ProfileErrorProps): ReactElement
             <span>Coba Lagi</span>
           </button>
           <Link
-            href="/home"
+            href="/"
             className="vt-btn-tactile inline-flex min-h-11 items-center rounded-lg border border-default bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-subtle"
           >
-            Kembali ke Workspace
+            Kembali ke Beranda
           </Link>
         </div>
       </section>

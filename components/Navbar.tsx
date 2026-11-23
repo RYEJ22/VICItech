@@ -66,7 +66,7 @@ interface NavbarProps {
 
 type OpenMenu = DesktopNavUmbrellaId | 'notifications' | 'account' | null;
 
-const SHELL_ROUTES = ['/home', '/market', '/community'];
+const SHELL_ROUTES = ['/market', '/community'];
 
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
@@ -164,7 +164,7 @@ function NotificationsPanel({
     <div
       role="dialog"
       aria-label="Notifikasi"
-      className={`absolute right-0 top-full z-[60] mt-2 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
+      className={`absolute right-0 top-full z-[60] mt-3.5 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-[#E4E4E7] px-2.5 pb-2 pt-1">
         <p className="text-sm font-semibold text-[#18181B]">Notifikasi</p>
@@ -632,16 +632,6 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       closeAllMenus();
       setSheetOpen(false);
 
-      if (item.href.startsWith('/home') && pathname === '/home' && item.targetModule) {
-        event.preventDefault();
-        window.dispatchEvent(
-          new CustomEvent('vicitech:navigate-module', {
-            detail: { module: item.targetModule, view: item.targetView },
-          }),
-        );
-        return;
-      }
-
       if (item.href.startsWith('/market') && pathname === '/market' && item.targetModule === 'market') {
         event.preventDefault();
         window.dispatchEvent(
@@ -659,17 +649,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   const handleBottomNavClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>, item: NavItem) => {
-      closeAllMenus();
-      if (item.targetModule && pathname === '/home') {
-        event.preventDefault();
-        window.dispatchEvent(
-          new CustomEvent('vicitech:navigate-module', { detail: { module: item.targetModule } }),
-        );
-        return;
-      }
       handleHrefClick(event, item.href);
     },
-    [closeAllMenus, handleHrefClick, pathname],
+    [handleHrefClick],
   );
 
   const navigateTo = useCallback(
@@ -679,8 +661,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       setSheetOpen(false);
       if (moduleName && pathname && SHELL_ROUTES.includes(pathname)) {
         const isMarketSwitch = pathname === '/market' && moduleName === 'market';
-        const isHomeSwitch = pathname === '/home';
-        if (isMarketSwitch || isHomeSwitch) {
+        if (isMarketSwitch) {
           window.dispatchEvent(
             new CustomEvent('vicitech:navigate-module', { detail: { module: moduleName, view: viewName } }),
           );
@@ -696,15 +677,29 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   const handleAuthNavigate = useCallback(
     (mod: string) => {
-      if (pathname === '/home') {
-        window.dispatchEvent(new CustomEvent('vicitech:navigate-module', { detail: { module: mod } }));
-      } else {
-        startRouteTransition(() => {
-          router.push(`/home?tab=${encodeURIComponent(mod)}`);
-        });
-      }
+      const target =
+        mod === 'builder'
+          ? '/builder'
+          : mod === 'bottleneck'
+            ? '/bottleneck'
+            : mod === 'versus'
+              ? '/versus'
+              : mod === 'tradein' || mod === 'trade-in'
+                ? '/trade-in'
+                : mod === 'qc'
+                  ? '/qc-panel'
+                  : mod === 'market'
+                    ? '/market'
+                    : mod === 'community'
+                      ? '/community'
+                      : mod === 'account' || mod === 'profile'
+                        ? '/profile'
+                        : '/';
+      startRouteTransition(() => {
+        router.push(target);
+      });
     },
-    [pathname, router],
+    [router],
   );
 
   const selectNotification = useCallback(
@@ -753,9 +748,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   return (
     <>
-      {/* ───────── Calm Editorial Sticky Navbar (Progressive Disclosure) ───────── */}
-      <header className={`sticky top-0 z-50 w-full ${styles.navbarHeader ?? ''}`}>
-        <div className="mx-auto flex h-[68px] w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 md:grid md:h-[72px] md:grid-cols-[1fr_auto_1fr] md:items-center lg:px-8">
+      {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
+      <header className="pointer-events-none fixed inset-x-0 top-3 z-50 px-3 sm:px-4 md:top-4 md:px-6">
+        <div
+          className={`pointer-events-auto mx-auto flex h-[60px] w-full max-w-6xl items-center justify-between gap-4 rounded-full pl-3 pr-2.5 sm:pl-4 sm:pr-3 md:grid md:h-[64px] md:grid-cols-[1fr_auto_1fr] md:items-center md:pl-5 md:pr-3.5 ${styles.floatingPill ?? ''}`}
+        >
           {/* Left: Brand Logo -> Beranda ("/") */}
           <Link
             href="/"
@@ -838,7 +835,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   </button>
 
                   {isOpen && group.items && (
-                    <div className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-2">
+                    <div className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3.5">
                       <div
                         id={`nav-panel-${group.id}`}
                         className={`w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.dropdownPop ?? ''}`}
@@ -994,6 +991,9 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         </div>
       </header>
 
+      {/* Safe top clearance beneath the fixed floating pill (Hero handles its own offset on "/") */}
+      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-[80px] md:h-[92px]'} />
+
       {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items) ───────── */}
       <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
         <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-1.5 pt-1.5">
@@ -1138,17 +1138,25 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 </p>
                 <div className="grid gap-1">
                   <Link
-                    href="/home"
-                    onClick={(event) => handleHrefClick(event, '/home')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
+                    href="/"
+                    onClick={(event) => handleHrefClick(event, '/')}
+                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
+                      pathname === '/' ? 'bg-[#F3F1ED]' : ''
+                    }`}
                   >
-                    <SubNavIcon iconKey="home" active={pathname === '/home' && (!activeModule || activeModule === 'home')} />
+                    <SubNavIcon iconKey="home" active={pathname === '/'} />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
-                        Beranda Workspace
+                      <span
+                        className={`block text-sm font-semibold ${
+                          pathname === '/'
+                            ? 'text-[#EA580C]'
+                            : 'text-[#18181B] group-hover:text-[#EA580C]'
+                        }`}
+                      >
+                        Beranda
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
-                        Ringkasan modul rakit PC, market &amp; layanan ViciTech.
+                        Halaman utama ekosistem Circular IT &amp; Hardware QC ViciTech.
                       </span>
                     </span>
                   </Link>

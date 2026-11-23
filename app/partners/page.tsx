@@ -66,7 +66,7 @@ export default async function PartnersPage(): Promise<ReactElement> {
             <span>Chat Teknisi via DM</span>
           </Link>
           <Link
-            href="/home?tab=tradein"
+            href="/trade-in"
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <MapPin className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />

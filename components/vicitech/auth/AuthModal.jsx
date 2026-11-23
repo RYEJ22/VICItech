@@ -94,9 +94,8 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
     onClose();
 
     if (typeof window !== "undefined") {
-      if (window.location.pathname === "/home") {
+      if (window.location.pathname !== "/community") {
         onNavigate?.("community");
-      } else if (window.location.pathname !== "/community") {
         router.push("/community");
       }
     }

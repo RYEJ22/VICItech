@@ -35,10 +35,10 @@ export default function PartnersError({ error, reset }: PartnersErrorProps): Rea
                 <span>Muat Ulang Halaman</span>
               </button>
               <Link
-                href="/home"
+                href="/"
                 className="inline-flex min-h-11 items-center rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary transition hover:bg-canvas"
               >
-                Kembali ke Workspace
+                Kembali ke Beranda
               </Link>
             </div>
           </div>

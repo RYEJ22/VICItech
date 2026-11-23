@@ -93,25 +93,22 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
         id: 'toolkit-builder',
         label: 'Preset Builder',
         description: 'Rakit PC otomatis dengan cek kompatibilitas soket & TDP.',
-        href: '/home?tab=builder',
+        href: '/builder',
         iconKey: 'builder',
-        targetModule: 'builder',
       },
       {
         id: 'toolkit-bottleneck',
         label: 'Bottleneck Analyzer',
         description: 'Hitung keseimbangan performa CPU & GPU.',
-        href: '/home?tab=bottleneck',
+        href: '/bottleneck',
         iconKey: 'bottleneck',
-        targetModule: 'bottleneck',
       },
       {
         id: 'toolkit-versus',
         label: 'Versus Arena',
         description: 'Bandingkan spesifikasi hardware head-to-head.',
-        href: '/home?tab=versus',
+        href: '/versus',
         iconKey: 'versus',
-        targetModule: 'versus',
       },
       {
         id: 'toolkit-upgrade',
@@ -140,9 +137,8 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
         id: 'service-tradein',
         label: 'Trade-In & Refurbished',
         description: 'Tukar tambah perangkat lama & unit bekas terverifikasi.',
-        href: '/home?tab=tradein',
+        href: '/trade-in',
         iconKey: 'tradein',
-        targetModule: 'tradein',
       },
       {
         id: 'service-partners',
@@ -167,12 +163,11 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
 export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   {
     id: 'home',
-    href: '/home',
+    href: '/',
     label: 'Beranda',
     shortLabel: 'Beranda',
     iconKey: 'home',
     matchModules: ['home', 'account'],
-    targetModule: 'home',
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
   },
   {
@@ -187,22 +182,20 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
   },
   {
     id: 'builder',
-    href: '/home?tab=builder',
+    href: '/builder',
     label: 'Toolkit',
     shortLabel: 'Toolkit',
     iconKey: 'builder',
     matchModules: ['builder', 'bottleneck', 'versus'],
-    targetModule: 'builder',
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
   },
   {
     id: 'tradein',
-    href: '/home?tab=tradein',
+    href: '/trade-in',
     label: 'Layanan & QC',
     shortLabel: 'Layanan',
     iconKey: 'tradein',
     matchModules: ['tradein', 'qc', 'partners'],
-    targetModule: 'tradein',
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
   },
   {
@@ -221,11 +214,10 @@ export const MOBILE_BOTTOM_NAV_ITEMS: readonly NavItem[] = PRIMARY_NAV_ITEMS;
 
 export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
   {
-    label: 'Buka Beranda Workspace',
-    hint: 'Ringkasan ekosistem ViciTech',
-    href: '/home',
-    module: 'home',
-    keys: 'home beranda workspace dashboard overview',
+    label: 'Buka Beranda ViciTech',
+    hint: 'Ringkasan ekosistem Circular IT & Hardware QC',
+    href: '/',
+    keys: 'home beranda utama landing overview',
   },
   {
     label: 'Etalase Market — Siap Kirim',
@@ -254,22 +246,19 @@ export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
   {
     label: 'Preset Builder',
     hint: 'Rakit PC otomatis dengan cek kompatibilitas soket & TDP',
-    href: '/home?tab=builder',
-    module: 'builder',
+    href: '/builder',
     keys: 'preset builder configurator cbt lab b2s b2b b2c wattage',
   },
   {
     label: 'Bottleneck Analyzer',
     hint: 'Hitung keseimbangan performa CPU & GPU',
-    href: '/home?tab=bottleneck',
-    module: 'bottleneck',
+    href: '/bottleneck',
     keys: 'bottleneck analyzer cpu gpu fps kalkulator performa',
   },
   {
     label: 'Versus Arena',
     hint: 'Bandingkan spesifikasi hardware head-to-head',
-    href: '/home?tab=versus',
-    module: 'versus',
+    href: '/versus',
     keys: 'versus arena compare bandingkan hardware head-to-head',
   },
   {
@@ -281,8 +270,7 @@ export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
   {
     label: 'Trade-In & Refurbished',
     hint: 'Tukar tambah perangkat lama & unit bekas terverifikasi',
-    href: '/home?tab=tradein',
-    module: 'tradein',
+    href: '/trade-in',
     keys: 'tradein buyback sell valuation refurbished',
   },
   {
@@ -366,7 +354,7 @@ export function mapNotificationRow(row: DatabaseNotificationRow): NavNotificatio
       ? { href: '/messages', module: 'messages' }
       : normalizedType === 'like' || normalizedType === 'comment'
         ? { href: '/community', module: 'community' }
-        : { href: '/home', module: 'home' };
+        : { href: '/' };
 
   const defaultTitle =
     normalizedType === 'dm'
@@ -420,7 +408,18 @@ export function resolveActiveUmbrellaId(
   if (pathname.startsWith('/market')) {
     return activeView === 'upgrade' ? 'toolkit' : 'market';
   }
-  if (pathname.startsWith('/qc-panel') || pathname.startsWith('/partners')) {
+  if (
+    pathname.startsWith('/builder') ||
+    pathname.startsWith('/bottleneck') ||
+    pathname.startsWith('/versus')
+  ) {
+    return 'toolkit';
+  }
+  if (
+    pathname.startsWith('/trade-in') ||
+    pathname.startsWith('/qc-panel') ||
+    pathname.startsWith('/partners')
+  ) {
     return 'services';
   }
   if (pathname.startsWith('/community')) {
@@ -469,11 +468,24 @@ export function resolveActiveNavId(
     if (moduleMatch) return moduleMatch.id;
   }
 
-  if (!pathname || pathname === '/') return null;
+  if (!pathname) return null;
+  if (pathname === '/') return 'home';
   if (pathname.startsWith('/market')) return 'market';
-  if (pathname.startsWith('/partners') || pathname.startsWith('/qc-panel')) return 'tradein';
+  if (
+    pathname.startsWith('/builder') ||
+    pathname.startsWith('/bottleneck') ||
+    pathname.startsWith('/versus')
+  ) {
+    return 'builder';
+  }
+  if (
+    pathname.startsWith('/trade-in') ||
+    pathname.startsWith('/partners') ||
+    pathname.startsWith('/qc-panel')
+  ) {
+    return 'tradein';
+  }
   if (pathname.startsWith('/community')) return 'community';
-  if (pathname.startsWith('/home')) return 'home';
   return null;
 }
 

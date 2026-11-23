@@ -49,7 +49,7 @@ export const HERO_SLIDES: HeroSlides = [
       'Marketplace dan ekosistem Circular IT terverifikasi telemetri ESP32—dari rakitan siap pakai, analisis bottleneck & upgrade, hingga tukar tambah transparan dalam satu tempat.',
     description: 'Workstation desktop dan rakitan PC kustom terkurasi ViciTech',
     primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
-    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/builder' },
     objectPosition: '50% 50%',
     zoomOrigin: 'center',
   },
@@ -71,7 +71,7 @@ export const HERO_SLIDES: HeroSlides = [
       'Cek ekspansi RAM dan slot NVMe maksimal, deteksi bottleneck CPU/GPU, dan tukar tambah perangkat lama dengan unit refurbished terverifikasi.',
     description: 'Layanan servis motherboard laptop dan perangkat oleh teknisi mitra ViciTech',
     primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
-    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/builder' },
     objectPosition: '50% 40%',
     zoomOrigin: 'bottom right',
   },
@@ -82,7 +82,7 @@ export const HERO_SLIDES: HeroSlides = [
       'Susun preset B2C, B2B, dan B2S lengkap dengan kalkulasi daya PSU real-time, sertifikat QC digital, dan pelacakan siklus pakai.',
     description: 'Mesin telemetri IoT QC, sertifikasi unit, dan pelacakan siklus perangkat',
     primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
-    secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
+    secondaryCta: { label: 'Mulai Rakit PC', href: '/builder' },
     objectPosition: '50% 50%',
     zoomOrigin: 'top right',
   },
@@ -95,5 +95,5 @@ export const HERO_CONTENT: HeroContent = {
   description:
     'Marketplace dan ekosistem Circular IT terverifikasi telemetri ESP32—dari rakitan siap pakai, analisis bottleneck & upgrade, hingga tukar tambah transparan dalam satu tempat.',
   primaryCta: { label: 'Jelajahi Market QC', href: '/market' },
-  secondaryCta: { label: 'Mulai Rakit PC', href: '/home?tab=builder' },
+  secondaryCta: { label: 'Mulai Rakit PC', href: '/builder' },
 };
