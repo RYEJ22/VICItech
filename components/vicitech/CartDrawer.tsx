@@ -79,7 +79,7 @@ export function CartDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-[72] flex justify-end bg-black/45"
+      className="fixed inset-0 z-[72] flex justify-end bg-black/40"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -143,7 +143,7 @@ export function CartDrawer({
                 <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </span>
               <h3 className="mt-4 font-serif text-lg font-semibold text-[#18181B]">
-                Keranjang Anda masih kosong
+                Keranjang masih kosong
               </h3>
               <p className="mt-1.5 max-w-[30ch] text-xs leading-relaxed text-[#71717A]">
                 Tambahkan PC rakitan, laptop lolos IoT QC, atau komponen dari katalog Market untuk mulai checkout.

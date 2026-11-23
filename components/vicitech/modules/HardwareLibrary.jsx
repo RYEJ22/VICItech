@@ -3,7 +3,6 @@ import {
   Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
   CheckCircle2, ShieldCheck, Zap, Plus, FileText, Check, X,
 } from "lucide-react";
-import { useCheckout } from "@/context/CheckoutContext";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { listHardwareComponents } from "@/lib/hardware/components";
 
@@ -187,7 +186,6 @@ const Delta = ({ d }) => <span className="text-xs tabular-nums text-secondary">{
 /* ───────────────────────── Product card ───────────────────────── */
 
 const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBuilder, onCompare, onSheet, onBuilder, onUpgrade }) {
-  const { triggerCheckout } = useCheckout();
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
@@ -226,13 +224,28 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
         </dl>
       </div>
       <div className="mt-5 space-y-2 pt-2">
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={() => onSheet(p.id)} className={secondary}>
+            <FileText className="h-3.5 w-3.5 text-secondary" />
+            <span>Lihat Datasheet</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={inBuilder}
+            onClick={() => onBuilder(p.id)}
+            className={`${secondary} ${inBuilder ? "border-accent-primary/40 bg-accent-subtle text-accent-hover font-semibold" : ""}`}
+          >
+            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-accent-primary" /> : <Plus className="h-3.5 w-3.5" />}
+            <span>{inBuilder ? "Di Preset Builder" : "+ ke Preset Builder"}</span>
+          </button>
+        </div>
         <button
           type="button"
           aria-pressed={inCompare}
           disabled={blocked}
           onClick={() => onCompare(p)}
           title={blocked ? `Bandingkan hingga ${MAX_COMPARE} unit` : undefined}
-          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
+          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${focusRing} ${
             inCompare
               ? "bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover"
               : blocked
@@ -241,30 +254,8 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
           }`}
         >
           {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />}
-          <span>{inCompare ? "Dalam Perbandingan" : "Tambah ke Perbandingan"}</span>
+          <span>{inCompare ? "Dalam Perbandingan" : "Bandingkan"}</span>
         </button>
-        <button type="button" onClick={() => onSheet(p.id)} className={`${secondary} w-full`}>
-          <FileText className="h-3.5 w-3.5 text-secondary" />
-          <span>Lihat Datasheet Lengkap</span>
-        </button>
-        <div className="grid grid-cols-2 gap-2">
-          <button type="button" aria-pressed={inBuilder} onClick={() => onBuilder(p.id)} className={`${secondary} ${inBuilder ? "border-accent-primary/40 bg-accent-subtle text-accent-hover font-semibold" : ""}`}>
-            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-accent-primary" /> : <Plus className="h-3.5 w-3.5" />}
-            <span>{inBuilder ? "Di Builder" : "Ke Builder"}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => triggerCheckout({
-              title: p.name,
-              price: p.price,
-              type: "direct_buy",
-              specs: p.specs,
-            })}
-            className={`inline-flex min-h-11 items-center justify-center gap-1 rounded-lg bg-accent-cta px-2.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-cta-hover ${focusRing}`}
-          >
-            Beli Sekarang
-          </button>
-        </div>
         {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
           <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}>
             <Zap className="h-3.5 w-3.5 text-accent-primary" />
@@ -783,7 +774,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
       </div>
 
       {barVisible && (
-        <div className="fixed inset-x-0 bottom-16 z-30 border-t border-default bg-surface/95 shadow-lg backdrop-blur-md md:bottom-0">
+        <div className="fixed inset-x-0 bottom-14 z-30 border-t border-default bg-surface shadow-lg md:bottom-0">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
               {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-secondary">Membandingkan {cfg.short}:</span>}

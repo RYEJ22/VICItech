@@ -132,7 +132,7 @@ export const ORDER_CANCEL_REASONS: readonly string[] = [
   'Salah pilih spesifikasi',
   'Ubah metode pembayaran',
   'Ingin ganti produk lain',
-  'Ingin menggabungkan dengan pesanan lain',
+  'Lainnya',
 ] as const;
 
 export interface OrderStatusMeta {
