@@ -128,7 +128,17 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
   };
 
   const completePostAuth = async (supabase, activeUser) => {
-    await fetchOrEnsureUserProfile(supabase, activeUser).catch(() => null);
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    const signedInUser = session?.user || activeUser;
+    if (!session || !signedInUser) {
+      throw new Error("Your email was verified, but a session could not be started. Please sign in again.");
+    }
+
+    await fetchOrEnsureUserProfile(supabase, signedInUser).catch(() => null);
     router.refresh();
     onClose();
 
@@ -409,6 +419,12 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
               <button type="button" onClick={() => { setAuthMethod("password"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "password" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Email + password</button>
               <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Sign in with 8-digit OTP code</button>
             </div>
+          )}
+
+          {step === "credentials" && mode === "sign-up" && (
+            <p className="rounded-lg border border-status-sample/30 bg-status-sample/10 p-3 text-sm text-primary">
+              Creating and verifying a new account will sign this browser into that account, replacing any current Supabase session.
+            </p>
           )}
 
           {step === "credentials" && authMethod === "otp" ? (
