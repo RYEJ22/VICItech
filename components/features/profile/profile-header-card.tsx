@@ -79,7 +79,7 @@ export function ProfileHeaderCard({
     >
       {/* Cover Banner */}
       <div
-        className={`relative h-36 w-full overflow-hidden rounded-t-xl sm:h-48 ${
+        className={`relative h-36 w-full overflow-hidden rounded-t-xl sm:h-44 ${
           banner.kind === 'preset' ? PRESET_CLASS_MAP[banner.presetId] ?? '' : 'bg-subtle'
         }`}
       >
@@ -93,17 +93,21 @@ export function ProfileHeaderCard({
             className="h-full w-full object-cover"
           />
         )}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/25"
+        />
         {isPreview && (
-          <span className="absolute left-3 top-3 rounded-md border border-default bg-surface/90 px-2.5 py-1 font-mono text-[11px] font-semibold text-primary shadow-sm">
+          <span className="absolute left-3 top-3 rounded-lg border border-white/50 bg-[#FAF8F5]/95 px-3 py-1.5 font-mono text-[11px] font-semibold text-primary shadow-md backdrop-blur-sm">
             Pratinjau Langsung
           </span>
         )}
       </div>
 
       {/* Identity & Stats Body */}
-      <div className="px-5 pb-6 pt-3 sm:px-7">
+      <div className="px-5 pb-6 pt-4 sm:px-7 sm:pt-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="-mt-16 flex flex-col gap-3 sm:-mt-20 sm:flex-row sm:items-end sm:gap-5">
+          <div className="-mt-14 flex min-w-0 flex-col gap-3 sm:-mt-16 sm:flex-row sm:items-end sm:gap-5">
             {/* Overlapping Circular Avatar */}
             <div className={`relative shrink-0 self-start rounded-full ${styles.avatarWrapper ?? ''}`}>
               <div
@@ -139,12 +143,12 @@ export function ProfileHeaderCard({
 
             {/* Name, Username, Role Badge & Discord-style Status Pill */}
             <div className="min-w-0 pt-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <h1 className="min-w-0 truncate font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
                   {profile.displayName}
                 </h1>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${
                     roleLabel === 'Admin'
                       ? 'border-accent-primary/30 bg-accent-subtle text-accent-cta'
                       : roleLabel === 'Builder'
@@ -243,25 +247,25 @@ export function ProfileHeaderCard({
         </div>
 
         {/* Compact Stats Row */}
-        <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-default pt-4">
-          <div className="rounded-lg border border-default bg-canvas px-3 py-2.5">
-            <dt className="text-[11px] font-medium text-secondary">Postingan Komunitas</dt>
-            <dd className="mt-0.5 text-lg font-semibold text-primary">
+        <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-default pt-4 sm:gap-3">
+          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
+            <dt className="text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">Postingan Komunitas</dt>
+            <dd className="text-lg font-semibold text-primary">
               <AnimatedNumber value={stats.communityPosts} format="number" />
             </dd>
           </div>
-          <div className="rounded-lg border border-default bg-canvas px-3 py-2.5">
-            <dt className="text-[11px] font-medium text-secondary">Preset Tersimpan</dt>
-            <dd className="mt-0.5 text-lg font-semibold text-primary">
+          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
+            <dt className="text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">Preset Tersimpan</dt>
+            <dd className="text-lg font-semibold text-primary">
               <AnimatedNumber value={stats.savedPresets} format="number" />
             </dd>
           </div>
-          <div className="rounded-lg border border-default bg-canvas px-3 py-2.5">
-            <dt className="flex items-center gap-1 text-[11px] font-medium text-secondary">
+          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
+            <dt className="flex items-center gap-1 text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">
               <Sparkles className="h-3 w-3 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
               <span>Bergabung</span>
             </dt>
-            <dd className="mt-0.5 truncate font-mono text-sm font-semibold text-primary">
+            <dd className="truncate font-mono text-xs font-semibold text-primary sm:text-sm">
               {formatProfileJoinDate(profile.createdAt)}
             </dd>
           </div>

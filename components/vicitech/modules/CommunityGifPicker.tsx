@@ -238,11 +238,11 @@ export function CommunityGifPicker({
   const debouncedQuery = useDebouncedValue(query, 300);
 
   useEffect(() => {
-    if (isOpen) setQuery('');
-  }, [isOpen]);
-
-  useEffect(() => {
     if (!isOpen) return undefined;
+    if (query.trim() !== debouncedQuery.trim()) {
+      setIsLoadingGifs(true);
+      return undefined;
+    }
 
     const controller = new AbortController();
     let active = true;
@@ -272,9 +272,10 @@ export function CommunityGifPicker({
       active = false;
       controller.abort();
     };
-  }, [debouncedQuery, isOpen]);
+  }, [debouncedQuery, isOpen, query]);
 
   const handleClose = useCallback(() => {
+    setQuery('');
     onClose();
     if (typeof window !== 'undefined') {
       window.requestAnimationFrame(() => {
@@ -303,6 +304,7 @@ export function CommunityGifPicker({
       if (!(target instanceof Node)) return;
       if (panelRef.current?.contains(target)) return;
       if (triggerRef?.current?.contains(target)) return;
+      setQuery('');
       onClose();
     };
 
@@ -317,6 +319,7 @@ export function CommunityGifPicker({
   const handlePickGif = (gif: ChatGifItem): void => {
     if (disabled) return;
     setUrlError('');
+    setQuery('');
     onSelectGif({ url: gif.url, title: gif.title });
     onClose();
   };
@@ -330,6 +333,7 @@ export function CommunityGifPicker({
     }
     setUrlError('');
     setCustomUrl('');
+    setQuery('');
     onSelectGif({ url: result.url, title: 'GIF Tautan' });
     onClose();
   };
