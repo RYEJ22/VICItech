@@ -364,7 +364,7 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
       id="community-composer"
       ref={sectionRef}
       aria-labelledby="composer-title"
-      className="scroll-mt-24 rounded-xl border border-default bg-surface p-6 shadow-sm"
+      className="scroll-mt-24 rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-6"
     >
       <h2 id="composer-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
         <PenSquare className="h-5 w-5 text-accent-primary" /> Bagikan Rakitan atau Ajukan Pertanyaan
@@ -628,7 +628,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
   const action = `inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
   return (
-    <article className="rounded-xl border border-default bg-surface p-6 shadow-sm">
+    <article className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-6">
       <header className="flex items-start gap-3">
         <Avatar author={author} />
         <div className="min-w-0 flex-1">
@@ -901,8 +901,8 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
   return (
-    <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
-      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+    <aside className="space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
+      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
         <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
           <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
           <span>Kontributor Aktif</span>
@@ -937,7 +937,7 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
         )}
       </section>
 
-      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
         <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
           <BookOpen className="h-5 w-5 text-accent-primary" aria-hidden="true" />
           <span>Topik Panduan Cepat</span>
@@ -953,7 +953,7 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
         </ul>
       </section>
 
-      <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
         <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
           <Tag className="h-5 w-5 text-accent-primary" aria-hidden="true" />
           <span>Tag Hardware Populer</span>
@@ -1510,7 +1510,7 @@ export default function CommunityHub() {
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10">
         <header>
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
@@ -1520,24 +1520,24 @@ export default function CommunityHub() {
               Berbagi rakitan &amp; solusi teknis
             </span>
           </div>
-          <h1 className="mt-3 flex items-center gap-3 font-serif text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-            <MessageSquare className="h-8 w-8 text-accent-primary" /> Komunitas &amp; Pusat Pengetahuan
+          <h1 className="mt-2.5 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+            <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> Komunitas &amp; Pusat Pengetahuan
           </h1>
-          <p className="mt-3 max-w-2xl text-secondary">
+          <p className="mt-2.5 max-w-2xl text-sm text-secondary sm:mt-3 sm:text-base">
             Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
           </p>
           <button
             type="button"
             onClick={handleFocusComposer}
-            className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-5 py-2.5 text-sm font-medium text-accent-hover transition hover:bg-accent-subtle ${focusRing}`}
+            className={`mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-4 py-2 text-xs font-medium text-accent-hover transition hover:bg-accent-subtle sm:mt-5 sm:min-h-11 sm:px-5 sm:py-2.5 sm:text-sm ${focusRing}`}
           >
             <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
             <span>Buat Postingan Lengkap</span>
           </button>
         </header>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
+        <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-3">
+          <div className="space-y-3.5 sm:space-y-5 lg:col-span-2">
             <Composer
               onPublish={publish}
               sectionRef={composerSectionRef}
@@ -1547,33 +1547,33 @@ export default function CommunityHub() {
 
             <div className="relative">
               <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-3 pl-12 pr-4 text-sm text-primary placeholder:text-secondary ${focusRing}`} />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary sm:left-4 sm:h-5 sm:w-5" />
+              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-2.5 pl-10 pr-4 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`} />
             </div>
 
-            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="flex flex-wrap gap-2">
+            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="no-scrollbar -mx-3 flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
               {CAT_ORDER.map((k) => {
                 const Icon = CATEGORIES[k].icon;
                 const active = category === k;
                 return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-10 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
-                    <Icon className="h-4 w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors sm:min-h-10 sm:gap-2 sm:px-3.5 sm:text-sm ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                    <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
                   </button>
                 );
               })}
             </div>
 
-            <p className="text-sm text-secondary" aria-live="polite">
+            <p className="text-xs text-secondary sm:text-sm" aria-live="polite">
               Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
 
             {isLoadingPosts ? (
-              <div className="space-y-4" aria-label="Memuat postingan komunitas">
+              <div className="space-y-3 sm:space-y-4" aria-label="Memuat postingan komunitas">
                 <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
                 <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
               </div>
             ) : paginatedPosts.length ? (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {paginatedPosts.map((p) => (
                   <PostCard
                     key={p.id}
@@ -1604,7 +1604,7 @@ export default function CommunityHub() {
                 )}
               </div>
             ) : (
-              <div className="rounded-xl border border-dashed border-default bg-surface p-10 text-center">
+              <div className="rounded-xl border border-dashed border-default bg-surface p-6 text-center sm:p-10">
                 <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
                 <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
                 <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>Reset Filter</button>

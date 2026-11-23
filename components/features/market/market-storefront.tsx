@@ -134,9 +134,9 @@ export function MarketStorefront({
   };
 
   return (
-    <div className="mx-auto max-w-shell space-y-6 px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-shell space-y-4 px-3 py-5 sm:space-y-6 sm:px-6 sm:py-8">
       {(onOpenLibrary || onOpenBuilder) && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:gap-4 sm:p-5">
           <p className="max-w-[68ch] text-sm leading-relaxed text-secondary">
             Pilih unit rakitan siap pakai, laptop lulus IoT QC, atau komponen terverifikasi. Klik
             kartu produk mana saja untuk melihat detail lengkap, spesifikasi, dan produk serupa.
@@ -170,7 +170,7 @@ export function MarketStorefront({
         <div
           role="region"
           aria-label="Ringkasan keranjang Market"
-          className="vt-pop flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent-primary/35 bg-accent-subtle px-4 py-3 shadow-sm"
+          className="vt-pop flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent-primary/35 bg-accent-subtle px-3 py-2.5 shadow-sm sm:px-4 sm:py-3"
         >
           <div className="flex flex-wrap items-center gap-2.5 text-sm text-primary">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-surface text-accent-cta shadow-sm">
@@ -214,7 +214,7 @@ export function MarketStorefront({
       )}
 
       {/* Search, Stock Status, IoT QC Toggle & Sort Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-default bg-surface p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex flex-col gap-2.5 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-3 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="relative flex-1">
           <label htmlFor={searchInputId} className="sr-only">
             Cari produk di ViciTech Market
@@ -230,11 +230,11 @@ export function MarketStorefront({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Cari PC build, ThinkPad, GPU, atau komponen…"
-            className="min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+            className="min-h-10 w-full rounded-lg border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <div
             role="group"
             aria-label="Filter ketersediaan stok"
@@ -248,7 +248,7 @@ export function MarketStorefront({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setStockFilter(option.id)}
-                  className={`vt-btn-tactile min-h-11 rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
+                  className={`vt-btn-tactile min-h-9 rounded-md px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 ${
                     active
                       ? 'bg-accent-cta font-semibold text-accent-foreground'
                       : 'text-secondary hover:bg-surface hover:text-primary'
@@ -284,7 +284,7 @@ export function MarketStorefront({
                   setSortBy(value);
                 }
               }}
-              className="min-h-11 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+              className="min-h-10 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
             >
               <option value="newest">Terbaru</option>
               <option value="price_asc">Harga Terendah</option>
@@ -295,18 +295,18 @@ export function MarketStorefront({
       </div>
 
       {/* Category Filter Pills + Live Count */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3">
         <div
           role="tablist"
           aria-label="Filter kategori produk market"
-          className="flex flex-wrap gap-2"
+          className="no-scrollbar -mx-3 flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0"
         >
           <button
             type="button"
             role="tab"
             aria-selected={selectedCategory === 'all'}
             onClick={() => setSelectedCategory('all')}
-            className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
+            className={`vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
               selectedCategory === 'all'
                 ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
                 : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
@@ -328,7 +328,7 @@ export function MarketStorefront({
                 role="tab"
                 aria-selected={active}
                 onClick={() => setSelectedCategory(category)}
-                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
+                className={`vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
                   active
                     ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
                     : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
@@ -356,7 +356,7 @@ export function MarketStorefront({
       {initialProducts.length === 0 ? (
         <section
           aria-live="polite"
-          className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm sm:p-10"
+          className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
         >
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-default bg-subtle text-accent-primary">
             <Package className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
@@ -395,7 +395,7 @@ export function MarketStorefront({
       ) : filteredProducts.length === 0 ? (
         <section
           aria-live="polite"
-          className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm sm:p-10"
+          className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
         >
           <p className="font-serif text-2xl font-semibold text-primary">
             Produk tidak ditemukan
@@ -416,7 +416,7 @@ export function MarketStorefront({
           )}
         </section>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map((product, index) => (
             <MarketProductCard
               key={product.id}

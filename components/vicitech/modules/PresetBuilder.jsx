@@ -314,7 +314,7 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
   return (
     <li className="rounded-xl border border-default bg-surface shadow-sm">
-      <div className="flex flex-wrap items-center gap-3 p-4">
+      <div className="flex flex-wrap items-center gap-2.5 p-3.5 sm:gap-3 sm:p-4">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-accent-primary">
           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
         </span>
@@ -817,23 +817,23 @@ export default function PresetBuilder({
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 lg:pb-12">
+      <div className="mx-auto max-w-7xl px-3 pb-28 pt-5 sm:px-6 sm:pt-10 lg:pb-12">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
             Rakit dengan Kepastian Kompatibilitas
           </span>
         </div>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
-          <Sliders className="h-8 w-8 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+        <h1 className="mt-2.5 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+          <Sliders className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
           <span>Smart Preset Builder &amp; Konfigurator</span>
         </h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-secondary">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary sm:mt-4 sm:text-base">
           Mulai dari preset teruji sesuai segmen kebutuhan, ganti komponen apa saja, dan pantau harga, estimasi beban daya PSU, serta Buffer Pasar JIT 5% secara langsung.
         </p>
 
         {/* Pemilih Preset */}
-        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-8 grid gap-4 md:grid-cols-3">
+        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-5 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3">
           {Object.values(PRESETS).map((p) => {
             const active = p.id === presetId;
             const Icon = p.icon;
@@ -844,7 +844,7 @@ export default function PresetBuilder({
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`vt-card-interactive flex flex-col rounded-xl border p-5 text-left ${focusRing} ${
+                className={`vt-card-interactive flex flex-col rounded-xl border p-3.5 text-left sm:p-5 ${focusRing} ${
                   active
                     ? "border-accent-primary bg-accent-subtle shadow-sm"
                     : "border-default bg-surface hover:bg-subtle"
@@ -875,7 +875,7 @@ export default function PresetBuilder({
           })}
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+        <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-3">
           {/* Daftar Komponen */}
           <section className="lg:col-span-2" aria-label="Daftar komponen rakitan">
             <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -900,7 +900,7 @@ export default function PresetBuilder({
                 <span>{autoNote}</span>
               </p>
             )}
-            <ul className="space-y-3">
+            <ul className="space-y-2.5 sm:space-y-3">
               {calc.rows.map((r) => (
                 <PartRow
                   key={r.key}
@@ -917,8 +917,8 @@ export default function PresetBuilder({
           </section>
 
           {/* Ringkasan Langsung */}
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan konfigurasi">
-            <div className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+          <aside className="space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan konfigurasi">
+            <div className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
               <p className="text-sm text-secondary">Harga dasar per unit</p>
               <p className="mt-1 font-mono text-2xl font-semibold text-primary">
                 <AnimatedNumber value={calc.unit} format="currency" />
@@ -972,7 +972,7 @@ export default function PresetBuilder({
               </div>
             </div>
 
-            <div className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+            <div className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 font-medium text-primary">
                   <Zap className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
@@ -1012,7 +1012,7 @@ export default function PresetBuilder({
             </button>
 
             {saved.length > 0 && (
-              <div className="rounded-xl border border-default bg-surface p-4 shadow-sm">
+              <div className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-4">
                 <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
                   <Bookmark className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                   <span>Preset Tersimpan Sesi Ini</span>
@@ -1038,14 +1038,14 @@ export default function PresetBuilder({
       </div>
 
       {/* Bilah aksi mobile */}
-      <div className="fixed inset-x-0 bottom-16 z-20 flex items-center gap-3 border-t border-default bg-surface px-4 py-3 shadow-sm md:bottom-0 lg:hidden">
+      <div className="fixed inset-x-0 bottom-14 z-20 flex items-center gap-2.5 border-t border-default bg-surface px-3 py-2 shadow-sm sm:gap-3 sm:px-4 sm:py-2.5 md:bottom-0 lg:hidden">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-secondary">Total {qtyLabel} (termasuk 5% JIT)</p>
-          <p className="truncate font-mono font-semibold text-accent-cta">
+          <p className="text-[11px] leading-tight text-secondary">Total {qtyLabel} · inc. 5% JIT</p>
+          <p className="truncate font-mono text-sm font-semibold text-accent-cta sm:text-base">
             <AnimatedNumber value={calc.total} format="currency" />
           </p>
         </div>
-        <button type="button" onClick={() => setDrawer(true)} className={`vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}>
+        <button type="button" onClick={() => setDrawer(true)} className={`vt-btn-tactile inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-accent-cta px-3.5 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm ${focusRing}`}>
           <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           <span>Checkout</span>
         </button>

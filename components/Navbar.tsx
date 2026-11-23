@@ -71,7 +71,7 @@ const SHELL_ROUTES = ['/market', '/community'];
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
 const iconBtnBase =
-  `relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors ${focusRing}`;
+  `relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors md:h-10 md:w-10 ${focusRing}`;
 
 function NavIcon({
   iconKey,
@@ -139,13 +139,13 @@ function SubNavIcon({
 function BrandMark({ compact = false }: { readonly compact?: boolean }): ReactElement {
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-full bg-[#EA580C] text-white transition-all duration-300 ease-out motion-reduce:transition-none ${
-        compact ? 'h-8 w-8' : 'h-9 w-9'
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#EA580C] text-white transition-all duration-300 ease-out motion-reduce:transition-none ${
+        compact ? 'md:h-8 md:w-8' : 'md:h-9 md:w-9'
       }`}
     >
       <Cpu
-        className={`transition-all duration-300 ease-out motion-reduce:transition-none ${
-          compact ? 'h-4 w-4' : 'h-[18px] w-[18px]'
+        className={`h-4 w-4 transition-all duration-300 ease-out motion-reduce:transition-none ${
+          compact ? 'md:h-4 md:w-4' : 'md:h-[18px] md:w-[18px]'
         }`}
         strokeWidth={1.75}
         aria-hidden="true"
@@ -772,17 +772,17 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     <>
       {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
       <header
-        className={`pointer-events-none fixed inset-x-0 z-50 px-3 transition-all duration-300 ease-out motion-reduce:transition-none sm:px-4 md:px-6 ${
-          isScrolled ? 'top-2 md:top-2.5' : 'top-3 md:top-4'
+        className={`pointer-events-none fixed inset-x-0 top-0 z-50 px-0 transition-all duration-300 ease-out motion-reduce:transition-none md:px-6 ${
+          isScrolled ? 'md:top-2.5' : 'md:top-4'
         }`}
       >
         <div
-          className={`pointer-events-auto mx-auto flex w-full items-center justify-between rounded-full transition-all duration-300 ease-out motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center ${
+          className={`pointer-events-auto mx-auto flex h-14 w-full items-center justify-between gap-2 rounded-none px-3 transition-all duration-300 ease-out motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:rounded-full ${
             styles.floatingPill ?? ''
           } ${
             isScrolled
-              ? `${styles.floatingPillScrolled ?? ''} h-[52px] max-w-4xl gap-2.5 pl-2.5 pr-2 sm:pl-3 sm:pr-2.5 md:h-[54px] md:pl-4 md:pr-2.5`
-              : 'h-[60px] max-w-6xl gap-4 pl-3 pr-2.5 sm:pl-4 sm:pr-3 md:h-[66px] md:pl-5 md:pr-3.5'
+              ? `${styles.floatingPillScrolled ?? ''} md:h-[54px] md:max-w-4xl md:gap-2.5 md:pl-4 md:pr-2.5`
+              : 'md:h-[66px] md:max-w-6xl md:gap-4 md:pl-5 md:pr-3.5'
           }`}
         >
           {/* Left: Brand Logo -> Beranda ("/") */}
@@ -1031,21 +1031,21 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         </div>
       </header>
 
-      {/* Safe top clearance beneath the fixed floating pill (Hero handles its own offset on "/") */}
-      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-[80px] md:h-[92px]'} />
+      {/* Safe top clearance beneath the fixed header (Hero handles its own offset on "/") */}
+      <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-14 md:h-[92px]'} />
 
       {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items) ───────── */}
       <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
-        <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 px-1.5 pt-1.5">
+        <ul className="mx-auto grid h-14 max-w-lg grid-cols-5 items-center gap-0.5 px-1.5 py-1.5">
           {visibleBottomItems.map((item) => {
             const active = isActiveRoute(pathname, item.href, activeModule, activeView);
             return (
-              <li key={item.id}>
+              <li key={item.id} className="h-full">
                 <Link
                   href={item.href}
                   onClick={(event) => handleBottomNavClick(event, item)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] leading-tight transition-colors ${focusRing} ${
+                  className={`flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
                       ? 'bg-[#EA580C]/10 font-semibold text-[#EA580C]'
                       : 'font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]'
@@ -1053,7 +1053,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 >
                   <NavIcon
                     iconKey={item.iconKey}
-                    className={`h-5 w-5 ${active ? 'text-[#EA580C]' : 'text-[#71717A]'}`}
+                    className={`h-[18px] w-[18px] ${active ? 'text-[#EA580C]' : 'text-[#71717A]'}`}
                   />
                   <span className="truncate">{item.shortLabel}</span>
                 </Link>
