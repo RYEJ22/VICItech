@@ -10,12 +10,13 @@ import {
   type ReactElement,
   type RefObject,
 } from 'react';
-import { Film, Link2, Search, X } from 'lucide-react';
+import { Film, Link2, LoaderCircle, Search, X } from 'lucide-react';
 import {
-  CURATED_FALLBACK_GIFS,
+  fetchChatGifs,
   isAllowedGiphyMediaUrl,
   type ChatGifItem,
 } from '@/lib/chat/chat-media-catalog';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import communityStyles from './community-hub.module.css';
 
 export interface SelectedCommentGif {
@@ -37,7 +38,6 @@ export interface CommentGifDisplayProps {
   readonly className?: string;
 }
 
-const CURATED_COMMENT_GIFS: readonly ChatGifItem[] = CURATED_FALLBACK_GIFS.slice(0, 12);
 const COMMENT_GIF_MARKER_RE = /\[\[vt:gif:(https:\/\/[^\s\]]+)\]\]/;
 const MAX_COMMENT_GIF_URL_LENGTH = 2048;
 
@@ -228,10 +228,51 @@ export function CommunityGifPicker({
   disabled = false,
 }: CommunityGifPickerProps): ReactElement | null {
   const [query, setQuery] = useState('');
+  const [gifs, setGifs] = useState<readonly ChatGifItem[]>([]);
+  const [gifSource, setGifSource] = useState<'giphy' | 'fallback'>('fallback');
+  const [isLoadingGifs, setIsLoadingGifs] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [urlError, setUrlError] = useState('');
   const [openDownward, setOpenDownward] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const debouncedQuery = useDebouncedValue(query, 300);
+
+  useEffect(() => {
+    if (isOpen) setQuery('');
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const controller = new AbortController();
+    let active = true;
+    setIsLoadingGifs(true);
+
+    void fetchChatGifs({
+      query: debouncedQuery,
+      apiKey: process.env.NEXT_PUBLIC_GIPHY_API_KEY ?? '',
+      signal: controller.signal,
+    })
+      .then((result) => {
+        if (!active) return;
+        setGifs(result.items);
+        setGifSource(result.source);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (!active) return;
+        setGifs([]);
+        setGifSource('fallback');
+      })
+      .finally(() => {
+        if (active) setIsLoadingGifs(false);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [debouncedQuery, isOpen]);
 
   const handleClose = useCallback(() => {
     onClose();
@@ -273,17 +314,7 @@ export function CommunityGifPicker({
     };
   }, [handleClose, isOpen, onClose, triggerRef]);
 
-  const filteredGifs = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return CURATED_COMMENT_GIFS;
-    return CURATED_COMMENT_GIFS.filter(
-      (item) =>
-        item.title.toLowerCase().includes(q) ||
-        item.keywords.some((kw) => kw.toLowerCase().includes(q)),
-    );
-  }, [query]);
-
-  const handlePickCurated = (gif: ChatGifItem): void => {
+  const handlePickGif = (gif: ChatGifItem): void => {
     if (disabled) return;
     setUrlError('');
     onSelectGif({ url: gif.url, title: gif.title });
@@ -328,7 +359,7 @@ export function CommunityGifPicker({
           <Film className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
           <span className="text-xs font-semibold text-[#18181B]">Pilih GIF Komentar</span>
           <span className="rounded-full bg-[#FAF9F6] px-2 py-0.5 font-mono text-[10px] font-medium text-[#71717A] border border-[#E4E4E7]">
-            {CURATED_COMMENT_GIFS.length} Kurasi
+            {isLoadingGifs ? 'Memuat GIF' : gifSource === 'giphy' ? 'Trending GIPHY' : 'Koleksi Kurasi'}
           </span>
         </div>
         <button
@@ -354,30 +385,38 @@ export function CommunityGifPicker({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Cari GIF (mantap, coding, gaming, thermal)…"
-            aria-label="Cari GIF kurasi"
+            aria-label="Cari GIF"
             className="h-9 w-full rounded-lg border border-[#E4E4E7] bg-white pl-8 pr-3 text-xs text-[#18181B] placeholder:text-[#71717A] focus:border-[#EA580C] focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20"
           />
         </div>
       </div>
 
-      {/* Curated GIF Grid */}
+      {/* Live GIF Grid */}
       <div className={`max-h-[210px] overflow-y-auto p-2.5 ${communityStyles.feedScroll ?? ''}`}>
-        {filteredGifs.length > 0 ? (
+        {isLoadingGifs && gifs.length === 0 ? (
+          <div className="grid grid-cols-2 gap-2" aria-label="Memuat GIF">
+            {[0, 1, 2, 3].map((slot) => <div key={slot} className="h-24 animate-pulse rounded-xl border border-[#E4E4E7] bg-[#F3F1ED]" />)}
+          </div>
+        ) : gifs.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
-            {filteredGifs.map((gif) => (
+            {gifs.map((gif) => (
               <GifThumbOption
                 key={gif.id}
                 gif={gif}
                 disabled={disabled}
-                onPick={handlePickCurated}
+                onPick={handlePickGif}
               />
             ))}
           </div>
         ) : (
           <p className="py-6 text-center text-xs text-[#71717A]">
-            Tidak ada GIF yang cocok dengan &ldquo;{query.trim()}&rdquo;.
+            {query.trim()
+              ? `Tidak ada GIF yang cocok dengan “${debouncedQuery.trim()}”.`
+              : 'GIF belum tersedia. Coba lagi atau tempel tautan GIF langsung.'}
           </p>
         )}
+        {isLoadingGifs && gifs.length > 0 ? <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-[#71717A]"><LoaderCircle className="h-3 w-3 animate-spin" />Memperbarui hasil…</p> : null}
+        {gifSource === 'fallback' && gifs.length > 0 && !isLoadingGifs ? <p className="mt-2 text-center text-[10px] text-[#71717A]">Pencarian GIF live sedang tidak tersedia; menampilkan koleksi kurasi.</p> : null}
       </div>
 
       {/* Direct .gif URL Input (div instead of form to avoid nested forms) */}
