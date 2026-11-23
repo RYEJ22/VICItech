@@ -230,7 +230,7 @@ export function ProfileHeaderCard({
             <p className="text-sm text-secondary">
               {isOwner
                 ? 'Tambahkan bio singkat di tab Kustomisasi & Pengaturan agar anggota lain mengenal rakitan Anda.'
-                : 'Anggota ini belum menambahkan bio profil.'}
+                : 'Belum ada bio.'}
             </p>
           )}
 

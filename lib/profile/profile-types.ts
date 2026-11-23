@@ -314,10 +314,16 @@ export function normalizeProfileRecord(
   authFallback?: ProfileAuthFallback,
 ): UnifiedProfile {
   const row = toRecord(raw);
-  const meta = toRecord(authFallback?.metadata);
+  const rowId = readCleanStr(row, ['id']);
+  // Hanya gunakan authFallback apabila row milik user yang sama (atau row belum memiliki id pada mode self)
+  const canUseAuthFallback = Boolean(
+    authFallback && (!rowId || (authFallback.id && rowId === authFallback.id)),
+  );
+  const safeFallback = canUseAuthFallback ? authFallback : undefined;
+  const meta = toRecord(safeFallback?.metadata);
 
-  const id = readCleanStr(row, ['id']) ?? authFallback?.id ?? '';
-  const emailPrefix = (authFallback?.email ?? '').split('@')[0] ?? 'member';
+  const id = rowId ?? safeFallback?.id ?? '';
+  const emailPrefix = (safeFallback?.email ?? '').split('@')[0] ?? 'member';
   const sanitizedEmailPrefix = emailPrefix.toLowerCase().replace(/[^a-z0-9_]/g, '') || 'member';
   const usernameRaw =
     readCleanStr(row, ['username']) ??
@@ -350,7 +356,7 @@ export function normalizeProfileRecord(
 
   const createdAt =
     readCleanStr(row, ['created_at']) ??
-    authFallback?.createdAt ??
+    safeFallback?.createdAt ??
     readCleanStr(row, ['updated_at']);
   const updatedAt = readCleanStr(row, ['updated_at']);
   const role = readCleanStr(row, ['role']) ?? 'user';

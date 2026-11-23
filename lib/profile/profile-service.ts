@@ -125,7 +125,6 @@ export async function fetchOwnProfile(
 
 export async function fetchPublicProfileByUsername(
   username: string,
-  authFallback?: ProfileAuthFallback,
 ): Promise<{ readonly profile: UnifiedProfile | null; readonly error: string | null }> {
   const cleaned = username.trim().toLowerCase();
   if (!/^[a-z0-9_]{3,20}$/.test(cleaned)) {
@@ -158,7 +157,7 @@ export async function fetchPublicProfileByUsername(
         return { profile: null, error: null };
       }
       return {
-        profile: normalizeProfileRecord(legacyRes.data, authFallback),
+        profile: normalizeProfileRecord(legacyRes.data),
         error: null,
       };
     }
@@ -171,7 +170,7 @@ export async function fetchPublicProfileByUsername(
     }
 
     return {
-      profile: normalizeProfileRecord(data, authFallback),
+      profile: normalizeProfileRecord(data),
       error: null,
     };
   } catch (err: unknown) {

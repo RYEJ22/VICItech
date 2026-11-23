@@ -244,12 +244,7 @@ export function ProfileAccountHub({
         setStatus('not-found');
         return;
       }
-      const res = await fetchPublicProfileByUsername(cleanUsername, currentAuthUser ? {
-        id: currentAuthUser.id,
-        email: currentAuthUser.email,
-        createdAt: currentAuthUser.created_at,
-        metadata: currentAuthUser.user_metadata,
-      } : undefined);
+      const res = await fetchPublicProfileByUsername(cleanUsername);
       loadedProfile = res.profile;
       profileError = res.error;
     }
