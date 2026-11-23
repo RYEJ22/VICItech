@@ -1156,6 +1156,9 @@ export default function CommunityHub() {
   const [publishError, setPublishError] = useState("");
   const [currentUser, setCurrentUser] = useCurrentUser();
   const [profiles, setProfiles] = useState({});
+  const profilesRef = useRef(profiles);
+  profilesRef.current = profiles;
+  const userSearchReqIdRef = useRef(0);
   const [lightbox, setLightbox] = useState(null);
   const requestedProfiles = useRef(new Set());
   const likingIdsRef = useRef(new Set());
@@ -1176,6 +1179,23 @@ export default function CommunityHub() {
 
     const rawKeyword = debouncedQuery.trim().replace(/^@/, "");
     const safeKeyword = rawKeyword.replace(/[%_,()]/g, " ").trim();
+
+    const getKnownLocalMembers = () => {
+      const merged = [
+        ...Object.values(profilesRef.current || {}).map((row) =>
+          normalizeProfileMember(row, currentUser?.id),
+        ),
+        ...SAMPLE_DIRECTORY_MEMBERS,
+      ];
+      const seen = new Set();
+      return merged.filter((item) => {
+        const key = String(item.username || item.id || item.name || "").toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
     const filterLocalMembers = (list) => {
       if (!safeKeyword) return list.slice(0, 8);
       const q = safeKeyword.toLowerCase();
@@ -1189,22 +1209,8 @@ export default function CommunityHub() {
         .slice(0, 10);
     };
 
-    const cachedKnownMembers = [
-      ...Object.values(profiles).map((row) => normalizeProfileMember(row, currentUser?.id)),
-      ...SAMPLE_DIRECTORY_MEMBERS,
-    ];
-    const dedupKnown = (items) => {
-      const seen = new Set();
-      return items.filter((item) => {
-        const key = (item.username || item.id || item.name).toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    };
-
     if (!isSupabaseAuthConfigured) {
-      setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+      setUserResults(filterLocalMembers(getKnownLocalMembers()));
       setIsSearchingUsers(false);
       return undefined;
     }
@@ -1213,88 +1219,81 @@ export default function CommunityHub() {
     try {
       supabase = getSupabaseBrowserClient();
     } catch {
-      setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+      setUserResults(filterLocalMembers(getKnownLocalMembers()));
       setIsSearchingUsers(false);
       return undefined;
     }
 
-    let isActive = true;
+    const requestId = ++userSearchReqIdRef.current;
+
+    // Jika input kosong, tampilkan daftar anggota awal (limit 8) secara instan sambil menyegarkan dari Supabase
+    if (!safeKeyword) {
+      const initialLocal = filterLocalMembers(getKnownLocalMembers());
+      if (initialLocal.length > 0) {
+        setUserResults(initialLocal);
+      }
+    }
+
     const runUserSearch = async () => {
       setIsSearchingUsers(true);
       setUserSearchError("");
       try {
         let req = supabase
           .from("profiles")
-          .select("id, username, display_name, full_name, avatar_url, role, bio, status_text")
-          .limit(10);
+          .select("id, username, display_name, full_name, avatar_url, role")
+          .limit(safeKeyword ? 10 : 8);
 
         if (safeKeyword) {
           req = req.or(
             `full_name.ilike.%${safeKeyword}%,username.ilike.%${safeKeyword}%,display_name.ilike.%${safeKeyword}%`,
           );
-        } else {
-          req = req.order("updated_at", { ascending: false });
         }
 
-        let { data, error } = await req;
-
-        if (
-          error &&
-          (error.code === "42703" ||
-            error.code === "PGRST204" ||
-            /status_text|bio|updated_at/i.test(error.message || ""))
-        ) {
-          let fallbackReq = supabase
-            .from("profiles")
-            .select("id, username, display_name, full_name, avatar_url, role")
-            .limit(10);
-          if (safeKeyword) {
-            fallbackReq = fallbackReq.or(
-              `full_name.ilike.%${safeKeyword}%,username.ilike.%${safeKeyword}%,display_name.ilike.%${safeKeyword}%`,
-            );
-          }
-          const retry = await fallbackReq;
-          data = retry.data;
-          error = retry.error;
-        }
-
-        if (!isActive) return;
+        const { data, error } = await req;
+        if (requestId !== userSearchReqIdRef.current) return;
 
         if (error) {
           setUserSearchError("Menampilkan direktori anggota lokal karena pencarian server sedang terkendala.");
-          setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
-          setIsSearchingUsers(false);
+          setUserResults(filterLocalMembers(getKnownLocalMembers()));
           return;
         }
 
-        const remoteMembers = (data || []).map((row) =>
+        const rows = Array.isArray(data) ? data : [];
+        const remoteMembers = rows.map((row) =>
           normalizeProfileMember(row, currentUser?.id),
         );
 
-        if (remoteMembers.length > 0) {
-          setProfiles((current) => ({
-            ...current,
-            ...Object.fromEntries((data || []).filter((p) => p?.id).map((p) => [p.id, p])),
-          }));
-          setUserResults(remoteMembers.slice(0, 10));
-        } else if (isSampleFallback) {
-          setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+        if (rows.length > 0) {
+          setProfiles((current) => {
+            let changed = false;
+            const next = { ...current };
+            for (const row of rows) {
+              if (row?.id && !next[row.id]) {
+                next[row.id] = row;
+                changed = true;
+              }
+            }
+            return changed ? next : current;
+          });
+          setUserResults(remoteMembers.slice(0, safeKeyword ? 10 : 8));
+        } else if (!safeKeyword || isSampleFallback) {
+          setUserResults(filterLocalMembers(getKnownLocalMembers()));
         } else {
           setUserResults([]);
         }
       } catch {
-        if (!isActive) return;
-        setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+        if (requestId !== userSearchReqIdRef.current) return;
+        setUserResults(filterLocalMembers(getKnownLocalMembers()));
       } finally {
-        if (isActive) setIsSearchingUsers(false);
+        if (requestId === userSearchReqIdRef.current) {
+          setIsSearchingUsers(false);
+        }
       }
     };
 
     void runUserSearch();
-    return () => {
-      isActive = false;
-    };
-  }, [searchMode, debouncedQuery, currentUser?.id, profiles, isSampleFallback]);
+    return undefined;
+  }, [searchMode, debouncedQuery, currentUser?.id, isSampleFallback]);
 
   const loadProfiles = useCallback(async (supabase, userIds) => {
     const ids = [...new Set(userIds)].filter((id) => id && isUuid(id) && !requestedProfiles.current.has(id));
@@ -1915,7 +1914,7 @@ export default function CommunityHub() {
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary sm:left-4 sm:h-5 sm:w-5" />
                 <input
                   id="feed-search"
-                  type="search"
+                  type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={
