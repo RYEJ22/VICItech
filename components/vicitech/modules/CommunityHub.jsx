@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
-  MessageSquare, ThumbsUp, Share2, Tag, User, Award, PenSquare, Search, Image as ImageIcon, Send,
+  MessageSquare, ThumbsUp, Share2, Tag, User, Users, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
   Gamepad2, Code2, Palette, Laugh,
 } from "lucide-react";
@@ -897,6 +897,141 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
   );
 });
 
+function buildMemberMessageHref(member) {
+  if (!member) return "/messages";
+  const cleanUsername = typeof member.username === "string" ? member.username.trim().toLowerCase() : "";
+  if (cleanUsername && USERNAME_RE.test(cleanUsername)) {
+    return `/messages?to=${encodeURIComponent(cleanUsername)}`;
+  }
+  if (isUuid(member.id)) {
+    return `/messages?peer=${encodeURIComponent(member.id)}`;
+  }
+  return "/messages";
+}
+
+function normalizeProfileMember(row, currentUserId = "") {
+  const rawUsername = typeof row?.username === "string" ? row.username.trim().toLowerCase() : "";
+  const fullName =
+    row?.full_name?.trim() ||
+    row?.display_name?.trim() ||
+    (rawUsername ? `@${rawUsername}` : "Anggota ViciTech");
+  const roleKey =
+    row?.role === "admin" || row?.role === "team"
+      ? "team"
+      : ROLES[row?.role]
+        ? row.role
+        : "fan";
+  const isSelf = Boolean(currentUserId && row?.id === currentUserId);
+  return {
+    id: row?.id || rawUsername || fullName,
+    authorKey: row?.id || rawUsername || fullName,
+    name: fullName,
+    username: rawUsername,
+    role: roleKey,
+    avatarUrl: row?.avatar_url || "",
+    bio: typeof row?.bio === "string" ? row.bio.trim() : "",
+    statusText: typeof row?.status_text === "string" ? row.status_text.trim() : "",
+    href: usernameHref(rawUsername),
+    messageHref: buildMemberMessageHref({ id: row?.id, username: rawUsername }),
+    isSelf,
+  };
+}
+
+const SAMPLE_DIRECTORY_MEMBERS = Object.entries(AUTHORS)
+  .filter(([key]) => key !== "you" && key !== "team")
+  .map(([key, info]) =>
+    normalizeProfileMember({
+      id: key,
+      username: key,
+      full_name: info.name,
+      display_name: info.name,
+      role: info.role,
+    }),
+  );
+
+function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
+  return (
+    <article className="flex flex-col justify-between gap-3.5 rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm transition hover:border-[#EA580C]/40 sm:flex-row sm:items-center sm:p-4">
+      <div className="flex min-w-0 items-start gap-3">
+        <Avatar
+          author={{
+            name: member.name,
+            avatarUrl: member.avatarUrl,
+            href: member.href,
+            isSelf: member.isSelf,
+          }}
+          size="h-11 w-11"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            {member.href ? (
+              <Link
+                href={member.href}
+                className="truncate font-semibold text-[#18181B] hover:text-[#EA580C]"
+              >
+                {member.name}
+              </Link>
+            ) : (
+              <span className="truncate font-semibold text-[#18181B]">{member.name}</span>
+            )}
+            <RoleBadge role={member.role} />
+            {member.isSelf && (
+              <span className="rounded-md border border-[#E4E4E7] bg-[#FAF9F6] px-2 py-0.5 text-[11px] font-medium text-[#71717A]">
+                Anda
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs text-[#71717A]">
+            {member.username && (
+              <span className="font-mono text-[#52525B]">@{member.username}</span>
+            )}
+            {postCount > 0 && (
+              <span>· {postCount} postingan di feed</span>
+            )}
+            {member.statusText && (
+              <span className="truncate">· {member.statusText}</span>
+            )}
+          </div>
+          {member.bio && (
+            <p className="mt-1 line-clamp-1 text-xs text-[#71717A]">{member.bio}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+        <button
+          type="button"
+          onClick={() => onViewPosts(member)}
+          className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-xs font-medium text-[#18181B] transition hover:border-[#EA580C]/40 hover:bg-[#F3F1ED] sm:flex-initial ${focusRing}`}
+        >
+          <MessageSquare className="h-3.5 w-3.5 text-[#71717A]" aria-hidden="true" />
+          <span>Lihat Postingan</span>
+        </button>
+
+        {member.href && (
+          <Link
+            href={member.href}
+            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-medium text-[#18181B] transition hover:border-[#EA580C]/40 hover:bg-[#FAF9F6] sm:flex-initial ${focusRing}`}
+          >
+            <User className="h-3.5 w-3.5 text-[#71717A]" aria-hidden="true" />
+            <span>Profil</span>
+          </Link>
+        )}
+
+        {!member.isSelf && (
+          <Link
+            href={member.messageHref}
+            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#EA580C] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#C2410C] sm:flex-initial ${focusRing}`}
+          >
+            <Send className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Kirim Pesan</span>
+          </Link>
+        )}
+      </div>
+    </article>
+  );
+}
+
 /* ───────────────────────── Sidebar ───────────────────────── */
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
@@ -1009,8 +1144,13 @@ export default function CommunityHub() {
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [isSampleFallback, setIsSampleFallback] = useState(false);
   const [category, setCategory] = useState("all");
+  const [searchMode, setSearchMode] = useState("posts");
+  const [authorFilter, setAuthorFilter] = useState(null);
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 250);
+  const debouncedQuery = useDebouncedValue(query, 300);
+  const [userResults, setUserResults] = useState([]);
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+  const [userSearchError, setUserSearchError] = useState("");
   const [visibleLimit, setVisibleLimit] = useState(FEED_PAGE_SIZE);
   const [dbFetchLimit, setDbFetchLimit] = useState(SUPABASE_FETCH_STEP);
   const [publishError, setPublishError] = useState("");
@@ -1024,7 +1164,137 @@ export default function CommunityHub() {
 
   useEffect(() => {
     setVisibleLimit(FEED_PAGE_SIZE);
-  }, [category, debouncedQuery]);
+  }, [category, debouncedQuery, authorFilter]);
+
+  // Pencarian pengguna dari tabel profiles di Supabase dengan debounce 300ms
+  useEffect(() => {
+    if (searchMode !== "users") {
+      setIsSearchingUsers(false);
+      setUserSearchError("");
+      return undefined;
+    }
+
+    const rawKeyword = debouncedQuery.trim().replace(/^@/, "");
+    const safeKeyword = rawKeyword.replace(/[%_,()]/g, " ").trim();
+    const filterLocalMembers = (list) => {
+      if (!safeKeyword) return list.slice(0, 8);
+      const q = safeKeyword.toLowerCase();
+      return list
+        .filter(
+          (m) =>
+            m.name.toLowerCase().includes(q) ||
+            m.username.toLowerCase().includes(q) ||
+            (ROLES[m.role]?.label || "").toLowerCase().includes(q),
+        )
+        .slice(0, 10);
+    };
+
+    const cachedKnownMembers = [
+      ...Object.values(profiles).map((row) => normalizeProfileMember(row, currentUser?.id)),
+      ...SAMPLE_DIRECTORY_MEMBERS,
+    ];
+    const dedupKnown = (items) => {
+      const seen = new Set();
+      return items.filter((item) => {
+        const key = (item.username || item.id || item.name).toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    if (!isSupabaseAuthConfigured) {
+      setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+      setIsSearchingUsers(false);
+      return undefined;
+    }
+
+    let supabase;
+    try {
+      supabase = getSupabaseBrowserClient();
+    } catch {
+      setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+      setIsSearchingUsers(false);
+      return undefined;
+    }
+
+    let isActive = true;
+    const runUserSearch = async () => {
+      setIsSearchingUsers(true);
+      setUserSearchError("");
+      try {
+        let req = supabase
+          .from("profiles")
+          .select("id, username, display_name, full_name, avatar_url, role, bio, status_text")
+          .limit(10);
+
+        if (safeKeyword) {
+          req = req.or(
+            `full_name.ilike.%${safeKeyword}%,username.ilike.%${safeKeyword}%,display_name.ilike.%${safeKeyword}%`,
+          );
+        } else {
+          req = req.order("updated_at", { ascending: false });
+        }
+
+        let { data, error } = await req;
+
+        if (
+          error &&
+          (error.code === "42703" ||
+            error.code === "PGRST204" ||
+            /status_text|bio|updated_at/i.test(error.message || ""))
+        ) {
+          let fallbackReq = supabase
+            .from("profiles")
+            .select("id, username, display_name, full_name, avatar_url, role")
+            .limit(10);
+          if (safeKeyword) {
+            fallbackReq = fallbackReq.or(
+              `full_name.ilike.%${safeKeyword}%,username.ilike.%${safeKeyword}%,display_name.ilike.%${safeKeyword}%`,
+            );
+          }
+          const retry = await fallbackReq;
+          data = retry.data;
+          error = retry.error;
+        }
+
+        if (!isActive) return;
+
+        if (error) {
+          setUserSearchError("Menampilkan direktori anggota lokal karena pencarian server sedang terkendala.");
+          setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+          setIsSearchingUsers(false);
+          return;
+        }
+
+        const remoteMembers = (data || []).map((row) =>
+          normalizeProfileMember(row, currentUser?.id),
+        );
+
+        if (remoteMembers.length > 0) {
+          setProfiles((current) => ({
+            ...current,
+            ...Object.fromEntries((data || []).filter((p) => p?.id).map((p) => [p.id, p])),
+          }));
+          setUserResults(remoteMembers.slice(0, 10));
+        } else if (isSampleFallback) {
+          setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+        } else {
+          setUserResults([]);
+        }
+      } catch {
+        if (!isActive) return;
+        setUserResults(filterLocalMembers(dedupKnown(cachedKnownMembers)));
+      } finally {
+        if (isActive) setIsSearchingUsers(false);
+      }
+    };
+
+    void runUserSearch();
+    return () => {
+      isActive = false;
+    };
+  }, [searchMode, debouncedQuery, currentUser?.id, profiles, isSampleFallback]);
 
   const loadProfiles = useCallback(async (supabase, userIds) => {
     const ids = [...new Set(userIds)].filter((id) => id && isUuid(id) && !requestedProfiles.current.has(id));
@@ -1210,17 +1480,46 @@ export default function CommunityHub() {
     [posts],
   );
 
+  const postCountByAuthor = useMemo(() => {
+    const countsMap = new Map();
+    for (const p of posts) {
+      if (!p.by) continue;
+      countsMap.set(p.by, (countsMap.get(p.by) || 0) + 1);
+      const authorMeta = resolve(p.by);
+      if (authorMeta?.name) {
+        const lowerName = authorMeta.name.toLowerCase();
+        countsMap.set(lowerName, (countsMap.get(lowerName) || 0) + 1);
+      }
+    }
+    return countsMap;
+  }, [posts, resolve]);
+
   const visible = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase().replace(/^#/, "");
+    const q = searchMode === "posts" ? debouncedQuery.trim().toLowerCase().replace(/^#/, "") : "";
     return posts
       .filter((p) => category === "all" || p.cat === category)
+      .filter((p) => {
+        if (!authorFilter) return true;
+        const postAuthor = resolve(p.by);
+        const matchesId = Boolean(authorFilter.id && p.by === authorFilter.id);
+        const matchesUsername = Boolean(
+          authorFilter.username &&
+            (String(p.by).toLowerCase() === authorFilter.username.toLowerCase() ||
+              postAuthor.href === `/profile/${encodeURIComponent(authorFilter.username.toLowerCase())}`),
+        );
+        const matchesName = Boolean(
+          authorFilter.name &&
+            postAuthor.name.toLowerCase() === authorFilter.name.toLowerCase(),
+        );
+        return matchesId || matchesUsername || matchesName;
+      })
       .filter((p) => {
         if (!q) return true;
         const hay = `${p.title} ${p.body} ${(p.tags ?? []).join(" ")} ${resolve(p.by).name} ${(CATEGORIES[p.cat] || CATEGORIES.guide).label} ${(p.specs ?? []).flat().join(" ")}`.toLowerCase();
         return hay.includes(q);
       })
       .sort((a, b) => b.createdAt - a.createdAt);
-  }, [posts, category, debouncedQuery, resolve]);
+  }, [posts, category, debouncedQuery, resolve, searchMode, authorFilter]);
 
   const paginatedPosts = useMemo(
     () => visible.slice(0, visibleLimit),
@@ -1487,8 +1786,28 @@ export default function CommunityHub() {
     }
   };
 
-  const searchTag = useCallback((tag) => { setCategory("all"); setQuery(tag); }, []);
-  const clearFilters = useCallback(() => { setCategory("all"); setQuery(""); }, []);
+  const searchTag = useCallback((tag) => {
+    setSearchMode("posts");
+    setAuthorFilter(null);
+    setCategory("all");
+    setQuery(tag);
+  }, []);
+  const clearFilters = useCallback(() => {
+    setSearchMode("posts");
+    setAuthorFilter(null);
+    setCategory("all");
+    setQuery("");
+  }, []);
+  const handleViewMemberPosts = useCallback((member) => {
+    setAuthorFilter({
+      id: member.id,
+      username: member.username,
+      name: member.name,
+    });
+    setCategory("all");
+    setQuery("");
+    setSearchMode("posts");
+  }, []);
   const handleOpenMedia = useCallback((images, index, title) => {
     setLightbox({ images, index, title });
   }, []);
@@ -1545,11 +1864,158 @@ export default function CommunityHub() {
             />
             {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
 
-            <div className="relative">
-              <label htmlFor="feed-search" className="sr-only">Cari postingan</label>
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary sm:left-4 sm:h-5 sm:w-5" />
-              <input id="feed-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari topik, hardware, atau tag seperti #RTX4060" className={`w-full rounded-lg border border-default bg-surface py-2.5 pl-10 pr-4 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`} />
+            <div className="space-y-3 rounded-xl border border-[#E4E4E7] bg-white p-3 shadow-sm sm:p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div
+                  role="tablist"
+                  aria-label="Mode pencarian komunitas"
+                  className="inline-flex rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] p-1"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={searchMode === "posts"}
+                    onClick={() => setSearchMode("posts")}
+                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${focusRing} ${
+                      searchMode === "posts"
+                        ? "bg-[#18181B] text-white shadow-sm"
+                        : "text-[#71717A] hover:text-[#18181B]"
+                    }`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Postingan</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={searchMode === "users"}
+                    onClick={() => setSearchMode("users")}
+                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${focusRing} ${
+                      searchMode === "users"
+                        ? "bg-[#EA580C] text-white shadow-sm"
+                        : "text-[#71717A] hover:text-[#18181B]"
+                    }`}
+                  >
+                    <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Pengguna</span>
+                  </button>
+                </div>
+
+                <span className="text-xs text-[#71717A]">
+                  {searchMode === "users"
+                    ? "Cari anggota untuk kirim pesan (DM) atau lihat postingan"
+                    : "Filter diskusi berdasarkan kata kunci, tag, atau kategori"}
+                </span>
+              </div>
+
+              <div className="relative">
+                <label htmlFor="feed-search" className="sr-only">
+                  {searchMode === "users" ? "Cari anggota komunitas" : "Cari postingan"}
+                </label>
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary sm:left-4 sm:h-5 sm:w-5" />
+                <input
+                  id="feed-search"
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={
+                    searchMode === "users"
+                      ? "Cari nama lengkap atau @username anggota (cth. Rizky, @bagas)…"
+                      : "Cari topik, hardware, atau tag seperti #RTX4060"
+                  }
+                  className={`w-full rounded-lg border border-default bg-[#FAF9F6] py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    aria-label="Bersihkan kata kunci pencarian"
+                    className={`absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#71717A] hover:bg-[#E4E4E7]/50 hover:text-[#18181B] ${focusRing}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {searchMode === "users" && (
+                <div className="pt-1" aria-live="polite">
+                  {userSearchError && (
+                    <p className="mb-2.5 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                      {userSearchError}
+                    </p>
+                  )}
+
+                  {isSearchingUsers ? (
+                    <div className="flex items-center justify-center gap-2.5 rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-6 text-sm text-[#71717A]">
+                      <LoaderCircle className="h-4 w-4 animate-spin text-[#EA580C]" aria-hidden="true" />
+                      <span>Mencari anggota komunitas…</span>
+                    </div>
+                  ) : userResults.length > 0 ? (
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between text-xs text-[#71717A]">
+                        <span>
+                          {query.trim()
+                            ? `Menampilkan ${userResults.length} anggota untuk “${query.trim()}”`
+                            : `Anggota komunitas aktif (${userResults.length})`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSearchMode("posts")}
+                          className="font-medium text-[#EA580C] hover:underline"
+                        >
+                          Kembali ke Postingan
+                        </button>
+                      </div>
+                      <div className="space-y-2.5">
+                        {userResults.map((member) => {
+                          const count =
+                            postCountByAuthor.get(member.id) ||
+                            postCountByAuthor.get(member.username) ||
+                            postCountByAuthor.get(member.name.toLowerCase()) ||
+                            0;
+                          return (
+                            <MemberSearchCard
+                              key={member.id}
+                              member={member}
+                              postCount={count}
+                              onViewPosts={handleViewMemberPosts}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-[#E4E4E7] bg-[#FAF9F6] p-6 text-center">
+                      <Users className="mx-auto h-7 w-7 text-[#71717A]" strokeWidth={1.6} aria-hidden="true" />
+                      <p className="mt-2 font-medium text-[#18181B]">Pengguna tidak ditemukan</p>
+                      <p className="mt-1 text-xs text-[#71717A]">
+                        Tidak ada anggota dengan nama atau username “{query.trim()}”. Coba kata kunci lain.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
+
+            {authorFilter && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#EA580C]/30 bg-[#FFF7ED] px-3.5 py-2.5 text-xs text-[#18181B] sm:text-sm">
+                <span className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+                  <span>
+                    Menampilkan postingan dari <strong>{authorFilter.name}</strong>
+                    {authorFilter.username ? ` (@${authorFilter.username})` : ""}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setAuthorFilter(null)}
+                  className={`inline-flex items-center gap-1 rounded-md border border-[#EA580C]/30 bg-white px-2.5 py-1 text-xs font-semibold text-[#EA580C] hover:bg-[#FAF9F6] ${focusRing}`}
+                >
+                  <X className="h-3.5 w-3.5" />
+                  <span>Tampilkan Semua</span>
+                </button>
+              </div>
+            )}
 
             <div role="group" aria-label="Filter postingan berdasarkan kategori" className="no-scrollbar -mx-3 flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
               {CAT_ORDER.map((k) => {
@@ -1564,7 +2030,9 @@ export default function CommunityHub() {
             </div>
 
             <p className="text-xs text-secondary sm:text-sm" aria-live="polite">
-              Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan{query.trim() ? ` untuk “${query.trim()}”` : ""}
+              Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan
+              {authorFilter ? ` oleh ${authorFilter.name}` : ""}
+              {searchMode === "posts" && query.trim() ? ` untuk “${query.trim()}”` : ""}
             </p>
 
             {isLoadingPosts ? (
