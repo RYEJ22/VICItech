@@ -8,7 +8,7 @@ import {
   Save,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactElement } from 'react';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import {
@@ -173,7 +173,7 @@ export function ProductEditorDrawer({
     }
   };
 
-  const handleCancelOrClose = () => {
+  const handleCancelOrClose = useCallback(() => {
     if (isSaving || isUploading) return;
     const unsavedUploads = Array.from(sessionUploadedUrlsRef.current);
     sessionUploadedUrlsRef.current.clear();
@@ -181,7 +181,7 @@ export function ProductEditorDrawer({
       void Promise.allSettled(unsavedUploads.map((url) => deleteProductImageFromStorage(url)));
     }
     onClose();
-  };
+  }, [isSaving, isUploading, onClose]);
 
   const toggleSpecMode = () => {
     setErrorMessage('');
