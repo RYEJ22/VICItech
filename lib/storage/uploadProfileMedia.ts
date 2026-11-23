@@ -41,13 +41,68 @@ export interface UploadProfileMediaParams {
 export interface UploadedProfileMedia {
   readonly url: string;
   readonly path: string;
-  readonly bucket: typeof PROFILE_MEDIA_BUCKET | typeof FALLBACK_PROFILE_MEDIA_BUCKET;
+  readonly bucket: typeof PROFILE_MEDIA_BUCKET | typeof FALLBACK_PROFILE_MEDIA_BUCKET | 'inline-data';
   readonly usedFallbackBucket: boolean;
 }
 
-function isMissingBucketError(message: string): boolean {
+function shouldTryFallbackStorage(message: string): boolean {
   const lower = message.toLowerCase();
-  return lower.includes('bucket not found') || lower.includes('404');
+  return (
+    lower.includes('bucket not found') ||
+    lower.includes('404') ||
+    lower.includes('row-level security') ||
+    lower.includes('unauthorized') ||
+    lower.includes('permission')
+  );
+}
+
+async function compressProfileImageToDataUrl(
+  file: File,
+  kind: ProfileMediaKind,
+): Promise<string> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('Pemrosesan gambar hanya tersedia di browser.');
+  }
+
+  const maxWidth = kind === 'avatar' ? 320 : 1200;
+  const maxHeight = kind === 'avatar' ? 320 : 480;
+
+  return new Promise<string>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      try {
+        let targetW = img.naturalWidth || maxWidth;
+        let targetH = img.naturalHeight || maxHeight;
+        const scale = Math.min(1, maxWidth / targetW, maxHeight / targetH);
+        targetW = Math.max(1, Math.round(targetW * scale));
+        targetH = Math.max(1, Math.round(targetH * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Gagal menyiapkan kanvas gambar.'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+        let dataUrl = canvas.toDataURL('image/webp', 0.84);
+        if (!dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', 0.84);
+        }
+        resolve(dataUrl);
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('Gagal mengompres gambar profil.'));
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error(`File gambar "${file.name}" tidak dapat dibaca.`));
+    };
+    img.src = objectUrl;
+  });
 }
 
 export function validateProfileMediaFile(file: File): ProfileMediaValidationResult {
@@ -113,7 +168,7 @@ export async function uploadProfileMediaFile({
     .from(PROFILE_MEDIA_BUCKET)
     .upload(objectPath, file, {
       contentType: validation.mimeType,
-      upsert: false,
+      upsert: true,
     });
 
   if (!primaryUpload.error) {
@@ -129,27 +184,34 @@ export async function uploadProfileMediaFile({
     };
   }
 
-  if (isMissingBucketError(primaryUpload.error.message)) {
+  if (shouldTryFallbackStorage(primaryUpload.error.message)) {
     const fallbackPath = `${cleanUserId}/profile-${kind}/${Date.now()}-${shortId}-${sanitizedName}`;
     const fallbackUpload = await supabase.storage
       .from(FALLBACK_PROFILE_MEDIA_BUCKET)
       .upload(fallbackPath, file, {
         contentType: validation.mimeType,
-        upsert: false,
+        upsert: true,
       });
 
-    if (fallbackUpload.error) {
-      throw new Error(`Gagal mengunggah gambar: ${fallbackUpload.error.message}`);
+    if (!fallbackUpload.error) {
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(FALLBACK_PROFILE_MEDIA_BUCKET).getPublicUrl(fallbackPath);
+
+      return {
+        url: publicUrl,
+        path: fallbackPath,
+        bucket: FALLBACK_PROFILE_MEDIA_BUCKET,
+        usedFallbackBucket: true,
+      };
     }
 
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(FALLBACK_PROFILE_MEDIA_BUCKET).getPublicUrl(fallbackPath);
-
+    // Jika bucket Storage belum dibuat atau terkendala RLS, simpan dalam format Data URL terkompresi
+    const inlineDataUrl = await compressProfileImageToDataUrl(file, kind);
     return {
-      url: publicUrl,
-      path: fallbackPath,
-      bucket: FALLBACK_PROFILE_MEDIA_BUCKET,
+      url: inlineDataUrl,
+      path: `inline/${cleanUserId}/${kind}`,
+      bucket: 'inline-data',
       usedFallbackBucket: true,
     };
   }

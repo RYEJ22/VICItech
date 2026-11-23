@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -123,12 +123,28 @@ export function ProfileAccountHub({
   const [workspace, setWorkspace] = useState<ProfileWorkspaceData>(EMPTY_WORKSPACE);
   const [status, setStatus] = useState<'loading' | 'signed-out' | 'not-found' | 'error' | 'ready'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<ProfileTabId>('overview');
+  const [activeTab, setActiveTab] = useState<ProfileTabId>(() =>
+    parseProfileTabParam(initialTab, true),
+  );
   const [toast, setToast] = useState('');
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<ProfileOrderRecord | null>(null);
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const [cancelOrderError, setCancelOrderError] = useState('');
+
+  const activeUserRef = useRef<AuthSnapshotUser | null>(activeUser);
+  activeUserRef.current = activeUser;
+  const loadedProfileIdRef = useRef<string | null>(null);
+  const hasInitializedTabRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!initialTab) return;
+    const isOwnerView = Boolean(
+      activeUserRef.current &&
+        (!loadedProfileIdRef.current || activeUserRef.current.id === loadedProfileIdRef.current),
+    );
+    setActiveTab(parseProfileTabParam(initialTab, isOwnerView));
+  }, [initialTab]);
 
   // Sync auth automatically when rendered standalone at /profile or /profile/[username]
   useEffect(() => {
@@ -150,7 +166,14 @@ export function ProfileAccountHub({
 
     const handleSession = (sessionUser: unknown) => {
       if (!active) return;
-      setInternalUser(toAuthSnapshotUser(sessionUser));
+      const nextSnapshot = toAuthSnapshotUser(sessionUser);
+      setInternalUser((prev) => {
+        if (!prev && !nextSnapshot) return null;
+        if (prev && nextSnapshot && prev.id === nextSnapshot.id && prev.email === nextSnapshot.email) {
+          return prev;
+        }
+        return nextSnapshot;
+      });
       setInternalAuthLoading(false);
     };
 
@@ -181,27 +204,38 @@ export function ProfileAccountHub({
     };
   }, [usesExternalAuth]);
 
-  const loadAll = useCallback(async () => {
+  const activeUserId = activeUser?.id ?? '';
+
+  const loadAll = useCallback(async (options?: { readonly silent?: boolean }) => {
+    const currentAuthUser = activeUserRef.current;
+
     if (authLoading) {
-      setStatus('loading');
+      if (!loadedProfileIdRef.current) setStatus('loading');
       return;
     }
 
-    if (mode === 'self' && !activeUser) {
+    if (mode === 'self' && !currentAuthUser) {
+      loadedProfileIdRef.current = null;
       setProfile(null);
       setWorkspace(EMPTY_WORKSPACE);
       setStatus('signed-out');
       return;
     }
 
-    setStatus('loading');
+    const isSameLoadedUser =
+      Boolean(loadedProfileIdRef.current) &&
+      (mode === 'self' ? loadedProfileIdRef.current === currentAuthUser?.id : true);
+
+    if (!options?.silent && !isSameLoadedUser) {
+      setStatus('loading');
+    }
     setErrorMsg('');
 
     let loadedProfile: UnifiedProfile | null = null;
     let profileError: string | null = null;
 
-    if (mode === 'self' && activeUser) {
-      const res = await fetchOwnProfile(activeUser);
+    if (mode === 'self' && currentAuthUser) {
+      const res = await fetchOwnProfile(currentAuthUser);
       loadedProfile = res.profile;
       profileError = res.error;
     } else if (mode === 'public') {
@@ -210,11 +244,11 @@ export function ProfileAccountHub({
         setStatus('not-found');
         return;
       }
-      const res = await fetchPublicProfileByUsername(cleanUsername, activeUser ? {
-        id: activeUser.id,
-        email: activeUser.email,
-        createdAt: activeUser.created_at,
-        metadata: activeUser.user_metadata,
+      const res = await fetchPublicProfileByUsername(cleanUsername, currentAuthUser ? {
+        id: currentAuthUser.id,
+        email: currentAuthUser.email,
+        createdAt: currentAuthUser.created_at,
+        metadata: currentAuthUser.user_metadata,
       } : undefined);
       loadedProfile = res.profile;
       profileError = res.error;
@@ -231,14 +265,21 @@ export function ProfileAccountHub({
       return;
     }
 
-    const isOwnerView = Boolean(activeUser && activeUser.id === loadedProfile.id);
+    const isOwnerView = Boolean(currentAuthUser && currentAuthUser.id === loadedProfile.id);
     const data = await fetchProfileWorkspaceData(loadedProfile.id, isOwnerView);
 
+    loadedProfileIdRef.current = loadedProfile.id;
     setProfile(loadedProfile);
     setWorkspace(data);
-    setActiveTab(parseProfileTabParam(initialTab, isOwnerView));
+
+    if (!hasInitializedTabRef.current) {
+      hasInitializedTabRef.current = true;
+      setActiveTab(parseProfileTabParam(initialTab, isOwnerView));
+    } else if (!isOwnerView) {
+      setActiveTab('overview');
+    }
     setStatus('ready');
-  }, [authLoading, mode, activeUser, targetUsername, initialTab]);
+  }, [authLoading, mode, activeUserId, targetUsername, initialTab]);
 
   useEffect(() => {
     void loadAll();
@@ -247,7 +288,7 @@ export function ProfileAccountHub({
   useEffect(() => {
     if (mode !== 'self' || !activeUser?.id || typeof window === 'undefined') return undefined;
     const handleOrderCreated = (): void => {
-      void loadAll();
+      void loadAll({ silent: true });
     };
     window.addEventListener('vicitech:order_created', handleOrderCreated);
     return () => window.removeEventListener('vicitech:order_created', handleOrderCreated);
@@ -808,7 +849,6 @@ export function ProfileAccountHub({
               onSaved={(updated, message) => {
                 setProfile(updated);
                 setToast(message);
-                router.refresh();
               }}
             />
           </div>

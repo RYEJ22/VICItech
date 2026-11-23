@@ -263,9 +263,12 @@ function readCleanStr(rec: Readonly<Record<string, unknown>>, keys: readonly str
   return null;
 }
 
+const DATA_IMAGE_URL_RE = /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i;
+
 export function isValidHttpOrLocalUrl(raw: string): boolean {
   const trimmed = raw.trim();
   if (!trimmed) return false;
+  if (DATA_IMAGE_URL_RE.test(trimmed)) return true;
   try {
     const parsed = new URL(trimmed);
     if (parsed.protocol === 'https:') return true;

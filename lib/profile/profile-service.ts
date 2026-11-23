@@ -461,21 +461,27 @@ export async function saveProfileCustomization(
     savedRow = extendedUpsert.data;
   }
 
-  const authMetaPayload = {
+  const isInlineAvatar = clean.avatarUrl.startsWith('data:image/');
+  const isInlineBanner = clean.bannerUrl.startsWith('data:image/');
+  const authMetaPayload: Record<string, unknown> = {
     username: clean.username,
     full_name: clean.displayName,
-    avatar_url: clean.avatarUrl || null,
-    banner_url: clean.bannerUrl || null,
     bio: clean.bio || null,
     status_text: clean.statusText || null,
     accent_color: clean.accentColor,
     featured_rig: clean.featuredRig || null,
   };
+  if (!isInlineAvatar) {
+    authMetaPayload.avatar_url = clean.avatarUrl || null;
+  }
+  if (!isInlineBanner) {
+    authMetaPayload.banner_url = clean.bannerUrl || null;
+  }
 
   const { error: authError } = await supabase.auth.updateUser({
     data: authMetaPayload,
   });
-  if (authError) {
+  if (authError && usedMetadataFallback) {
     return { ok: false, error: `Profil tersimpan, namun sinkronisasi sesi gagal: ${authError.message}` };
   }
 

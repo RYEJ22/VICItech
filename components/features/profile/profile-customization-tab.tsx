@@ -74,6 +74,7 @@ export function ProfileCustomizationTab({
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [uploadNotice, setUploadNotice] = useState('');
 
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const bannerInputRef = useRef<HTMLInputElement | null>(null);
@@ -99,15 +100,43 @@ export function ProfileCustomizationTab({
     if (!file) return;
 
     setFormError('');
+    setUploadNotice('');
     if (kind === 'avatar') setUploadingAvatar(true);
     else setUploadingBanner(true);
 
     try {
       const uploaded = await uploadProfileMediaFile({ file, userId, kind });
-      setDraft((prev) => ({
-        ...prev,
+      const nextDraft: ProfileFormDraft = {
+        ...draft,
+        username: draft.username.trim() || profile.username,
+        displayName: draft.displayName.trim() || profile.displayName,
         ...(kind === 'avatar' ? { avatarUrl: uploaded.url } : { bannerUrl: uploaded.url }),
-      }));
+      };
+      setDraft(nextDraft);
+
+      // Langsung simpan URL avatar/banner baru ke tabel profiles di Supabase agar langsung aktif
+      const saveRes = await saveProfileCustomization(userId, nextDraft);
+      if (!saveRes.ok) {
+        setFormError(saveRes.error);
+        return;
+      }
+
+      setDraft({
+        username: saveRes.profile.username,
+        displayName: saveRes.profile.displayName,
+        avatarUrl: saveRes.profile.avatarUrl ?? '',
+        bannerUrl: saveRes.profile.bannerUrl ?? 'preset:alabaster-grid',
+        bio: saveRes.profile.bio ?? '',
+        statusText: saveRes.profile.statusText ?? '',
+        accentColor: saveRes.profile.accentColor,
+        featuredRig: saveRes.profile.featuredRig ?? '',
+      });
+      const successMsg =
+        kind === 'avatar'
+          ? 'Foto profil berhasil diunggah dan diperbarui.'
+          : 'Banner profil berhasil diunggah dan diperbarui.';
+      setUploadNotice(successMsg);
+      onSaved(saveRes.profile, successMsg);
     } catch (uploadErr: unknown) {
       setFormError(
         uploadErr instanceof Error ? uploadErr.message : 'Gagal mengunggah gambar profil.',
@@ -407,6 +436,12 @@ export function ProfileCustomizationTab({
         {formError && (
           <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-800 sm:text-sm">
             {formError}
+          </p>
+        )}
+
+        {uploadNotice && !formError && (
+          <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900 sm:text-sm">
+            {uploadNotice}
           </p>
         )}
 
