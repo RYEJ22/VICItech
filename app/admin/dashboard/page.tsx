@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Search,
   ShoppingBag,
+  Trash2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -21,6 +22,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { isJsonRecord } from '@/lib/admin/orders';
 import type { AdminOrder, AdminOrderStats, JsonValue, OrderStatus } from '@/lib/admin/orders';
 import { formatIdr } from '@/lib/admin/products-validation';
+import { AdminConfirmDialog } from '@/components/features/admin/admin-confirm-dialog';
 
 const OrderDetailsDialog = dynamic(
   () => import('@/components/vicitech/admin/OrderDetailsDialog').then((mod) => mod.OrderDetailsDialog),
@@ -121,6 +123,9 @@ export default function AdminDashboardPage(): ReactElement {
   const [isLoading, setIsLoading] = useState(true);
   const [activeOrderId, setActiveOrderId] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<AdminOrder | null>(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+  const [deleteOrderError, setDeleteOrderError] = useState('');
   const handleCloseOrderDetails = useCallback(() => setSelectedOrder(null), []);
 
   const loadOrders = useCallback(async () => {
@@ -193,6 +198,29 @@ export default function AdminDashboardPage(): ReactElement {
       setError(updateError instanceof Error ? updateError.message : 'Gagal memperbarui status order.');
     } finally {
       setActiveOrderId('');
+    }
+  };
+
+  const deleteCancelledOrder = async () => {
+    if (!orderToDelete || orderToDelete.status !== 'cancelled' || isDeletingOrder) return;
+    setIsDeletingOrder(true);
+    setDeleteOrderError('');
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(orderToDelete.id)}`, { method: 'DELETE' });
+      const result = await response.json() as { readonly success?: boolean; readonly error?: string };
+      if (!response.ok || result.success !== true) {
+        throw new Error(result.error || 'Gagal menghapus pesanan.');
+      }
+      setOrders((current) => current.filter((order) => order.id !== orderToDelete.id));
+      setTotal((current) => Math.max(0, current - 1));
+      setStats((current) => ({ ...current, totalOrders: Math.max(0, current.totalOrders - 1) }));
+      setSelectedOrder((current) => current?.id === orderToDelete.id ? null : current);
+      setNotice('Pesanan yang dibatalkan berhasil dihapus.');
+      setOrderToDelete(null);
+    } catch (deleteError: unknown) {
+      setDeleteOrderError(deleteError instanceof Error ? deleteError.message : 'Gagal menghapus pesanan.');
+    } finally {
+      setIsDeletingOrder(false);
     }
   };
 
@@ -490,14 +518,32 @@ export default function AdminDashboardPage(): ReactElement {
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3.5 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedOrder(order)}
-                            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle"
-                          >
-                            <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                            <span>Detail</span>
-                          </button>
+                          <div className="inline-flex items-center justify-end gap-2">
+                            {status === 'cancelled' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteOrderError('');
+                                  setOrderToDelete(order);
+                                }}
+                                disabled={isDeletingOrder}
+                                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-red-200 bg-canvas px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                              >
+                                {isDeletingOrder && orderToDelete?.id === order.id
+                                  ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                  : <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                                <span>Hapus</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedOrder(order)}
+                              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle"
+                            >
+                              <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                              <span>Detail</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -558,14 +604,32 @@ export default function AdminDashboardPage(): ReactElement {
                         ))}
                       </select>
 
-                      <button
-                        type="button"
-                        onClick={() => setSelectedOrder(order)}
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3.5 py-2 text-xs font-semibold text-primary hover:border-accent-primary/45 hover:bg-accent-subtle"
-                      >
-                        <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                        <span>Detail</span>
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+                        {status === 'cancelled' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeleteOrderError('');
+                              setOrderToDelete(order);
+                            }}
+                            disabled={isDeletingOrder}
+                            className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-red-200 bg-canvas px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                          >
+                            {isDeletingOrder && orderToDelete?.id === order.id
+                              ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                              : <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                            <span>Hapus</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOrder(order)}
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3.5 py-2 text-xs font-semibold text-primary hover:border-accent-primary/45 hover:bg-accent-subtle"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                          <span>Detail</span>
+                        </button>
+                      </div>
                     </div>
                   </li>
                 );
@@ -578,6 +642,21 @@ export default function AdminDashboardPage(): ReactElement {
       {selectedOrder ? (
         <OrderDetailsDialog order={selectedOrder} onClose={handleCloseOrderDetails} />
       ) : null}
+      <AdminConfirmDialog
+        open={Boolean(orderToDelete)}
+        title="Hapus Pesanan Permanen"
+        description="Yakin ingin menghapus pesanan yang dibatalkan ini secara permanen?"
+        confirmLabel="Hapus"
+        isBusy={isDeletingOrder}
+        errorMessage={deleteOrderError}
+        onConfirm={() => void deleteCancelledOrder()}
+        onCancel={() => {
+          if (!isDeletingOrder) {
+            setOrderToDelete(null);
+            setDeleteOrderError('');
+          }
+        }}
+      />
     </section>
   );
 }

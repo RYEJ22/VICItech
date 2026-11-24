@@ -17,6 +17,7 @@ import {
   Settings,
   ShieldCheck,
   Sliders,
+  Trash2,
   UserRound,
   XCircle,
 } from 'lucide-react';
@@ -132,6 +133,7 @@ export function ProfileAccountHub({
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const [cancelOrderError, setCancelOrderError] = useState('');
   const [payingOrderId, setPayingOrderId] = useState('');
+  const [deletingOrderId, setDeletingOrderId] = useState('');
 
   const activeUserRef = useRef<AuthSnapshotUser | null>(activeUser);
   activeUserRef.current = activeUser;
@@ -391,6 +393,30 @@ export function ProfileAccountHub({
     setOrderToCancel(null);
     setCancelOrderError('');
     setToast('Pesanan berhasil dibatalkan.');
+  };
+
+  const handleDeleteCancelledOrder = async (order: ProfileOrderRecord): Promise<void> => {
+    if (order.status !== 'cancelled' || deletingOrderId) return;
+    const confirmed = window.confirm('Yakin ingin menghapus pesanan yang dibatalkan ini secara permanen?');
+    if (!confirmed) return;
+
+    setDeletingOrderId(order.id);
+    try {
+      const response = await fetch(`/api/orders/${encodeURIComponent(order.id)}`, { method: 'DELETE' });
+      const result = await response.json() as { readonly success?: boolean; readonly error?: string };
+      if (!response.ok || result.success !== true) {
+        throw new Error(result.error || 'Pesanan tidak dapat dihapus.');
+      }
+      setWorkspace((current) => ({
+        ...current,
+        orders: current.orders.filter((currentOrder) => currentOrder.id !== order.id),
+      }));
+      setToast('Pesanan yang dibatalkan berhasil dihapus.');
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Pesanan tidak dapat dihapus.');
+    } finally {
+      setDeletingOrderId('');
+    }
   };
 
   const handleSignOut = async (): Promise<void> => {
@@ -823,7 +849,7 @@ export function ProfileAccountHub({
                           </div>
                         )}
 
-                        {(order.serialNumber && !statusMeta.isCancelled) || statusMeta.canCancel ? (
+                        {(order.serialNumber && !statusMeta.isCancelled) || statusMeta.canCancel || order.status === 'cancelled' ? (
                           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-default pt-3">
                             {order.serialNumber && !statusMeta.isCancelled && (
                               onNavigateModule ? (
@@ -857,6 +883,19 @@ export function ProfileAccountHub({
                               >
                                 <XCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                                 <span>Batalkan Pesanan</span>
+                              </button>
+                            )}
+                            {order.status === 'cancelled' && (
+                              <button
+                                type="button"
+                                onClick={() => void handleDeleteCancelledOrder(order)}
+                                disabled={Boolean(deletingOrderId)}
+                                className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
+                              >
+                                {deletingOrderId === order.id
+                                  ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                                  : <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                                <span>{deletingOrderId === order.id ? 'Menghapus…' : 'Hapus Pesanan'}</span>
                               </button>
                             )}
                           </div>
