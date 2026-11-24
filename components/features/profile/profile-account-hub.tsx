@@ -297,27 +297,49 @@ export function ProfileAccountHub({
   }, [toast]);
 
   const continuePayment = async (order: ProfileOrderRecord): Promise<void> => {
-    if (payingOrderId || !order.paymentReference) return;
+    const paymentStatus = order.paymentStatus.trim().toLowerCase();
+    const orderStatus = order.status.trim().toLowerCase();
+    if (
+      payingOrderId ||
+      orderStatus === 'cancelled' ||
+      !['unpaid', 'pending', 'failed', 'expired'].includes(paymentStatus)
+    ) return;
+
     setPayingOrderId(order.id);
     try {
-      const response = await fetch('/api/payments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: order.id }),
-      });
-      const result = await response.json() as { token?: string; error?: string };
-      if (!response.ok || !result.token) throw new Error(result.error || 'Pembayaran tidak dapat dimulai.');
+      let token = paymentStatus === 'pending' ? order.paymentReference?.trim() : '';
+      if (!token) {
+        const response = await fetch('/api/payments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId: order.id }),
+        });
+        const result = await response.json() as { token?: string; error?: string };
+        if (!response.ok || !result.token) throw new Error(result.error || 'Pembayaran tidak dapat dimulai.');
+        token = result.token;
+      }
       if (!window.snap) throw new Error('Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.');
-      window.snap.pay(result.token, {
-        onSuccess: () => setToast('Pembayaran diterima dan sedang diverifikasi.'),
-        onPending: () => setToast('Pembayaran masih menunggu penyelesaian.'),
-        onError: () => setToast('Pembayaran gagal. Silakan coba lagi.'),
-        onClose: () => setToast('Pembayaran belum selesai. Anda dapat melanjutkan kapan saja.'),
+      window.snap.pay(token, {
+        onSuccess: () => {
+          setPayingOrderId('');
+          setToast('Pembayaran diterima dan sedang diverifikasi.');
+        },
+        onPending: () => {
+          setPayingOrderId('');
+          setToast('Pembayaran masih menunggu penyelesaian.');
+        },
+        onError: () => {
+          setPayingOrderId('');
+          setToast('Pembayaran gagal. Silakan coba lagi.');
+        },
+        onClose: () => {
+          setPayingOrderId('');
+          setToast('Pembayaran belum selesai. Anda dapat melanjutkan kapan saja.');
+        },
       });
     } catch (error) {
-      setToast(error instanceof Error ? error.message : 'Pembayaran tidak dapat dimulai.');
-    } finally {
       setPayingOrderId('');
+      setToast(error instanceof Error ? error.message : 'Pembayaran tidak dapat dimulai.');
     }
   };
 
@@ -707,6 +729,17 @@ export function ProfileAccountHub({
                 <ul className="space-y-3">
                   {workspace.orders.map((order) => {
                     const statusMeta = getOrderStatusMeta(order.status);
+                    const paymentStatus = order.paymentStatus.trim().toLowerCase();
+                    const paymentLabel = paymentStatus === 'paid'
+                      ? 'Lunas'
+                      : paymentStatus === 'expired'
+                        ? 'Kadaluarsa'
+                        : paymentStatus === 'failed'
+                          ? 'Gagal'
+                          : 'Menunggu Pembayaran';
+                    const canPay = !statusMeta.isCancelled &&
+                      ['unpaid', 'pending', 'failed', 'expired'].includes(paymentStatus);
+                    const showPaymentBadge = statusMeta.label !== paymentLabel;
                     return (
                       <li
                         key={order.id}
@@ -715,9 +748,11 @@ export function ProfileAccountHub({
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${order.paymentStatus === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : order.paymentStatus === 'expired' || order.paymentStatus === 'failed' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
-                                {order.paymentStatus === 'paid' ? 'Lunas' : order.paymentStatus === 'expired' ? 'Kadaluarsa' : order.paymentStatus === 'failed' ? 'Gagal' : 'Menunggu Pembayaran'}
-                              </span>
+                              {showPaymentBadge && (
+                                <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${paymentStatus === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : paymentStatus === 'expired' || paymentStatus === 'failed' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+                                  {paymentLabel}
+                                </span>
+                              )}
                               <span
                                 className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${statusMeta.badgeClass}`}
                               >
@@ -759,16 +794,16 @@ export function ProfileAccountHub({
                           </p>
                         </div>
 
-                        {order.paymentStatus === 'pending' && order.paymentReference && (
+                        {canPay && (
                           <div className="mt-3 border-t border-default pt-3">
                             <button
                               type="button"
-                              disabled={payingOrderId === order.id}
+                              disabled={Boolean(payingOrderId)}
                               onClick={() => void continuePayment(order)}
                               className={`vt-btn-tactile inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:w-auto ${focusRing}`}
                             >
                               {payingOrderId === order.id && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                              Lanjutkan Bayar
+                              {paymentStatus === 'pending' && order.paymentReference?.trim() ? 'Lanjutkan Bayar' : 'Bayar Sekarang'}
                             </button>
                           </div>
                         )}
