@@ -66,7 +66,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       className={`${poppins.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-canvas text-primary font-sans antialiased">
+      <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
           <CheckoutProvider>
             <IntroSplash />

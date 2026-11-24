@@ -529,6 +529,7 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
 
 const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolve, onOpenMedia }) {
   const [open, setOpen] = useState(false);
+  const [mediaUnavailable, setMediaUnavailable] = useState(false);
   const [draft, setDraft] = useState("");
   const [selectedGif, setSelectedGif] = useState(null);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -628,14 +629,14 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
   const action = `inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
   return (
-    <article className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-6">
+    <article className="min-w-0 overflow-hidden rounded-xl border border-default bg-surface p-3 shadow-sm sm:p-6">
       <header className="flex items-start gap-3">
         <Avatar author={author} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {authorProfile
-              ? <Link href={authorProfile} className="font-medium text-primary hover:text-accent-hover">{author.name}</Link>
-              : <span className="font-medium text-primary">{author.name}</span>}
+              ? <Link href={authorProfile} className="break-words font-medium text-primary hover:text-accent-hover">{author.name}</Link>
+              : <span className="break-words font-medium text-primary">{author.name}</span>}
             <RoleBadge role={author.role} />
           </div>
           <p className="mt-0.5 text-xs text-secondary">{timeAgo(post.createdAt)}</p>
@@ -645,8 +646,8 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
         </span>
       </header>
 
-      <h3 className="mt-4 font-serif text-lg font-semibold leading-snug text-primary">{post.title}</h3>
-      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-secondary"><RichText text={post.body} onTag={onTag} /></p>
+      <h3 className="mt-3 break-words font-serif text-base font-semibold leading-snug text-primary sm:mt-4 sm:text-lg">{post.title}</h3>
+      <p className="mt-2 break-words whitespace-pre-line text-sm leading-relaxed text-secondary"><RichText text={post.body} onTag={onTag} /></p>
 
       {post.isLfg && post.lfgDetails && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-600/20 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
@@ -677,15 +678,20 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
         </div>
       )}
 
-      {mediaUrls.length > 0 && (
+      {(mediaUrls.length > 0 || post.mediaType) && (mediaUnavailable || mediaUrls.length === 0 ? (
+        <div role="status" className="mt-3 grid aspect-video place-items-center rounded-lg border border-dashed border-default bg-canvas px-4 text-center text-xs text-secondary">
+          Media tidak tersedia. Postingan tetap dapat dibaca.
+        </div>
+      ) : (
         isVideoPost ? (
-          <div className="mt-3 overflow-hidden rounded-lg border border-default bg-ink">
+          <div className="mt-3 aspect-video w-full overflow-hidden rounded-lg border border-default bg-ink">
             <video
               src={mediaUrls[0]}
               controls
               playsInline
               preload="metadata"
-              className="max-h-[440px] w-full object-contain"
+              onError={() => setMediaUnavailable(true)}
+              className="h-full w-full object-contain"
             />
           </div>
         ) : mediaUrls.length === 1 ? (
@@ -693,7 +699,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
             type="button"
             onClick={() => onOpenMedia?.(mediaUrls, 0, post.title)}
             aria-label={`Perbesar gambar dari ${post.title}`}
-            className={`mt-3 block w-full overflow-hidden rounded-lg border border-default bg-canvas ${focusRing}`}
+            className={`mt-3 block aspect-video w-full overflow-hidden rounded-lg border border-default bg-canvas ${focusRing}`}
           >
             <img
               src={mediaUrls[0]}
@@ -702,7 +708,8 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               height={600}
               loading="lazy"
               decoding="async"
-              className="max-h-[440px] w-full object-cover transition hover:opacity-95"
+              onError={() => setMediaUnavailable(true)}
+              className="h-full w-full object-contain transition hover:opacity-95"
             />
           </button>
         ) : (
@@ -722,16 +729,17 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                   height={360}
                   loading="lazy"
                   decoding="async"
-                  className="aspect-[4/3] w-full object-cover transition hover:opacity-95"
+                  onError={() => setMediaUnavailable(true)}
+                  className="aspect-video w-full object-cover transition hover:opacity-95"
                 />
               </button>
             ))}
           </div>
         )
-      )}
+      ))}
 
       {post.attachment && (
-        <p className="mt-3 inline-flex items-center gap-2 rounded-lg border border-default bg-canvas px-3 py-1.5 text-xs text-secondary"><ImageIcon className="h-3.5 w-3.5" /> {post.attachment}</p>
+        <p className="mt-3 inline-flex max-w-full items-center gap-2 break-all rounded-lg border border-default bg-canvas px-3 py-1.5 text-xs text-secondary"><ImageIcon className="h-3.5 w-3.5 shrink-0" /> {post.attachment}</p>
       )}
 
       {post.specs && (
@@ -739,7 +747,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
           <p className="flex items-center gap-1.5 border-b border-default px-3 py-2 text-xs text-secondary"><Cpu className="h-3.5 w-3.5 text-accent-primary" /> Rincian Spesifikasi Hardware</p>
           <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
             {post.specs.map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-3 py-1"><dt className="text-secondary">{k}</dt><dd className="text-right text-primary">{v}</dd></div>
+              <div key={k} className="flex min-w-0 justify-between gap-3 py-1"><dt className="min-w-0 break-words text-secondary">{k}</dt><dd className="min-w-0 break-words text-right text-primary">{v}</dd></div>
             ))}
           </dl>
           {post.cost && <p className="flex justify-between border-t border-default px-3 py-2 text-sm"><span className="text-secondary">Total estimasi rakitan</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
@@ -777,7 +785,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                     <span className="text-xs text-secondary">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
                   </p>
                   {commentText ? (
-                    <p className="whitespace-pre-line text-sm text-secondary">{commentText}</p>
+                    <p className="break-words whitespace-pre-line text-sm text-secondary">{commentText}</p>
                   ) : null}
                   {commentGifUrl ? (
                     <CommentGifDisplay src={commentGifUrl} alt={commentText || "GIF komentar"} />
@@ -1827,8 +1835,8 @@ export default function CommunityHub() {
   }, []);
 
   return (
-    <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10">
+    <div className="min-w-0 bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-10">
         <header>
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
@@ -1838,10 +1846,10 @@ export default function CommunityHub() {
               Berbagi rakitan &amp; solusi teknis
             </span>
           </div>
-          <h1 className="mt-2.5 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
-            <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> Komunitas &amp; Pusat Pengetahuan
+          <h1 className="mt-2.5 flex min-w-0 items-center gap-2 font-serif text-xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+            <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">Komunitas &amp; Pusat Pengetahuan</span>
           </h1>
-          <p className="mt-2.5 max-w-2xl text-sm text-secondary sm:mt-3 sm:text-base">
+          <p className="mt-2 max-w-2xl break-words text-xs text-secondary sm:mt-3 sm:text-base">
             Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
           </p>
           <button
@@ -1854,7 +1862,7 @@ export default function CommunityHub() {
           </button>
         </header>
 
-        <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-3">
+        <div className="mt-4 grid min-w-0 gap-3 sm:mt-8 sm:gap-6 lg:grid-cols-3">
           <div className="space-y-3.5 sm:space-y-5 lg:col-span-2">
             <Composer
               onPublish={publish}

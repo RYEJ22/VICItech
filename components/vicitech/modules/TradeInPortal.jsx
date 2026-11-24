@@ -100,30 +100,30 @@ export default function CircularPortal() {
   };
 
   return (
-    <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <div className="min-w-0 bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Tarif Referensi</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
             Perpanjang Siklus Pakai Perangkat Keras
           </span>
         </div>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-5xl">
-          <Recycle className="h-8 w-8 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+        <h1 className="mt-2.5 flex items-center gap-2 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+          <Recycle className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
           <span>Portal Trade-In &amp; Buyback Sirkular</span>
         </h1>
-        <p className="mt-3 max-w-2xl text-secondary">
+        <p className="mt-2 max-w-2xl text-sm text-secondary sm:mt-3 sm:text-base">
           Simulasikan estimasi nilai beli kembali (buyback) atau tukar tambah perangkat keras lama Anda secara transparan, baik untuk pengajuan individu, sekolah, maupun peremajaan armada IT kantor.
         </p>
 
         {/* Form Trade-in */}
-        <section className="mt-10" aria-labelledby="buyback-title">
+        <section className="mt-6 sm:mt-10" aria-labelledby="buyback-title">
           <h2 id="buyback-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-primary">
             <DollarSign className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Simulasi Valuasi &amp; Buyback Aset</span>
           </h2>
           <div className="mt-4 grid gap-6 lg:grid-cols-5">
-            <div className="space-y-5 rounded-xl border border-default bg-surface p-6 shadow-sm lg:col-span-3">
+            <div className="space-y-4 rounded-xl border border-default bg-surface p-4 shadow-sm sm:space-y-5 sm:p-6 lg:col-span-3">
               <fieldset>
                 <legend className="mb-2 text-sm font-medium text-primary">Tipe Pengaju</legend>
                 <div role="radiogroup" aria-label="Tipe pengaju" className="grid gap-2 sm:grid-cols-3">
@@ -168,7 +168,7 @@ export default function CircularPortal() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-default bg-surface p-6 shadow-sm lg:col-span-2" aria-live="polite">
+            <div className="rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-6 lg:col-span-2" aria-live="polite">
               {!revealed ? (
                 <div className="flex h-full min-h-48 flex-col items-center justify-center text-center">
                   <DollarSign className="h-8 w-8 text-secondary" strokeWidth={1.75} aria-hidden="true" />
@@ -243,8 +243,8 @@ export default function CircularPortal() {
         </section>
 
         {/* Banner CTA tunggal ke Etalase Market */}
-        <section className="mt-12" aria-labelledby="market-refurb-cta-title">
-          <div className="flex flex-col justify-between gap-6 rounded-2xl border border-default bg-surface p-6 shadow-sm sm:p-8 lg:flex-row lg:items-center">
+        <section className="mt-8 sm:mt-12" aria-labelledby="market-refurb-cta-title">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-default bg-surface p-4 shadow-sm sm:gap-6 sm:p-8 lg:flex-row lg:items-center">
             <div className="max-w-2xl space-y-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="vt-badge-live">

@@ -466,20 +466,20 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
   ];
   return (
     <>
-      <section className="border-b border-default pb-10" aria-labelledby="home-title">
-        <div className="mx-auto grid max-w-shell gap-10 px-4 py-8 sm:px-6 lg:grid-cols-5 lg:items-center lg:py-10">
+      <section className="border-b border-default pb-5 sm:pb-10" aria-labelledby="home-title">
+        <div className="mx-auto grid max-w-shell gap-5 px-4 py-5 sm:gap-10 sm:px-6 sm:py-8 lg:grid-cols-5 lg:items-center lg:py-10">
           <div className="lg:col-span-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="vt-badge-sample">{r.label}</span>
               <span className="text-xs font-medium text-secondary">Ruang Kerja Circular IT</span>
             </div>
-            <h1 id="home-title" className="vt-display mt-5 max-w-2xl text-4xl text-primary [text-wrap:balance] sm:text-5xl lg:text-6xl">
+            <h1 id="home-title" className="vt-display mt-3 max-w-2xl break-words text-3xl text-primary [text-wrap:balance] sm:mt-5 sm:text-5xl lg:text-6xl">
               Satu ruang kerja untuk riset, rakit, dan verifikasi perangkat keras.
             </h1>
-            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-secondary">
+            <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-secondary sm:mt-5 sm:text-base">
               {r.greeting} Tukar tambah, rakit preset, periksa telemetri IoT QC, dan bandingkan spesifikasi dalam satu ekosistem.
             </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Peran ruang kerja">
+            <div className="no-scrollbar mt-4 flex flex-nowrap gap-2 overflow-x-auto pb-1 sm:mt-5 sm:flex-wrap sm:overflow-visible" role="radiogroup" aria-label="Peran ruang kerja">
               {Object.entries(ROLES).map(([roleKey, meta]) => {
                 const selected = role === roleKey;
                 const RoleIcon = meta.icon;
@@ -490,7 +490,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     role="radio"
                     aria-checked={selected}
                     onClick={() => onRoleChange?.(roleKey)}
-                    className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition ${focusRing} ${
+                    className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:min-h-11 sm:px-3.5 sm:py-2 sm:text-xs ${focusRing} ${
                       selected
                         ? "bg-primary font-semibold text-surface"
                         : "border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
@@ -502,7 +502,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                 );
               })}
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
               <button
                 type="button"
                 onClick={() => onNavigate(primaryTarget)}
@@ -533,13 +533,13 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-shell gap-8 px-4 py-12 sm:px-6 lg:grid-cols-3">
-        <section aria-labelledby="launch-title" className="space-y-8 lg:col-span-2">
+      <div className="mx-auto grid max-w-shell gap-5 px-4 py-5 sm:gap-8 sm:px-6 sm:py-10 lg:grid-cols-3">
+        <section aria-labelledby="launch-title" className="space-y-5 sm:space-y-8 lg:col-span-2">
           <div>
             <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
               Prioritas untuk peran Anda
             </h2>
-            <div className="mt-4 flex flex-wrap gap-2" aria-label="Aksi cepat">
+            <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2" aria-label="Aksi cepat">
               {quick.map(([label, ...go]) => (
                 <button
                   key={label}
@@ -559,7 +559,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`vt-card-interactive group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-5 text-left hover:border-accent-primary/50 ${focusRing}`}
+                    className={`vt-card-interactive group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-3.5 text-left hover:border-accent-primary/50 sm:p-5 ${focusRing}`}
                   >
                     <div>
                       <span className="flex items-center justify-between gap-2">
@@ -830,8 +830,8 @@ function Footer({ onNavigate }) {
   const stack = [["Next.js", Layers], ["Supabase", Zap], ["Tailwind CSS", Sliders], ["Telemetri ESP32", Activity]];
   const link = `rounded text-sm text-secondary transition-colors duration-200 hover:text-primary ${focusRing}`;
   return (
-    <footer className="mt-20 border-t border-default bg-canvas">
-      <div className="mx-auto grid max-w-shell gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
+    <footer className="mt-8 border-t border-default bg-canvas md:mt-20">
+      <div className="mx-auto hidden max-w-shell gap-10 px-4 py-14 sm:px-6 md:grid md:grid-cols-4">
         <div className="md:col-span-2">
           <p className="flex items-center gap-2 text-base font-semibold text-primary">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span>
@@ -863,8 +863,26 @@ function Footer({ onNavigate }) {
           </ul>
         </div>
       </div>
+      <div className="mx-auto space-y-2 px-4 py-4 md:hidden">
+        <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-3.5 w-3.5" aria-hidden="true" /></span>
+          <span className="font-serif">ViciTech</span>
+        </p>
+        <details className="border-t border-default pt-2">
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Modul</summary>
+          <ul className="grid grid-cols-2 gap-x-3 pb-2">
+            {MODULES.map((m) => <li key={m.id}><button type="button" onClick={() => onNavigate(m.id)} className="min-h-8 py-1 text-left text-xs text-secondary">{m.short}</button></li>)}
+          </ul>
+        </details>
+        <details className="border-t border-default pt-2">
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Standar</summary>
+          <ul className="space-y-1 pb-2 text-xs text-secondary">
+            {["Sanitasi data NIST 800-88", "Protokol 15-titik IoT QC", "Kebijakan JIT Dynamic Buffer 5%", "Sertifikasi Grade Refurbished"].map((t) => <li key={t}>{t}</li>)}
+          </ul>
+        </details>
+      </div>
       <div className="border-t border-default bg-surface/60">
-        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-secondary sm:px-6">
+        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
           <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
           <p>Harga, spesifikasi, dan skor pada katalog merupakan data referensi.</p>
         </div>
@@ -1330,7 +1348,7 @@ export default function ViciTechApp({
 
   return (
     <div
-      className={`flex flex-col bg-canvas text-primary font-sans antialiased ${
+      className={`flex min-w-0 flex-col bg-canvas text-primary font-sans antialiased ${
         isViewportLockedChat
           ? "h-[calc(100dvh-10rem)] overflow-hidden md:h-[calc(100dvh-6rem)]"
           : "min-h-screen"

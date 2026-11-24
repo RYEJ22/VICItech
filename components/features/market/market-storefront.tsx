@@ -134,19 +134,19 @@ export function MarketStorefront({
   };
 
   return (
-    <div className="mx-auto max-w-shell space-y-4 px-3 py-5 sm:space-y-6 sm:px-6 sm:py-8">
+    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-hidden px-3 py-4 sm:space-y-6 sm:px-6 sm:py-8">
       {(onOpenLibrary || onOpenBuilder) && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:gap-4 sm:p-5">
-          <p className="max-w-[68ch] text-sm leading-relaxed text-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-4 sm:p-5">
+          <p className="line-clamp-2 max-w-[68ch] text-xs leading-relaxed text-secondary sm:text-sm">
             Pilih unit rakitan siap pakai, laptop lulus IoT QC, atau komponen terverifikasi. Klik
             kartu produk mana saja untuk melihat detail lengkap, spesifikasi, dan produk serupa.
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             {onOpenLibrary && (
               <button
                 type="button"
                 onClick={onOpenLibrary}
-                className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2 text-sm font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
               >
                 <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Library &amp; Spek</span>
@@ -156,7 +156,7 @@ export function MarketStorefront({
               <button
                 type="button"
                 onClick={onOpenBuilder}
-                className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
               >
                 <Sliders className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Preset Builder</span>
@@ -223,7 +223,7 @@ export function MarketStorefront({
       )}
 
       {/* Search, Stock Status, IoT QC Toggle & Sort Bar */}
-      <div className="flex flex-col gap-2.5 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-3 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
+      <div className="flex flex-col gap-2 rounded-xl border border-default bg-surface p-2.5 shadow-sm sm:gap-3 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="relative flex-1">
           <label htmlFor={searchInputId} className="sr-only">
             Cari produk di ViciTech Market
@@ -243,11 +243,11 @@ export function MarketStorefront({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
           <div
             role="group"
             aria-label="Filter ketersediaan stok"
-            className="inline-flex flex-wrap gap-1 rounded-lg border border-default bg-subtle p-1"
+            className="no-scrollbar inline-flex max-w-full flex-nowrap gap-0.5 overflow-x-auto rounded-lg border border-default bg-subtle p-0.5 sm:gap-1 sm:p-1"
           >
             {STOCK_FILTER_OPTIONS.map((option) => {
               const active = stockFilter === option.id;
@@ -257,7 +257,7 @@ export function MarketStorefront({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setStockFilter(option.id)}
-                  className={`vt-btn-tactile min-h-9 rounded-md px-2.5 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 ${
+                  className={`vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? 'bg-accent-cta font-semibold text-accent-foreground'
                       : 'text-secondary hover:bg-surface hover:text-primary'

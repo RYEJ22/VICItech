@@ -80,7 +80,7 @@ export function MarketProductCard({
       <div>
         <Link
           href={href}
-          className="relative block aspect-[4/3] w-full overflow-hidden border-b border-default bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary/60"
+          className="relative block aspect-[16/10] w-full overflow-hidden border-b border-default bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary/60 sm:aspect-[4/3]"
         >
           <MarketProductImage
             src={primaryImage}
@@ -100,7 +100,7 @@ export function MarketProductCard({
           </div>
         </Link>
 
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-1.5 text-xs text-secondary">
             <span className="font-medium">{getCategoryLabel(product.category)}</span>
             <span>{getSellerLabel(product.seller_type)}</span>
@@ -133,7 +133,7 @@ export function MarketProductCard({
         </div>
       </div>
 
-      <div className="space-y-2.5 border-t border-default px-4 pb-4 pt-3">
+      <div className="space-y-2 border-t border-default px-3 pb-3 pt-2.5 sm:space-y-2.5 sm:px-4 sm:pb-4 sm:pt-3">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-xs text-secondary">Harga</p>
           <p className="truncate font-mono text-base font-bold tabular-nums text-primary sm:text-lg">
@@ -151,7 +151,7 @@ export function MarketProductCard({
                 ? `Tambah ${product.title} ke keranjang`
                 : `${product.title} sedang habis`
             }
-            className="vt-btn-tactile inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-2.5 py-2 text-xs font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="vt-btn-tactile inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-default bg-canvas px-1.5 py-1.5 text-[11px] font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:py-2 sm:text-xs"
           >
             {justAdded ? (
               <Check className="h-3.5 w-3.5 shrink-0 text-status-live" strokeWidth={2} aria-hidden="true" />
@@ -170,7 +170,7 @@ export function MarketProductCard({
                 ? `Beli sekarang ${product.title}`
                 : `${product.title} sedang habis`
             }
-            className="vt-btn-tactile inline-flex min-h-10 items-center justify-center rounded-lg bg-accent-cta px-2.5 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="vt-btn-tactile inline-flex min-h-9 items-center justify-center rounded-lg bg-accent-cta px-1.5 py-1.5 text-[11px] font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:px-2.5 sm:py-2 sm:text-xs"
           >
             <span>{!stockMeta.isAvailable ? 'Stok Habis' : 'Beli Sekarang'}</span>
           </button>

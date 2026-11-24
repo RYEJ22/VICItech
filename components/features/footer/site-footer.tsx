@@ -24,7 +24,7 @@ const linkCls =
 export function SiteFooter(): ReactElement {
   return (
     <footer className="border-t border-default bg-canvas">
-      <div className="mx-auto grid max-w-shell gap-10 px-4 py-12 sm:px-6 md:grid-cols-4">
+      <div className="mx-auto hidden max-w-shell gap-10 px-4 py-12 sm:px-6 md:grid md:grid-cols-4">
         <div className="md:col-span-2">
           <Link
             href="/"
@@ -82,10 +82,29 @@ export function SiteFooter(): ReactElement {
         </div>
       </div>
 
+      <div className="mx-auto space-y-2 px-4 py-4 md:hidden">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-3.5 w-3.5" aria-hidden="true" /></span>
+          <span>ViciTech</span>
+        </Link>
+        <details className="border-t border-default pt-2">
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Ekosistem</summary>
+          <nav aria-label="Navigasi ekosistem ViciTech versi mobile" className="flex flex-wrap gap-x-4 gap-y-1 pb-2">
+            {ECOSYSTEM_LINKS.map((item) => <Link key={item.href} href={item.href} className="min-h-8 py-1 text-xs text-secondary">{item.label}</Link>)}
+          </nav>
+        </details>
+        <details className="border-t border-default pt-2">
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Verifikasi &amp; Standar</summary>
+          <ul className="space-y-1 pb-2 text-xs text-secondary">
+            <li><Link href="/qc-panel" className="inline-flex min-h-8 items-center gap-1.5 text-primary"><Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />Cek Nomor Seri IoT QC</Link></li>
+            {STANDARD_ITEMS.map((standard) => <li key={standard} className="py-1">{standard}</li>)}
+          </ul>
+        </details>
+      </div>
       <div className="border-t border-default bg-surface/60">
-        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs text-secondary sm:px-6">
+        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-1.5 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
           <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
-          <p>Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
+          <p className="hidden md:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
         </div>
       </div>
     </footer>

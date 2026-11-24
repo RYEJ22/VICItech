@@ -816,8 +816,8 @@ export default function PresetBuilder({
   const iconBtn = `vt-btn-tactile grid h-11 w-11 place-items-center rounded-lg border border-default bg-surface text-secondary hover:border-accent-primary/40 hover:text-accent-cta ${focusRing}`;
 
   return (
-    <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 pb-28 pt-5 sm:px-6 sm:pt-10 lg:pb-12">
+    <div className="min-w-0 bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-7xl px-3 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-10 lg:pb-12">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
@@ -844,7 +844,7 @@ export default function PresetBuilder({
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`vt-card-interactive flex flex-col rounded-xl border p-3.5 text-left sm:p-5 ${focusRing} ${
+                className={`vt-card-interactive flex flex-col rounded-xl border p-3 text-left sm:p-5 ${focusRing} ${
                   active
                     ? "border-accent-primary bg-accent-subtle shadow-sm"
                     : "border-default bg-surface hover:bg-subtle"

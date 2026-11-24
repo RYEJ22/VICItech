@@ -148,7 +148,7 @@ export function BuilderRouteView({
   }, []);
 
   return (
-    <main className="min-h-[calc(100vh-5.5rem)] bg-canvas text-primary">
+    <main className="min-h-[calc(100vh-5.5rem)] min-w-0 bg-canvas text-primary">
       <PresetBuilder
         role="b2c"
         userId={userId}
@@ -163,7 +163,7 @@ export function BuilderRouteView({
 export function BottleneckRouteView(): ReactElement {
   const router = useRouter();
   return (
-    <main className="min-h-[calc(100vh-5.5rem)] bg-canvas text-primary">
+    <main className="min-h-[calc(100vh-5.5rem)] min-w-0 bg-canvas text-primary">
       <BottleneckAnalyzer
         onSwapToPreset={(parts: unknown) => {
           savePendingBuilderConfig(parts);
@@ -181,7 +181,7 @@ export function VersusRouteView({
 }): ReactElement {
   const router = useRouter();
   return (
-    <main className="min-h-[calc(100vh-5.5rem)] bg-canvas text-primary">
+    <main className="min-h-[calc(100vh-5.5rem)] min-w-0 bg-canvas text-primary">
       <VersusArena
         marketProducts={marketProducts as never[]}
         onDeployToPreset={(item: { readonly builderPartHint?: unknown } | null) => {
@@ -199,7 +199,7 @@ export function VersusRouteView({
 
 export function TradeInRouteView(): ReactElement {
   return (
-    <main className="min-h-[calc(100vh-5.5rem)] bg-canvas text-primary">
+    <main className="min-h-[calc(100vh-5.5rem)] min-w-0 bg-canvas text-primary">
       <TradeInPortal />
     </main>
   );
