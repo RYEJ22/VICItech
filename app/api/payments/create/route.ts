@@ -17,7 +17,7 @@ interface SnapResponse {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const serverKey = process.env.MIDTRANS_SERVER_KEY?.trim();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!serverKey || !serviceKey || !supabaseUrl) return NextResponse.json({ error: 'Payment service is not configured.' }, { status: 503 });

@@ -13,7 +13,7 @@ interface MidtransNotification {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const serverKey = process.env.MIDTRANS_SERVER_KEY?.trim();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serverKey || !url || !serviceKey) {
@@ -30,10 +30,17 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!body.order_id || !body.status_code || !body.gross_amount || !body.signature_key) {
     return NextResponse.json({ error: 'Incomplete notification.' }, { status: 400 });
   }
+  // Hash the exact payload strings. In particular, gross_amount must retain
+  // its decimal formatting (for example, "2990000.00").
   const expected = createHash('sha512')
-    .update(`${body.order_id}${body.status_code}${body.gross_amount}${serverKey}`)
+    .update(`${String(body.order_id)}${String(body.status_code)}${String(body.gross_amount)}${serverKey}`)
     .digest('hex');
-  const receivedBytes = Buffer.from(body.signature_key, 'hex');
+  const signature = String(body.signature_key).trim().toLowerCase();
+  if (!/^[0-9a-f]{128}$/.test(signature)) {
+    console.error('[ViciTech] Midtrans webhook signature is not valid SHA-512 hex.', { orderId: body.order_id });
+    return NextResponse.json({ error: 'Invalid signature.' }, { status: 401 });
+  }
+  const receivedBytes = Buffer.from(signature, 'hex');
   const expectedBytes = Buffer.from(expected, 'hex');
   if (receivedBytes.length !== expectedBytes.length || !timingSafeEqual(receivedBytes, expectedBytes)) {
     console.error('[ViciTech] Midtrans webhook signature validation failed.', { orderId: body.order_id });
