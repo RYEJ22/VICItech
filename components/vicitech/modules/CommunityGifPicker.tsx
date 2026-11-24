@@ -10,6 +10,7 @@ import {
   type ReactElement,
   type RefObject,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { Film, Link2, LoaderCircle, Search, X } from 'lucide-react';
 import {
   fetchChatGifs,
@@ -233,9 +234,14 @@ export function CommunityGifPicker({
   const [isLoadingGifs, setIsLoadingGifs] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [openDownward, setOpenDownward] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [panelPosition, setPanelPosition] = useState<{ readonly top: number; readonly left: number } | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const debouncedQuery = useDebouncedValue(query, 300);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -285,12 +291,19 @@ export function CommunityGifPicker({
   }, [onClose, triggerRef]);
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (triggerRef?.current && typeof window !== 'undefined') {
-      const rect = triggerRef.current.getBoundingClientRect();
-      setOpenDownward(rect.top < 380);
-    }
+    if (!isOpen || typeof window === 'undefined') return;
+    const updatePosition = (): void => {
+      const rect = triggerRef?.current?.getBoundingClientRect();
+      if (!rect) return;
+      const width = Math.min(336, window.innerWidth - 32);
+      const height = Math.min(390, window.innerHeight - 24);
+      const left = Math.max(16, Math.min(rect.left, window.innerWidth - width - 16));
+      const openAbove = rect.top >= height + 12;
+      const preferredTop = openAbove ? rect.top - height - 8 : rect.bottom + 8;
+      const top = Math.max(12, Math.min(preferredTop, window.innerHeight - height - 12));
+      setPanelPosition({ top, left });
+    };
+    updatePosition();
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
@@ -310,9 +323,13 @@ export function CommunityGifPicker({
 
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
     };
   }, [handleClose, isOpen, onClose, triggerRef]);
 
@@ -346,16 +363,15 @@ export function CommunityGifPicker({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !isMounted || !panelPosition) return null;
 
-  return (
+  return createPortal((
     <div
       ref={panelRef}
       role="dialog"
       aria-label="Pilih GIF untuk komentar"
-      className={`absolute left-0 z-40 flex w-[336px] max-w-[calc(100vw-2.5rem)] flex-col rounded-2xl border border-[#E4E4E7] bg-white shadow-lg ${
-        openDownward ? 'top-full mt-2' : 'bottom-full mb-2'
-      }`}
+      className="fixed z-50 flex max-h-[calc(100dvh-1.5rem)] w-[336px] max-w-[calc(100vw-2rem)] flex-col overflow-y-auto rounded-2xl border border-[#E4E4E7] bg-white shadow-lg"
+      style={{ top: panelPosition.top, left: panelPosition.left }}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-[#E4E4E7] px-3 py-2.5">
@@ -462,7 +478,7 @@ export function CommunityGifPicker({
         ) : null}
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 export default CommunityGifPicker;
