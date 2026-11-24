@@ -10,7 +10,7 @@ const ORDER_PATTERN = /^VT-PO-\d{4}-\d{4}$/;
 
 function getProgress(record) {
   if (!record || typeof record !== "object") return 0;
-  if (record.shipping_status === "Shipped") return 100;
+  if (["Dikirim", "Shipped"].includes(record.shipping_status)) return 100;
   if (record.stress_test_status === "Complete" || record.status === "Pass") return 82;
   if (record.stress_test_status === "Running" || record.status === "In Progress") {
     return Math.min(75, 35 + (Number(record.burnin_hours || 0) / 4) * 40);
@@ -35,6 +35,7 @@ function translateStressStatus(rawStatus) {
     case "Ready to ship":
       return "Siap Kirim";
     case "Shipped":
+    case "Dikirim":
       return "Terkirim";
     default:
       return rawStatus || "Menunggu Perakitan";

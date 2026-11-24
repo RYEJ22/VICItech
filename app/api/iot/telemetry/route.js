@@ -77,7 +77,7 @@ export async function POST(request) {
       return respond({ error: "Could not verify the QC unit." }, 500);
     }
     if (!unit) return respond({ error: "The QC unit is not registered." }, 404);
-    if (unit.shipping_status === "Shipped") return respond({ error: "Telemetry is closed for shipped units." }, 409);
+    if (["Dikirim", "Shipped"].includes(unit.shipping_status)) return respond({ error: "Telemetry is closed for shipped units." }, 409);
     if (unit.stress_test_status !== "Running") return respond({ error: "Start the stress test before sending telemetry." }, 409);
     if (payload.burnin_hours < Number(unit.burnin_hours || 0)) {
       return respond({ error: "Burn-in progress cannot move backwards." }, 409);

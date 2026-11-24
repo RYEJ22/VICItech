@@ -181,6 +181,13 @@ export default function AdminDashboardPage(): ReactElement {
             (previousStatus === 'pending_qc' ? 1 : 0),
         }));
       }
+      if (result.stats) {
+        setStats({
+          totalOrders: Number(result.stats.totalOrders) || 0,
+          totalRevenue: Number(result.stats.totalRevenue) || 0,
+          pendingQcCount: Number(result.stats.pendingQcCount) || 0,
+        });
+      }
       setNotice(`Status order diperbarui menjadi ${STATUSES.find((s) => s.value === status)?.label ?? status}.`);
     } catch (updateError: unknown) {
       setError(updateError instanceof Error ? updateError.message : 'Gagal memperbarui status order.');
@@ -251,7 +258,7 @@ export default function AdminDashboardPage(): ReactElement {
           <p className="mt-2.5 text-2xl font-semibold sm:text-3xl">
             <AnimatedNumber value={stats.totalRevenue} format="currency" />
           </p>
-          <p className="mt-1 text-xs text-white/70">Akumulasi seluruh order tercatat</p>
+          <p className="mt-1 text-xs text-white/70">Tidak termasuk order yang dibatalkan</p>
         </article>
 
         <article className="rounded-xl border border-default bg-surface p-5 shadow-sm">
@@ -443,7 +450,7 @@ export default function AdminDashboardPage(): ReactElement {
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex flex-col items-start gap-1.5">
-                            <span className={statusBadgeClass(status)}>
+                            <span className={`${statusBadgeClass(status)} whitespace-nowrap`}>
                               {STATUSES.find((option) => option.value === status)?.label ||
                                 status ||
                                 'Tidak diketahui'}
@@ -459,7 +466,7 @@ export default function AdminDashboardPage(): ReactElement {
                                 }}
                                 disabled={isUpdating}
                                 aria-label={`Ubah status order ${orderId}`}
-                                className="min-h-11 rounded-lg border border-default bg-canvas px-2.5 py-1.5 text-xs font-medium text-primary outline-none focus:border-accent-primary disabled:opacity-50"
+                                className="min-h-11 min-w-[150px] whitespace-nowrap rounded-lg border border-default bg-canvas px-2.5 py-1.5 text-xs font-medium text-primary outline-none focus:border-accent-primary disabled:opacity-50"
                               >
                                 {!STATUSES.some((option) => option.value === status) ? (
                                   <option value="" disabled>
@@ -537,7 +544,7 @@ export default function AdminDashboardPage(): ReactElement {
                         }}
                         disabled={activeOrderId === order.id}
                         aria-label={`Ubah status order ${orderId}`}
-                        className="min-h-11 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary"
+                        className="min-h-11 min-w-[150px] whitespace-nowrap rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary"
                       >
                         {!STATUSES.some((option) => option.value === status) ? (
                           <option value="" disabled>

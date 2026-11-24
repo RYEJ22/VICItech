@@ -1171,7 +1171,9 @@ begin
   return query
   select
     count(*)::bigint as total_orders,
-    coalesce(sum(o.total_price), 0)::numeric as total_revenue,
+    coalesce(sum(o.total_price) filter (
+      where lower(trim(coalesce(o.status, ''))) not in ('cancelled', 'canceled', 'dibatalkan', 'batal')
+    ), 0)::numeric as total_revenue,
     count(*) filter (where o.status = 'pending_qc')::bigint as pending_qc_count
   from public.orders as o;
 end;

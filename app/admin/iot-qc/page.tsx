@@ -4,7 +4,6 @@ import {
   Activity,
   Cpu,
   LoaderCircle,
-  Radio,
   ShieldCheck,
   Terminal,
   Thermometer,
@@ -51,6 +50,8 @@ interface QcOrderRow {
   readonly order_number?: string | null;
   readonly serial_number?: string | null;
   readonly product_name?: string | null;
+  readonly customer_info?: { readonly fullName?: string; readonly name?: string } | null;
+  readonly status?: string | null;
 }
 
 interface LogEntry {
@@ -126,6 +127,7 @@ export default function AdminIotQcPage(): ReactElement {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeAction, setActiveAction] = useState('');
+  const [copiedCertificate, setCopiedCertificate] = useState(false);
 
   const selectedUnit = useMemo(
     () => units.find((unit) => unit.serial_number === selectedSerial) || null,
@@ -289,7 +291,9 @@ export default function AdminIotQcPage(): ReactElement {
       setSelectedSerial(unit.serial_number);
       setOrders((current) =>
         current.map((item) =>
-          item.id === order.id ? { ...item, serial_number: unit.serial_number } : item,
+          item.id === order.id
+            ? { ...item, serial_number: unit.serial_number, status: 'In Production' }
+            : item,
         ),
       );
       addLog('Order berhasil didaftarkan ke IoT QC.', {
@@ -330,7 +334,12 @@ export default function AdminIotQcPage(): ReactElement {
 
       setUnits((current) =>
         current.map((unit) =>
-          unit.serial_number === updatedUnit.serial_number ? updatedUnit : unit,
+          unit.serial_number === updatedUnit.serial_number
+            ? {
+                ...updatedUnit,
+                telemetry: action === 'start_test' ? null : updatedUnit.telemetry ?? unit.telemetry,
+              }
+            : unit,
         ),
       );
       addLog(`${label} selesai.`, {
@@ -354,9 +363,10 @@ export default function AdminIotQcPage(): ReactElement {
   };
 
   const hasCompletedBurnIn = Number(selectedUnit?.burnin_hours || 0) >= 4;
+  const hasLiveTelemetry = selectedUnit?.telemetry?.source === 'esp32';
   const isPassed = selectedUnit?.status === 'Pass' && Boolean(selectedUnit?.certificate_id);
   const progress =
-    selectedUnit?.shipping_status === 'Shipped'
+    ['Dikirim', 'Shipped'].includes(selectedUnit?.shipping_status || '')
       ? 100
       : isPassed
         ? 82
@@ -424,11 +434,18 @@ export default function AdminIotQcPage(): ReactElement {
                       <p className="truncate text-sm text-secondary">
                         {order.product_name || 'Order'}
                       </p>
+                      <p className="truncate text-xs text-secondary">
+                        {order.customer_info?.fullName || order.customer_info?.name || 'Pelanggan tidak tercatat'} · {order.status || 'Status tidak diketahui'}
+                      </p>
                     </div>
                     {order.serial_number ? (
-                      <span className="vt-badge-live shrink-0 font-mono text-xs">
+                      <button type="button" onClick={() => {
+                        const registered = units.find((unit) => unit.serial_number === order.serial_number);
+                        if (registered) setSelectedSerial(registered.serial_number);
+                        else void registerOrder(order);
+                      }} className="vt-badge-live shrink-0 font-mono text-xs">
                         {order.serial_number}
-                      </span>
+                      </button>
                     ) : (
                       <button
                         type="button"
@@ -461,20 +478,32 @@ export default function AdminIotQcPage(): ReactElement {
               <select
                 id="admin-qc-unit"
                 value={selectedSerial}
-                onChange={(event) => setSelectedSerial(event.target.value)}
+                onChange={(event) => {
+                  setSelectedSerial(event.target.value);
+                  setCopiedCertificate(false);
+                }}
                 className="min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 font-mono text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               >
                 {units.map((unit) => (
                   <option key={unit.serial_number} value={unit.serial_number}>
-                    {unit.serial_number} · {unit.device_name}
+                    {unit.order_id || unit.serial_number} · {unit.device_name} · {orders.find((order) => order.order_number === unit.order_id)?.customer_info?.fullName || orders.find((order) => order.order_number === unit.order_id)?.customer_info?.name || 'Pelanggan'} · QC {unit.status} / {unit.shipping_status || 'Belum dikirim'}
                   </option>
                 ))}
               </select>
             ) : (
               <p className="text-sm text-secondary">
-                Belum ada unit QC terdaftar. Terapkan `supabase/master_schema.sql` atau registrasikan order terlebih dahulu.
+                Belum ada unit dari order aktif yang terdaftar untuk QC. Pilih order pada antrean di atas untuk mendaftarkannya.
               </p>
             )}
+            {selectedUnit ? (() => {
+              const order = orders.find((item) => item.order_number === selectedUnit.order_id);
+              return order ? (
+                <p className="mt-2 text-xs text-secondary">
+                  Pelanggan: <strong className="text-primary">{order.customer_info?.fullName || order.customer_info?.name || 'Tidak tercatat'}</strong>
+                  {' · '}Status order: <strong className="text-primary">{order.status || 'Tidak diketahui'}</strong>
+                </p>
+              ) : null;
+            })() : null}
           </section>
 
           {/* Telemetry & Controls */}
@@ -518,44 +547,54 @@ export default function AdminIotQcPage(): ReactElement {
                       />
                     </div>
 
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                      <MetricCard
-                        icon={Cpu}
-                        label="Suhu CPU"
-                        value={telemetry.cpu_temp_c == null ? '—' : `${telemetry.cpu_temp_c} °C`}
-                        level={telemetry.cpu_temp_c == null ? null : (Number(telemetry.cpu_temp_c) / 120) * 100}
-                      />
-                      <MetricCard
-                        icon={Thermometer}
-                        label="Suhu GPU"
-                        value={telemetry.gpu_temp_c == null ? '—' : `${telemetry.gpu_temp_c} °C`}
-                        level={telemetry.gpu_temp_c == null ? null : (Number(telemetry.gpu_temp_c) / 120) * 100}
-                      />
-                      <MetricCard
-                        icon={Activity}
-                        label="Kecepatan Kipas"
-                        value={telemetry.fan_rpm == null ? '—' : `${telemetry.fan_rpm} RPM`}
-                        level={telemetry.fan_rpm == null ? null : (Number(telemetry.fan_rpm) / 2500) * 100}
-                      />
-                      <MetricCard
-                        icon={Activity}
-                        label="Stabilitas Voltase"
-                        value={
-                          telemetry.voltage_stability == null
-                            ? '—'
-                            : `${telemetry.voltage_stability}%`
-                        }
-                        level={
-                          telemetry.voltage_stability == null
-                            ? null
-                            : Number(telemetry.voltage_stability)
-                        }
-                      />
+                    <div className="mt-5 space-y-4">
+                      <section aria-label="Thermal dan airflow">
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-secondary">Thermal &amp; Airflow</h3>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <MetricCard
+                            icon={Cpu}
+                            label="Suhu CPU"
+                            value={telemetry.cpu_temp_c == null ? '—' : `${telemetry.cpu_temp_c} °C`}
+                            level={telemetry.cpu_temp_c == null ? null : (Number(telemetry.cpu_temp_c) / 120) * 100}
+                          />
+                          <MetricCard
+                            icon={Thermometer}
+                            label="Suhu GPU"
+                            value={telemetry.gpu_temp_c == null ? '—' : `${telemetry.gpu_temp_c} °C`}
+                            level={telemetry.gpu_temp_c == null ? null : (Number(telemetry.gpu_temp_c) / 120) * 100}
+                          />
+                          <MetricCard
+                            icon={Activity}
+                            label="Kecepatan Kipas"
+                            value={telemetry.fan_rpm == null ? '—' : `${telemetry.fan_rpm} RPM`}
+                            level={telemetry.fan_rpm == null ? null : (Number(telemetry.fan_rpm) / 2500) * 100}
+                          />
+                        </div>
+                      </section>
+                      <section aria-label="Power dan kestabilan voltase">
+                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-secondary">Power / Voltage Stability</h3>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <MetricCard
+                            icon={Activity}
+                            label="Stabilitas Voltase"
+                            value={
+                              telemetry.voltage_stability == null
+                                ? '—'
+                                : `${telemetry.voltage_stability}%`
+                            }
+                            level={
+                              telemetry.voltage_stability == null
+                                ? null
+                                : Number(telemetry.voltage_stability)
+                            }
+                          />
+                        </div>
+                      </section>
                     </div>
 
                     <div className="mt-5">
                       <div className="mb-2 flex justify-between text-xs text-secondary">
-                        <span>Progres Burn-In Termal</span>
+                        <span>Burn-In Stress Test</span>
                         <span className="font-mono font-semibold tabular-nums text-primary">
                           {burninValue}/4 jam Burn-In
                         </span>
@@ -568,22 +607,35 @@ export default function AdminIotQcPage(): ReactElement {
                       </div>
                     </div>
 
-                    <p className="mt-4 text-xs text-secondary">
-                      Status:{' '}
-                      <strong className="text-primary">
-                        {selectedUnit.stress_test_status || selectedUnit.status}
-                      </strong>{' '}
-                      · Pengiriman:{' '}
-                      <strong className="text-primary">
-                        {selectedUnit.shipping_status || 'Dalam Produksi'}
-                      </strong>
-                    </p>
+                    <section aria-label="Final readiness" className="mt-4 rounded-lg border border-default bg-canvas p-3">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary">Final Readiness</h3>
+                      <p className="mt-2 text-xs text-secondary">
+                        Status:{' '}
+                        <strong className="text-primary">
+                          {selectedUnit.stress_test_status || selectedUnit.status}
+                        </strong>{' '}
+                        · Pengiriman:{' '}
+                        <strong className="text-primary">
+                          {selectedUnit.shipping_status || 'Dalam Produksi'}
+                        </strong>
+                      </p>
+                      <p className="mt-1 text-xs text-secondary">
+                        {hasLiveTelemetry
+                          ? 'Telemetry perangkat terverifikasi ESP32.'
+                          : 'Menunggu telemetry ESP32 live sebelum QC dapat diselesaikan.'}
+                      </p>
 
                     {selectedUnit.certificate_id ? (
-                      <p className="mt-2 font-mono text-xs font-semibold text-status-live">
-                        ID Sertifikat: {selectedUnit.certificate_id}
-                      </p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-status-live/30 bg-status-live/5 p-3">
+                        <p className="font-mono text-xs font-semibold text-status-live">Sertifikat terbit: {selectedUnit.certificate_id}</p>
+                        <button type="button" onClick={async () => {
+                          if (!selectedUnit.certificate_id) return;
+                          await navigator.clipboard.writeText(selectedUnit.certificate_id);
+                          setCopiedCertificate(true);
+                        }} className="min-h-9 rounded-md border border-default bg-surface px-3 text-xs font-semibold text-primary hover:bg-accent-subtle">{copiedCertificate ? 'Tersalin' : 'Salin ID'}</button>
+                      </div>
                     ) : null}
+                    </section>
                   </section>
                 );
               })()}
@@ -600,21 +652,7 @@ export default function AdminIotQcPage(): ReactElement {
 
                 <button
                   type="button"
-                  disabled={Boolean(activeAction)}
-                  onClick={() => void runAction('simulate_payload', 'Simulasi Payload ESP32')}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-3 text-sm font-medium text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {activeAction === 'simulate_payload' ? (
-                    <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  ) : (
-                    <Radio className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  )}
-                  <span>Simulasi Payload ESP32</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={Boolean(activeAction) || !hasCompletedBurnIn}
+                  disabled={Boolean(activeAction) || !hasCompletedBurnIn || !hasLiveTelemetry}
                   onClick={() => void runAction('pass_qc', 'Lulus IoT QC & Terbitkan Sertifikat')}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-status-live/45 bg-status-live/10 px-4 py-3 text-sm font-semibold text-primary transition hover:bg-status-live/15 disabled:cursor-not-allowed disabled:opacity-40"
                 >
@@ -626,7 +664,7 @@ export default function AdminIotQcPage(): ReactElement {
                   disabled={
                     Boolean(activeAction) ||
                     !isPassed ||
-                    selectedUnit.shipping_status === 'Shipped'
+                    ['Dikirim', 'Shipped'].includes(selectedUnit.shipping_status || '')
                   }
                   onClick={() => void runAction('mark_shipped', 'Tandai Unit Dikirim')}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg border border-ink bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
@@ -636,7 +674,7 @@ export default function AdminIotQcPage(): ReactElement {
               </section>
 
               <p className="text-xs text-secondary">
-                Lulus IoT QC membutuhkan minimal 4 jam Burn-In. Status pengiriman aktif hanya setelah sertifikat QC diterbitkan.
+                Kelulusan QC memerlukan minimal 4 jam telemetry ESP32 live. Sertifikat diterbitkan saat QC diselesaikan; pengiriman tersedia setelah sertifikat terbit.
               </p>
             </>
           ) : null}

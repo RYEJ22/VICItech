@@ -73,7 +73,10 @@ async function fetchOrderStatsWithFallback(supabase: SupabaseClient<Database>): 
     const rows = data || [];
     if (start === 0) total = count || 0;
     for (const row of rows) {
-      revenueCents += Math.round((Number(row.total_price) || 0) * 100);
+      const normalizedStatus = String(row.status || '').trim().toLowerCase();
+      if (!['cancelled', 'canceled', 'dibatalkan', 'batal'].includes(normalizedStatus)) {
+        revenueCents += Math.round((Number(row.total_price) || 0) * 100);
+      }
       if (row.status === 'pending_qc') pendingQcCount += 1;
     }
 

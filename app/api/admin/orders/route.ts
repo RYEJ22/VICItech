@@ -56,7 +56,10 @@ async function getOrderStats(supabase: SupabaseClient): Promise<AdminOrderStats>
     const rows = data || [];
     if (start === 0) total = count || 0;
     for (const order of rows) {
-      revenueCents += Math.round((Number(order.total_price) || 0) * 100);
+      const normalizedStatus = String(order.status || "").trim().toLowerCase();
+      if (!["cancelled", "canceled", "dibatalkan", "batal"].includes(normalizedStatus)) {
+        revenueCents += Math.round((Number(order.total_price) || 0) * 100);
+      }
       if (order.status === "pending_qc") pendingQcCount += 1;
     }
 
@@ -183,7 +186,8 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Order not found or could not be updated." }, { status: 404 });
     }
 
-    return NextResponse.json({ order: data });
+    const stats = await getOrderStats(supabase);
+    return NextResponse.json({ order: data, stats });
   } catch (error: unknown) {
     console.error("[ViciTech OS] Admin order status update failed:", error);
     return NextResponse.json({ error: "Could not update order status." }, { status: 500 });

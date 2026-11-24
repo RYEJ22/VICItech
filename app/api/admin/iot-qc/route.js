@@ -58,7 +58,7 @@ export async function GET() {
       .from("qc_logs")
       .select(QC_LOG_COLUMNS)
       .order("created_at", { ascending: false })
-      .limit(25);
+      .limit(100);
     if (error) {
       console.error("[ViciTech OS] Could not load QC units:", error);
       return NextResponse.json({ error: "Could not load QC units." }, { status: 500 });
@@ -69,7 +69,7 @@ export async function GET() {
       serials.length
         ? supabase.from("telemetry_logs").select(TELEMETRY_LOG_COLUMNS).in("serial_number", serials).order("created_at", { ascending: false }).limit(200)
         : Promise.resolve({ data: [], error: null }),
-      supabase.from("orders").select("id, order_number, serial_number, product_name, total_price, status, created_at").order("created_at", { ascending: false }).limit(100),
+      supabase.from("orders").select("id, order_number, serial_number, product_name, customer_info, total_price, status, created_at").order("created_at", { ascending: false }).limit(100),
     ]);
     if (telemetryResult.error) {
       console.error("[ViciTech OS] Could not load telemetry:", telemetryResult.error);
@@ -79,12 +79,27 @@ export async function GET() {
       console.error("[ViciTech OS] Could not load orders:", ordersResult.error);
       return NextResponse.json({ error: "Could not load orders." }, { status: 500 });
     }
+    const eligibleOrders = (ordersResult.data || []).filter((order) =>
+      !["cancelled", "canceled", "dibatalkan", "batal"].includes(String(order.status || "").trim().toLowerCase()),
+    );
+    const eligibleOrderNumbers = new Set(eligibleOrders.map((order) => order.order_number).filter(Boolean));
     const latestBySerial = new Map();
     for (const entry of telemetryResult.data || []) {
       if (!latestBySerial.has(entry.serial_number)) latestBySerial.set(entry.serial_number, entry);
     }
-    const units = (data || []).map((unit) => ({ ...unit, telemetry: latestBySerial.get(unit.serial_number) || null }));
-    return NextResponse.json({ units, orders: ordersResult.data || [], telemetry: telemetryResult.data || [] });
+    const units = (data || [])
+      .filter((unit) => unit.order_id && eligibleOrderNumbers.has(unit.order_id))
+      .map((unit) => {
+        const latestTelemetry = latestBySerial.get(unit.serial_number) || null;
+        const telemetryIsFromCurrentRun = unit.stress_test_status !== "Running"
+          || !latestTelemetry?.created_at
+          || Math.abs(new Date(latestTelemetry.created_at).getTime() - new Date(unit.updated_at).getTime()) <= 5000;
+        return {
+          ...unit,
+          telemetry: telemetryIsFromCurrentRun ? latestTelemetry : null,
+        };
+      });
+    return NextResponse.json({ units, orders: eligibleOrders, telemetry: telemetryResult.data || [] });
   } catch (error) {
     console.error("[ViciTech OS] Admin QC list failed:", error);
     return NextResponse.json({ error: "Could not load QC units." }, { status: 500 });
@@ -111,11 +126,14 @@ export async function POST(request) {
       }
       const { data: order, error: orderError } = await supabase
         .from("orders")
-        .select("id, order_number, serial_number, product_name")
+        .select("id, order_number, serial_number, product_name, status")
         .eq("id", orderId)
         .maybeSingle();
       if (orderError || !order) {
         return NextResponse.json({ error: "Could not load the selected order." }, { status: 404 });
+      }
+      if (["cancelled", "canceled", "dibatalkan", "batal"].includes(String(order.status || "").trim().toLowerCase())) {
+        return NextResponse.json({ error: "Order yang dibatalkan tidak dapat didaftarkan ke antrean QC." }, { status: 409 });
       }
       const { data: existingUnit, error: existingError } = await supabase
         .from("qc_logs")
@@ -167,7 +185,7 @@ export async function POST(request) {
 
     const serial = String(body?.serial_number || "").trim().toUpperCase();
     if (!SERIAL_PATTERN.test(serial)) return NextResponse.json({ error: "Select a valid unit serial number." }, { status: 400 });
-    if (!["start_test", "simulate_payload", "pass_qc", "mark_shipped"].includes(action)) {
+    if (!["start_test", "pass_qc", "mark_shipped"].includes(action)) {
       return NextResponse.json({ error: "Unsupported QC operation." }, { status: 400 });
     }
 
@@ -180,6 +198,9 @@ export async function POST(request) {
       console.error("[ViciTech OS] Could not load QC unit:", lookupError);
       return NextResponse.json({ error: "Could not load QC unit." }, { status: 500 });
     }
+    if (!current) {
+      return NextResponse.json({ error: "QC unit is not registered to an active order." }, { status: 404 });
+    }
     if (action === "mark_shipped" && (!current || current.status !== "Pass" || !current.certificate_id)) {
       return NextResponse.json(
         { error: "Pass QC and generate a certificate before marking this unit as shipped." },
@@ -188,23 +209,31 @@ export async function POST(request) {
     }
 
     const now = new Date().toISOString();
-    const base = current || {
-      serial_number: serial,
-      device_name: "ViciTech assembled unit",
-      status: "In Progress",
-      burnin_hours: 0,
-      score: null,
-      stress_test_status: "Pending",
-      shipping_status: "In Production",
-    };
-    if (action === "start_test" && base.shipping_status === "Shipped") {
+    const base = current;
+    if (action === "start_test" && ["Dikirim", "Shipped"].includes(base.shipping_status)) {
       return NextResponse.json({ error: "A shipped unit cannot start another stress test." }, { status: 409 });
-    }
-    if (action === "simulate_payload" && base.stress_test_status !== "Running") {
-      return NextResponse.json({ error: "Start the stress test before simulating a telemetry payload." }, { status: 409 });
     }
     if (action === "pass_qc" && Number(base.burnin_hours || 0) < 4) {
       return NextResponse.json({ error: "Complete four burn-in hours before passing QC." }, { status: 409 });
+    }
+    let latestLiveTelemetry = null;
+    if (action === "pass_qc") {
+      const { data, error: telemetryError } = await supabase
+        .from("telemetry_logs")
+        .select("stability_score, burnin_hours, source")
+        .eq("serial_number", serial)
+        .eq("source", "esp32")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (telemetryError) {
+        console.error("[ViciTech OS] Could not verify live QC telemetry:", telemetryError);
+        return NextResponse.json({ error: "Could not verify live QC telemetry." }, { status: 500 });
+      }
+      latestLiveTelemetry = data;
+      if (!latestLiveTelemetry || Number(latestLiveTelemetry.burnin_hours || 0) < 4 || latestLiveTelemetry.stability_score == null) {
+        return NextResponse.json({ error: "Four hours of complete ESP32 telemetry are required before issuing a QC certificate." }, { status: 409 });
+      }
     }
     let update;
 
@@ -220,18 +249,8 @@ export async function POST(request) {
         shipped_at: null,
         updated_at: now,
       };
-    } else if (action === "simulate_payload") {
-      update = {
-        ...base,
-        cpu_temp_c: Number((55 + Math.random() * 18).toFixed(1)),
-        gpu_temp_c: Number((62 + Math.random() * 20).toFixed(1)),
-        stability_score: Number((95 + Math.random() * 4.9).toFixed(1)),
-        stress_test_status: base.stress_test_status === "Pending" ? "Running" : base.stress_test_status,
-        burnin_hours: Math.min(4, Number(base.burnin_hours || 0) + 1),
-        updated_at: now,
-      };
     } else if (action === "pass_qc") {
-      const score = Math.round(Number(base.stability_score ?? 98));
+      const score = Math.round(Number(latestLiveTelemetry.stability_score));
       update = {
         ...base,
         status: "Pass",
@@ -246,7 +265,7 @@ export async function POST(request) {
     } else {
       update = {
         ...base,
-        shipping_status: "Shipped",
+        shipping_status: "Dikirim",
         shipped_at: now,
         updated_at: now,
       };
@@ -262,46 +281,11 @@ export async function POST(request) {
       return NextResponse.json({ error: "QC operation failed." }, { status: 500 });
     }
 
-    if (action === "simulate_payload") {
-      const telemetry = {
-        serial_number: serial,
-        order_id: unit.order_id,
-        cpu_temp_c: unit.cpu_temp_c,
-        gpu_temp_c: unit.gpu_temp_c,
-        fan_rpm: randomInt(900, 2201),
-        voltage_stability: Number((97 + Math.random() * 2.9).toFixed(1)),
-        stability_score: unit.stability_score,
-        stress_test_status: unit.stress_test_status,
-        burnin_hours: unit.burnin_hours,
-        source: "admin_simulation",
-      };
-      const { data: telemetryEntry, error: telemetryError } = await supabase
-        .from("telemetry_logs")
-        .insert(telemetry)
-        .select(TELEMETRY_LOG_COLUMNS)
-        .single();
-      if (telemetryError) {
-        console.error("[ViciTech OS] Telemetry recording failed:", telemetryError);
-        return NextResponse.json({ error: "QC state updated but telemetry could not be recorded." }, { status: 500 });
-      }
-      if (unit.order_id) {
-        const { error: orderUpdateError } = await supabase
-          .from("orders")
-          .update({ status: "IoT Stress-Testing" })
-          .eq("order_number", unit.order_id);
-        if (orderUpdateError) {
-          console.error("[ViciTech OS] Order sync after telemetry failed:", orderUpdateError);
-          return NextResponse.json({ error: "Telemetry was recorded but order status could not be synchronized." }, { status: 500 });
-        }
-      }
-      return NextResponse.json({ unit: { ...unit, telemetry: telemetryEntry }, telemetry: telemetryEntry, action });
-    }
-
     if (unit.order_id) {
       const orderStatus = action === "pass_qc"
         ? "Ready to ship"
         : action === "mark_shipped"
-          ? "Shipped"
+          ? "Dikirim"
           : "IoT Stress-Testing";
       const { error: orderUpdateError } = await supabase
         .from("orders")
