@@ -275,12 +275,12 @@ export default function CheckoutModal({
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
       setConfirmedOrder(order);
       onOrderCreated?.(order);
-      if (!window.snap) throw new Error("Jendela pembayaran belum siap. Lanjutkan pembayaran dari riwayat pesanan.");
+      if (typeof window === "undefined" || !window.snap) throw new Error("Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.");
       window.snap.pay(payment.token, {
-        onSuccess: () => setError("Pembayaran diterima dan sedang diverifikasi. Status pesanan akan diperbarui otomatis."),
-        onPending: () => setError("Pembayaran menunggu penyelesaian. Anda dapat melanjutkan dari riwayat pesanan."),
-        onError: () => setError("Pembayaran gagal. Silakan coba kembali dari riwayat pesanan."),
-        onClose: () => setError("Jendela pembayaran ditutup. Pesanan tetap tersimpan dan dapat dibayar nanti."),
+        onSuccess: () => { setIsSubmitting(false); setError("Pembayaran diterima dan sedang diverifikasi. Status pesanan akan diperbarui otomatis."); window.dispatchEvent(new Event("vicitech:order_created")); },
+        onPending: () => { setIsSubmitting(false); setError("Pembayaran menunggu penyelesaian. Anda dapat melanjutkan dari riwayat pesanan."); window.dispatchEvent(new Event("vicitech:order_created")); },
+        onError: () => { setIsSubmitting(false); setError("Pembayaran gagal. Silakan coba kembali dari riwayat pesanan."); },
+        onClose: () => { setIsSubmitting(false); setError("Jendela pembayaran ditutup. Pesanan tetap tersimpan dan dapat dibayar nanti."); },
       });
     } catch (submitError) {
       setError(`Pesanan tidak dapat diproses: ${submitError.message}`);

@@ -333,10 +333,14 @@ export function ProfileAccountHub({
         onSuccess: () => {
           setPayingOrderId('');
           setToast('Pembayaran diterima dan sedang diverifikasi.');
+          void loadAll({ silent: true });
+          router.refresh();
         },
         onPending: () => {
           setPayingOrderId('');
           setToast('Pembayaran masih menunggu penyelesaian.');
+          void loadAll({ silent: true });
+          router.refresh();
         },
         onError: () => {
           setPayingOrderId('');
@@ -348,8 +352,9 @@ export function ProfileAccountHub({
         },
       });
     } catch (error) {
-      setPayingOrderId('');
       setToast(error instanceof Error ? error.message : 'Pembayaran tidak dapat dimulai.');
+    } finally {
+      setPayingOrderId('');
     }
   };
 
