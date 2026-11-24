@@ -131,6 +131,7 @@ export function ProfileAccountHub({
   const [orderToCancel, setOrderToCancel] = useState<ProfileOrderRecord | null>(null);
   const [isCancellingOrder, setIsCancellingOrder] = useState(false);
   const [cancelOrderError, setCancelOrderError] = useState('');
+  const [payingOrderId, setPayingOrderId] = useState('');
 
   const activeUserRef = useRef<AuthSnapshotUser | null>(activeUser);
   activeUserRef.current = activeUser;
@@ -294,6 +295,31 @@ export function ProfileAccountHub({
     const timer = window.setTimeout(() => setToast(''), 3800);
     return () => window.clearTimeout(timer);
   }, [toast]);
+
+  const continuePayment = async (order: ProfileOrderRecord): Promise<void> => {
+    if (payingOrderId || !order.paymentReference) return;
+    setPayingOrderId(order.id);
+    try {
+      const response = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const result = await response.json() as { token?: string; error?: string };
+      if (!response.ok || !result.token) throw new Error(result.error || 'Pembayaran tidak dapat dimulai.');
+      if (!window.snap) throw new Error('Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.');
+      window.snap.pay(result.token, {
+        onSuccess: () => setToast('Pembayaran diterima dan sedang diverifikasi.'),
+        onPending: () => setToast('Pembayaran masih menunggu penyelesaian.'),
+        onError: () => setToast('Pembayaran gagal. Silakan coba lagi.'),
+        onClose: () => setToast('Pembayaran belum selesai. Anda dapat melanjutkan kapan saja.'),
+      });
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : 'Pembayaran tidak dapat dimulai.');
+    } finally {
+      setPayingOrderId('');
+    }
+  };
 
   const handleConfirmCancelOrder = async (reason: string): Promise<void> => {
     if (!orderToCancel || !activeUser?.id || isCancellingOrder) return;
@@ -689,6 +715,9 @@ export function ProfileAccountHub({
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
+                              <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${order.paymentStatus === 'paid' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : order.paymentStatus === 'expired' || order.paymentStatus === 'failed' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+                                {order.paymentStatus === 'paid' ? 'Lunas' : order.paymentStatus === 'expired' ? 'Kadaluarsa' : order.paymentStatus === 'failed' ? 'Gagal' : 'Menunggu Pembayaran'}
+                              </span>
                               <span
                                 className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold ${statusMeta.badgeClass}`}
                               >
@@ -729,6 +758,20 @@ export function ProfileAccountHub({
                             <AnimatedNumber value={order.totalPrice} format="currency" />
                           </p>
                         </div>
+
+                        {order.paymentStatus === 'pending' && order.paymentReference && (
+                          <div className="mt-3 border-t border-default pt-3">
+                            <button
+                              type="button"
+                              disabled={payingOrderId === order.id}
+                              onClick={() => void continuePayment(order)}
+                              className={`vt-btn-tactile inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:w-auto ${focusRing}`}
+                            >
+                              {payingOrderId === order.id && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                              Lanjutkan Bayar
+                            </button>
+                          </div>
+                        )}
 
                         {(order.serialNumber && !statusMeta.isCancelled) || statusMeta.canCancel ? (
                           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-default pt-3">

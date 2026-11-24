@@ -242,7 +242,7 @@ export async function fetchProfileWorkspaceData(
     isOwner
       ? supabase
           .from('orders')
-          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, cancel_reason, cancelled_at, created_at')
+          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, cancel_reason, cancelled_at, created_at, payment_status, payment_reference')
           .eq('user_id', profileUserId)
           .order('created_at', { ascending: false })
           .limit(30)
@@ -260,7 +260,7 @@ export async function fetchProfileWorkspaceData(
   if (isOwner && ordersRes.error && isMissingColumnError(ordersRes.error)) {
     ordersRes = await supabase
       .from('orders')
-      .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at')
+      .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at, payment_status, payment_reference')
       .eq('user_id', profileUserId)
       .order('created_at', { ascending: false })
       .limit(30);
@@ -283,6 +283,8 @@ export async function fetchProfileWorkspaceData(
       likesCount: Math.max(0, numVal(rec, 'likes_count', 0)),
       mediaUrls,
       createdAt: strVal(rec, 'created_at'),
+      paymentStatus: strVal(rec, 'payment_status', 'unpaid'),
+      paymentReference: strVal(rec, 'payment_reference') || null,
     });
   }
 

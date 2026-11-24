@@ -126,6 +126,8 @@ export interface ProfileOrderRecord {
   readonly cancelledAt: string | null;
   readonly itemsSummary: readonly ProfileOrderItemSummary[];
   readonly createdAt: string;
+  readonly paymentStatus: string;
+  readonly paymentReference: string | null;
 }
 
 export const ORDER_CANCEL_REASONS: readonly string[] = [

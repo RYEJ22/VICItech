@@ -59,6 +59,10 @@ export interface Database {
           jit_buffer: number;
           order_summary: Json;
           serial_number: string | null;
+          payment_status: string;
+          payment_reference: string | null;
+          payment_method: string | null;
+          paid_at: string | null;
         };
         Insert: {
           id?: string;
@@ -76,6 +80,10 @@ export interface Database {
           jit_buffer?: number;
           order_summary?: Json;
           serial_number?: string | null;
+          payment_status?: string;
+          payment_reference?: string | null;
+          payment_method?: string | null;
+          paid_at?: string | null;
         };
         Update: {
           id?: string;
@@ -93,6 +101,10 @@ export interface Database {
           jit_buffer?: number;
           order_summary?: Json;
           serial_number?: string | null;
+          payment_status?: string;
+          payment_reference?: string | null;
+          payment_method?: string | null;
+          paid_at?: string | null;
         };
         Relationships: [];
       };

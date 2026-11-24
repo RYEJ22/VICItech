@@ -260,9 +260,28 @@ export default function CheckoutModal({
         notes: orderSummary.notes || "",
         orderSummary: { ...orderSummary, buyerDetails },
       });
+      if (!order?.id || order.source === "local") {
+        throw new Error("Pesanan harus tersimpan ke akun sebelum pembayaran dapat dimulai.");
+      }
+      const paymentResponse = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: order.id }),
+      });
+      const payment = await paymentResponse.json();
+      if (!paymentResponse.ok || !payment.token) {
+        throw new Error(payment.error || "Sesi pembayaran tidak dapat dibuat.");
+      }
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
       setConfirmedOrder(order);
       onOrderCreated?.(order);
+      if (!window.snap) throw new Error("Jendela pembayaran belum siap. Lanjutkan pembayaran dari riwayat pesanan.");
+      window.snap.pay(payment.token, {
+        onSuccess: () => setError("Pembayaran diterima dan sedang diverifikasi. Status pesanan akan diperbarui otomatis."),
+        onPending: () => setError("Pembayaran menunggu penyelesaian. Anda dapat melanjutkan dari riwayat pesanan."),
+        onError: () => setError("Pembayaran gagal. Silakan coba kembali dari riwayat pesanan."),
+        onClose: () => setError("Jendela pembayaran ditutup. Pesanan tetap tersimpan dan dapat dibayar nanti."),
+      });
     } catch (submitError) {
       setError(`Pesanan tidak dapat diproses: ${submitError.message}`);
     } finally {
@@ -320,9 +339,9 @@ export default function CheckoutModal({
                 </span>
               </p>
               <p className="mt-1 text-sm">
-                Status:{" "}
-                <span className="font-medium text-primary">
-                  {confirmedOrder.status || "Menunggu IoT Stress-Test"}
+                Pembayaran:{" "}
+                <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                  Menunggu Pembayaran
                 </span>
               </p>
             </div>

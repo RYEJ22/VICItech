@@ -1,0 +1,71 @@
+import { createClient } from '@supabase/supabase-js';
+import { createHash, timingSafeEqual } from 'node:crypto';
+import { NextResponse } from 'next/server';
+
+interface MidtransNotification {
+  readonly order_id?: string;
+  readonly status_code?: string;
+  readonly gross_amount?: string;
+  readonly signature_key?: string;
+  readonly transaction_status?: string;
+  readonly fraud_status?: string;
+  readonly payment_type?: string;
+}
+
+export async function POST(request: Request): Promise<NextResponse> {
+  const serverKey = process.env.MIDTRANS_SERVER_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serverKey || !url || !serviceKey) return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 });
+
+  let body: MidtransNotification;
+  try {
+    body = await request.json() as MidtransNotification;
+  } catch {
+    return NextResponse.json({ error: 'Invalid notification.' }, { status: 400 });
+  }
+  if (!body.order_id || !body.status_code || !body.gross_amount || !body.signature_key) {
+    return NextResponse.json({ error: 'Incomplete notification.' }, { status: 400 });
+  }
+  const expected = createHash('sha512')
+    .update(`${body.order_id}${body.status_code}${body.gross_amount}${serverKey}`)
+    .digest('hex');
+  const receivedBytes = Buffer.from(body.signature_key, 'hex');
+  const expectedBytes = Buffer.from(expected, 'hex');
+  if (receivedBytes.length !== expectedBytes.length || !timingSafeEqual(receivedBytes, expectedBytes)) {
+    return NextResponse.json({ error: 'Invalid signature.' }, { status: 401 });
+  }
+
+  const supabase = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  let { data: order, error: lookupError } = await supabase.from('orders')
+    .select('id, total_price, status, payment_status')
+    .eq('order_number', body.order_id).maybeSingle();
+  if (!order && !lookupError) {
+    const fallback = await supabase.from('orders')
+      .select('id, total_price, status, payment_status')
+      .eq('id', body.order_id).maybeSingle();
+    order = fallback.data;
+    lookupError = fallback.error;
+  }
+  if (lookupError || !order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
+  if (Math.round(Number(order.total_price)) !== Math.round(Number(body.gross_amount))) {
+    return NextResponse.json({ error: 'Payment amount does not match the order.' }, { status: 400 });
+  }
+
+  let update: Record<string, string> | null = null;
+  if (body.transaction_status === 'settlement' || (body.transaction_status === 'capture' && body.fraud_status === 'accept')) {
+    update = { payment_status: 'paid', payment_method: body.payment_type || 'unknown', paid_at: new Date().toISOString(), status: 'pending_qc' };
+  } else if (body.transaction_status === 'expire' || body.transaction_status === 'cancel' || body.transaction_status === 'deny') {
+    update = { payment_status: body.transaction_status === 'expire' ? 'expired' : 'failed' };
+  }
+  if (update) {
+    let query = supabase.from('orders').update(update).eq('id', order.id);
+    if (update.payment_status !== 'paid') query = query.neq('status', 'cancelled');
+    const { error: updateError } = await query;
+    if (updateError) {
+      console.error('[ViciTech] Payment notification update failed:', updateError);
+      return NextResponse.json({ error: 'Could not update payment status.' }, { status: 500 });
+    }
+  }
+  return NextResponse.json({ received: true });
+}

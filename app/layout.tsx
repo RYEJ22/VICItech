@@ -6,6 +6,7 @@ import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import IntroSplash from "@/components/ui/IntroSplash";
 import Navbar from "@/components/Navbar";
+import Script from "next/script";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -67,6 +68,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       suppressHydrationWarning
     >
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">
+        <Script
+          id="midtrans-snap"
+          src="https://app.sandbox.midtrans.com/snap/snap.js"
+          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ""}
+          strategy="afterInteractive"
+        />
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
           <CheckoutProvider>
             <IntroSplash />

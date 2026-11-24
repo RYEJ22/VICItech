@@ -80,7 +80,7 @@ export async function GET() {
       return NextResponse.json({ error: "Could not load orders." }, { status: 500 });
     }
     const eligibleOrders = (ordersResult.data || []).filter((order) =>
-      !["cancelled", "canceled", "dibatalkan", "batal"].includes(String(order.status || "").trim().toLowerCase()),
+      !["cancelled", "canceled", "dibatalkan", "batal", "awaiting_payment", "menunggu pembayaran"].includes(String(order.status || "").trim().toLowerCase()),
     );
     const eligibleOrderNumbers = new Set(eligibleOrders.map((order) => order.order_number).filter(Boolean));
     const latestBySerial = new Map();
