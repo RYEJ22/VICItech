@@ -9,6 +9,7 @@ import {
   type ReactElement,
   type RefObject,
 } from "react";
+import { createPortal } from "react-dom";
 import { Film, LoaderCircle, Search, Smile, Sparkles, X } from "lucide-react";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
@@ -74,6 +75,8 @@ export function ChatMediaPicker({
   const [gifSource, setGifSource] = useState<"giphy" | "fallback">("fallback");
   const [isLoadingGifs, setIsLoadingGifs] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [desktopPosition, setDesktopPosition] = useState<{ readonly top: number; readonly left: number } | null>(null);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const debouncedGifQuery = useDebouncedValue(gifQuery, 300);
@@ -85,6 +88,10 @@ export function ChatMediaPicker({
   }, [activeTab, enabledTabs, firstTab]);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(max-width: 767px)");
     const syncViewport = (): void => setIsMobileViewport(media.matches);
@@ -92,6 +99,29 @@ export function ChatMediaPicker({
     media.addEventListener("change", syncViewport);
     return () => media.removeEventListener("change", syncViewport);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || isMobileViewport || typeof window === "undefined") return;
+    const updatePosition = (): void => {
+      const rect = restoreFocusTo?.current?.getBoundingClientRect();
+      if (!rect) return;
+      const width = Math.min(364, window.innerWidth - 32);
+      const height = Math.min(410, window.innerHeight - 24);
+      const left = align === "right" ? rect.right - width : rect.left;
+      const clampedLeft = Math.max(16, Math.min(left, window.innerWidth - width - 16));
+      const above = rect.top >= height + 12;
+      const preferredTop = above ? rect.top - height - 10 : rect.bottom + 10;
+      const top = Math.max(12, Math.min(preferredTop, window.innerHeight - height - 12));
+      setDesktopPosition({ top, left: clampedLeft });
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [align, isMobileViewport, isOpen, restoreFocusTo]);
 
   const handleClose = useCallback((): void => {
     onClose();
@@ -166,7 +196,7 @@ export function ChatMediaPicker({
     [emojiCategory, emojiQuery],
   );
 
-  if (!isOpen) return null;
+  if (!isOpen || !isMounted || (!isMobileViewport && !desktopPosition)) return null;
 
   const renderTabIcon = (id: ChatMediaTabId): ReactElement => {
     switch (id) {
@@ -188,10 +218,9 @@ export function ChatMediaPicker({
       className={`${styles.pickerPanel} ${
         isMobileViewport
           ? "fixed inset-x-0 bottom-0 z-50 flex max-h-[76dvh] w-full flex-col rounded-t-2xl border-t border-default bg-surface shadow-2xl"
-          : `absolute bottom-full z-40 mb-2.5 flex max-h-[min(410px,calc(100dvh-16rem))] w-[364px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-default bg-surface shadow-xl ${
-              align === "right" ? "right-0" : "left-0"
-            }`
+          : "fixed z-50 flex max-h-[min(410px,calc(100dvh-1.5rem))] w-[364px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-default bg-surface shadow-xl"
       }`}
+      style={!isMobileViewport && desktopPosition ? { top: desktopPosition.top, left: desktopPosition.left } : undefined}
     >
       {isMobileViewport ? (
         <div className="flex justify-center pt-2.5">
@@ -400,7 +429,7 @@ export function ChatMediaPicker({
   );
 
   if (isMobileViewport) {
-    return (
+    return createPortal((
       <>
         <button
           type="button"
@@ -411,8 +440,8 @@ export function ChatMediaPicker({
         />
         {panelBody}
       </>
-    );
+    ), document.body);
   }
 
-  return panelBody;
+  return createPortal(panelBody, document.body);
 }

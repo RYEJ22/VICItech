@@ -262,7 +262,15 @@ export function ProfileAccountHub({
     }
 
     const isOwnerView = Boolean(currentAuthUser && currentAuthUser.id === loadedProfile.id);
-    const data = await fetchProfileWorkspaceData(loadedProfile.id, isOwnerView);
+    let data: ProfileWorkspaceData;
+    try {
+      data = await fetchProfileWorkspaceData(loadedProfile.id, isOwnerView);
+    } catch (error: unknown) {
+      console.error('[ViciTech] Profile workspace fetch threw:', error);
+      setErrorMsg(error instanceof Error ? error.message : 'Gagal memuat data profil dan pesanan.');
+      setStatus('error');
+      return;
+    }
 
     loadedProfileIdRef.current = loadedProfile.id;
     setProfile(loadedProfile);
@@ -297,8 +305,8 @@ export function ProfileAccountHub({
   }, [toast]);
 
   const continuePayment = async (order: ProfileOrderRecord): Promise<void> => {
-    const paymentStatus = order.paymentStatus.trim().toLowerCase();
-    const orderStatus = order.status.trim().toLowerCase();
+    const paymentStatus = (order.paymentStatus ?? 'unpaid').toLowerCase();
+    const orderStatus = (order.status ?? '').toLowerCase();
     if (
       payingOrderId ||
       orderStatus === 'cancelled' ||
@@ -307,7 +315,7 @@ export function ProfileAccountHub({
 
     setPayingOrderId(order.id);
     try {
-      let token = paymentStatus === 'pending' ? order.paymentReference?.trim() : '';
+      let token = paymentStatus === 'pending' ? (order.paymentReference ?? '').trim() : '';
       if (!token) {
         const response = await fetch('/api/payments/create', {
           method: 'POST',
@@ -318,7 +326,9 @@ export function ProfileAccountHub({
         if (!response.ok || !result.token) throw new Error(result.error || 'Pembayaran tidak dapat dimulai.');
         token = result.token;
       }
-      if (!window.snap) throw new Error('Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.');
+      if (typeof window === 'undefined' || !window.snap) {
+        throw new Error('Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.');
+      }
       window.snap.pay(token, {
         onSuccess: () => {
           setPayingOrderId('');
@@ -728,8 +738,8 @@ export function ProfileAccountHub({
               {workspace.orders.length > 0 ? (
                 <ul className="space-y-3">
                   {workspace.orders.map((order) => {
-                    const statusMeta = getOrderStatusMeta(order.status);
-                    const paymentStatus = order.paymentStatus.trim().toLowerCase();
+                    const statusMeta = getOrderStatusMeta(order.status ?? '');
+                    const paymentStatus = (order.paymentStatus ?? 'unpaid').toLowerCase();
                     const paymentLabel = paymentStatus === 'paid'
                       ? 'Lunas'
                       : paymentStatus === 'expired'
@@ -803,7 +813,7 @@ export function ProfileAccountHub({
                               className={`vt-btn-tactile inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:w-auto ${focusRing}`}
                             >
                               {payingOrderId === order.id && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                              {paymentStatus === 'pending' && order.paymentReference?.trim() ? 'Lanjutkan Bayar' : 'Bayar Sekarang'}
+                              {paymentStatus === 'pending' && (order.paymentReference ?? '').trim() ? 'Lanjutkan Bayar' : 'Bayar Sekarang'}
                             </button>
                           </div>
                         )}

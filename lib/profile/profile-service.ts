@@ -25,7 +25,8 @@ const BASE_PROFILE_COLUMNS =
 
 function isMissingColumnError(error: { readonly code?: string; readonly message?: string } | null): boolean {
   if (!error) return false;
-  return error.code === '42703' || /column .* does not exist/i.test(error.message ?? '');
+  return error.code === '42703' || error.code === 'PGRST204' ||
+    /column .* does not exist|could not find .* column .* schema cache/i.test(error.message ?? '');
 }
 
 function toRecord(raw: unknown): Readonly<Record<string, unknown>> {
@@ -73,6 +74,7 @@ export async function fetchOwnProfile(
     if (error && isMissingColumnError(error)) {
       const ensured = await fetchOrEnsureUserProfile(supabase, authUser);
       if (ensured.error) {
+        console.error('[ViciTech] Profile fallback query failed:', ensured.error);
         return { profile: null, error: `Gagal memuat profil: ${ensured.error.message}` };
       }
       return {
@@ -87,12 +89,14 @@ export async function fetchOwnProfile(
     }
 
     if (error) {
+      console.error('[ViciTech] Profile query failed:', error);
       return { profile: null, error: `Gagal memuat profil: ${error.message}` };
     }
 
     if (!data) {
       const ensured = await fetchOrEnsureUserProfile(supabase, authUser);
       if (ensured.error) {
+        console.error('[ViciTech] Profile creation fallback failed:', ensured.error);
         return { profile: null, error: `Gagal membuat profil awal: ${ensured.error.message}` };
       }
       return {
@@ -116,6 +120,7 @@ export async function fetchOwnProfile(
       error: null,
     };
   } catch (err: unknown) {
+    console.error('[ViciTech] Profile fetch threw:', err);
     return {
       profile: null,
       error: err instanceof Error ? err.message : 'Gagal memuat data profil Anda.',
@@ -151,6 +156,7 @@ export async function fetchPublicProfileByUsername(
         .maybeSingle();
 
       if (legacyRes.error) {
+        console.error('[ViciTech] Legacy public profile query failed:', legacyRes.error);
         return { profile: null, error: `Gagal memuat profil anggota: ${legacyRes.error.message}` };
       }
       if (!legacyRes.data) {
@@ -163,6 +169,7 @@ export async function fetchPublicProfileByUsername(
     }
 
     if (error) {
+      console.error('[ViciTech] Public profile query failed:', error);
       return { profile: null, error: `Gagal memuat profil anggota: ${error.message}` };
     }
     if (!data) {
@@ -174,6 +181,7 @@ export async function fetchPublicProfileByUsername(
       error: null,
     };
   } catch (err: unknown) {
+    console.error('[ViciTech] Public profile fetch threw:', err);
     return {
       profile: null,
       error: err instanceof Error ? err.message : 'Gagal memuat profil anggota.',
@@ -242,7 +250,7 @@ export async function fetchProfileWorkspaceData(
     isOwner
       ? supabase
           .from('orders')
-          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, cancel_reason, cancelled_at, created_at, payment_status, payment_reference')
+          .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, cancel_reason, cancelled_at, created_at, payment_status, payment_reference, payment_method, paid_at')
           .eq('user_id', profileUserId)
           .order('created_at', { ascending: false })
           .limit(30)
@@ -260,10 +268,29 @@ export async function fetchProfileWorkspaceData(
   if (isOwner && ordersRes.error && isMissingColumnError(ordersRes.error)) {
     ordersRes = await supabase
       .from('orders')
-      .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at, payment_status, payment_reference')
+      .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at, payment_status, payment_reference, payment_method, paid_at')
       .eq('user_id', profileUserId)
       .order('created_at', { ascending: false })
       .limit(30);
+    if (ordersRes.error && isMissingColumnError(ordersRes.error)) {
+      ordersRes = await supabase
+        .from('orders')
+        .select('id, order_number, product_name, status, total_price, base_price, jit_buffer, serial_number, order_summary, created_at')
+        .eq('user_id', profileUserId)
+        .order('created_at', { ascending: false })
+        .limit(30);
+    }
+  }
+
+  for (const [queryName, queryError] of [
+    ['community posts', postsRes.error],
+    ['shared builds', buildsRes.error],
+    ['profile stats', statsRes.error],
+    ['saved presets', presetsRes.error],
+    ['orders', ordersRes.error],
+    ['QC reports', qcRes.error],
+  ] as const) {
+    if (queryError) console.error(`[ViciTech] Profile ${queryName} query failed:`, queryError);
   }
 
   const rawPosts: readonly unknown[] = Array.isArray(postsRes.data) ? postsRes.data : [];
@@ -283,8 +310,6 @@ export async function fetchProfileWorkspaceData(
       likesCount: Math.max(0, numVal(rec, 'likes_count', 0)),
       mediaUrls,
       createdAt: strVal(rec, 'created_at'),
-      paymentStatus: strVal(rec, 'payment_status', 'unpaid'),
-      paymentReference: strVal(rec, 'payment_reference') || null,
     });
   }
 
@@ -337,6 +362,8 @@ export async function fetchProfileWorkspaceData(
       cancelledAt: strVal(rec, 'cancelled_at') || null,
       itemsSummary: parseOrderItemsSummary(rec.order_summary),
       createdAt: strVal(rec, 'created_at'),
+      paymentStatus: strVal(rec, 'payment_status', 'unpaid'),
+      paymentReference: strVal(rec, 'payment_reference') || null,
     });
   }
 
