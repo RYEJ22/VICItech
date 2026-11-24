@@ -13,10 +13,10 @@ interface MidtransNotification {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const serverKey = process.env.MIDTRANS_SERVER_KEY?.trim();
+  const signatureSecret = (process.env.MIDTRANS_SIGNATURE_SECRET_KEY || process.env.MIDTRANS_SERVER_KEY)?.trim();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serverKey || !url || !serviceKey) {
+  if (!signatureSecret || !url || !serviceKey) {
     console.error('[ViciTech] Midtrans webhook configuration is missing.');
     return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 });
   }
@@ -33,7 +33,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   // Hash the exact payload strings. In particular, gross_amount must retain
   // its decimal formatting (for example, "2990000.00").
   const expected = createHash('sha512')
-    .update(`${String(body.order_id)}${String(body.status_code)}${String(body.gross_amount)}${serverKey}`)
+    .update(`${String(body.order_id)}${String(body.status_code)}${String(body.gross_amount)}${signatureSecret}`)
     .digest('hex');
   const signature = String(body.signature_key).trim().toLowerCase();
   if (!/^[0-9a-f]{128}$/.test(signature)) {
