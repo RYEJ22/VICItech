@@ -7,7 +7,7 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 15;
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.0-flash'] as const;
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'] as const;
 const CATALOG_TTL_MS = 60_000;
 let cachedCatalog: { value: string; expiresAt: number } | null = null;
 
@@ -67,7 +67,11 @@ function isChatMessage(value: unknown): value is { role: 'user' | 'assistant'; c
   if (!isRecord(value)) return false;
   const message = value;
   return (message.role === 'user' || message.role === 'assistant') &&
-    typeof message.content === 'string' && message.content.length > 0 && message.content.length <= 4000;
+    typeof message.content === 'string' && message.content.length <= 4000;
+}
+
+function isFallbackBubble(content: string): boolean {
+  return /^(?:Maaf, konsultan AI belum dapat menjawab|Koneksi terputus|Koneksi terputus\.|Konsultan AI belum dapat menjawab saat ini)/i.test(content.trim());
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -93,16 +97,18 @@ export async function POST(request: Request): Promise<Response> {
   if (rawMessages.length < 1 || rawMessages.length > 24 || !rawMessages.every(isChatMessage)) {
     return NextResponse.json({ error: 'Pesan tidak valid atau percakapan terlalu panjang.' }, { status: 400 });
   }
+  const normalizedMessages = rawMessages
+    .filter((message) => message.content.trim().length > 0 && !isFallbackBubble(message.content))
+    .map((message) => ({ role: message.role === 'assistant' ? 'model' as const : 'user' as const, content: message.content.trim() }));
+  const firstUserTurn = normalizedMessages.findIndex((message) => message.role === 'user');
+  if (firstUserTurn < 0) return NextResponse.json({ error: 'Tambahkan pertanyaan sebelum mengirim.' }, { status: 400 });
+  const cleanMessages = normalizedMessages.slice(firstUserTurn);
 
   const catalog = await getCatalogContext();
 
   const systemInstruction = `Kamu adalah "ViciTech AI — Konsultan Rakitan & Hardware". Jawab secara alami, ringkas, dan jelas dalam Bahasa Indonesia. Bantu merencanakan rakitan PC berdasarkan anggaran dan penggunaan, mengecek kompatibilitas upgrade RAM/NVMe laptop berdasarkan model dan spesifikasi yang diberikan, serta menjelaskan bottleneck hardware dengan mudah. Jangan mengarang kompatibilitas, stok, atau harga; gunakan katalog di bawah, jelaskan bila data tidak tersedia, dan sebutkan harga akurat dalam Rupiah. Setiap unit/rakitan ViciTech melewati IoT Burn-In & Telemetry QC serta mendapat sertifikat serial unik sebelum dikirim. Pembayaran mendukung DP (Down Payment) atau Full Payment melalui Midtrans. Fokus hanya pada hardware PC/laptop/periferal dan layanan ViciTech; tolak permintaan di luar topik dengan sopan.\n\nKATALOG ViciTech:\n${catalog}`;
 
-  const contents = rawMessages.map((message) => {
-    const item = message;
-    const geminiMessage: ChatMessage = { role: item.role === 'assistant' ? 'model' : 'user', parts: [{ text: item.content }] };
-    return geminiMessage;
-  });
+  const contents: ChatMessage[] = cleanMessages.map((message) => ({ role: message.role, parts: [{ text: message.content }] }));
   let upstream: Response | null = null;
   let failureReason = 'Tidak ada model Gemini yang tersedia.';
   for (const [index, model] of GEMINI_MODELS.entries()) {
@@ -117,11 +123,7 @@ export async function POST(request: Request): Promise<Response> {
         body: JSON.stringify({
         systemInstruction: { parts: [{ text: systemInstruction }] },
         contents,
-        generationConfig: {
-          temperature: 0.45,
-          maxOutputTokens: 1200,
-          ...(model.startsWith('gemini-3') ? { thinkingLevel: 'minimal' } : { thinkingConfig: { thinkingBudget: 0 } }),
-        },
+        generationConfig: { temperature: 0.45, maxOutputTokens: 1200 },
       }),
         signal: controller.signal,
       });
@@ -144,7 +146,7 @@ export async function POST(request: Request): Promise<Response> {
       const cleanReason = googleMessage.slice(0, 300) || 'Google API tidak mengembalikan detail error.';
       console.error(`[api/chat] Gemini ${model} gagal: HTTP ${response.status} — ${cleanReason}`);
       failureReason = `HTTP ${response.status}: ${cleanReason}`;
-      if ((response.status !== 403 && response.status !== 404) || index === GEMINI_MODELS.length - 1) break;
+      if (index === GEMINI_MODELS.length - 1) break;
     } catch (error) {
       clearTimeout(timeout);
       request.signal.removeEventListener('abort', abortFromClient);
@@ -158,7 +160,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!upstream?.body) {
     const error = 'Konsultan AI belum dapat menjawab saat ini. Silakan coba lagi.';
     const reason = process.env.NODE_ENV === 'development' ? ` (${failureReason})` : '';
-    return NextResponse.json({ error: `${error}${reason}` }, { status: 502 });
+    return NextResponse.json({ error: `${error}${reason}`, upstreamError: failureReason }, { status: 502 });
   }
 
   const decoder = new TextDecoder();
@@ -184,7 +186,7 @@ export async function POST(request: Request): Promise<Response> {
                 const first = event.candidates[0];
                 if (isRecord(first) && isRecord(first.content) && Array.isArray(first.content.parts)) {
                   const text = first.content.parts.flatMap((part) => isRecord(part) && typeof part.text === 'string' ? [part.text] : []).join('');
-                  if (text) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+                  if (text) controller.enqueue(encoder.encode(text));
                 }
               }
             } catch {
@@ -201,7 +203,7 @@ export async function POST(request: Request): Promise<Response> {
                 const first = event.candidates[0];
                 if (isRecord(first) && isRecord(first.content) && Array.isArray(first.content.parts)) {
                   const text = first.content.parts.flatMap((part) => isRecord(part) && typeof part.text === 'string' ? [part.text] : []).join('');
-                  if (text) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+                  if (text) controller.enqueue(encoder.encode(text));
                 }
               }
             } catch {
@@ -220,5 +222,5 @@ export async function POST(request: Request): Promise<Response> {
       void reader.cancel();
     },
   });
-  return new Response(stream, { headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache, no-transform', 'X-Accel-Buffering': 'no' } });
+  return new Response(stream, { headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache, no-transform', 'X-Accel-Buffering': 'no' } });
 }

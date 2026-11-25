@@ -90,25 +90,16 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
       setMessages((current) => [...current, { role: 'assistant', content: '' }]);
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let streamBuffer = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        streamBuffer += decoder.decode(value, { stream: true });
-        const events = streamBuffer.split('\n\n');
-        streamBuffer = events.pop() ?? '';
-        for (const item of events) {
-          const line = item.split('\n').find((entry) => entry.startsWith('data:'));
-          if (!line) continue;
-          try {
-            const delta: unknown = JSON.parse(line.slice(5).trim());
-            if (isRecord(delta) && typeof delta.text === 'string') {
-              setMessages((current) => current.map((message, index) => index === current.length - 1 && message.role === 'assistant'
-                ? { ...message, content: message.content + delta.text } : message));
-            }
-          } catch { /* Ignore malformed stream frames. */ }
-        }
+        const chunk = decoder.decode(value, { stream: true });
+        if (chunk) setMessages((current) => current.map((message, index) => index === current.length - 1 && message.role === 'assistant'
+          ? { ...message, content: message.content + chunk } : message));
       }
+      const finalChunk = decoder.decode();
+      if (finalChunk) setMessages((current) => current.map((message, index) => index === current.length - 1 && message.role === 'assistant'
+        ? { ...message, content: message.content + finalChunk } : message));
     } catch {
       setMessages((current) => [...current, { role: 'assistant', content: 'Koneksi terputus. Silakan kirim pertanyaan sekali lagi.' }]);
     } finally {
