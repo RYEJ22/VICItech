@@ -22,6 +22,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { loadMidtransSnap } from '@/lib/payments/load-midtrans-snap';
 import {
   forceResetAuthSession,
   getSupabaseBrowserClient,
@@ -328,7 +329,8 @@ export function ProfileAccountHub({
         if (!response.ok || !result.token) throw new Error(result.error || 'Pembayaran tidak dapat dimulai.');
         token = result.token;
       }
-      if (typeof window === 'undefined' || !window.snap) {
+      await loadMidtransSnap();
+      if (!window.snap) {
         throw new Error('Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.');
       }
       window.snap.pay(token, {

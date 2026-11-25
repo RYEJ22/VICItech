@@ -1,4 +1,5 @@
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+let transitionPending = false;
 
 export interface RouteClickEventLike {
   readonly defaultPrevented: boolean;
@@ -33,16 +34,28 @@ export function startRouteTransition(navigate: () => void): void {
   }
 
   const startTransition = getStartViewTransition(document);
-  if (!startTransition) {
+  if (!startTransition || transitionPending) {
     navigate();
     return;
   }
 
   try {
-    startTransition(() => {
+    const transition = startTransition(() => {
       navigate();
     });
+    transitionPending = true;
+    const finished = transition && typeof transition === 'object' ? Reflect.get(transition, 'finished') : null;
+    const ready = transition && typeof transition === 'object' ? Reflect.get(transition, 'ready') : null;
+    if (ready && typeof Reflect.get(ready, 'catch') === 'function') {
+      void Promise.resolve(ready).catch(() => undefined);
+    }
+    if (finished && typeof Reflect.get(finished, 'finally') === 'function') {
+      void Promise.resolve(finished).catch(() => undefined).finally(() => { transitionPending = false; });
+    } else {
+      transitionPending = false;
+    }
   } catch {
+    transitionPending = false;
     navigate();
   }
 }

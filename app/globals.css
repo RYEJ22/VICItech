@@ -729,9 +729,6 @@ select,
   animation: vt-page-out 160ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-@view-transition {
-  navigation: auto;
-}
 ::view-transition-old(root) {
   animation: vt-page-out 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

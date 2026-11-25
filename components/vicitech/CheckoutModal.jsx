@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Github, LoaderCircle, Mail, ShieldCheck, X }
 import { createOrder, isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 import { PENDING_CHECKOUT_STORAGE_KEY } from "@/lib/checkout/constants";
+import { loadMidtransSnap } from "@/lib/payments/load-midtrans-snap";
 
 export { PENDING_CHECKOUT_STORAGE_KEY };
 
@@ -275,7 +276,8 @@ export default function CheckoutModal({
       window.sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
       setConfirmedOrder(order);
       onOrderCreated?.(order);
-      if (typeof window === "undefined" || !window.snap) throw new Error("Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.");
+      await loadMidtransSnap();
+      if (!window.snap) throw new Error("Jendela pembayaran belum siap. Muat ulang halaman dan coba lagi.");
       window.snap.pay(payment.token, {
         onSuccess: () => { setIsSubmitting(false); setError("Pembayaran diterima dan sedang diverifikasi. Status pesanan akan diperbarui otomatis."); window.dispatchEvent(new Event("vicitech:order_created")); },
         onPending: () => { setIsSubmitting(false); setError("Pembayaran menunggu penyelesaian. Anda dapat melanjutkan dari riwayat pesanan."); window.dispatchEvent(new Event("vicitech:order_created")); },
