@@ -6,6 +6,7 @@ import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import IntroSplash from "@/components/ui/IntroSplash";
 import Navbar from "@/components/Navbar";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Script from "next/script";
 
 const poppins = Poppins({
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <IntroSplash />
             <Navbar />
             <div className="pb-20 md:pb-0">{children}</div>
+            <CookieConsentBanner />
           </CheckoutProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,7 @@
 import { Activity, Cpu, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
+import { CookieSettingsButton } from './cookie-settings-button';
 
 const ECOSYSTEM_LINKS: readonly { readonly href: string; readonly label: string }[] = [
   { href: '/', label: 'Beranda' },
@@ -105,6 +106,7 @@ export function SiteFooter(): ReactElement {
         <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-1.5 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
           <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
           <p className="hidden md:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
+          <CookieSettingsButton />
         </div>
       </div>
     </footer>
