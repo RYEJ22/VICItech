@@ -87,7 +87,7 @@ export function CookieConsentBanner() {
   return (
     <aside
       aria-label="Pengaturan cookie ViciTech"
-      className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[70] mx-auto max-h-[80dvh] max-w-3xl overflow-y-auto rounded-2xl border border-default bg-surface p-5 shadow-lift sm:inset-x-6 sm:bottom-6 sm:p-6"
+      className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[70] mx-auto w-[calc(100vw_-_1.5rem)] max-h-[80dvh] max-w-3xl overflow-y-auto rounded-2xl border border-default bg-surface p-5 shadow-lift sm:inset-x-6 sm:bottom-6 sm:w-auto sm:p-6"
     >
       {isSettingsOpen ? (
         <div>
