@@ -48,6 +48,7 @@ const CATEGORIES = {
 
 const CAT_ORDER = ["all", "hardware", "gaming", "dev", "creative", "qa", "guide", "meme", "news"];
 const POSTABLE = ["hardware", "gaming", "dev", "creative", "qa", "guide", "meme"];
+const hasAdminRole = (...roles) => roles.some((role) => String(role ?? "").trim().toLowerCase() === "admin");
 
 const databaseCategory = {
   hardware: "hardware",
@@ -57,6 +58,7 @@ const databaseCategory = {
   qa: "troubleshooting",
   guide: "general",
   meme: "meme",
+  news: "news",
 };
 
 const feedCategory = {
@@ -251,7 +253,7 @@ function RichText({ text, onTag }) {
 
 /* ───────────────────────── Post creator ───────────────────────── */
 
-function Composer({ onPublish, sectionRef, titleInputRef }) {
+function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) {
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState("hardware");
   const [body, setBody] = useState("");
@@ -378,7 +380,7 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
         <div>
           <label htmlFor="post-cat" className="mb-1.5 block text-sm text-primary">Kategori</label>
           <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
-            {POSTABLE.map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
+            {[...POSTABLE, ...(canPublishOfficial ? ["news"] : [])].map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
           </select>
         </div>
       </div>
@@ -1317,6 +1319,10 @@ export default function CommunityHub() {
   }, []);
 
   const resolve = useMemo(() => (key) => resolveAuthor(key, { currentUser, profiles }), [currentUser, profiles]);
+  const canPublishOfficial = hasAdminRole(
+    profiles[currentUser?.id]?.role,
+    currentUser?.app_metadata?.role,
+  );
 
   useEffect(() => {
     if (!currentUser?.id || !isSupabaseAuthConfigured) return;
@@ -1721,6 +1727,18 @@ export default function CommunityHub() {
       if (!activeUser) throw new Error("Silakan masuk terlebih dahulu sebelum menerbitkan postingan.");
       setCurrentUser(activeUser);
 
+      if (cat === "news") {
+        const { data: profile, error: profileError } = await client
+          .from("profiles")
+          .select("role")
+          .eq("id", activeUser.id)
+          .maybeSingle();
+        if (profileError) throw new Error(profileError.message);
+        if (!hasAdminRole(profile?.role, activeUser.app_metadata?.role)) {
+          throw new Error("Hanya admin yang dapat menerbitkan Pengumuman Resmi.");
+        }
+      }
+
       let mediaUrls = [];
       let mediaType = null;
       if (Array.isArray(mediaFiles) && mediaFiles.length > 0) {
@@ -1867,6 +1885,7 @@ export default function CommunityHub() {
           <div className="space-y-3.5 sm:space-y-5 lg:col-span-2">
             <Composer
               onPublish={publish}
+              canPublishOfficial={canPublishOfficial}
               sectionRef={composerSectionRef}
               titleInputRef={composerTitleInputRef}
             />

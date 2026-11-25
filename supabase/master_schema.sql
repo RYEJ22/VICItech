@@ -655,12 +655,12 @@ security invoker
 set search_path = ''
 as $$
   select
-    coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', '') = 'admin'
+    lower(trim(coalesce((select auth.jwt()) -> 'app_metadata' ->> 'role', ''))) = 'admin'
     or exists (
       select 1
       from public.profiles
       where profiles.id = (select auth.uid())
-        and profiles.role = 'admin'
+        and lower(trim(coalesce(profiles.role, ''))) = 'admin'
     );
 $$;
 
@@ -1252,14 +1252,20 @@ create policy "community_posts_insert_owner"
   on public.community_posts
   for insert
   to authenticated
-  with check ((select auth.uid()) = user_id);
+  with check (
+    (select auth.uid()) = user_id
+    and (category <> 'news' or (select public.is_admin()))
+  );
 
 create policy "community_posts_update_owner"
   on public.community_posts
   for update
   to authenticated
   using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
+  with check (
+    (select auth.uid()) = user_id
+    and (category <> 'news' or (select public.is_admin()))
+  );
 
 create policy "community_posts_delete_owner"
   on public.community_posts
