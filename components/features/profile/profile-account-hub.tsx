@@ -85,7 +85,7 @@ const EMPTY_WORKSPACE: ProfileWorkspaceData = {
 };
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
+  'vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
 
 function isRecord(raw: unknown): raw is Readonly<Record<string, unknown>> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
@@ -784,7 +784,7 @@ export function ProfileAccountHub({
                     return (
                       <li
                         key={order.id}
-                        className="rounded-lg border border-default bg-canvas p-4"
+                        className="vt-card-lift rounded-lg border border-default bg-canvas p-4"
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">

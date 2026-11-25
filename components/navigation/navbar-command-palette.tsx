@@ -93,7 +93,7 @@ export default function NavbarCommandPalette({
             aria-label="Cari di ViciTech"
             autoComplete="off"
             spellCheck={false}
-            className="h-12 flex-1 bg-transparent text-sm text-primary placeholder:text-secondary/70 focus:outline-none"
+            className="vt-form-control h-12 flex-1 bg-transparent text-sm text-primary placeholder:text-secondary/70 focus:outline-none"
           />
           <button
             type="button"

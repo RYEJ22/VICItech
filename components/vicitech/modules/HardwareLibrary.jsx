@@ -192,7 +192,7 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
   const secondary = `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-subtle ${focusRing}`;
   return (
     <article
-      className={`relative flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
+      className={`vt-card-lift relative flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm ${
         inCompare ? "border-accent-primary ring-1 ring-accent-primary/25" : "border-default hover:border-accent-primary/40"
       }`}
     >
@@ -447,7 +447,9 @@ function BuilderList({ items, onRemove, onClear, onClose, onOpenBuilder }) {
         {copied && <p role="status" className="text-xs text-status-live">{copied}</p>}
         {onOpenBuilder && <button type="button" disabled={!items.length} onClick={() => onOpenBuilder(items)} className={`min-h-11 w-full rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover disabled:opacity-40 ${focusRing}`}>Buka Preset Builder</button>}
         <div className="flex gap-2">
-          <button type="button" disabled={!items.length} onClick={copy} className={`min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}>Salin daftar</button>
+          <button type="button" disabled={!items.length} onClick={copy} className={`vt-motion-press min-h-11 flex-1 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary hover:bg-canvas disabled:opacity-40 ${focusRing}`}>
+            {copied.startsWith("Daftar disalin") ? <><Check className="vt-motion-pop h-4 w-4" aria-hidden="true" /> Tersalin</> : "Salin daftar"}
+          </button>
           <button type="button" disabled={!items.length} onClick={onClear} className={`min-h-11 flex-1 rounded-lg border border-default px-4 py-2.5 text-sm text-secondary hover:bg-subtle hover:text-primary disabled:opacity-40 ${focusRing}`}>Hapus semua</button>
         </div>
       </div>
@@ -636,7 +638,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const closeSheet = useCallback(() => setSheetId(null), []);
   const filtersActive = tokens.length > 0 || f.cond !== "all" || f.brand !== "all" || f.type !== "all" || f.max < categoryBounds[cat].max;
 
-  const field = `w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary outline-none transition-colors focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/25`;
+  const field = `vt-form-control w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary outline-none transition-colors focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/25`;
   return (
     <div className="bg-canvas text-primary antialiased">
       <div className={`mx-auto max-w-7xl px-4 py-8 sm:px-6 ${barVisible ? "pb-36 md:pb-24" : "pb-16 md:pb-10"}`}>

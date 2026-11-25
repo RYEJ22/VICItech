@@ -3,7 +3,6 @@
 import type { ReactElement } from "react";
 import { MessageSquare, X } from "lucide-react";
 import type { IncomingDmToast } from "@/lib/chat/dm-notifications";
-import styles from "./dm-notification-toast.module.css";
 
 export interface DmNotificationToastProps {
   readonly toasts: readonly IncomingDmToast[];
@@ -33,7 +32,7 @@ export function DmNotificationToast({
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto flex items-start gap-3 rounded-xl border border-default bg-surface p-3 shadow-lg ${styles.toastEnter ?? ""}`}
+          className="vt-toast-enter pointer-events-auto flex items-start gap-3 rounded-xl border border-default bg-surface p-3 shadow-lg"
         >
           <button
             type="button"

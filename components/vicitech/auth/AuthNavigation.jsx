@@ -23,7 +23,7 @@ import {
 import AuthModal from "./AuthModal";
 
 const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60";
+  "vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60";
 
 /**
  * @param {{

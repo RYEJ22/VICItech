@@ -18,6 +18,14 @@ module.exports = {
       letterSpacing: {
         tight: "-0.02em",
       },
+      transitionDuration: {
+        "motion-fast": "var(--vt-motion-press)",
+        "motion-hover": "var(--vt-motion-hover)",
+        "motion-reveal": "var(--vt-motion-reveal)",
+      },
+      transitionTimingFunction: {
+        natural: "var(--vt-motion-ease)",
+      },
       colors: {
         // ViciTech palette — legacy shell aliases collapsed onto DESIGN.md semantic tokens.
         paper: {

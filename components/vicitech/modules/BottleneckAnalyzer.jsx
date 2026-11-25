@@ -78,7 +78,7 @@ const PSU_STATUS_UI = {
 
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
-const selectClass = `min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`;
+const selectClass = `vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`;
 
 function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
   const sevStyle = SEVERITY_UI[severity];
@@ -695,7 +695,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
                 type="button"
                 aria-expanded={showMethodology}
                 onClick={() => setShowMethodology((prev) => !prev)}
-                className={`flex min-h-11 w-full items-center justify-between gap-3 px-5 py-4 text-left ${focusRing}`}
+                className={`vt-motion-press flex min-h-11 w-full items-center justify-between gap-3 px-5 py-4 text-left ${focusRing}`}
               >
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="vt-badge-simulated">Model Simulasi ViciTech</span>
@@ -704,7 +704,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
                   </span>
                 </div>
                 <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-secondary transition-transform duration-200 ${
+                  className={`vt-chevron h-4 w-4 shrink-0 text-secondary ${
                     showMethodology ? "rotate-180" : ""
                   }`}
                   strokeWidth={1.75}

@@ -259,7 +259,7 @@ export function PartnersDirectory({
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Cari mitra, kota, atau alamat bengkel…"
-                className="min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               />
             </div>
 
@@ -388,7 +388,7 @@ export function PartnersDirectory({
                 const coords = formatCoordinates(featuredPartner);
                 const typeLabel = PARTNER_TYPE_LABELS[featuredPartner.type] ?? featuredPartner.type;
                 return (
-                  <article className="rounded-xl border border-accent-primary/25 bg-accent-subtle p-6 shadow-sm sm:p-8">
+                  <article className="vt-card-lift rounded-xl border border-accent-primary/25 bg-accent-subtle p-6 shadow-sm sm:p-8">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       {featuredPartner.is_verified ? (
                         <span className="vt-badge-live">
@@ -475,7 +475,7 @@ export function PartnersDirectory({
                     return (
                       <article
                         key={partner.id}
-                        className="flex flex-col justify-between rounded-xl border border-default bg-surface p-6 shadow-sm transition-transform duration-150 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                        className="vt-card-lift flex flex-col justify-between rounded-xl border border-default bg-surface p-6 shadow-sm"
                       >
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-2">

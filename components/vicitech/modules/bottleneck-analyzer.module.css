@@ -12,12 +12,11 @@
   width: 100%;
   border-radius: 9999px;
   transform-origin: left center;
-  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  transition: transform var(--vt-motion-reveal) var(--vt-motion-ease);
 }
 
 .gaugeArc {
-  transition: stroke-dashoffset 420ms cubic-bezier(0.22, 1, 0.36, 1), stroke 220ms ease-out;
+  transition: stroke-dashoffset var(--vt-motion-reveal) var(--vt-motion-ease), stroke var(--vt-motion-hover) var(--vt-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -73,7 +73,7 @@ const SHELL_ROUTES = ['/market', '/community'];
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
 const iconBtnBase =
-  `relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
+  `vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
 
 function NavIcon({
   iconKey,
@@ -825,17 +825,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     href={group.href}
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
+                    className={`vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
                       isActive ? 'text-[#EA580C]' : 'text-[#18181B]/80 hover:text-[#EA580C]'
                     }`}
                   >
                     <span>{group.label}</span>
-                    {isActive && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-x-0 bottom-0.5 h-[2px] rounded-full bg-[#EA580C]"
-                      />
-                    )}
+                    <span aria-hidden="true" className={`vt-nav-underline ${isActive ? 'is-active' : ''}`} />
                   </Link>
                 );
               }
@@ -855,7 +850,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     aria-controls={`nav-panel-${group.id}`}
-                    className={`relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
+                    className={`vt-nav-link vt-motion-press relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
                       isActive || isOpen
                         ? 'text-[#EA580C]'
                         : 'text-[#18181B]/80 hover:text-[#EA580C]'
@@ -863,25 +858,23 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   >
                     <span>{group.label}</span>
                     <ChevronDown
-                      className={`h-3.5 w-3.5 shrink-0 transition-transform duration-150 ${
+                      className={`vt-chevron h-3.5 w-3.5 shrink-0 ${
                         isOpen ? 'rotate-180 text-[#EA580C]' : 'text-[#71717A]'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    {isActive && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute inset-x-0 bottom-0.5 h-[2px] rounded-full bg-[#EA580C]"
-                      />
-                    )}
+                    <span aria-hidden="true" className={`vt-nav-underline ${isActive ? 'is-active' : ''}`} />
                   </button>
 
-                  {isOpen && group.items && (
+                  {group.items && (
                     <div className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3.5">
                       <div
                         id={`nav-panel-${group.id}`}
-                        className={`w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.dropdownPop ?? ''}`}
+                        aria-hidden={!isOpen}
+                        inert={!isOpen}
+                        data-menu-state={isOpen ? 'open' : 'closed'}
+                        className={`vt-dropdown-panel w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl p-2 ${styles.dropdownPanel ?? ''}`}
                       >
                         <ul className="grid gap-0.5">
                           {group.items.map((subItem) => {
@@ -956,7 +949,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               {totalCartItems > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#EA580C] px-1 font-mono text-[10px] font-bold leading-none text-white ring-2 ring-white"
+                  key={`cart-count-${totalCartItems}`}
+                  className="vt-motion-pop absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#EA580C] px-1 font-mono text-[10px] font-bold leading-none text-white ring-2 ring-white"
                 >
                   {totalCartItems > 99 ? '99+' : totalCartItems}
                 </span>

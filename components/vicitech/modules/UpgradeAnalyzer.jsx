@@ -212,7 +212,7 @@ function Planner({ d, onNavigate }) {
             value={ramPick}
             onChange={(e) => setRamPick(e.target.value)}
             disabled={!ropts.length}
-            className={`min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary disabled:opacity-50 ${focusRing}`}
+            className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary disabled:opacity-50 ${focusRing}`}
           >
             <option value="keep">
               {ropts.length ? `Pertahankan ${installed} GB` : `Pertahankan ${installed} GB (tersolder, tidak bisa ditambah)`}
@@ -233,7 +233,7 @@ function Planner({ d, onNavigate }) {
             id="store-plan"
             value={storePick}
             onChange={(e) => setStorePick(e.target.value)}
-            className={`min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`}
+            className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`}
           >
             {STORE_OPTS.map((o) => (
               <option key={o.id} value={o.id} disabled={!allowed(o)}>
@@ -284,7 +284,7 @@ function Planner({ d, onNavigate }) {
         <button
           type="button"
           onClick={() => onNavigate("bottleneck")}
-          className={`vt-btn-tactile mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-3.5 py-2 text-sm font-medium text-primary hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
+          className={`vt-motion-press vt-btn-tactile mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-3.5 py-2 text-sm font-medium text-primary hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
         >
           <Gauge className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
           <span>Cek bottleneck konfigurasi ini</span>

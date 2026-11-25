@@ -47,6 +47,10 @@
   --vt-signal-wash: rgba(234, 88, 12, 0.1);
   --vt-brick: var(--status-danger);
   --vt-radius: 1rem;
+  --vt-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --vt-motion-press: 150ms;
+  --vt-motion-hover: 220ms;
+  --vt-motion-reveal: 320ms;
   color-scheme: light;
 }
 
@@ -469,6 +473,167 @@ select,
   transform: translateY(0) scale(0.99);
 }
 
+/* Public-facing interaction primitives. Kept separate from legacy classes that
+   are used by the admin workspace. */
+.vt-motion-press {
+  transition-property: transform, color, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--vt-motion-press);
+  transition-timing-function: var(--vt-motion-ease);
+}
+.vt-motion-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.vt-card-lift {
+  transition:
+    transform var(--vt-motion-hover) var(--vt-motion-ease),
+    border-color var(--vt-motion-hover) var(--vt-motion-ease),
+    box-shadow var(--vt-motion-hover) var(--vt-motion-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .vt-card-lift:hover {
+    transform: translateY(-0.125rem);
+    border-color: color-mix(in srgb, var(--accent-primary) 35%, var(--border-default));
+    box-shadow: 0 12px 28px -18px rgb(24 24 27 / 0.28), 0 2px 6px -4px rgb(24 24 27 / 0.12);
+  }
+}
+.vt-card-lift:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.vt-icon-nudge {
+  transition: transform var(--vt-motion-hover) var(--vt-motion-ease);
+}
+.group:hover .vt-icon-nudge,
+.group:focus-visible .vt-icon-nudge {
+  transform: translateX(0.25rem);
+}
+
+.vt-chevron {
+  transition: transform 180ms var(--vt-motion-ease), color var(--vt-motion-hover) var(--vt-motion-ease);
+}
+
+.vt-nav-underline {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0.125rem;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--accent-primary);
+  opacity: 0;
+  transform: scaleX(0.55);
+  transition: transform var(--vt-motion-hover) var(--vt-motion-ease), opacity var(--vt-motion-hover) var(--vt-motion-ease);
+}
+.vt-nav-link:hover .vt-nav-underline,
+.vt-nav-link:focus-visible .vt-nav-underline,
+.vt-nav-underline.is-active {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.vt-dropdown-panel {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-0.25rem) scale(0.99);
+  pointer-events: none;
+  transition:
+    opacity var(--vt-motion-hover) var(--vt-motion-ease),
+    transform var(--vt-motion-hover) var(--vt-motion-ease),
+    visibility 0s linear var(--vt-motion-hover);
+}
+.vt-dropdown-panel[data-menu-state='open'] {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    opacity var(--vt-motion-hover) var(--vt-motion-ease),
+    transform var(--vt-motion-hover) var(--vt-motion-ease),
+    visibility 0s;
+}
+
+.vt-motion-pop {
+  display: inline-flex;
+  animation: vt-badge-pop 280ms var(--vt-motion-ease) both;
+}
+
+.vt-toast-enter {
+  animation: vt-toast-slide-up var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+.vt-panel-enter {
+  animation: vt-panel-enter var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+.vt-dialog-enter {
+  animation: vt-dialog-enter var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+.vt-crossfade {
+  animation: vt-crossfade var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+.vt-crossfade-in {
+  animation: vt-crossfade-in var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+.vt-crossfade-out {
+  animation: vt-crossfade-out var(--vt-motion-hover) var(--vt-motion-ease) both;
+}
+@keyframes vt-crossfade {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+@keyframes vt-crossfade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes vt-crossfade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes vt-toast-slide-up {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes vt-panel-enter {
+  from { opacity: 0; transform: translateX(0.75rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes vt-dialog-enter {
+  from { opacity: 0; transform: translateY(0.375rem) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.vt-form-control {
+  transition:
+    border-color var(--vt-motion-hover) var(--vt-motion-ease),
+    box-shadow var(--vt-motion-hover) var(--vt-motion-ease),
+    background-color var(--vt-motion-hover) var(--vt-motion-ease);
+}
+.vt-form-control:focus-visible {
+  border-color: var(--accent-primary);
+  outline: 2px solid color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+.vt-progress-fill {
+  transform-origin: left center;
+  transition: transform var(--vt-motion-reveal) var(--vt-motion-ease);
+}
+
+.vt-reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+.vt-reveal[data-motion-ready='true'][data-motion-visible='false'] {
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+.vt-reveal[data-motion-ready='true'] {
+  transition: opacity var(--vt-motion-reveal) var(--vt-motion-ease), transform var(--vt-motion-reveal) var(--vt-motion-ease);
+}
+.vt-reveal[data-motion-ready='true'][data-motion-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @keyframes vt-badge-pop {
   0% {
     opacity: 0;
@@ -606,6 +771,40 @@ select,
   .vt-btn-tactile,
   .vt-card-interactive {
     transition: none;
+  }
+  .vt-motion-press,
+  .vt-card-lift,
+  .vt-icon-nudge,
+  .vt-chevron,
+  .vt-dropdown-panel,
+  .vt-nav-underline,
+  .vt-progress-fill,
+  .vt-reveal,
+  .vt-reveal[data-motion-ready='true'] {
+    transition: none;
+  }
+  .vt-motion-pop,
+  .vt-toast-enter,
+  .vt-panel-enter,
+  .vt-dialog-enter,
+  .vt-crossfade,
+  .vt-crossfade-in,
+  .vt-crossfade-out {
+    animation: none;
+  }
+  .vt-reveal[data-motion-ready='true'][data-motion-visible='false'] {
+    opacity: 1;
+    transform: none;
+  }
+  .vt-motion-press:active:not(:disabled),
+  .vt-icon-nudge,
+  .group:hover .vt-icon-nudge,
+  .group:focus-visible .vt-icon-nudge,
+  .vt-card-lift:hover {
+    transform: none;
+  }
+  .vt-card-lift:active:not(:disabled) {
+    transform: none;
   }
   .vt-btn-tactile:hover:not(:disabled),
   .vt-btn-tactile:active:not(:disabled),

@@ -12,7 +12,7 @@ export default function SpotlightCard({
 }: SpotlightCardProps): ReactElement {
   return (
     <div
-      className={`rounded-xl border border-default bg-surface shadow-sm transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent-primary/40 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${className}`}
+      className={`vt-card-lift rounded-xl border border-default bg-surface shadow-sm ${className}`}
       {...props}
     >
       {children}

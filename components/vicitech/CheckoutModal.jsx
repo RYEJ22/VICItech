@@ -121,7 +121,7 @@ function normalizeOrderSummary(itemData) {
 }
 
 const inputClass =
-  "min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20";
+  "vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary outline-none transition placeholder:text-secondary/60 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20";
 
 export default function CheckoutModal({
   itemData,
@@ -303,7 +303,7 @@ export default function CheckoutModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="checkout-title"
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-default bg-surface text-primary shadow-2xl"
+        className="vt-dialog-enter flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-default bg-surface text-primary shadow-2xl"
       >
         <header className="flex items-start justify-between gap-4 border-b border-default p-5 sm:p-6">
           <div>
@@ -327,7 +327,7 @@ export default function CheckoutModal({
 
         <div className="flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
           {confirmedOrder ? (
-            <div className="rounded-xl border border-status-live/30 bg-emerald-50 p-4 text-emerald-900">
+            <div className="vt-toast-enter rounded-xl border border-status-live/30 bg-emerald-50 p-4 text-emerald-900">
               <p className="flex items-center gap-2 font-semibold text-status-live">
                 <CheckCircle2 className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
                 <span>Pesanan Berhasil Dibuat</span>
@@ -482,14 +482,14 @@ export default function CheckoutModal({
               <Link
                 href="/profile?tab=orders"
                 onClick={onClose}
-                className="vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg border border-default bg-canvas px-4 py-3 text-sm font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg border border-default bg-canvas px-4 py-3 text-sm font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 Lihat Riwayat Pesanan
               </Link>
               <button
                 type="button"
                 onClick={onClose}
-                className="vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press vt-btn-tactile flex min-h-11 flex-1 items-center justify-center rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 Selesai
               </button>
@@ -503,7 +503,7 @@ export default function CheckoutModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-wait disabled:opacity-60"
+              className="vt-motion-press vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-wait disabled:opacity-60"
             >
               {isSubmitting ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -522,7 +522,7 @@ export default function CheckoutModal({
               <button
                 type="button"
                 onClick={goToEmailLogin}
-                className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <Mail className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Masuk / Daftar dengan Email</span>
@@ -531,7 +531,7 @@ export default function CheckoutModal({
                 type="button"
                 onClick={signInWithGitHub}
                 disabled={!isSupabaseConfigured}
-                className="vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+                className="vt-motion-press vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Github className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Lanjutkan dengan GitHub</span>

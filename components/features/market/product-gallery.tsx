@@ -41,7 +41,7 @@ export function ProductGallery({
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
+      <div className="group relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
         <div
           key={activeSrc ?? 'fallback'}
           className={`relative h-full w-full ${styles.stageImage ?? ''}`}
@@ -52,7 +52,7 @@ export function ProductGallery({
             category={category}
             sizes="(min-width: 1024px) 58vw, 100vw"
             isPriority
-            className="object-cover"
+            className="object-cover transition-transform duration-motion-hover ease-natural group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         </div>
 
@@ -75,7 +75,7 @@ export function ProductGallery({
               type="button"
               onClick={handlePrev}
               aria-label="Foto sebelumnya"
-              className="absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-default bg-surface/90 text-primary shadow-sm transition-[transform,background-color] duration-150 hover:bg-surface active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press absolute left-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-default bg-surface/90 text-primary shadow-sm transition-[transform,background-color] duration-motion-fast ease-natural hover:bg-surface active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <ChevronLeft className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -84,7 +84,7 @@ export function ProductGallery({
               type="button"
               onClick={handleNext}
               aria-label="Foto berikutnya"
-              className="absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-default bg-surface/90 text-primary shadow-sm transition-[transform,background-color] duration-150 hover:bg-surface active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press absolute right-3 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-default bg-surface/90 text-primary shadow-sm transition-[transform,background-color] duration-motion-fast ease-natural hover:bg-surface active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <ChevronRight className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -114,7 +114,7 @@ export function ProductGallery({
                 aria-pressed={isSelected}
                 aria-label={`Tampilkan foto ${idx + 1} dari ${images.length}`}
                 onClick={() => setActiveIndex(idx)}
-                className={`relative aspect-[4/3] min-h-11 w-full overflow-hidden rounded-lg bg-canvas transition-[opacity,transform] duration-150 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
+                className={`vt-motion-press relative aspect-[4/3] min-h-11 w-full overflow-hidden rounded-lg bg-canvas transition-[opacity,transform] duration-motion-fast ease-natural active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
                   isSelected
                     ? 'border-2 border-accent-primary ring-2 ring-accent-primary/20'
                     : 'border border-default opacity-75 hover:opacity-100'

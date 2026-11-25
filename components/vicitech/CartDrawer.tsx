@@ -27,7 +27,7 @@ const formatIdr = (amount: number): string =>
   }).format(Math.max(0, Math.round(amount || 0)));
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
+  'vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
 
 export function CartDrawer({
   isOpen,
@@ -88,7 +88,7 @@ export function CartDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
-        className="flex h-full w-full max-w-md flex-col border-l border-[#E4E4E7] bg-[#FAF9F6] text-[#18181B] shadow-2xl"
+        className="vt-panel-enter flex h-full w-full max-w-md flex-col border-l border-[#E4E4E7] bg-[#FAF9F6] text-[#18181B] shadow-2xl"
       >
         <header className="flex items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -104,7 +104,7 @@ export function CartDrawer({
                   Keranjang Belanja
                 </h2>
                 {totalItems > 0 && (
-                  <span className="rounded-full bg-[#EA580C]/10 px-2 py-0.5 font-mono text-xs font-semibold text-[#EA580C]">
+                  <span key={`cart-total-${totalItems}`} className="vt-motion-pop rounded-full bg-[#EA580C]/10 px-2 py-0.5 font-mono text-xs font-semibold text-[#EA580C]">
                     {totalItems}
                   </span>
                 )}
@@ -173,7 +173,7 @@ export function CartDrawer({
                 return (
                   <li
                     key={item.id}
-                    className="rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm"
+                    className="vt-card-lift rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm"
                   >
                     <div className="flex items-start gap-3">
                       {item.image ? (
@@ -247,7 +247,8 @@ export function CartDrawer({
                           <Minus className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
                         <span
-                          className="min-w-[2rem] text-center font-mono text-xs font-semibold tabular-nums text-[#18181B]"
+                          key={qty}
+                          className="vt-num-pop min-w-[2rem] text-center font-mono text-xs font-semibold tabular-nums text-[#18181B]"
                           aria-label={`Jumlah ${qty}`}
                         >
                           {qty}

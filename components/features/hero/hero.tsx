@@ -58,13 +58,13 @@ export function Hero({
           <div className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-4">
             <Link
               href={primaryCta.href}
-              className={`inline-flex h-11 items-center justify-center rounded-md px-6 text-base font-medium ${styles.ctaPrimary}`}
+              className={`vt-motion-press inline-flex h-11 items-center justify-center rounded-md px-6 text-base font-medium ${styles.ctaPrimary}`}
             >
               {primaryCta.label}
             </Link>
             <Link
               href={secondaryCta.href}
-              className={`inline-flex h-11 items-center justify-center rounded-md px-5 text-base font-medium ${styles.ctaSecondary}`}
+              className={`vt-motion-press inline-flex h-11 items-center justify-center rounded-md px-5 text-base font-medium ${styles.ctaSecondary}`}
             >
               {secondaryCta.label}
             </Link>

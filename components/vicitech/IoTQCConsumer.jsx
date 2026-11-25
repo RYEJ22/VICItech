@@ -362,7 +362,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
               onChange={(event) => setQuery(event.target.value.toUpperCase())}
               placeholder="VT-PO-2026-0412 atau VICI-SRV-2026-9042"
               autoComplete="off"
-              className="min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 font-mono text-sm text-primary outline-none transition-colors placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+              className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 font-mono text-sm text-primary outline-none transition-colors placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
             />
           </div>
           <button

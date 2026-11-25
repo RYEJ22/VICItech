@@ -134,7 +134,7 @@ export default function CircularPortal() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="equipment" className="mb-2 block text-sm font-medium text-primary">Jenis Perangkat</label>
-                  <select id="equipment" value={form.equipment} onChange={(e) => set("equipment")(e.target.value)} className={`min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`}>
+                  <select id="equipment" value={form.equipment} onChange={(e) => set("equipment")(e.target.value)} className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`}>
                     {Object.keys(EQUIPMENT).map((k) => <option key={k}>{k}</option>)}
                   </select>
                 </div>
@@ -144,7 +144,7 @@ export default function CircularPortal() {
                     id="qty" type="number" inputMode="numeric" min={1} max={MAX_QTY} value={form.qty}
                     onChange={(e) => set("qty")(e.target.value)}
                     onBlur={() => set("qty")(String(qty))}
-                    className={`min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 font-mono text-sm tabular-nums text-primary ${focusRing}`}
+                    className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 font-mono text-sm tabular-nums text-primary ${focusRing}`}
                   />
                 </div>
               </div>
@@ -227,7 +227,7 @@ export default function CircularPortal() {
                         <input
                           id="email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailError(false); }}
                           aria-invalid={emailError} placeholder="nama@instansi.id"
-                          className={`min-h-11 min-w-0 flex-1 rounded-lg border bg-canvas px-3 py-2.5 text-sm text-primary placeholder:text-secondary ${focusRing} ${emailError ? "border-status-danger" : "border-default"}`}
+                          className={`vt-form-control min-h-11 min-w-0 flex-1 rounded-lg border bg-canvas px-3 py-2.5 text-sm text-primary placeholder:text-secondary ${focusRing} ${emailError ? "border-status-danger" : "border-default"}`}
                         />
                         <button type="button" onClick={submit} className={`min-h-11 shrink-0 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}>
                           Ajukan Valuasi
@@ -269,7 +269,7 @@ export default function CircularPortal() {
             <div className="shrink-0">
               <Link
                 href="/market"
-                className={`vt-btn-tactile inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-cta px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover ${focusRing}`}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-cta px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover ${focusRing}`}
               >
                 <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Lihat di Etalase Market →</span>

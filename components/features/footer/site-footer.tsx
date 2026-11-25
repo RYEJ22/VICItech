@@ -20,7 +20,7 @@ const STANDARD_ITEMS: readonly string[] = [
 ];
 
 const linkCls =
-  'inline-flex min-h-9 items-center text-sm text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded';
+  'vt-motion-press inline-flex min-h-9 items-center text-sm text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded';
 
 export function SiteFooter(): ReactElement {
   return (

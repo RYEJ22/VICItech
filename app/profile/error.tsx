@@ -27,14 +27,14 @@ export default function ProfileError({ reset }: ProfileErrorProps): ReactElement
           <button
             type="button"
             onClick={reset}
-            className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover"
+            className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover"
           >
             <RefreshCw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Coba Lagi</span>
           </button>
           <Link
             href="/"
-            className="vt-btn-tactile inline-flex min-h-11 items-center rounded-lg border border-default bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-subtle"
+            className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center rounded-lg border border-default bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-subtle"
           >
             Kembali ke Beranda
           </Link>

@@ -559,7 +559,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`vt-card-interactive group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-3.5 text-left hover:border-accent-primary/50 sm:p-5 ${focusRing}`}
+                    className={`vt-card-lift group flex min-h-11 flex-col justify-between rounded-xl border border-default bg-accent-subtle p-3.5 text-left hover:border-accent-primary/50 sm:p-5 ${focusRing}`}
                   >
                     <div>
                       <span className="flex items-center justify-between gap-2">
@@ -598,7 +598,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     key={m.id}
                     type="button"
                     onClick={() => onNavigate(m.id)}
-                    className={`vt-card-interactive group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
+                    className={`vt-card-lift group flex min-h-11 items-start gap-3.5 rounded-xl border border-default bg-surface p-4 text-left hover:border-accent-primary/40 hover:bg-subtle ${focusRing}`}
                   >
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-subtle text-accent-primary transition group-hover:bg-accent-primary group-hover:text-white">
                       <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />

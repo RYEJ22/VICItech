@@ -15,7 +15,7 @@ interface CancelOrderModalProps {
 }
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
+  'vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
 
 export function CancelOrderModal({
   order,
@@ -69,7 +69,7 @@ export function CancelOrderModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cancel-order-title"
-        className="w-full max-w-md rounded-2xl border border-[#E4E4E7] bg-white p-5 text-[#18181B] shadow-2xl sm:p-6"
+        className="vt-dialog-enter w-full max-w-md rounded-2xl border border-[#E4E4E7] bg-white p-5 text-[#18181B] shadow-2xl sm:p-6"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -140,7 +140,7 @@ export function CancelOrderModal({
               maxLength={240}
               onChange={(event) => setCustomReason(event.target.value)}
               placeholder="Atau tulis alasan singkat lainnya (opsional)…"
-              className="min-h-10 w-full rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-xs text-[#18181B] placeholder:text-[#71717A] focus:border-[#EA580C] focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20"
+              className="vt-form-control min-h-10 w-full rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-xs text-[#18181B] placeholder:text-[#71717A] focus:border-[#EA580C] focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20"
             />
           </label>
         </div>

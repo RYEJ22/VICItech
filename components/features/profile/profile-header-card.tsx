@@ -45,7 +45,7 @@ const PRESET_CLASS_MAP: Readonly<Record<ProfileBannerPresetId, string | undefine
 };
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
+  'vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
 
 export function ProfileHeaderCard({
   profile,

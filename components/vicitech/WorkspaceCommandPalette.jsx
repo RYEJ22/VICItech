@@ -81,7 +81,7 @@ export default function WorkspaceCommandPalette({
             aria-label="Search"
             autoComplete="off"
             spellCheck={false}
-            className="h-12 flex-1 bg-transparent text-sm text-ink placeholder:text-faint focus:outline-none"
+            className="vt-form-control h-12 flex-1 bg-transparent text-sm text-ink placeholder:text-faint focus:outline-none"
           />
           <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 text-[11px] text-pewter">
             Esc

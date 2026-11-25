@@ -18,7 +18,7 @@
   background-color: #b43b0b;
   color: var(--accent-foreground);
   border: 1px solid rgb(255 255 255 / 0.16);
-  transition: transform 180ms ease-out, background-color 150ms ease-out;
+  transition: transform var(--vt-motion-hover) var(--vt-motion-ease), background-color var(--vt-motion-press) var(--vt-motion-ease);
 }
 
 .stepDeckCardActive {
@@ -29,12 +29,12 @@
 }
 
 .stepPanelReveal {
-  animation: stepReveal 180ms ease-out both;
+  animation: stepReveal var(--vt-motion-hover) var(--vt-motion-ease) both;
 }
 
 .pillarRow {
   border-top: 1px solid var(--border-default);
-  transition: background-color 150ms ease-out;
+  transition: background-color var(--vt-motion-press) var(--vt-motion-ease);
 }
 
 .pillarRow:last-child {

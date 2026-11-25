@@ -51,8 +51,8 @@ const PRESET_CLASS_MAP: Readonly<Record<ProfileBannerPresetId, string | undefine
 };
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
-const fieldClass = `min-h-11 w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary placeholder:text-secondary ${focusRing}`;
+  'vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas';
+const fieldClass = `vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary placeholder:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60`;
 
 export function ProfileCustomizationTab({
   userId,

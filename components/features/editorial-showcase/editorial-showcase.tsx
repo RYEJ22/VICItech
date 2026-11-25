@@ -10,6 +10,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import {
   SHOWCASE_MANIFESTO,
   SHOWCASE_PILLAR_ROWS,
@@ -117,6 +118,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
     >
       <div className="mx-auto max-w-shell space-y-16 px-4 sm:px-6">
         {/* Reference 00:07–00:08: Vibrant Tech Orange Editorial Manifesto Band */}
+        <RevealOnScroll>
         <div className={`rounded-xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
           <span className="inline-flex items-center rounded-md bg-surface px-3 py-1 text-xs font-semibold text-primary shadow-sm">
             {SHOWCASE_MANIFESTO.badgeLabel}
@@ -151,8 +153,10 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             </Link>
           </div>
         </div>
+        </RevealOnScroll>
 
         {/* Reference 00:09–00:13: 4-Corner Hardware Diagram with Technical Callouts */}
+        <RevealOnScroll>
         <div className={`rounded-xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
           <div className="mb-6 max-w-2xl">
             <span className="vt-badge-live">Verifikasi Teknis Multi-Perangkat</span>
@@ -199,15 +203,19 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             </div>
           </div>
         </div>
+        </RevealOnScroll>
 
         {/* Interactive Stacked Step Deck (00:14–00:21) + Editorial Pillar List (00:22–00:27) */}
-        <EditorialShowcaseSteps
-          steps={WORKFLOW_STEP_CARDS}
-          pillars={SHOWCASE_PILLAR_ROWS}
-          onNavigate={onNavigate}
-        />
+        <RevealOnScroll>
+          <EditorialShowcaseSteps
+            steps={WORKFLOW_STEP_CARDS}
+            pillars={SHOWCASE_PILLAR_ROWS}
+            onNavigate={onNavigate}
+          />
+        </RevealOnScroll>
 
         {/* Reference 00:28–00:30: Closing Watermark Banner CTA */}
+        <RevealOnScroll>
         <div className={`rounded-xl p-6 sm:p-10 ${styles.watermarkBanner ?? ''}`}>
           <svg
             aria-hidden="true"
@@ -253,6 +261,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             </div>
           </div>
         </div>
+        </RevealOnScroll>
       </div>
     </section>
   );

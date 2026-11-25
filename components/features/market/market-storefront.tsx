@@ -146,7 +146,7 @@ export function MarketStorefront({
               <button
                 type="button"
                 onClick={onOpenLibrary}
-                className="vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
+                className="vt-motion-press vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
               >
                 <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Library &amp; Spek</span>
@@ -156,7 +156,7 @@ export function MarketStorefront({
               <button
                 type="button"
                 onClick={onOpenBuilder}
-                className="vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
+                className="vt-motion-press vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
               >
                 <Sliders className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Preset Builder</span>
@@ -196,14 +196,14 @@ export function MarketStorefront({
             <button
               type="button"
               onClick={openCart}
-              className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <span>Lihat Keranjang</span>
             </button>
             <button
               type="button"
               onClick={triggerCartCheckout}
-              className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-accent-foreground shadow-sm hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-accent-foreground shadow-sm hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Lanjut Checkout</span>
@@ -239,7 +239,7 @@ export function MarketStorefront({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Cari PC build, ThinkPad, GPU, atau komponen…"
-            className="min-h-10 w-full rounded-lg border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
+            className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
           />
         </div>
 
@@ -257,7 +257,7 @@ export function MarketStorefront({
                   type="button"
                   aria-pressed={active}
                   onClick={() => setStockFilter(option.id)}
-                  className={`vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 sm:py-1.5 sm:text-xs ${
+                  className={`vt-motion-press vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? 'bg-accent-cta font-semibold text-accent-foreground'
                       : 'text-secondary hover:bg-surface hover:text-primary'
@@ -293,7 +293,7 @@ export function MarketStorefront({
                   setSortBy(value);
                 }
               }}
-              className="min-h-10 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
+              className="vt-form-control min-h-10 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
             >
               <option value="newest">Terbaru</option>
               <option value="price_asc">Harga Terendah</option>
@@ -315,7 +315,7 @@ export function MarketStorefront({
             role="tab"
             aria-selected={selectedCategory === 'all'}
             onClick={() => setSelectedCategory('all')}
-            className={`vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
+            className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
               selectedCategory === 'all'
                 ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
                 : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
@@ -337,7 +337,7 @@ export function MarketStorefront({
                 role="tab"
                 aria-selected={active}
                 onClick={() => setSelectedCategory(category)}
-                className={`vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
                   active
                     ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
                     : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
@@ -383,7 +383,7 @@ export function MarketStorefront({
               <button
                 type="button"
                 onClick={onOpenLibrary}
-                className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Hardware Library</span>
@@ -393,7 +393,7 @@ export function MarketStorefront({
               <button
                 type="button"
                 onClick={onOpenBuilder}
-                className="vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <Sliders className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Preset Builder</span>
@@ -417,7 +417,7 @@ export function MarketStorefront({
             <button
               type="button"
               onClick={resetFilters}
-              className="vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <RotateCcw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Reset Filter</span>

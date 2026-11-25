@@ -149,7 +149,7 @@ export function RoutePreviewExplorer({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={searchPlaceholder}
-            className="min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+            className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
           />
         </div>
 
@@ -280,7 +280,7 @@ export function RoutePreviewExplorer({
               {secondaryItems.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col justify-between rounded-xl border border-default bg-surface p-6 shadow-sm transition-transform duration-150 hover:-translate-y-0.5"
+                  className="vt-card-lift flex flex-col justify-between rounded-xl border border-default bg-surface p-6 shadow-sm"
                 >
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -419,7 +419,7 @@ export function RoutePreviewExplorer({
                   onChange={(event) => setNotifyEmail(event.target.value)}
                   disabled={isNotifying}
                   placeholder="nama@domain.com"
-                  className="min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50"
+                  className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50"
                 />
                 <button
                   type="submit"

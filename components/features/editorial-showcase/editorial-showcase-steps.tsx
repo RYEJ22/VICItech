@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
+import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import type {
   DataBadgeVariant,
@@ -33,22 +34,29 @@ export function EditorialShowcaseSteps({
 }: EditorialShowcaseInteractiveProps): ReactElement {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
+  const [previousStep, setPreviousStep] = useState<WorkflowStepCard | null>(null);
   const [activePillarId, setActivePillarId] = useState<string>(pillars[0].id);
 
   const activeStep = steps[activeStepIndex] ?? steps[0];
 
+  useEffect(() => {
+    if (prefersReducedMotion) setPreviousStep(null);
+  }, [prefersReducedMotion]);
+
   return (
     <div className="space-y-16">
       {/* Reference 00:14–00:21: Stacked Workflow Deck over Framed Hardware Photography */}
-      <section aria-labelledby="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-primary">
+      <RevealOnScroll as="section" ariaLabelledBy="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-primary">
         <div className="relative min-h-[28rem] w-full p-5 sm:p-8 lg:p-10">
-          <Image
-            src={activeStep.imageSrc}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 1200px, 100vw"
-            className="object-cover opacity-35"
-          />
+          <div key={`workflow-background-${activeStep.imageSrc}`} className="absolute inset-0 vt-crossfade">
+            <Image
+              src={activeStep.imageSrc}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 1200px, 100vw"
+              className="object-cover opacity-35"
+            />
+          </div>
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/45"
@@ -82,8 +90,11 @@ export function EditorialShowcaseSteps({
                       <button
                         type="button"
                         aria-expanded={isActive}
-                        onClick={() => setActiveStepIndex(index)}
-                        className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/70"
+                        onClick={() => {
+                          if (index !== activeStepIndex) setPreviousStep(activeStep);
+                          setActiveStepIndex(index);
+                        }}
+                        className="vt-motion-press flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/70"
                       >
                         <span className="min-w-0">
                           <span
@@ -98,7 +109,7 @@ export function EditorialShowcaseSteps({
                           </span>
                         </span>
                         <ChevronDown
-                          className={`h-5 w-5 shrink-0 transition-transform ${
+                          className={`vt-chevron h-5 w-5 shrink-0 ${
                             isActive ? 'rotate-180 text-accent-cta' : 'text-white'
                           }`}
                           strokeWidth={1.75}
@@ -131,18 +142,18 @@ export function EditorialShowcaseSteps({
                               <button
                                 type="button"
                                 onClick={() => onNavigate(step.targetModule, step.targetView)}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                                className="vt-motion-press group inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
-                                <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                                <ArrowRight className="vt-icon-nudge h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                               </button>
                             ) : (
                               <Link
                                 href={`/home?tab=${encodeURIComponent(step.targetModule)}`}
-                                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                                className="vt-motion-press group inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
-                                <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                                <ArrowRight className="vt-icon-nudge h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                               </Link>
                             )}
                           </div>
@@ -158,13 +169,30 @@ export function EditorialShowcaseSteps({
             <div className="hidden lg:col-span-6 lg:block">
               <div className="ml-auto max-w-md rounded-xl border border-default bg-surface p-5 text-primary shadow-xl">
                 <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-subtle">
-                  <Image
-                    src={activeStep.imageSrc}
-                    alt={activeStep.imageAlt}
-                    fill
-                    sizes="(min-width: 1024px) 420px, 100vw"
-                    className="object-cover"
-                  />
+                  {previousStep && !prefersReducedMotion && (
+                    <div className="vt-crossfade-out absolute inset-0" aria-hidden="true">
+                      <Image
+                        src={previousStep.imageSrc}
+                        alt=""
+                        fill
+                        sizes="(min-width: 1024px) 420px, 100vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
+                  <div
+                    key={`workflow-preview-${activeStep.imageSrc}`}
+                    className={`absolute inset-0 ${previousStep && !prefersReducedMotion ? 'vt-crossfade-in' : ''}`}
+                    onAnimationEnd={() => setPreviousStep(null)}
+                  >
+                    <Image
+                      src={activeStep.imageSrc}
+                      alt={activeStep.imageAlt}
+                      fill
+                      sizes="(min-width: 1024px) 420px, 100vw"
+                      className="object-cover"
+                    />
+                  </div>
                 </div>
                 <p className="mt-3 font-mono text-xs font-semibold text-accent-cta">
                   {activeStep.phaseLabel}
@@ -179,10 +207,10 @@ export function EditorialShowcaseSteps({
             </div>
           </div>
         </div>
-      </section>
+      </RevealOnScroll>
 
       {/* Reference 00:22–00:27: Editorial Pillar Rows with Tags & Hover/Focus Image Preview */}
-      <section aria-labelledby="editorial-pillars-heading">
+      <RevealOnScroll as="section" ariaLabelledBy="editorial-pillars-heading">
         <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
           <div>
             <span className="vt-badge-sample">Direktori Pilar ViciTech</span>
@@ -286,7 +314,7 @@ export function EditorialShowcaseSteps({
             );
           })}
         </ul>
-      </section>
+      </RevealOnScroll>
     </div>
   );
 }

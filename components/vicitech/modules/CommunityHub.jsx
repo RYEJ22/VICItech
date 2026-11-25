@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Users, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
@@ -358,7 +359,7 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
     }
   };
 
-  const field = `w-full rounded-lg border border-default bg-canvas px-3.5 py-3 text-sm text-primary placeholder:text-secondary ${focusRing}`;
+  const field = `vt-form-control w-full rounded-lg border border-default bg-canvas px-3.5 py-3 text-sm text-primary placeholder:text-secondary ${focusRing}`;
   return (
     <section
       id="community-composer"
@@ -627,9 +628,9 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     }
   };
 
-  const action = `inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
+  const action = `vt-motion-press inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
   return (
-    <article className="min-w-0 overflow-hidden rounded-xl border border-default bg-surface p-3 shadow-sm sm:p-6">
+    <article className="vt-card-lift min-w-0 overflow-hidden rounded-xl border border-default bg-surface p-3 shadow-sm sm:p-6">
       <header className="flex items-start gap-3">
         <Avatar author={author} />
         <div className="min-w-0 flex-1">
@@ -756,7 +757,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
       <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-default pt-3">
         <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-accent-subtle text-accent-hover" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
-          <ThumbsUp className="h-4 w-4" fill={post.liked ? "currentColor" : "none"} /> <span className="font-mono tabular-nums">{post.likes}</span>
+          <ThumbsUp key={post.liked ? "liked" : "idle"} className={`h-4 w-4 ${post.liked ? "vt-motion-pop" : ""}`} fill={post.liked ? "currentColor" : "none"} /> <span key={post.likes} className="vt-motion-pop font-mono tabular-nums">{post.likes}</span>
           <span className="sr-only">{post.liked ? "suka, Anda menyukai postingan ini" : "suka"}</span>
         </button>
         <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-subtle text-primary" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
@@ -959,7 +960,7 @@ const SAMPLE_DIRECTORY_MEMBERS = Object.entries(AUTHORS)
 
 function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
   return (
-    <article className="flex flex-col justify-between gap-3.5 rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm transition hover:border-[#EA580C]/40 sm:flex-row sm:items-center sm:p-4">
+    <article className="vt-card-lift flex flex-col justify-between gap-3.5 rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm sm:flex-row sm:items-center sm:p-4">
       <div className="flex min-w-0 items-start gap-3">
         <Avatar
           author={{
@@ -1930,7 +1931,7 @@ export default function CommunityHub() {
                       ? "Cari nama lengkap atau @username anggota (cth. Rizky, @bagas)…"
                       : "Cari topik, hardware, atau tag seperti #RTX4060"
                   }
-                  className={`w-full rounded-lg border border-default bg-[#FAF9F6] py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`}
+                  className={`vt-form-control w-full rounded-lg border border-default bg-[#FAF9F6] py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`}
                 />
                 {query && (
                   <button
@@ -2029,7 +2030,7 @@ export default function CommunityHub() {
                 const Icon = CATEGORIES[k].icon;
                 const active = category === k;
                 return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors sm:min-h-10 sm:gap-2 sm:px-3.5 sm:text-sm ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`vt-motion-press inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors sm:min-h-10 sm:gap-2 sm:px-3.5 sm:text-sm ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
                     <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
                   </button>
                 );
@@ -2048,7 +2049,7 @@ export default function CommunityHub() {
                 <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
               </div>
             ) : paginatedPosts.length ? (
-              <div className="space-y-3 sm:space-y-4">
+              <RevealOnScroll className="space-y-3 sm:space-y-4">
                 {paginatedPosts.map((p) => (
                   <PostCard
                     key={p.id}
@@ -2077,7 +2078,7 @@ export default function CommunityHub() {
                     </button>
                   </div>
                 )}
-              </div>
+              </RevealOnScroll>
             ) : (
               <div className="rounded-xl border border-dashed border-default bg-surface p-6 text-center sm:p-10">
                 <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>

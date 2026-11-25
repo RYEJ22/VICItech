@@ -805,7 +805,7 @@ export default function DirectMessageDrawer({
         <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
           <h1 className="font-sans text-2xl font-bold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
-          <Link href="/profile?tab=settings" className="vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
+          <Link href="/profile?tab=settings" className="vt-motion-press vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
             Buka Pengaturan Profil
           </Link>
           {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
@@ -1104,7 +1104,7 @@ export default function DirectMessageDrawer({
                       : "Tulis pesan…"
                 }
                 aria-label="Tulis pesan"
-                className="max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                className="vt-form-control max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               />
               <button
                 type="submit"

@@ -5,6 +5,7 @@ import { Check, ShieldCheck, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
 import { useCheckout } from '@/context/CheckoutContext';
+import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import type { ProductRow } from '@/lib/admin/products-validation';
 import {
   buildCheckoutPayloadFromProduct,
@@ -74,8 +75,9 @@ export function MarketProductCard({
   };
 
   return (
-    <article
-      className={`vt-card-interactive group flex flex-col justify-between overflow-hidden rounded-xl border border-default bg-surface shadow-sm hover:border-accent-primary/40 hover:shadow-md ${className}`}
+    <RevealOnScroll
+      as="article"
+      className={`vt-card-lift group flex h-full flex-col justify-between overflow-hidden rounded-xl border border-default bg-surface shadow-sm ${className}`}
     >
       <div>
         <Link
@@ -88,7 +90,7 @@ export function MarketProductCard({
             category={product.category}
             sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 85vw"
             isPriority={isPriorityImage}
-            className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            className="object-cover transition-transform duration-motion-hover ease-natural group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
 
           <div className="pointer-events-none absolute inset-x-2.5 top-2.5 flex flex-wrap items-start justify-between gap-1.5">
@@ -151,14 +153,16 @@ export function MarketProductCard({
                 ? `Tambah ${product.title} ke keranjang`
                 : `${product.title} sedang habis`
             }
-            className="vt-btn-tactile inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-default bg-canvas px-1.5 py-1.5 text-[11px] font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:py-2 sm:text-xs"
+            className="vt-motion-press vt-btn-tactile inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-default bg-canvas px-1.5 py-1.5 text-[11px] font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-1.5 sm:px-2.5 sm:py-2 sm:text-xs"
           >
             {justAdded ? (
               <Check className="h-3.5 w-3.5 shrink-0 text-status-live" strokeWidth={2} aria-hidden="true" />
             ) : (
               <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             )}
-            <span>{!stockMeta.isAvailable ? 'Habis' : justAdded ? 'Ditambahkan' : '+ Keranjang'}</span>
+            <span key={justAdded ? 'added' : 'ready'} className={justAdded ? 'vt-motion-pop' : ''}>
+              {!stockMeta.isAvailable ? 'Habis' : justAdded ? 'Ditambahkan' : '+ Keranjang'}
+            </span>
           </button>
 
           <button
@@ -170,12 +174,12 @@ export function MarketProductCard({
                 ? `Beli sekarang ${product.title}`
                 : `${product.title} sedang habis`
             }
-            className="vt-btn-tactile inline-flex min-h-9 items-center justify-center rounded-lg bg-accent-cta px-1.5 py-1.5 text-[11px] font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:px-2.5 sm:py-2 sm:text-xs"
+            className="vt-motion-press vt-btn-tactile inline-flex min-h-9 items-center justify-center rounded-lg bg-accent-cta px-1.5 py-1.5 text-[11px] font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:px-2.5 sm:py-2 sm:text-xs"
           >
             <span>{!stockMeta.isAvailable ? 'Stok Habis' : 'Beli Sekarang'}</span>
           </button>
         </div>
       </div>
-    </article>
+    </RevealOnScroll>
   );
 }

@@ -17,6 +17,7 @@ import { SiteFooter } from '@/components/features/footer/site-footer';
 import { MarketProductCard } from '@/components/features/market/market-product-card';
 import { ProductGallery } from '@/components/features/market/product-gallery';
 import { ProductPurchaseActions } from '@/components/features/market/product-purchase-actions';
+import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { buildSingleProductJsonLd, JsonLd } from '@/components/features/seo/json-ld';
 import { isValidMediaUrl } from '@/lib/admin/products-validation';
 import {
@@ -123,9 +124,9 @@ export default async function ProductDetailPage({
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-secondary sm:text-sm">
             <li>
-              <Link
+          <Link
                 href="/"
-                className="inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="vt-motion-press inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 Beranda
               </Link>
@@ -136,7 +137,7 @@ export default async function ProductDetailPage({
             <li>
               <Link
                 href="/market"
-                className="inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 Market
               </Link>
@@ -147,7 +148,7 @@ export default async function ProductDetailPage({
             <li>
               <Link
                 href={`/market?category=${encodeURIComponent(product.category)}`}
-                className="inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                className="vt-motion-press inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 {categoryLabel}
               </Link>
@@ -165,8 +166,9 @@ export default async function ProductDetailPage({
         </nav>
 
         {/* Above-the-Fold 2-Column Layout */}
-        <section
-          aria-labelledby="product-title"
+        <RevealOnScroll
+          as="section"
+          ariaLabelledBy="product-title"
           className="grid gap-8 lg:grid-cols-12 lg:items-start"
         >
           <div className="lg:col-span-7">
@@ -234,7 +236,7 @@ export default async function ProductDetailPage({
               </div>
             </div>
           </div>
-        </section>
+        </RevealOnScroll>
 
         {/* Below-the-Fold Technical Specs, Description & IoT QC Trust Block */}
         <div className="mt-12 grid gap-8 lg:grid-cols-12 lg:items-start">

@@ -277,7 +277,7 @@ export function ChatMediaPicker({
                   onChange={(event) => setEmojiQuery(event.target.value)}
                   placeholder="Cari emoji (api, gaming, deal)…"
                   aria-label="Cari emoji"
-                  className="h-9 w-full rounded-lg border border-default bg-surface pr-3 pl-8 text-xs text-primary outline-none placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                  className="vt-form-control h-9 w-full rounded-lg border border-default bg-surface pr-3 pl-8 text-xs text-primary outline-none placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export function ChatMediaPicker({
                   onChange={(event) => setGifQuery(event.target.value)}
                   placeholder="Cari GIF…"
                   aria-label="Cari GIF"
-                  className="h-9 w-full rounded-lg border border-default bg-surface pr-3 pl-8 text-xs text-primary outline-none placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                  className="vt-form-control h-9 w-full rounded-lg border border-default bg-surface pr-3 pl-8 text-xs text-primary outline-none placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
                 />
               </div>
               <div className="mt-1.5 flex items-center justify-between text-[10px] text-secondary">
@@ -378,7 +378,7 @@ export function ChatMediaPicker({
                         handleClose();
                       }}
                       aria-label={`Kirim GIF ${gif.title}`}
-                      className="group relative overflow-hidden rounded-lg border border-default bg-canvas text-left transition-transform duration-150 hover:border-accent-primary/50 hover:scale-[1.015] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+                      className="vt-motion-press group relative overflow-hidden rounded-lg border border-default bg-canvas text-left hover:border-accent-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                     >
                       <ChatGifImage
                         src={gif.previewUrl}
@@ -416,7 +416,7 @@ export function ChatMediaPicker({
                     handleClose();
                   }}
                   aria-label={`Kirim stiker ${sticker.title}`}
-                  className="text-left transition-transform duration-150 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded-2xl"
+                  className="vt-motion-press text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded-2xl"
                 >
                   <ViciTechStickerGraphic sticker={sticker} size="sm" />
                 </button>

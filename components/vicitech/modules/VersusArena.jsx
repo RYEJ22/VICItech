@@ -67,7 +67,7 @@ function ItemComparisonCard({ item, sideLabel, compositeScore, resolved, isWinne
 
   return (
     <article
-      className={`vt-card-interactive flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm ${
+      className={`vt-card-lift flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm ${
         isWinner ? "border-accent-primary ring-1 ring-accent-primary/20" : "border-default"
       }`}
     >
@@ -277,7 +277,7 @@ function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId,
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cari nama produk, merek, chipset, CPU, atau GPU..."
-              className={`min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+              className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 text-sm text-primary placeholder:text-secondary ${focusRing}`}
             />
           </div>
         </div>

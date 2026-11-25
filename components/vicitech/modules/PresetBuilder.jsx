@@ -313,7 +313,7 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
   return (
-    <li className="rounded-xl border border-default bg-surface shadow-sm">
+    <li className="vt-card-lift rounded-xl border border-default bg-surface shadow-sm">
       <div className="flex flex-wrap items-center gap-2.5 p-3.5 sm:gap-3 sm:p-4">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-accent-primary">
           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
@@ -331,7 +331,7 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
           type="button"
           aria-expanded={open}
           onClick={onToggle}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
+          className={`vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
             open
               ? "border-accent-primary bg-accent-subtle text-accent-cta"
               : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
@@ -353,7 +353,7 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
                   type="button"
                   aria-pressed={isCurrent}
                   onClick={() => onPick(o.id)}
-                  className={`flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${
+                  className={`vt-motion-press flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors ${focusRing} ${
                     isCurrent ? "bg-accent-subtle" : "hover:bg-subtle"
                   }`}
                 >
@@ -813,7 +813,7 @@ export default function PresetBuilder({
 
   const closeDrawer = () => { setDrawer(false); setNotice(""); };
 
-  const iconBtn = `vt-btn-tactile grid h-11 w-11 place-items-center rounded-lg border border-default bg-surface text-secondary hover:border-accent-primary/40 hover:text-accent-cta ${focusRing}`;
+  const iconBtn = `vt-motion-press vt-btn-tactile grid h-11 w-11 place-items-center rounded-lg border border-default bg-surface text-secondary hover:border-accent-primary/40 hover:text-accent-cta ${focusRing}`;
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
@@ -844,7 +844,7 @@ export default function PresetBuilder({
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`vt-card-interactive flex flex-col rounded-xl border p-3 text-left sm:p-5 ${focusRing} ${
+                className={`vt-card-lift flex flex-col rounded-xl border p-3 text-left sm:p-5 ${focusRing} ${
                   active
                     ? "border-accent-primary bg-accent-subtle shadow-sm"
                     : "border-default bg-surface hover:bg-subtle"
@@ -937,7 +937,7 @@ export default function PresetBuilder({
                     max={MAX_QTY}
                     value={qty}
                     onChange={(e) => setQty(clampQty(e.target.value))}
-                    className={`h-11 w-20 rounded-lg border border-default bg-canvas text-center font-mono text-sm tabular-nums text-primary ${focusRing}`}
+                    className={`vt-form-control h-11 w-20 rounded-lg border border-default bg-canvas text-center font-mono text-sm tabular-nums text-primary ${focusRing}`}
                   />
                   <button type="button" aria-label="Tambah jumlah unit" className={iconBtn} onClick={() => setQty((q) => clampQty(q + 1))}>
                     <Plus className="h-4 w-4" aria-hidden="true" />
@@ -981,7 +981,7 @@ export default function PresetBuilder({
                 <AnimatedNumber value={calc.watts} format="number" suffix=" W" className="font-mono font-semibold text-primary" />
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-subtle" role="meter" aria-valuemin={0} aria-valuemax={calc.cap} aria-valuenow={calc.watts} aria-label="Beban daya terhadap kapasitas PSU">
-                <div className={`h-full rounded-full transition-all ${meter}`} style={{ width: `${Math.min(100, loadPct)}%` }} />
+                <div className={`vt-progress-fill h-full rounded-full ${meter}`} style={{ transform: `scaleX(${Math.min(100, loadPct) / 100})` }} />
               </div>
               <p className="mt-2 font-mono text-xs tabular-nums text-secondary">
                 <AnimatedNumber value={loadPct} format="percent" /> dari kapasitas PSU {calc.cap} W
