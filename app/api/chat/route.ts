@@ -6,7 +6,8 @@ export const runtime = 'nodejs';
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 15;
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
-const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse';
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-2.0-flash'] as const;
 
 interface ChatMessage {
   readonly role: 'user' | 'model';
@@ -45,7 +46,7 @@ function isChatMessage(value: unknown): value is { role: 'user' | 'assistant'; c
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     return NextResponse.json({ error: 'Layanan AI belum dikonfigurasi. Silakan coba lagi nanti.' }, { status: 503 });
   }
@@ -92,12 +93,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const systemInstruction = `Kamu adalah "ViciTech AI — Konsultan Rakitan & Hardware". Jawab secara alami, ringkas, dan jelas dalam Bahasa Indonesia. Bantu merencanakan rakitan PC berdasarkan anggaran dan penggunaan, mengecek kompatibilitas upgrade RAM/NVMe laptop berdasarkan model dan spesifikasi yang diberikan, serta menjelaskan bottleneck hardware dengan mudah. Jangan mengarang kompatibilitas, stok, atau harga; gunakan katalog di bawah, jelaskan bila data tidak tersedia, dan sebutkan harga akurat dalam Rupiah. Setiap unit/rakitan ViciTech melewati IoT Burn-In & Telemetry QC serta mendapat sertifikat serial unik sebelum dikirim. Pembayaran mendukung DP (Down Payment) atau Full Payment melalui Midtrans. Fokus hanya pada hardware PC/laptop/periferal dan layanan ViciTech; tolak permintaan di luar topik dengan sopan.\n\nKATALOG ViciTech:\n${catalog}`;
 
-  let upstream: Response;
-  try {
-    upstream = await fetch(`${GEMINI_ENDPOINT}&key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  const requestBody = JSON.stringify({
         systemInstruction: { parts: [{ text: systemInstruction }] },
         contents: rawMessages.map((message) => {
           if (!isChatMessage(message)) throw new Error('Pesan tidak valid');
@@ -109,15 +105,47 @@ export async function POST(request: Request): Promise<Response> {
           return geminiMessage;
         }),
         generationConfig: { temperature: 0.45, maxOutputTokens: 1200 },
-      }),
-      signal: request.signal,
-    });
-  } catch {
-    return NextResponse.json({ error: 'Konsultan AI sedang sulit dijangkau. Silakan coba lagi.' }, { status: 502 });
+      });
+  let upstream: Response | null = null;
+  let failureReason = 'Tidak ada model Gemini yang tersedia.';
+  for (const [index, model] of GEMINI_MODELS.entries()) {
+    try {
+      const response = await fetch(`${GEMINI_ENDPOINT}/${model}:streamGenerateContent?alt=sse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: requestBody,
+        signal: request.signal,
+      });
+      if (response.ok) {
+        upstream = response;
+        break;
+      }
+      const responseText = await response.text();
+      let googleMessage = responseText;
+      try {
+        const errorPayload: unknown = JSON.parse(responseText);
+        if (isRecord(errorPayload) && isRecord(errorPayload.error) && typeof errorPayload.error.message === 'string') {
+          googleMessage = errorPayload.error.message;
+        }
+      } catch {
+        // Keep the raw response text as the diagnostic when it is not JSON.
+      }
+      const cleanReason = googleMessage.slice(0, 300) || 'Google API tidak mengembalikan detail error.';
+      console.error(`[api/chat] Gemini ${model} gagal: HTTP ${response.status} — ${cleanReason}`);
+      failureReason = `HTTP ${response.status}: ${cleanReason}`;
+      if ((response.status !== 403 && response.status !== 404) || index === GEMINI_MODELS.length - 1) break;
+    } catch (error) {
+      if (request.signal.aborted) throw error;
+      failureReason = error instanceof Error ? error.message : 'Koneksi ke Google AI gagal.';
+      console.error(`[api/chat] Gemini ${model} gagal: ${failureReason}`);
+      break;
+    }
   }
 
-  if (!upstream.ok || !upstream.body) {
-    return NextResponse.json({ error: 'Konsultan AI belum dapat menjawab saat ini. Silakan coba lagi.' }, { status: 502 });
+  if (!upstream?.body) {
+    const error = 'Konsultan AI belum dapat menjawab saat ini. Silakan coba lagi.';
+    const reason = process.env.NODE_ENV === 'development' ? ` (${failureReason})` : '';
+    return NextResponse.json({ error: `${error}${reason}` }, { status: 502 });
   }
 
   const decoder = new TextDecoder();
