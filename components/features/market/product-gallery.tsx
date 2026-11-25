@@ -63,7 +63,7 @@ export function ProductGallery({
           </span>
           {isPreset && (
             <span className="inline-flex items-center gap-1 rounded-md border border-default bg-surface px-2.5 py-0.5 text-xs font-medium text-primary shadow-sm">
-              <Layers className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+              <Layers className="h-3.5 w-3.5 text-accent-hover" strokeWidth={1.75} aria-hidden="true" />
               <span>Preset Terkurasi</span>
             </span>
           )}

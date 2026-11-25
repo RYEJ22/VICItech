@@ -106,7 +106,7 @@ function SubNavIcon({
   readonly active?: boolean;
 }): ReactElement {
   const cls = `mt-0.5 h-4 w-4 shrink-0 transition-colors ${
-    active ? 'text-[#EA580C]' : 'text-[#71717A] group-hover:text-[#EA580C]'
+    active ? 'text-[#C2410C]' : 'text-[#71717A] group-hover:text-[#C2410C]'
   }`;
   switch (iconKey) {
     case 'home':
@@ -833,7 +833,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
                     aria-current={isActive ? 'page' : undefined}
                     className={`vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
-                      isActive ? 'text-[#EA580C]' : 'text-[#18181B]/80 hover:text-[#EA580C]'
+                      isActive ? 'text-[#C2410C]' : 'text-[#18181B]/80 hover:text-[#C2410C]'
                     }`}
                   >
                     <span>{group.label}</span>
@@ -858,14 +858,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     aria-controls={`nav-panel-${group.id}`}
                     className={`vt-nav-link vt-motion-press relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
                       isActive || isOpen
-                        ? 'text-[#EA580C]'
-                        : 'text-[#18181B]/80 hover:text-[#EA580C]'
+                        ? 'text-[#C2410C]'
+                        : 'text-[#18181B]/80 hover:text-[#C2410C]'
                     }`}
                   >
                     <span>{group.label}</span>
                     <ChevronDown
                       className={`vt-chevron h-3.5 w-3.5 shrink-0 ${
-                        isOpen ? 'rotate-180 text-[#EA580C]' : 'text-[#71717A]'
+                        isOpen ? 'rotate-180 text-[#C2410C]' : 'text-[#71717A]'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
@@ -897,8 +897,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                     <span
                                       className={`block text-sm font-semibold transition-colors ${
                                         subActive
-                                          ? 'text-[#EA580C]'
-                                          : 'text-[#18181B] group-hover:text-[#EA580C]'
+                                          ? 'text-[#C2410C]'
+                                          : 'text-[#18181B] group-hover:text-[#C2410C]'
                                       }`}
                                     >
                                       {subItem.label}
@@ -969,7 +969,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 aria-label={unreadCount > 0 ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
                 className={`${iconBtnBase} ${
                   isMessagesRoute
-                    ? 'bg-[#F3F1ED] text-[#EA580C]'
+                    ? 'bg-[#F3F1ED] text-[#C2410C]'
                     : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
                 }`}
               >
@@ -995,7 +995,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   }
                   className={`${iconBtnBase} ${
                     openMenu === 'notifications'
-                      ? 'bg-[#F3F1ED] text-[#EA580C]'
+                      ? 'bg-[#F3F1ED] text-[#C2410C]'
                       : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
                   }`}
                 >
@@ -1072,13 +1072,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   aria-current={active ? 'page' : undefined}
                   className={`flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
-                      ? 'bg-[#EA580C]/10 font-semibold text-[#EA580C]'
+                      ? 'bg-[#EA580C]/10 font-semibold text-[#C2410C]'
                       : 'font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]'
                   }`}
                 >
                   <NavIcon
                     iconKey={item.iconKey}
-                    className={`h-[18px] w-[18px] ${active ? 'text-[#EA580C]' : 'text-[#71717A]'}`}
+                    className={`h-[18px] w-[18px] ${active ? 'text-[#C2410C]' : 'text-[#71717A]'}`}
                   />
                   <span className="truncate">{item.shortLabel}</span>
                 </Link>
@@ -1140,7 +1140,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                         <span className="min-w-0 flex-1">
                           <span
                             className={`block text-sm font-semibold ${
-                              active ? 'text-[#EA580C]' : 'text-[#18181B] group-hover:text-[#EA580C]'
+                              active ? 'text-[#C2410C]' : 'text-[#18181B] group-hover:text-[#C2410C]'
                             }`}
                           >
                             {group.label}
@@ -1179,8 +1179,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                               <span
                                 className={`block text-sm font-semibold ${
                                   subActive
-                                    ? 'text-[#EA580C]'
-                                    : 'text-[#18181B] group-hover:text-[#EA580C]'
+                                    ? 'text-[#C2410C]'
+                                    : 'text-[#18181B] group-hover:text-[#C2410C]'
                                 }`}
                               >
                                 {subItem.label}
@@ -1214,8 +1214,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       <span
                         className={`block text-sm font-semibold ${
                           pathname === '/'
-                            ? 'text-[#EA580C]'
-                            : 'text-[#18181B] group-hover:text-[#EA580C]'
+                            ? 'text-[#C2410C]'
+                            : 'text-[#18181B] group-hover:text-[#C2410C]'
                         }`}
                       >
                         Beranda
@@ -1235,7 +1235,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   >
                     <SubNavIcon iconKey="messages" active={isMessagesRoute} />
                     <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2 text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-[#18181B] group-hover:text-[#C2410C]">
                         <span>Pesan Langsung</span>
                         {hasUnreadAlerts && (
                           <span className="inline-flex h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
@@ -1258,7 +1258,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   >
                     <SubNavIcon iconKey="account" active={isProfileRoute} />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#EA580C]">
+                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#C2410C]">
                         Profil &amp; Akun
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">

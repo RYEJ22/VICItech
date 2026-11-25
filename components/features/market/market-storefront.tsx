@@ -148,7 +148,7 @@ export function MarketStorefront({
                 onClick={onOpenLibrary}
                 className="vt-motion-press vt-btn-tactile inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:flex-initial sm:px-4 sm:text-sm"
               >
-                <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <Layers className="h-4 w-4 text-accent-hover" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Library &amp; Spek</span>
               </button>
             )}
@@ -367,7 +367,7 @@ export function MarketStorefront({
           aria-live="polite"
           className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
         >
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-default bg-subtle text-accent-primary">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-default bg-subtle text-accent-hover">
             <Package className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
           </div>
           <h2 className="tracking-tight mt-4 font-sans text-2xl font-bold text-primary">
@@ -385,7 +385,7 @@ export function MarketStorefront({
                 onClick={onOpenLibrary}
                 className="vt-motion-press vt-btn-tactile inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
-                <Layers className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <Layers className="h-4 w-4 text-accent-hover" strokeWidth={1.75} aria-hidden="true" />
                 <span>Buka Hardware Library</span>
               </button>
             )}

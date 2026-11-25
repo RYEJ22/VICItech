@@ -158,7 +158,7 @@ export function MarketProductCard({
             {justAdded ? (
               <Check className="h-3.5 w-3.5 shrink-0 text-status-live" strokeWidth={2} aria-hidden="true" />
             ) : (
-              <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+              <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-accent-hover" strokeWidth={1.75} aria-hidden="true" />
             )}
             <span key={justAdded ? 'added' : 'ready'} className={justAdded ? 'vt-motion-pop' : ''}>
               {!stockMeta.isAvailable ? 'Habis' : justAdded ? 'Ditambahkan' : '+ Keranjang'}

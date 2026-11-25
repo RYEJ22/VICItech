@@ -116,7 +116,7 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
     <section className={`flex min-h-0 flex-col bg-white ${compact ? 'h-full' : 'min-h-[560px] rounded-2xl border border-[#E7E2DC] shadow-sm'}`} aria-label="Konsultan Rakitan AI">
       <header className="flex items-center justify-between gap-3 border-b border-[#EEEAE5] px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#EA580C]/10 text-[#EA580C]"><Sparkles size={18} aria-hidden="true" /></span>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#EA580C]/10 text-[#C2410C]"><Sparkles size={18} aria-hidden="true" /></span>
           <div><h2 className="text-sm font-bold text-[#18181B]">ViciTech AI</h2><p className="text-xs text-[#71717A]">Konsultan Rakitan & Hardware</p></div>
         </div>
         <button type="button" onClick={resetChat} className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-[#71717A] transition-colors hover:bg-[#F7F5F2] hover:text-[#18181B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/50"><RotateCcw size={14} aria-hidden="true" />Reset Obrolan</button>
@@ -124,7 +124,7 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
 
       <div className={`min-h-0 flex-1 space-y-4 overflow-y-auto p-4 ${compact ? 'max-h-[360px]' : 'max-h-[min(68vh,760px)] sm:p-6'}`} aria-live="polite">
         {messages.length === 0 ? <div className="mx-auto max-w-lg py-5 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#EA580C]/10 text-[#EA580C]"><Sparkles aria-hidden="true" /></span>
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#EA580C]/10 text-[#C2410C]"><Sparkles aria-hidden="true" /></span>
           <h3 className="mt-3 font-bold tracking-tight text-[#18181B]">Ada yang ingin dirakit?</h3>
           <p className="mt-1 text-sm text-[#71717A]">Ceritakan kebutuhan atau anggaranmu, kami bantu cari opsi yang pas.</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">{STARTERS.map((starter) => <button key={starter} type="button" onClick={() => void sendMessage(undefined, starter)} className="vt-motion-press rounded-full border border-[#E7E2DC] px-3 py-2 text-xs font-medium text-[#52525B] transition-colors hover:border-[#EA580C]/40 hover:bg-[#FFF7ED] hover:text-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/50">{starter}</button>)}</div>
