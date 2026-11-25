@@ -32,7 +32,9 @@ export async function GET(): Promise<NextResponse> {
   });
   const products = (productsResult.data ?? []).map((value) => {
     const row = value as unknown as Record<string, unknown>;
-    return { id: String(row.id), title: String(row.title ?? ''), cost_price: Number(row.cost_price) || 0, stock_quantity: Number(row.stock_quantity) || 0, stock_status: String(row.stock_status ?? 'sold_out') };
+    const costValue = row.cost_price ?? row.hpp ?? row.cost;
+    const stockValue = row.stock_quantity ?? row.stock ?? row.quantity;
+    return { id: String(row.id), title: String(row.title ?? ''), cost_price: Number(costValue) || 0, stock_quantity: Number(stockValue) || 0, stock_status: String(row.stock_status ?? 'sold_out') };
   });
   return NextResponse.json({ orders, products, expenses: expensesResult.error ? [] : expensesResult.data ?? [], migrationReady: !expensesResult.error });
 }
