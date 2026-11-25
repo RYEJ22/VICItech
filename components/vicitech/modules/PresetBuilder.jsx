@@ -415,8 +415,8 @@ function OrderDrawer({
 
   const btn = `inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${focusRing}`;
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/55" onClick={onClose}>
-      <aside role="dialog" aria-modal="true" aria-label="Pre-Order Cepat" onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-default bg-surface text-primary">
+    <div className="vt-backdrop-enter fixed inset-0 z-50 flex justify-end bg-black/55" onClick={onClose}>
+      <aside role="dialog" aria-modal="true" aria-label="Pre-Order Cepat" onClick={(e) => e.stopPropagation()} className="vt-panel-enter flex h-full w-full max-w-md flex-col border-l border-default bg-surface text-primary">
         <div className="flex items-start justify-between gap-4 border-b border-default p-5">
           <div>
             <h2 className="tracking-tight font-sans text-lg font-bold text-primary">Tinjau Pre-Order Cepat</h2>

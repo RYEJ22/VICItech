@@ -342,7 +342,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
 
   return createPortal(
     <div
-      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="vt-backdrop-enter pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSubmitting && !isResetting) onClose();
       }}
@@ -351,7 +351,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
-        className="w-full max-w-md overflow-hidden rounded-xl border border-default bg-surface text-primary shadow-2xl shadow-black/25"
+        className="vt-dialog-enter w-full max-w-md overflow-hidden rounded-xl border border-default bg-surface text-primary shadow-2xl shadow-black/25"
       >
         <header className="flex items-start justify-between border-b border-default bg-canvas p-5 sm:p-6">
           <div>

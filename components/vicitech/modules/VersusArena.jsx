@@ -228,7 +228,7 @@ function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId,
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 md:items-stretch md:justify-end"
+      className="vt-backdrop-enter fixed inset-0 z-50 flex items-end justify-center bg-black/45 md:items-stretch md:justify-end"
       onClick={onClose}
     >
       <aside
@@ -237,7 +237,7 @@ function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId,
         aria-modal="true"
         aria-label={`Pilih ${sideLabel} untuk ${categoryLabel}`}
         onClick={(event) => event.stopPropagation()}
-        className="vt-pop flex max-h-[85vh] w-full flex-col rounded-t-2xl border-t border-default bg-surface shadow-2xl md:h-full md:max-h-none md:max-w-lg md:rounded-none md:rounded-l-xl md:border-l md:border-t-0"
+        className="vt-panel-enter flex max-h-[85vh] w-full flex-col rounded-t-2xl border-t border-default bg-surface shadow-2xl md:h-full md:max-h-none md:max-w-lg md:rounded-none md:rounded-l-xl md:border-l md:border-t-0"
       >
         <div className="flex justify-center pt-2.5 md:hidden" aria-hidden="true">
           <span className="h-1.5 w-10 rounded-full bg-default" />

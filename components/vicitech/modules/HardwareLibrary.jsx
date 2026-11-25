@@ -143,13 +143,13 @@ function Overlay({ label, onClose, wide = false, children }) {
   }, [onClose]);
   if (!mounted) return null;
   return createPortal((
-    <div className="fixed inset-0 z-[60] bg-black/40" onClick={onClose}>
+    <div className="vt-backdrop-enter fixed inset-0 z-[60] bg-black/40" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
-        className={`fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl ${wide ? "max-w-3xl" : "max-w-md"}`}
+        className={`vt-panel-enter fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl ${wide ? "max-w-3xl" : "max-w-md"}`}
       >
         <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
           <span className="h-1 w-10 rounded-full bg-default" />

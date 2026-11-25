@@ -79,7 +79,7 @@ export function CartDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-[72] flex justify-end bg-black/40"
+      className="vt-backdrop-enter fixed inset-0 z-[72] flex justify-end bg-black/40"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
