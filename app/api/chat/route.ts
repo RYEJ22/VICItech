@@ -7,7 +7,7 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 15;
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'] as const;
+const GEMINI_MODELS = ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-4-hydrogen', 'gemini-2.0-flash'] as const;
 const CATALOG_TTL_MS = 60_000;
 let cachedCatalog: { value: string; expiresAt: number } | null = null;
 
@@ -110,7 +110,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const contents: ChatMessage[] = cleanMessages.map((message) => ({ role: message.role, parts: [{ text: message.content }] }));
   let upstream: Response | null = null;
-  let failureReason = 'Tidak ada model Gemini yang tersedia.';
+  let failureStatus = 'tidak diketahui';
+  let failureMessage = 'Tidak ada model Gemini yang tersedia.';
   for (const [index, model] of GEMINI_MODELS.entries()) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
@@ -145,22 +146,22 @@ export async function POST(request: Request): Promise<Response> {
       }
       const cleanReason = googleMessage.slice(0, 300) || 'Google API tidak mengembalikan detail error.';
       console.error(`[api/chat] Gemini ${model} gagal: HTTP ${response.status} — ${cleanReason}`);
-      failureReason = `HTTP ${response.status}: ${cleanReason}`;
+      failureStatus = String(response.status);
+      failureMessage = cleanReason;
       if (index === GEMINI_MODELS.length - 1) break;
     } catch (error) {
       clearTimeout(timeout);
       request.signal.removeEventListener('abort', abortFromClient);
       if (request.signal.aborted) throw error;
-      failureReason = error instanceof Error ? error.message : 'Koneksi ke Google AI gagal.';
-      console.error(`[api/chat] Gemini ${model} gagal: ${failureReason}`);
+      failureStatus = 'tidak tersedia';
+      failureMessage = error instanceof Error ? error.message : 'Koneksi ke Google AI gagal.';
+      console.error(`[api/chat] Gemini ${model} gagal: ${failureMessage}`);
       if (index === GEMINI_MODELS.length - 1) break;
     }
   }
 
   if (!upstream?.body) {
-    const error = 'Konsultan AI belum dapat menjawab saat ini. Silakan coba lagi.';
-    const reason = process.env.NODE_ENV === 'development' ? ` (${failureReason})` : '';
-    return NextResponse.json({ error: `${error}${reason}`, upstreamError: failureReason }, { status: 502 });
+    return NextResponse.json({ error: `Konsultan AI gagal (HTTP ${failureStatus}): ${failureMessage}` }, { status: 502 });
   }
 
   const decoder = new TextDecoder();
