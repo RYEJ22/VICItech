@@ -15,6 +15,7 @@ const csp = [
   `script-src ${scriptSources}`,
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseOrigin} https://media.giphy.com https://i.giphy.com`,
+  `media-src 'self' ${supabaseOrigin} blob: data:`,
   `connect-src 'self' ${supabaseOrigin} ${supabaseSocket} https://api.giphy.com https://generativelanguage.googleapis.com https://app.sandbox.midtrans.com https://app.midtrans.com https://api.sandbox.midtrans.com https://api.midtrans.com`,
   "font-src 'self' data:",
   "frame-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
