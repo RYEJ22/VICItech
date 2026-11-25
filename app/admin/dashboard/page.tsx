@@ -23,6 +23,7 @@ import { isJsonRecord } from '@/lib/admin/orders';
 import type { AdminOrder, AdminOrderStats, JsonValue, OrderStatus } from '@/lib/admin/orders';
 import { formatIdr } from '@/lib/admin/products-validation';
 import { AdminConfirmDialog } from '@/components/features/admin/admin-confirm-dialog';
+import { RevenueLineChart } from '@/components/admin/RevenueLineChart';
 
 const OrderDetailsDialog = dynamic(
   () => import('@/components/vicitech/admin/OrderDetailsDialog').then((mod) => mod.OrderDetailsDialog),
@@ -43,6 +44,7 @@ interface OrdersApiResponse {
   readonly total?: number;
   readonly pageSize?: number;
   readonly stats?: AdminOrderStats;
+  readonly revenueTrend?: readonly { readonly date: string; readonly amount: number; readonly orderCount: number }[];
   readonly error?: string;
   readonly order?: { readonly id: string; readonly status: OrderStatus };
 }
@@ -115,6 +117,7 @@ export default function AdminDashboardPage(): ReactElement {
     totalRevenue: 0,
     pendingQcCount: 0,
   });
+  const [revenueTrend, setRevenueTrend] = useState<readonly { readonly date: string; readonly amount: number; readonly orderCount: number }[]>([]);
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 250);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -145,6 +148,7 @@ export default function AdminDashboardPage(): ReactElement {
         totalRevenue: Number(result.stats?.totalRevenue) || 0,
         pendingQcCount: Number(result.stats?.pendingQcCount) || 0,
       });
+      setRevenueTrend(result.revenueTrend ?? []);
     } catch (loadError: unknown) {
       setError(loadError instanceof Error ? loadError.message : 'Gagal memuat daftar order.');
     } finally {
@@ -193,6 +197,7 @@ export default function AdminDashboardPage(): ReactElement {
           pendingQcCount: Number(result.stats.pendingQcCount) || 0,
         });
       }
+      if (result.revenueTrend) setRevenueTrend(result.revenueTrend);
       setNotice(`Status order diperbarui menjadi ${STATUSES.find((s) => s.value === status)?.label ?? status}.`);
     } catch (updateError: unknown) {
       setError(updateError instanceof Error ? updateError.message : 'Gagal memperbarui status order.');
@@ -311,6 +316,11 @@ export default function AdminDashboardPage(): ReactElement {
           <p className="mt-1 text-xs text-secondary">Menunggu antrean stress test</p>
         </article>
       </div>
+
+      <section className="rounded-2xl border border-default bg-surface p-4 shadow-sm sm:p-5" aria-label="Tren pendapatan dan jumlah order">
+        <div className="mb-1"><h2 className="text-sm font-bold text-primary">Tren Pendapatan &amp; Pesanan</h2><p className="mt-0.5 text-xs text-secondary">Pendapatan harian, tidak termasuk pesanan yang dibatalkan.</p></div>
+        <RevenueLineChart data={revenueTrend} variant="light" />
+      </section>
 
       {/* Feedback */}
       {error ? (

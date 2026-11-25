@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 25;
 const STATS_PAGE_SIZE = 1000;
+type RevenuePoint = { readonly date: string; readonly amount: number; readonly orderCount: number };
 const ADMIN_ORDER_COLUMNS =
   "id, user_id, order_type, items, total_price, customer_info, status, created_at, order_number, user_role, product_name, base_price, jit_buffer, order_summary, serial_number";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -69,6 +70,32 @@ async function getOrderStats(supabase: SupabaseClient): Promise<AdminOrderStats>
   return { totalOrders: total, totalRevenue: revenueCents / 100, pendingQcCount };
 }
 
+async function getRevenueTrend(supabase: SupabaseClient): Promise<RevenuePoint[]> {
+  const byDate = new Map<string, RevenuePoint>();
+  for (let start = 0; ; start += STATS_PAGE_SIZE) {
+    const { data, error } = await supabase.from('orders').select('total_price, status, created_at')
+      .order('created_at', { ascending: true }).range(start, start + STATS_PAGE_SIZE - 1);
+    if (error) throw error;
+    for (const order of data ?? []) {
+      if (['cancelled', 'canceled', 'dibatalkan', 'batal'].includes(String(order.status ?? '').trim().toLowerCase())) continue;
+      const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(order.created_at));
+      const current = byDate.get(date) ?? { date, amount: 0, orderCount: 0 };
+      byDate.set(date, { date, amount: current.amount + Number(order.total_price || 0), orderCount: current.orderCount + 1 });
+    }
+    if (!data || data.length < STATS_PAGE_SIZE) break;
+  }
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const first = [...byDate.keys()].sort()[0] ?? today;
+  const start = new Date(`${first}T00:00:00+07:00`);
+  const end = new Date(`${today}T00:00:00+07:00`);
+  const result: RevenuePoint[] = [];
+  for (const day = new Date(start); day <= end; day.setUTCDate(day.getUTCDate() + 1)) {
+    const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(day);
+    result.push(byDate.get(date) ?? { date, amount: 0, orderCount: 0 });
+  }
+  return result;
+}
+
 async function getAdminClient(): Promise<AdminClientResult> {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -119,13 +146,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? Math.min(requestedPage, maxPage)
       : 0;
     const start = page * PAGE_SIZE;
-    const [{ data, error, count }, stats] = await Promise.all([
+    const [{ data, error, count }, stats, revenueTrend] = await Promise.all([
       supabase
         .from("orders")
         .select(ADMIN_ORDER_COLUMNS, { count: "exact" })
         .order("created_at", { ascending: false })
         .range(start, start + PAGE_SIZE - 1),
       getOrderStats(supabase),
+      getRevenueTrend(supabase),
     ]);
 
     if (error) {
@@ -137,6 +165,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       orders: data || [],
       total: count || 0,
       stats,
+      revenueTrend,
       page,
       pageSize: PAGE_SIZE,
     });
@@ -186,8 +215,8 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Order not found or could not be updated." }, { status: 404 });
     }
 
-    const stats = await getOrderStats(supabase);
-    return NextResponse.json({ order: data, stats });
+    const [stats, revenueTrend] = await Promise.all([getOrderStats(supabase), getRevenueTrend(supabase)]);
+    return NextResponse.json({ order: data, stats, revenueTrend });
   } catch (error: unknown) {
     console.error("[ViciTech OS] Admin order status update failed:", error);
     return NextResponse.json({ error: "Could not update order status." }, { status: 500 });
