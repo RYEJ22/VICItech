@@ -775,7 +775,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     <>
       {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
       <header
-        className={`pointer-events-none fixed inset-x-0 top-0 z-50 px-0 transition-all duration-300 ease-out motion-reduce:transition-none md:px-6 ${
+      className={`pointer-events-none fixed inset-x-0 top-0 z-40 px-0 transition-all duration-300 ease-out motion-reduce:transition-none md:px-6 ${
           isScrolled ? 'md:top-2.5' : 'md:top-4'
         }`}
       >
@@ -810,6 +810,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           {/* Center (Desktop): 4 Clean Umbrella Menus */}
           <nav
             aria-label="Navigasi utama ViciTech"
+            onMouseLeave={() => {
+              clearHoverCloseTimer();
+              hoverCloseTimerRef.current = window.setTimeout(() => {
+                setOpenMenu((current) => current && ['market', 'toolkit', 'services', 'community'].includes(current) ? null : current);
+                hoverCloseTimerRef.current = null;
+              }, 120);
+            }}
             className={`hidden items-center justify-self-center transition-all duration-300 ease-out motion-reduce:transition-none md:flex ${
               isScrolled ? 'gap-5 lg:gap-6' : 'gap-7 lg:gap-8'
             }`}
@@ -841,7 +848,6 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   className="relative"
                   data-nav-menu
                   onMouseEnter={() => openUmbrellaOnHover(group.id)}
-                  onMouseLeave={() => scheduleUmbrellaClose(group.id)}
                   onBlur={(event) => handleUmbrellaBlur(group.id, event)}
                 >
                   <button
@@ -867,14 +873,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     <span aria-hidden="true" className={`vt-nav-underline ${isActive ? 'is-active' : ''}`} />
                   </button>
 
-                  {group.items && (
-                    <div className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3.5">
+                  {group.items && isOpen && (
+                    <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2">
                       <div
                         id={`nav-panel-${group.id}`}
-                        aria-hidden={!isOpen}
-                        inert={!isOpen}
-                        data-menu-state={isOpen ? 'open' : 'closed'}
-                        className={`vt-dropdown-panel w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl p-2 ${styles.dropdownPanel ?? ''}`}
+                        className={`vt-nav-dropdown-open w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white p-2 opacity-100 shadow-xl ring-1 ring-black/5 ${styles.dropdownPanel ?? ''}`}
                       >
                         <ul className="grid gap-0.5">
                           {group.items.map((subItem) => {

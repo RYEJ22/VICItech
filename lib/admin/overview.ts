@@ -31,6 +31,7 @@ export interface AdminOverviewData {
   };
   readonly recentOrders: readonly RecentOrderSummary[];
   readonly recentQc: readonly RecentQcSummary[];
+  readonly revenueTrend: readonly { readonly date: string; readonly amount: number }[];
   readonly warning: string | null;
 }
 
@@ -107,6 +108,7 @@ export async function getAdminOverviewData(
     qcInProgressRes,
     recentOrdersRes,
     recentQcRes,
+    revenueRowsRes,
   ] = await Promise.all([
     fetchOrderStatsWithFallback(supabase),
     supabase.from('products').select('id', { count: 'exact', head: true }),
@@ -128,7 +130,25 @@ export async function getAdminOverviewData(
       .select('id, serial_number, device_name, status, burnin_hours, score, shipping_status, created_at')
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.from('orders').select('total_price, status, created_at').order('created_at', { ascending: true }).limit(10000),
   ]);
+
+  const revenueByDate = new Map<string, number>();
+  for (const row of revenueRowsRes.data ?? []) {
+    if (['cancelled', 'canceled', 'dibatalkan', 'batal'].includes(String(row.status ?? '').trim().toLowerCase())) continue;
+    const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(row.created_at));
+    revenueByDate.set(date, (revenueByDate.get(date) ?? 0) + Number(row.total_price || 0));
+  }
+  const revenueTrend: { date: string; amount: number }[] = [];
+  const today = new Date();
+  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(today);
+  const firstDate = revenueByDate.size ? [...revenueByDate.keys()].sort()[0] ?? todayKey : todayKey;
+  const start = new Date(`${firstDate}T00:00:00+07:00`);
+  const end = new Date(`${todayKey}T00:00:00+07:00`);
+  for (const date = new Date(start); date <= end; date.setUTCDate(date.getUTCDate() + 1)) {
+    const key = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+    revenueTrend.push({ date: key, amount: revenueByDate.get(key) ?? 0 });
+  }
 
   const firstError =
     productsTotalRes.error ||
@@ -153,6 +173,7 @@ export async function getAdminOverviewData(
     },
     recentOrders: recentOrdersRes.data || [],
     recentQc: recentQcRes.data || [],
+    revenueTrend,
     warning: firstError
       ? 'Sebagian metrik database belum tersedia. Pastikan master_schema.sql sudah diterapkan di Supabase.'
       : null,

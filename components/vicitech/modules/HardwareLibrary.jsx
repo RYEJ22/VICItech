@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
   CheckCircle2, ShieldCheck, Zap, Plus, FileText, Check, X,
@@ -131,21 +132,24 @@ const perfPerMillion = (p) => p.specs.perf / (p.price / 1e6);
 const newFilters = () => Object.fromEntries(CAT_ORDER.map((k) => [k, { cond: "all", brand: "all", type: "all", max: BOUNDS[k].max }]));
 
 function Overlay({ label, onClose, wide = false, children }) {
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && onClose();
     const prev = document.body.style.overflow;
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
+    setMounted(true);
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [onClose]);
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 md:items-stretch md:justify-end" onClick={onClose}>
+  if (!mounted) return null;
+  return createPortal((
+    <div className="fixed inset-0 z-[60] bg-black/40" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
-        className={`flex max-h-[88svh] w-full flex-col rounded-t-2xl border-t border-default bg-surface pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl md:h-full md:max-h-full md:rounded-none md:border-l md:border-t-0 md:pb-0 ${wide ? "md:max-w-3xl" : "md:max-w-md"}`}
+        className={`fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl ${wide ? "max-w-3xl" : "max-w-md"}`}
       >
         <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
           <span className="h-1 w-10 rounded-full bg-default" />
@@ -153,7 +157,7 @@ function Overlay({ label, onClose, wide = false, children }) {
         {children}
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 function OverlayHeader({ title, subtitle, onClose }) {

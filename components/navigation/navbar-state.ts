@@ -119,6 +119,13 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
         targetModule: 'market',
         targetView: 'upgrade',
       },
+      {
+        id: 'toolkit-ai-consultant',
+        label: 'Konsultan Rakitan AI',
+        description: 'Konsultasi rakitan PC, upgrade laptop, dan katalog ViciTech.',
+        href: '/toolkit/konsultan-ai',
+        iconKey: 'builder',
+      },
     ],
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
   },

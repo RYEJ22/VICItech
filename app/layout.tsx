@@ -7,6 +7,7 @@ import ThemeProvider from "@/components/providers/ThemeProvider";
 import IntroSplash from "@/components/ui/IntroSplash";
 import Navbar from "@/components/Navbar";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { FloatingChatWidget } from "@/components/ai/FloatingChatWidget";
 import Script from "next/script";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <Navbar />
             <div className="pb-20 md:pb-0">{children}</div>
             <CookieConsentBanner />
+            <FloatingChatWidget />
           </CheckoutProvider>
         </ThemeProvider>
       </body>

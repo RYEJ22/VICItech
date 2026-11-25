@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { RevenueLineChart } from '@/components/admin/RevenueLineChart';
 import { getAdminOverviewData } from '@/lib/admin/overview';
 import { formatIdr } from '@/lib/admin/products-validation';
 import { createClient } from '@/lib/supabase/server';
@@ -96,6 +97,8 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
               <ShoppingBag className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </span>
           </div>
+
+          <RevenueLineChart data={overview.revenueTrend} />
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-4 text-xs text-white/75">
             <span>
