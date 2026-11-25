@@ -832,7 +832,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     href={group.href}
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
+                    className={`vt-motion-press vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
                       isActive ? 'text-[#C2410C]' : 'text-[#18181B]/80 hover:text-[#C2410C]'
                     }`}
                   >
@@ -888,7 +888,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                   href={subItem.href}
                                   onClick={(event) => handleSubItemClick(event, subItem)}
                                   aria-current={subActive ? 'page' : undefined}
-                                  className={`group flex items-start gap-3 rounded-xl px-3.5 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
+                                  className={`vt-motion-press group flex items-start gap-3 rounded-xl px-3.5 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
                                     subActive ? 'bg-[#F3F1ED]/70' : ''
                                   }`}
                                 >
@@ -1070,7 +1070,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   href={item.href}
                   onClick={(event) => handleBottomNavClick(event, item)}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
+                  className={`vt-motion-press flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
                       ? 'bg-[#EA580C]/10 font-semibold text-[#C2410C]'
                       : 'font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]'

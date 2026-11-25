@@ -92,4 +92,8 @@
   .ctaSecondary {
     transition: none;
   }
+  .ctaPrimary:hover,
+  .ctaSecondary:hover {
+    transform: none;
+  }
 }
