@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  Banknote,
   ArrowLeft,
   Cpu,
   LayoutDashboard,
@@ -51,6 +52,8 @@ const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
     description: 'Pesanan masuk & status pengerjaan',
     icon: ShoppingBag,
   },
+  { href: '/admin/finance', label: 'Keuangan', description: 'Laba rugi, arus kas & biaya operasional', icon: Banknote },
+  { href: '/admin/finance', label: 'Keuangan', description: 'Laba rugi, arus kas & biaya operasional', icon: Banknote },
   {
     href: '/admin/iot-qc',
     label: 'IoT QC',
