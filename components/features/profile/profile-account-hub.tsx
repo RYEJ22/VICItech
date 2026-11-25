@@ -461,7 +461,7 @@ export function ProfileAccountHub({
       <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 py-12 text-primary">
         <section className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <ShieldCheck className="mx-auto h-10 w-10 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+          <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance]">
             Masuk untuk membuka Profil &amp; Akun
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">
@@ -491,7 +491,7 @@ export function ProfileAccountHub({
       <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 py-12 text-primary">
         <section className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <UserRound className="mx-auto h-11 w-11 text-secondary" strokeWidth={1.75} aria-hidden="true" />
-          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary">
+          <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary">
             Profil anggota tidak ditemukan
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">
@@ -600,7 +600,7 @@ export function ProfileAccountHub({
             <div className="space-y-5 lg:col-span-7">
               <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-2 border-b border-default pb-3">
-                  <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                  <h2 className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
                     <MessageSquare className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                     <span>Postingan Komunitas</span>
                   </h2>
@@ -660,7 +660,7 @@ export function ProfileAccountHub({
             <div className="space-y-5 lg:col-span-5">
               {/* Featured Rig Card */}
               <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
-                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+                <h2 className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                   <Cpu className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Perangkat Utama</span>
                 </h2>
@@ -680,7 +680,7 @@ export function ProfileAccountHub({
               {/* Saved Presets (Owner) & Shared Builds (Public) */}
               <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
                 <div className="flex items-center justify-between gap-2 border-b border-default pb-3">
-                  <h2 className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+                  <h2 className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                     <Sliders className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                     <span>{isOwner ? 'Preset & Rakitan Tersimpan' : 'Showcase Rakitan Publik'}</span>
                   </h2>
@@ -753,7 +753,7 @@ export function ProfileAccountHub({
           <section key="orders" className={`grid gap-6 lg:grid-cols-12 ${styles.tabPanel ?? ''}`}>
             <div className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-7">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                <h2 className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
                   <Package className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Riwayat Pesanan Market &amp; Preset</span>
                 </h2>
@@ -922,7 +922,7 @@ export function ProfileAccountHub({
 
             <div className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-5 lg:self-start">
               <div className="flex items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+                <h2 className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                   <RefreshCw className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Riwayat Trade-In &amp; Laporan QC</span>
                 </h2>

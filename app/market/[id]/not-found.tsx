@@ -7,7 +7,7 @@ export default function MarketProductNotFound(): ReactElement {
     <main className="mx-auto grid min-h-[70vh] w-full max-w-3xl place-items-center px-4 pb-24 pt-12 md:pb-16">
       <section className="w-full rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-8">
         <span className="vt-badge-sample">Produk Tidak Ditemukan · 404</span>
-        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+        <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance]">
           Produk yang Anda cari tidak tersedia.
         </h1>
         <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-secondary sm:text-base">

@@ -145,7 +145,7 @@ export function AdminShell({
           onClick={onNavigate}
           className="flex items-center gap-3 rounded-xl border border-default bg-canvas px-3 py-3 transition hover:border-accent-primary/40"
         >
-          <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink font-serif text-lg font-bold text-white shadow-sm">
+          <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink font-sans text-lg font-bold text-white shadow-sm">
             V
             <span
               aria-hidden="true"

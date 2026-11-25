@@ -104,7 +104,7 @@ Urutan pengerjaan: 1.1, 1.2, 1.4, 1.3. Welcome Page butuh login dan rute `/commu
 
 **Spesifikasi antarmuka**
 1. Header publik: logo ViciTech, link anchor (Fitur, Cara Kerja), tombol Masuk dan Daftar. Berbeda dari header aplikasi di modul 1.2.
-2. Hero: headline (serif editorial), sub-headline, CTA utama "Gabung Sekarang" (aksen oranye, teks gelap agar kontras lolos AA), CTA kedua "Lihat Market", dan background image slider dengan tombol jeda/putar berukuran minimal 44px.
+2. Hero: headline sans-serif tebal, sub-headline, CTA utama "Gabung Sekarang" (aksen oranye, teks gelap agar kontras lolos AA), CTA kedua "Lihat Market", dan background image slider dengan tombol jeda/putar berukuran minimal 44px.
 3. Empat pilar: Community, Market, Service & Mitra, DM, masing-masing satu kalimat penjelasan.
 4. Cara kerja: 3 langkah (Daftar, Gabung dan ngobrol, Rakit/beli/servis).
 5. Preview atau social proof: screenshot feed atau angka statistik komunitas yang nyata.

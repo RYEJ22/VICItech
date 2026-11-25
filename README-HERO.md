@@ -34,7 +34,7 @@ export default function HomePage() {
 - Confirm `lucide-react` is installed and the `@/*` alias points to the project root.
 - Check your Next.js version: if it names the LCP prop `preload` instead of `priority`, change `priority={index === 0}` in `hero-slider.tsx`.
 - Confirm the route names in `hero-content.ts` (`/register`, `/market`). `/market` does not exist until Phase 3: point it to a placeholder or relabel it "Segera hadir".
-- Colors are CSS custom properties at the top of `hero.module.css` (Warm Alabaster surface, ink, tech orange). Map them to `DESIGN.md` tokens when they exist. The headline reads `--font-serif` if you define it with `next/font`.
+- Colors are CSS custom properties at the top of `hero.module.css` (Warm Alabaster surface, ink, tech orange). Map them to `DESIGN.md` tokens when they exist. The headline uses the shared Plus Jakarta Sans `--font-sans` token.
 - Motion constants (`DEFAULT_HERO_MOTION` in `hero-slider.tsx`): 7000 ms dwell, 1600 ms fade, zoom to 1.12. Keep dwell between 6000 and 8000 ms.
 
 ## Behavior

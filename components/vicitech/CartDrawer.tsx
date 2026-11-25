@@ -99,7 +99,7 @@ export function CartDrawer({
               <div className="flex items-center gap-2">
                 <h2
                   id="cart-drawer-title"
-                  className="font-serif text-lg font-semibold text-[#18181B]"
+                  className="tracking-tight font-sans text-lg font-bold text-[#18181B]"
                 >
                   Keranjang Belanja
                 </h2>
@@ -142,7 +142,7 @@ export function CartDrawer({
               <span className="grid h-12 w-12 place-items-center rounded-full bg-[#F3F1ED] text-[#EA580C]">
                 <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </span>
-              <h3 className="mt-4 font-serif text-lg font-semibold text-[#18181B]">
+              <h3 className="tracking-tight mt-4 font-sans text-lg font-bold text-[#18181B]">
                 Keranjang masih kosong
               </h3>
               <p className="mt-1.5 max-w-[30ch] text-xs leading-relaxed text-[#71717A]">

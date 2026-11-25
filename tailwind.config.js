@@ -11,9 +11,12 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Poppins", "Arial", "sans-serif"],
-        serif: ["var(--font-serif)", "Playfair Display", "Georgia", "Times New Roman", "serif"],
-        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        sans: ["var(--font-sans)", "Plus Jakarta Sans", "Arial", "sans-serif"],
+        serif: ["var(--font-sans)", "Plus Jakarta Sans", "Arial", "sans-serif"],
+        mono: ["var(--font-sans)", "Plus Jakarta Sans", "Arial", "sans-serif"],
+      },
+      letterSpacing: {
+        tight: "-0.02em",
       },
       colors: {
         // ViciTech palette — legacy shell aliases collapsed onto DESIGN.md semantic tokens.

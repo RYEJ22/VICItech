@@ -110,7 +110,7 @@ export function MarketProductCard({
             href={href}
             className="mt-1.5 block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
-            <h3 className="line-clamp-2 font-serif text-base font-semibold leading-snug text-primary transition-colors group-hover:text-accent-cta [text-wrap:balance] sm:text-lg">
+            <h3 className="tracking-tight line-clamp-2 font-sans text-base font-bold leading-snug text-primary transition-colors group-hover:text-accent-cta [text-wrap:balance] sm:text-lg">
               {product.title}
             </h3>
           </Link>

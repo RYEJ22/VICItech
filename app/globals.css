@@ -4,7 +4,7 @@
 
 /* ───────────────────────────── ViciTech design tokens ─────────────────────────────
    One light system for the whole product: warm paper, gunmetal ink, a single
-   signal-orange accent, and an editorial serif for display type.
+   signal-orange accent, and a unified Plus Jakarta Sans typography system.
    Nothing else defines colour — components reference these variables. */
 
 :root {
@@ -56,6 +56,12 @@ body {
   overflow-x: clip;
 }
 
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
 html {
   background-color: var(--bg-canvas);
 }
@@ -64,7 +70,7 @@ body {
   margin: 0;
   background-color: var(--bg-canvas);
   color: var(--text-primary);
-  font-family: var(--font-sans, 'Poppins', Arial, sans-serif);
+  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -109,9 +115,9 @@ select,
 /* ───────────────────────────── Typography ───────────────────────────── */
 
 .vt-display {
-  font-family: var(--font-serif), Georgia, 'Times New Roman', serif;
-  font-weight: 400;
-  letter-spacing: -0.015em;
+  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, sans-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.1;
 }
 

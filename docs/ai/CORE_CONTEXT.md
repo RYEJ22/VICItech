@@ -10,7 +10,7 @@ ViciTech is a Circular IT Economy, community, and hardware marketplace platform 
 - **End Goal:** Production-ready demo for competition judges and business partners with realistic data. Monetization via curated PC builds and verified hardware.
 
 ## Visual Identity (Details in `DESIGN.md`)
-- **Theme:** Clean Editorial Light-Mode (`#FAF9F6` Warm Alabaster) with vibrant tech orange accents (`#EA580C`), warm neutral borders, and editorial serif headers.
+- **Theme:** Clean Editorial Light-Mode (`#FAF9F6` Warm Alabaster) with vibrant tech orange accents (`#EA580C`), warm neutral borders, and Plus Jakarta Sans typography throughout.
 - **Data Transparency:** Strictly distinguish `Live ESP32`, `Simulated`, and `Sample` data badges across the UI.
 
 ## Tech Stack

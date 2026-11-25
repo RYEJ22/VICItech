@@ -249,7 +249,7 @@ export function ShareMenu({
               <span className={styles.dragHandle} />
             </div>
             <div className="flex items-center justify-between border-b border-default px-4 pb-3 pt-1">
-              <p id={menuTitleId} className="font-serif text-base font-semibold text-primary">
+              <p id={menuTitleId} className="font-sans text-base font-semibold text-primary">
                 Bagikan Tautan
               </p>
               <button

@@ -157,7 +157,7 @@ export default function AdminLoginPage() {
         <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-default bg-accent-subtle text-accent-primary">
           <LockKeyhole className="h-5 w-5" strokeWidth={1.75} />
         </div>
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+        <h1 className="font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance]">
           Login Admin
         </h1>
         <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">

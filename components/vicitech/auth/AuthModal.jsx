@@ -355,7 +355,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
       >
         <header className="flex items-start justify-between border-b border-default bg-canvas p-5 sm:p-6">
           <div>
-            <h2 id="auth-title" className="font-serif text-2xl font-semibold text-primary [text-wrap:balance]">
+            <h2 id="auth-title" className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance]">
               {step === "verify-otp" ? "Verify your email" : mode === "sign-in" ? "Welcome back to ViciTech" : "Create your ViciTech account"}
             </h2>
             <p className="mt-1 text-sm text-secondary">

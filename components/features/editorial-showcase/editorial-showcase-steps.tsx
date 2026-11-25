@@ -61,7 +61,7 @@ export function EditorialShowcaseSteps({
                 <span className="vt-badge-sample">Alur Kerja Terpadu</span>
                 <h2
                   id="workflow-deck-heading"
-                  className="mt-3 font-serif text-2xl font-semibold text-surface [text-wrap:balance] sm:text-3xl"
+                  className="tracking-tight mt-3 font-sans text-2xl font-bold text-surface [text-wrap:balance] sm:text-3xl"
                 >
                   Setiap perangkat melalui siklus riset hingga verifikasi yang rapi.
                 </h2>
@@ -93,7 +93,7 @@ export function EditorialShowcaseSteps({
                           >
                             {step.phaseLabel}
                           </span>
-                          <span className="mt-0.5 block font-serif text-base font-semibold sm:text-lg">
+                          <span className="mt-0.5 block font-sans text-base font-semibold sm:text-lg">
                             {step.title}
                           </span>
                         </span>
@@ -169,7 +169,7 @@ export function EditorialShowcaseSteps({
                 <p className="mt-3 font-mono text-xs font-semibold text-accent-cta">
                   {activeStep.phaseLabel}
                 </p>
-                <p className="mt-1 font-serif text-lg font-semibold text-primary">
+                <p className="mt-1 font-sans text-lg font-semibold text-primary">
                   {activeStep.title}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-secondary">
@@ -188,7 +188,7 @@ export function EditorialShowcaseSteps({
             <span className="vt-badge-sample">Direktori Pilar ViciTech</span>
             <h2
               id="editorial-pillars-heading"
-              className="mt-3 max-w-xl font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
+              className="mt-3 max-w-xl font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
             >
               Setiap komponen dan perangkat punya jejak verifikasi yang transparan.
             </h2>
@@ -215,7 +215,7 @@ export function EditorialShowcaseSteps({
                 <div className="grid gap-4 md:grid-cols-12 md:items-center">
                   <div className="md:col-span-4">
                     <span className={getBadgeClassName(row.badgeVariant)}>{row.badgeLabel}</span>
-                    <h3 className="mt-2 font-serif text-xl font-semibold text-primary">
+                    <h3 className="tracking-tight mt-2 font-sans text-xl font-bold text-primary">
                       {row.title}
                     </h3>
                     <p className="mt-1 max-w-[65ch] text-xs leading-relaxed text-secondary sm:text-sm">

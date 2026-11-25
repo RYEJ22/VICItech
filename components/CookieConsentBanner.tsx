@@ -93,7 +93,7 @@ export function CookieConsentBanner() {
         <div>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="font-sans text-2xl font-semibold tracking-tight text-primary">Atur Preferensi Cookie</h2>
+              <h2 className="font-sans text-2xl font-bold tracking-tight text-primary">Atur Preferensi Cookie</h2>
               <p className="mt-1 text-sm leading-relaxed text-secondary">
                 Pilih cookie tambahan yang boleh digunakan. Cookie esensial selalu aktif untuk menjaga keamanan akun dan checkout.
               </p>
@@ -158,7 +158,7 @@ export function CookieConsentBanner() {
       ) : (
         <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center sm:gap-8">
           <div>
-            <h2 className="font-sans text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Pilihan Cookie Anda</h2>
+            <h2 className="font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">Pilihan Cookie Anda</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
               ViciTech menggunakan cookie untuk keamanan, menyimpan preferensi rakitan PC, dan meningkatkan performa situs. Anda dapat mengatur pilihan kapan saja.
             </p>

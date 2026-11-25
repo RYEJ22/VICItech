@@ -366,7 +366,7 @@ function Composer({ onPublish, sectionRef, titleInputRef }) {
       aria-labelledby="composer-title"
       className="scroll-mt-24 rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-6"
     >
-      <h2 id="composer-title" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+      <h2 id="composer-title" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
         <PenSquare className="h-5 w-5 text-accent-primary" /> Bagikan Rakitan atau Ajukan Pertanyaan
       </h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -646,7 +646,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
         </span>
       </header>
 
-      <h3 className="mt-3 break-words font-serif text-base font-semibold leading-snug text-primary sm:mt-4 sm:text-lg">{post.title}</h3>
+      <h3 className="tracking-tight mt-3 break-words font-sans text-base font-bold leading-snug text-primary sm:mt-4 sm:text-lg">{post.title}</h3>
       <p className="mt-2 break-words whitespace-pre-line text-sm leading-relaxed text-secondary"><RichText text={post.body} onTag={onTag} /></p>
 
       {post.isLfg && post.lfgDetails && (
@@ -1046,7 +1046,7 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
   return (
     <aside className="space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
       <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+        <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
           <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
           <span>Kontributor Aktif</span>
         </h2>
@@ -1081,7 +1081,7 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
       </section>
 
       <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+        <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
           <BookOpen className="h-5 w-5 text-accent-primary" aria-hidden="true" />
           <span>Topik Panduan Cepat</span>
         </h2>
@@ -1097,7 +1097,7 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
       </section>
 
       <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
-        <h2 className="flex items-center gap-2 font-serif text-base font-semibold text-primary">
+        <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
           <Tag className="h-5 w-5 text-accent-primary" aria-hidden="true" />
           <span>Tag Hardware Populer</span>
         </h2>
@@ -1846,7 +1846,7 @@ export default function CommunityHub() {
               Berbagi rakitan &amp; solusi teknis
             </span>
           </div>
-          <h1 className="mt-2.5 flex min-w-0 items-center gap-2 font-serif text-xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+          <h1 className="mt-2.5 flex min-w-0 items-center gap-2 font-sans text-xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
             <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">Komunitas &amp; Pusat Pengetahuan</span>
           </h1>
           <p className="mt-2 max-w-2xl break-words text-xs text-secondary sm:mt-3 sm:text-base">

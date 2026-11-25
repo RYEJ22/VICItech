@@ -44,7 +44,7 @@
 
 .headline {
   color: var(--text-primary);
-  font-family: var(--font-serif, 'Playfair Display', ui-serif, Georgia, 'Times New Roman', serif);
+  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, sans-serif);
 }
 
 .description {

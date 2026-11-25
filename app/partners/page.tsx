@@ -48,7 +48,7 @@ export default async function PartnersPage(): Promise<ReactElement> {
           </Link>
         </div>
 
-        <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-4xl lg:text-5xl">
+        <h1 className="mt-5 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-4xl lg:text-5xl">
           Toko komponen dan service center tepercaya.
         </h1>
         <p className="mt-3 max-w-[68ch] text-base leading-relaxed text-secondary">

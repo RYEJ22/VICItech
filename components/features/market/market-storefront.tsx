@@ -370,7 +370,7 @@ export function MarketStorefront({
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-default bg-subtle text-accent-primary">
             <Package className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
           </div>
-          <h2 className="mt-4 font-serif text-2xl font-semibold text-primary">
+          <h2 className="tracking-tight mt-4 font-sans text-2xl font-bold text-primary">
             Belum ada produk di etalase Market
           </h2>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
@@ -406,7 +406,7 @@ export function MarketStorefront({
           aria-live="polite"
           className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
         >
-          <p className="font-serif text-2xl font-semibold text-primary">
+          <p className="font-sans text-2xl font-semibold text-primary">
             Produk tidak ditemukan
           </p>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">

@@ -48,7 +48,7 @@ export function Hero({
         <div className="max-w-2xl">
           <h1
             id="hero-heading"
-            className={`text-4xl font-semibold tracking-tight [text-wrap:balance] sm:text-5xl lg:text-6xl ${styles.headline}`}
+            className={`text-4xl font-bold tracking-tight [text-wrap:balance] sm:text-5xl lg:text-6xl ${styles.headline}`}
           >
             {headline}
           </h1>

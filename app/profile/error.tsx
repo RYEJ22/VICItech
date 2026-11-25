@@ -17,7 +17,7 @@ export default function ProfileError({ reset }: ProfileErrorProps): ReactElement
         className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm"
       >
         <ShieldAlert className="mx-auto h-10 w-10 text-status-danger" strokeWidth={1.75} aria-hidden="true" />
-        <h1 className="mt-4 font-serif text-2xl font-semibold text-primary">
+        <h1 className="tracking-tight mt-4 font-sans text-2xl font-bold text-primary">
           Gagal memuat Profil &amp; Akun
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-secondary">

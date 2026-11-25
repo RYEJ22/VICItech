@@ -26,7 +26,7 @@ export default function MarketProductError({
             aria-hidden="true"
           />
           <div>
-            <h1 className="font-serif text-2xl font-semibold text-primary">
+            <h1 className="tracking-tight font-sans text-2xl font-bold text-primary">
               Detail produk tidak dapat dimuat
             </h1>
             <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">

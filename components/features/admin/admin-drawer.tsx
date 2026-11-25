@@ -92,7 +92,7 @@ export function AdminDrawer({
             ) : null}
             <h2
               id={titleId}
-              className="mt-1.5 font-serif text-xl font-semibold tracking-tight text-primary [text-wrap:balance]"
+              className="mt-1.5 font-sans text-xl font-bold tracking-tight text-primary [text-wrap:balance]"
             >
               {title}
             </h2>

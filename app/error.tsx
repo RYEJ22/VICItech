@@ -21,7 +21,7 @@ export default function GlobalRouteError({ error, reset }: GlobalErrorProps): Re
           <AlertTriangle className="h-3.5 w-3.5 text-status-danger" strokeWidth={1.75} aria-hidden="true" />
           <span>Terjadi Gangguan Sistem</span>
         </span>
-        <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+        <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance]">
           Halaman ini gagal dimuat untuk sementara.
         </h1>
         <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-secondary sm:text-base">

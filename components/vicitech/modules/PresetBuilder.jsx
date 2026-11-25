@@ -419,7 +419,7 @@ function OrderDrawer({
       <aside role="dialog" aria-modal="true" aria-label="Pre-Order Cepat" onClick={(e) => e.stopPropagation()} className="flex h-full w-full max-w-md flex-col border-l border-default bg-surface text-primary">
         <div className="flex items-start justify-between gap-4 border-b border-default p-5">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-primary">Tinjau Pre-Order Cepat</h2>
+            <h2 className="tracking-tight font-sans text-lg font-bold text-primary">Tinjau Pre-Order Cepat</h2>
             <p className="text-sm text-secondary">{preset.seg} · {preset.name} ({qtyLabel})</p>
           </div>
           <button type="button" onClick={onClose} aria-label="Tutup panel pre-order" className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas ${focusRing}`}>
@@ -429,7 +429,7 @@ function OrderDrawer({
 
         <div className="flex-1 space-y-6 overflow-y-auto p-5">
           <section>
-            <h3 className="mb-2 text-sm font-semibold text-primary">Rincian harga per unit</h3>
+            <h3 className="tracking-tight mb-2 text-sm font-bold text-primary">Rincian harga per unit</h3>
             <ul className="divide-y divide-default rounded-xl border border-default bg-canvas">
               {calc.rows.map((r) => (
                 <li key={r.key} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm">
@@ -461,7 +461,7 @@ function OrderDrawer({
           </section>
 
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary">
+            <h3 className="tracking-tight mb-3 flex items-center gap-2 text-sm font-bold text-primary">
               <Truck className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
               <span>Estimasi pengiriman via Hub Bandung</span>
             </h3>
@@ -824,7 +824,7 @@ export default function PresetBuilder({
             Rakit dengan Kepastian Kompatibilitas
           </span>
         </div>
-        <h1 className="mt-2.5 flex items-center gap-2.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+        <h1 className="mt-2.5 flex items-center gap-2.5 font-sans text-2xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
           <Sliders className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
           <span>Smart Preset Builder &amp; Konfigurator</span>
         </h1>
@@ -856,7 +856,7 @@ export default function PresetBuilder({
                   </span>
                   <span>
                     <span className="block font-mono text-xs font-semibold text-accent-cta">{p.seg}</span>
-                    <span className="block font-serif text-base font-semibold text-primary">{p.name}</span>
+                    <span className="block font-sans text-base font-semibold text-primary">{p.name}</span>
                   </span>
                 </span>
                 <span className="mt-3 text-sm text-secondary">{p.blurb}</span>
@@ -879,7 +879,7 @@ export default function PresetBuilder({
           {/* Daftar Komponen */}
           <section className="lg:col-span-2" aria-label="Daftar komponen rakitan">
             <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h2 className="font-serif text-lg font-semibold text-primary">Komponen Rakitan</h2>
+              <h2 className="tracking-tight font-sans text-lg font-bold text-primary">Komponen Rakitan</h2>
               {isCustom && (
                 <span className="vt-badge-sample">Disesuaikan</span>
               )}
@@ -1013,7 +1013,7 @@ export default function PresetBuilder({
 
             {saved.length > 0 && (
               <div className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-4">
-                <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-primary">
+                <h3 className="tracking-tight mb-2 flex items-center gap-2 text-sm font-bold text-primary">
                   <Bookmark className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                   <span>Preset Tersimpan Sesi Ini</span>
                 </h3>

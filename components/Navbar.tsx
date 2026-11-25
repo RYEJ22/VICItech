@@ -799,7 +799,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           >
             <BrandMark compact={isScrolled} />
             <span
-              className={`hidden font-serif font-semibold tracking-tight text-[#18181B] transition-all duration-300 ease-out motion-reduce:transition-none min-[375px]:inline ${
+              className={`hidden font-sans font-semibold tracking-tight text-[#18181B] transition-all duration-300 ease-out motion-reduce:transition-none min-[375px]:inline ${
                 isScrolled ? 'text-base' : 'text-lg'
               }`}
             >
@@ -1108,7 +1108,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
             <div className="flex items-center justify-between border-b border-[#E4E4E7] px-4 pb-3 pt-1">
               <div>
-                <p className="font-serif text-base font-semibold text-[#18181B]">ViciTech</p>
+                <p className="font-sans text-base font-semibold text-[#18181B]">ViciTech</p>
                 <p className="text-xs text-[#71717A]">Ekosistem Circular IT &amp; Hardware QC</p>
               </div>
               <button

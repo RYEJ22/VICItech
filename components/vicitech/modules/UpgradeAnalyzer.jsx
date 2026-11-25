@@ -197,7 +197,7 @@ function Planner({ d, onNavigate }) {
 
   return (
     <section className={card} aria-labelledby="plan-title">
-      <h2 id="plan-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+      <h2 id="plan-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
         <Zap className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
         <span>Perencana Upgrade</span>
       </h2>
@@ -319,7 +319,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
             Analisis Ekspansi Hardware
           </span>
         </div>
-        <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
+        <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">
           <ArrowRightLeft className="h-8 w-8 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
           <span>Analisis Potensi Upgrade Maksimal</span>
         </h1>
@@ -373,7 +373,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                     <span>·</span>
                     <span className="font-mono tabular-nums">{idr(d.price)}</span>
                   </p>
-                  <h2 className="mt-1 font-serif text-xl font-semibold text-primary">{d.name}</h2>
+                  <h2 className="tracking-tight mt-1 font-sans text-xl font-bold text-primary">{d.name}</h2>
                   <p className="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
                     <span className="vt-badge-live">Grade {sc.grade[0]}</span>
                     <span className="text-secondary">{sc.grade[1]}</span>
@@ -406,7 +406,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
 
             {/* Peta Slot */}
             <section className={`${card} space-y-5`} aria-labelledby="slots-title">
-              <h2 id="slots-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+              <h2 id="slots-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                 <CircuitBoard className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                 <span>Peta Slot Internal</span>
               </h2>
@@ -447,7 +447,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
 
             {/* Potensi Maksimal */}
             <section className={card} aria-labelledby="max-title">
-              <h2 id="max-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+              <h2 id="max-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                 <Gauge className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                 <span>Potensi Maksimal</span>
               </h2>
@@ -477,7 +477,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
           <div className="space-y-6 lg:col-span-2 lg:self-start">
             <Planner key={d.id} d={d} onNavigate={onNavigate} />
             <section className={card} aria-labelledby="notes-title">
-              <h2 id="notes-title" className="font-serif text-lg font-semibold text-primary">
+              <h2 id="notes-title" className="tracking-tight font-sans text-lg font-bold text-primary">
                 Catatan Upgrade
               </h2>
               <ul className="mt-3 space-y-2.5">

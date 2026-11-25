@@ -69,7 +69,7 @@ function CalloutCard({
       </span>
       <div className="min-w-0 flex-1">
         <span className={badgeClass(item.badgeVariant)}>{item.badgeLabel}</span>
-        <h3 className="mt-2 font-serif text-base font-semibold text-primary [text-wrap:balance]">
+        <h3 className="tracking-tight mt-2 font-sans text-base font-bold text-primary [text-wrap:balance]">
           {item.title}
         </h3>
         <p className="mt-1 text-xs leading-relaxed text-secondary">{item.summary}</p>
@@ -121,7 +121,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
           <span className="inline-flex items-center rounded-md bg-surface px-3 py-1 text-xs font-semibold text-primary shadow-sm">
             {SHOWCASE_MANIFESTO.badgeLabel}
           </span>
-          <h2 className="mx-auto mt-5 max-w-3xl font-serif text-3xl font-semibold leading-tight tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
+          <h2 className="mx-auto mt-5 max-w-3xl font-sans text-3xl font-bold leading-tight tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             {SHOWCASE_MANIFESTO.headline}
           </h2>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -156,7 +156,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
         <div className={`rounded-xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
           <div className="mb-6 max-w-2xl">
             <span className="vt-badge-live">Verifikasi Teknis Multi-Perangkat</span>
-            <h2 className="mt-3 font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+            <h2 className="tracking-tight mt-3 font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
               Empat pilar pengujian dan jaminan di setiap unit ViciTech.
             </h2>
           </div>
@@ -222,14 +222,14 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
               fontSize="94"
               fontWeight="700"
               letterSpacing="-0.025em"
-              style={{ fontFamily: 'var(--font-serif), Georgia, serif' }}
+              style={{ fontFamily: 'var(--font-sans, "Plus Jakarta Sans", Arial, sans-serif)' }}
             >
               ViciTech
             </text>
           </svg>
           <div className="relative -mt-3 flex flex-wrap items-center justify-between gap-6 sm:-mt-5">
             <div className="max-w-xl">
-              <h2 className="font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+              <h2 className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
                 Rakit, diagnosa, dan kelola siklus hidup perangkat keras Anda.
               </h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">

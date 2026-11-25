@@ -86,7 +86,7 @@ export default function QCPanelDashboard() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
                 ViciTech · Kontrol Kualitas
               </p>
-              <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-primary sm:text-4xl">
+              <h1 className="mt-2 font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">
                 Panel Diagnostik IoT QC
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
@@ -113,7 +113,7 @@ export default function QCPanelDashboard() {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
           <div className="min-w-0">
-            <section id="qc-panel-tracking" aria-label="Pelacakan pesanan" className="[&_h2]:font-serif">
+            <section id="qc-panel-tracking" aria-label="Pelacakan pesanan" className="[&_h2]:font-sans">
               <IoTQCConsumer
                 initialSerial={initialSerial}
                 onTelemetrySourceChange={setTelemetrySource}
@@ -127,13 +127,13 @@ export default function QCPanelDashboard() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">Waktu Lokal</p>
                 <span className="h-1.5 w-1.5 rounded-full bg-accent-primary" aria-hidden="true" />
               </div>
-              <p className="mt-3 font-serif text-3xl font-semibold tabular-nums tracking-tight text-primary">{clock}</p>
+              <p className="mt-3 font-sans text-3xl font-semibold tabular-nums tracking-tight text-primary">{clock}</p>
               <p className="mt-1 text-[10px] text-secondary">Waktu perangkat Anda</p>
             </SpotlightCard>
             <SpotlightCard className="p-5">
               <div className="flex items-center gap-2 text-accent-cta">
                 <Radio className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <h2 className="text-xs font-semibold">Sumber Data Aktif</h2>
+                <h2 className="tracking-tight text-xs font-bold">Sumber Data Aktif</h2>
               </div>
               <div className="mt-2">
                 <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>

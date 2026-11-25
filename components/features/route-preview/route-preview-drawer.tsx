@@ -199,7 +199,7 @@ export function RoutePreviewExplorer({
           aria-live="polite"
           className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm"
         >
-          <p className="font-serif text-xl font-semibold text-primary">
+          <p className="font-sans text-xl font-semibold text-primary">
             Tidak ada pratinjau yang cocok
           </p>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm text-secondary">
@@ -231,7 +231,7 @@ export function RoutePreviewExplorer({
 
               <div className="mt-4 grid gap-6 lg:grid-cols-3 lg:items-end">
                 <div className="lg:col-span-2">
-                  <h2 className="font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+                  <h2 className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
                     {featuredItem.title}
                   </h2>
                   <p className="mt-2.5 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
@@ -289,7 +289,7 @@ export function RoutePreviewExplorer({
                         {item.categoryLabel}
                       </span>
                     </div>
-                    <h3 className="mt-4 font-serif text-xl font-semibold text-primary [text-wrap:balance]">
+                    <h3 className="tracking-tight mt-4 font-sans text-xl font-bold text-primary [text-wrap:balance]">
                       {item.title}
                     </h3>
                     <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
@@ -352,7 +352,7 @@ export function RoutePreviewExplorer({
             <div className="flex items-start justify-between gap-3 border-b border-default px-5 py-4">
               <div>
                 <span className="vt-badge-sample">Rilis Bertahap Roadmap</span>
-                <h2 id={overlayTitleId} className="mt-2 font-serif text-xl font-semibold text-primary">
+                <h2 id={overlayTitleId} className="tracking-tight mt-2 font-sans text-xl font-bold text-primary">
                   {drawerTitle}
                 </h2>
               </div>

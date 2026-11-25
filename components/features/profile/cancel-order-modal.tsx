@@ -79,7 +79,7 @@ export function CancelOrderModal({
             <div>
               <h2
                 id="cancel-order-title"
-                className="font-serif text-lg font-semibold text-[#18181B]"
+                className="tracking-tight font-sans text-lg font-bold text-[#18181B]"
               >
                 Batalkan Pesanan?
               </h2>

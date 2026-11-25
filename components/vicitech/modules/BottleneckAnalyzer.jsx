@@ -267,7 +267,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
               Kalkulator Telemetri ViciTech
             </span>
           </div>
-          <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
+          <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             <Gauge className="h-7 w-7 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
             <span>Analisis Bottleneck &amp; Headroom PSU</span>
           </h1>
@@ -324,7 +324,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
             className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-5 lg:self-start"
           >
             <div className="flex items-center justify-between gap-2 border-b border-default pb-3">
-              <h2 id="pairing-heading" className="font-serif text-xl font-semibold text-primary">
+              <h2 id="pairing-heading" className="tracking-tight font-sans text-xl font-bold text-primary">
                 Konfigurasi Komponen
               </h2>
               <button
@@ -485,7 +485,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
               className="rounded-xl border border-default bg-surface p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 id="gauge-heading" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                <h2 id="gauge-heading" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
                   <Activity className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Meter Bottleneck: {result.scenario.label}</span>
                 </h2>
@@ -539,7 +539,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
                 className="rounded-xl border border-default bg-surface p-5 shadow-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                  <h2 id="psu-heading" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+                  <h2 id="psu-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                     <Zap className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                     <span>Headroom Daya PSU</span>
                   </h2>
@@ -591,7 +591,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
                 aria-labelledby="compat-heading"
                 className="rounded-xl border border-default bg-surface p-5 shadow-sm"
               >
-                <h2 id="compat-heading" className="border-b border-default pb-3 font-serif text-lg font-semibold text-primary">
+                <h2 id="compat-heading" className="tracking-tight border-b border-default pb-3 font-sans text-lg font-bold text-primary">
                   Daftar Periksa Kompatibilitas
                 </h2>
                 <ul className="mt-3 divide-y divide-default">
@@ -633,7 +633,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
               className="rounded-xl border border-default bg-surface p-5 shadow-sm"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 id="upgrade-rec-heading" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+                <h2 id="upgrade-rec-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
                   <Sparkles className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Rekomendasi Penyeimbangan Otomatis</span>
                 </h2>
@@ -699,7 +699,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset }) {
               >
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="vt-badge-simulated">Model Simulasi ViciTech</span>
-                  <span className="font-serif text-base font-semibold text-primary">
+                  <span className="font-sans text-base font-semibold text-primary">
                     Metodologi &amp; Rumus
                   </span>
                 </div>

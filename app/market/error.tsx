@@ -19,7 +19,7 @@ export default function MarketError({ error, reset }: MarketErrorProps): ReactEl
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-1 h-5 w-5 shrink-0 text-status-danger" strokeWidth={1.75} aria-hidden="true" />
           <div>
-            <h1 className="font-serif text-2xl font-semibold text-primary">
+            <h1 className="tracking-tight font-sans text-2xl font-bold text-primary">
               Halaman Market tidak dapat dimuat
             </h1>
             <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">

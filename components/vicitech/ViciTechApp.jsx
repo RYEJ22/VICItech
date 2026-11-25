@@ -279,7 +279,7 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
     <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Ringkasan operasional">
       <section aria-labelledby="orders-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
-          <h2 id="orders-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+          <h2 id="orders-rail-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
             <Package className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             {user ? "Pesanan Terbaru" : "Alat Cepat"}
           </h2>
@@ -366,7 +366,7 @@ function WorkspacePulsePanel({ user, isAuthLoading, onNavigate }) {
 
       <section aria-labelledby="community-rail-title" className="rounded-xl border border-default bg-surface p-5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
-          <h2 id="community-rail-title" className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+          <h2 id="community-rail-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
             <MessageSquare className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             Komunitas Terbaru
           </h2>
@@ -473,7 +473,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
               <span className="vt-badge-sample">{r.label}</span>
               <span className="text-xs font-medium text-secondary">Ruang Kerja Circular IT</span>
             </div>
-            <h1 id="home-title" className="vt-display mt-3 max-w-2xl break-words text-3xl text-primary [text-wrap:balance] sm:mt-5 sm:text-5xl lg:text-6xl">
+            <h1 id="home-title" className="font-bold tracking-tight vt-display mt-3 max-w-2xl break-words text-3xl text-primary [text-wrap:balance] sm:mt-5 sm:text-5xl lg:text-6xl">
               Satu ruang kerja untuk riset, rakit, dan verifikasi perangkat keras.
             </h1>
             <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-secondary sm:mt-5 sm:text-base">
@@ -536,7 +536,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
       <div className="mx-auto grid max-w-shell gap-5 px-4 py-5 sm:gap-8 sm:px-6 sm:py-10 lg:grid-cols-3">
         <section aria-labelledby="launch-title" className="space-y-5 sm:space-y-8 lg:col-span-2">
           <div>
-            <h2 id="launch-title" className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance]">
+            <h2 id="launch-title" className="font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance]">
               Prioritas untuk peran Anda
             </h2>
             <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2" aria-label="Aksi cepat">
@@ -570,7 +570,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                           Direkomendasikan
                         </span>
                       </span>
-                      <span className="mt-4 block font-serif text-lg font-semibold leading-snug text-primary">
+                      <span className="mt-4 block font-sans text-lg font-semibold leading-snug text-primary">
                         {m.short}
                       </span>
                       <span className="mt-1.5 block text-xs leading-relaxed text-secondary">
@@ -587,7 +587,7 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
           </div>
 
           <div>
-            <h3 className="font-serif text-lg font-semibold tracking-tight text-primary">
+            <h3 className="font-sans text-lg font-bold tracking-tight text-primary">
               Direktori modul lainnya
             </h3>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -668,7 +668,7 @@ class ModuleErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-default bg-surface p-6 text-primary shadow-sm">
-          <h2 className="text-lg font-semibold">Modul ini gagal ditampilkan</h2>
+          <h2 className="tracking-tight text-lg font-bold">Modul ini gagal ditampilkan</h2>
           <p className="mt-2 text-sm leading-relaxed text-secondary">Bagian lain dari ViciTech tetap tersedia. Coba muat ulang modul atau pilih menu lain.</p>
           <button type="button" onClick={() => this.setState({ hasError: false })} className="vt-btn vt-btn-primary mt-4">
             Muat ulang modul
@@ -685,7 +685,7 @@ const ModuleSlot = memo(function ModuleSlot({ Comp, active, fillHeight = false, 
   if (typeof Comp !== "function") {
     return (
       <section role="alert" className="mx-auto my-8 max-w-3xl rounded-xl border border-default bg-surface p-6 text-primary shadow-sm">
-        <h2 className="text-lg font-semibold">Modul ini tidak tersedia</h2>
+        <h2 className="tracking-tight text-lg font-bold">Modul ini tidak tersedia</h2>
         <p className="mt-2 text-sm leading-relaxed text-secondary">Komponennya belum dikonfigurasi. Pilih bagian lain untuk melanjutkan.</p>
       </section>
     );
@@ -719,7 +719,7 @@ const MarketModule = memo(function MarketModule({
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <span className="vt-badge-sample">Market &amp; Hardware Library</span>
-              <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
+              <h1 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
                 {isLibraryView
                   ? "Hardware Library, Spesifikasi & Potensi Upgrade"
                   : "Etalase Market & Unit Siap Kirim"}
@@ -835,7 +835,7 @@ function Footer({ onNavigate }) {
         <div className="md:col-span-2">
           <p className="flex items-center gap-2 text-base font-semibold text-primary">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-4 w-4" aria-hidden="true" /></span>
-            <span className="font-serif text-lg tracking-tight">ViciTech</span>
+            <span className="font-sans text-lg tracking-tight">ViciTech</span>
           </p>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-secondary">
             Riset perangkat keras, tukar tambah Trade-In, verifikasi IoT QC, dan pelacakan siklus pakai dalam satu ekosistem Circular IT.
@@ -866,7 +866,7 @@ function Footer({ onNavigate }) {
       <div className="mx-auto space-y-2 px-4 py-4 md:hidden">
         <p className="flex items-center gap-2 text-sm font-semibold text-primary">
           <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-primary text-white"><Cpu className="h-3.5 w-3.5" aria-hidden="true" /></span>
-          <span className="font-serif">ViciTech</span>
+          <span className="font-sans">ViciTech</span>
         </p>
         <details className="border-t border-default pt-2">
           <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Modul</summary>

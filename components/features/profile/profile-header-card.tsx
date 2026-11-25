@@ -123,7 +123,7 @@ export function ProfileHeaderCard({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="grid h-full w-full place-items-center bg-accent-subtle font-serif text-2xl font-semibold text-accent-cta sm:text-3xl">
+                  <span className="grid h-full w-full place-items-center bg-accent-subtle font-sans text-2xl font-semibold text-accent-cta sm:text-3xl">
                     {initials}
                   </span>
                 )}
@@ -144,7 +144,7 @@ export function ProfileHeaderCard({
             {/* Name, Username, Role Badge & Discord-style Status Pill */}
             <div className="min-w-0 pt-1">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <h1 className="min-w-0 truncate font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
+                <h1 className="min-w-0 truncate font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
                   {profile.displayName}
                 </h1>
                 <span

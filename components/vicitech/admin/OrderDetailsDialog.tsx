@@ -75,7 +75,7 @@ export function OrderDetailsDialog({
 
         {/* Customer Details */}
         <section className="rounded-xl border border-default bg-surface p-4">
-          <h3 className="mb-3 text-sm font-semibold text-primary">Informasi Pelanggan</h3>
+          <h3 className="tracking-tight mb-3 text-sm font-bold text-primary">Informasi Pelanggan</h3>
           <dl className="grid gap-2 text-xs sm:grid-cols-2">
             <div>
               <dt className="text-secondary">Nama</dt>
@@ -108,7 +108,7 @@ export function OrderDetailsDialog({
 
         {/* Purchased Items */}
         <section className="rounded-xl border border-default bg-surface p-4">
-          <h3 className="mb-3 text-sm font-semibold text-primary">Item &amp; Spesifikasi</h3>
+          <h3 className="tracking-tight mb-3 text-sm font-bold text-primary">Item &amp; Spesifikasi</h3>
           {items.length > 0 ? (
             <div className="space-y-3">
               {items.map((item, index) => {

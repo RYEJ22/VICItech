@@ -310,7 +310,7 @@ export default function CheckoutModal({
             <p className="text-xs font-semibold uppercase tracking-wider text-accent-cta">
               Checkout Aman
             </p>
-            <h2 id="checkout-title" className="mt-1 font-serif text-xl font-semibold text-primary">
+            <h2 id="checkout-title" className="tracking-tight mt-1 font-sans text-xl font-bold text-primary">
               Ringkasan Pesanan
             </h2>
             <p className="mt-1 text-sm text-secondary">{orderSummary.productName}</p>
@@ -348,7 +348,7 @@ export default function CheckoutModal({
           ) : (
             <>
               <section>
-                <h3 className="mb-2 text-sm font-semibold text-primary">
+                <h3 className="tracking-tight mb-2 text-sm font-bold text-primary">
                   Item Pesanan · {orderSummary.quantity} unit
                 </h3>
                 <ul className="divide-y divide-default rounded-xl border border-default bg-canvas">
@@ -374,7 +374,7 @@ export default function CheckoutModal({
               </section>
 
               <section>
-                <h3 className="mb-3 text-sm font-semibold text-primary">
+                <h3 className="tracking-tight mb-3 text-sm font-bold text-primary">
                   Detail Pembeli &amp; Pengiriman
                 </h3>
                 <div className="grid gap-3 sm:grid-cols-2">

@@ -97,7 +97,7 @@ function ItemComparisonCard({ item, sideLabel, compositeScore, resolved, isWinne
             <Icon className="h-6 w-6" strokeWidth={1.75} />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="font-serif text-lg font-semibold leading-snug text-primary [text-wrap:balance]">
+            <h2 className="tracking-tight font-sans text-lg font-bold leading-snug text-primary [text-wrap:balance]">
               {item.name}
             </h2>
             <p className="mt-0.5 text-xs leading-relaxed text-secondary">{item.subtitle}</p>
@@ -245,7 +245,7 @@ function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId,
 
         <div className="flex items-center justify-between gap-3 border-b border-default px-5 py-4">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-primary">
+            <h2 className="tracking-tight font-sans text-lg font-bold text-primary">
               Pilih {sideLabel}
             </h2>
             <p className="text-xs text-secondary">{categoryLabel}</p>
@@ -429,7 +429,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
               Mesin Komparasi ViciTech
             </span>
           </div>
-          <h1 className="mt-3 flex items-center gap-3 font-serif text-3xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
+          <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             <Swords className="h-7 w-7 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
             <span>Versus Arena</span>
           </h1>
@@ -566,7 +566,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
             className="rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-6"
           >
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-              <h2 id="subscore-heading" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+              <h2 id="subscore-heading" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
                 <Scale className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                 <span>Skor Sub-Metrik (0–100)</span>
               </h2>
@@ -640,7 +640,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
           >
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 id="verdict-heading" className="flex items-center gap-2 font-serif text-xl font-semibold text-primary">
+                <h2 id="verdict-heading" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
                   <Sparkles className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                   <span>Verdict ViciTech</span>
                 </h2>
@@ -658,7 +658,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
                 <p className="text-xs font-semibold uppercase tracking-wide text-accent-cta">
                   Rekomendasi Utama · {activeScenario.label}
                 </p>
-                <p className="mt-1 font-serif text-xl font-semibold leading-snug text-primary [text-wrap:balance]">
+                <p className="mt-1 font-sans text-xl font-semibold leading-snug text-primary [text-wrap:balance]">
                   {result.verdict.headline}
                 </p>
               </div>
@@ -713,7 +713,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
           className="mt-6 overflow-hidden rounded-xl border border-default bg-surface shadow-sm"
         >
           <div className="border-b border-default px-5 py-4">
-            <h2 id="matrix-heading" className="font-serif text-lg font-semibold text-primary">
+            <h2 id="matrix-heading" className="tracking-tight font-sans text-lg font-bold text-primary">
               Matriks Spesifikasi Teknis
             </h2>
           </div>
@@ -783,7 +783,7 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span className="vt-badge-simulated">Simulasi Deterministik</span>
-              <span className="font-serif text-base font-semibold text-primary">
+              <span className="font-sans text-base font-semibold text-primary">
                 Metodologi &amp; Rumus Penilaian
               </span>
             </div>

@@ -191,7 +191,7 @@ export function ProfileCustomizationTab({
         className="space-y-6 rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-7 sm:p-6"
       >
         <div className="border-b border-default pb-3">
-          <h2 className="font-serif text-xl font-semibold text-primary">
+          <h2 className="tracking-tight font-sans text-xl font-bold text-primary">
             Kustomisasi &amp; Pengaturan Profil
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-secondary sm:text-sm">

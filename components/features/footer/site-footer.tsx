@@ -34,7 +34,7 @@ export function SiteFooter(): ReactElement {
             <span className="grid h-8 w-8 place-items-center rounded-full bg-accent-primary text-white shadow-sm">
               <Cpu className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </span>
-            <span className="font-serif text-lg tracking-tight">ViciTech</span>
+            <span className="font-sans text-lg tracking-tight">ViciTech</span>
           </Link>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-secondary">
             Ekosistem Circular IT untuk riset spesifikasi perangkat keras, rakitan B2S/B2B/B2C terkurasi,

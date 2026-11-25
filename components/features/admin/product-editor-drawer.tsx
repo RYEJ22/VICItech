@@ -332,7 +332,7 @@ export function ProductEditorDrawer({
 
         {/* Core Product Fields */}
         <section className="space-y-4 rounded-xl border border-default bg-surface p-4">
-          <h3 className="text-sm font-semibold text-primary">Informasi Utama</h3>
+          <h3 className="tracking-tight text-sm font-bold text-primary">Informasi Utama</h3>
 
           <div>
             <label htmlFor="product-title" className={labelClass}>
@@ -498,7 +498,7 @@ export function ProductEditorDrawer({
         <section className="space-y-3 rounded-xl border border-default bg-surface p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-primary">Spesifikasi Teknis (Specs)</h3>
+              <h3 className="tracking-tight text-sm font-bold text-primary">Spesifikasi Teknis (Specs)</h3>
               <p className="text-xs text-secondary">Disimpan sebagai objek JSONB di `products.specs`.</p>
             </div>
             <button
@@ -662,7 +662,7 @@ export function ProductEditorDrawer({
 
         {/* Optional Review Metadata */}
         <section className="space-y-3 rounded-xl border border-default bg-surface p-4">
-          <h3 className="text-sm font-semibold text-primary">Verdict Reviewer (Opsional)</h3>
+          <h3 className="tracking-tight text-sm font-bold text-primary">Verdict Reviewer (Opsional)</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label htmlFor="product-reviewer-name" className={labelClass}>

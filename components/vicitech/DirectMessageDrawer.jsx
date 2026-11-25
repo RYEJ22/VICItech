@@ -792,7 +792,7 @@ export default function DirectMessageDrawer({
       <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
         <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-accent-primary" />
-          <h1 className="mt-4 font-serif text-3xl font-semibold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
+          <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk.</p>
         </section>
       </div>
@@ -803,7 +803,7 @@ export default function DirectMessageDrawer({
     return (
       <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
         <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
-          <h1 className="font-serif text-2xl font-semibold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
+          <h1 className="font-sans text-2xl font-bold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
           <Link href="/profile?tab=settings" className="vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
             Buka Pengaturan Profil
@@ -826,7 +826,7 @@ export default function DirectMessageDrawer({
                 {realtimeStatus === "connected" ? "Terhubung" : realtimeStatus === "error" ? "Terputus" : "Menghubungkan"}
               </span>
             </p>
-            <h1 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary">Pesan Langsung</h1>
+            <h1 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary">Pesan Langsung</h1>
             <p className="mt-1 text-xs leading-relaxed text-secondary">Percakapan pribadi dengan teknisi dan sesama anggota ViciTech.</p>
           </div>
           <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 ${pickerStyles.pickerScroll}`}>
@@ -1120,7 +1120,7 @@ export default function DirectMessageDrawer({
           <div className="grid flex-1 place-items-center p-8 text-center">
             <div>
               <UserRound className="mx-auto h-10 w-10 text-accent-primary/80" />
-              <p className="mt-3 font-serif text-lg font-medium text-primary">Percakapan Anda tampil di sini.</p>
+              <p className="mt-3 font-sans text-lg font-medium text-primary">Percakapan Anda tampil di sini.</p>
               <p className="mt-1 text-sm text-secondary">Pilih salah satu utas untuk membaca dan membalas.</p>
             </div>
           </div>

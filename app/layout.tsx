@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Playfair_Display, Poppins } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import IntroSplash from "@/components/ui/IntroSplash";
@@ -9,24 +9,10 @@ import Navbar from "@/components/Navbar";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import Script from "next/script";
 
-const poppins = Poppins({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans",
-  display: "swap",
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-mono",
   display: "swap",
 });
 
@@ -65,7 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="id"
-      className={`${poppins.variable} ${playfairDisplay.variable} ${jetbrainsMono.variable}`}
+      className={plusJakartaSans.variable}
       suppressHydrationWarning
     >
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">

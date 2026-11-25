@@ -311,7 +311,7 @@ export default function AuthNavigation({
                 : "border-[#E4E4E7] hover:border-[#EA580C]/60"
             }`}
           >
-            <span className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-[#F3F1ED] font-serif text-xs font-semibold text-[#EA580C]">
+            <span className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-[#F3F1ED] font-sans text-xs font-semibold text-[#EA580C]">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}

@@ -125,7 +125,7 @@ export function ViciTechStickerGraphic({
       </div>
       <div className={isCompact ? "mt-2" : "mt-2.5"}>
         <p
-          className={`font-serif font-semibold leading-tight tracking-tight ${
+          className={`font-sans font-semibold leading-tight tracking-tight ${
             isCompact ? "text-xs" : "text-base"
           }`}
         >

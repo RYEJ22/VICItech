@@ -8,14 +8,14 @@
 ### Mode Permukaan (Surface Mode Mapping)
 | Surface Mode | Rute & Modul | Tujuan Utama & Aturan Visual |
 |---|---|---|
-| **Persuade** | Welcome Page (`/`), Promo Banner (`/market`) | Hierarki jelas dengan satu primary CTA dominan, *editorial serif* pada display headline, foto perangkat keras asli dengan overlay kontras AA. |
+| **Persuade** | Welcome Page (`/`), Promo Banner (`/market`) | Hierarki jelas dengan satu primary CTA dominan, headline sans-serif tebal, foto perangkat keras asli dengan overlay kontras AA. |
 | **Operate** | App Shell (`/home`), Community (`/community`), Katalog (`/market`), Mitra (`/partners`), DM (`/messages`), QC Panel (`/qc-panel`), Admin (`/admin/*`) | Keterbacaan maksimal untuk spesifikasi teknis, angka `tabular-nums`, badge transparansi sumber data (`Live ESP32`, `Simulated`, `Sample`), serta navigasi satu tangan di `360–414px`. |
 | **Read** | Panduan komunitas, Creator Verdict, Protokol QC 15 titik | Panjang baris terkunci di `65–75ch`, spasi bernapas sebelum heading, tipografi bersih bebas gangguan. |
 | **Experience** | Build showcase galeri, galeri unit *Refurbished*, media *Lightbox* | Bingkai gambar bebas distorsi (`CLS < 0.1`), lazy-load di bawah lipatan, fokus pada detail foto/video perangkat. |
 
 ### Evaluasi Kandidat Arah Visual & Rasional Pemilihan (SOP-02)
 1. **Kandidat 1 (Dipilih): Clean Editorial Light-Mode & Unibody Hardware Hub**
-   - *Palet & Tipografi:* Latar `#FAF9F6` / `#FFFFFF` / `#F3F1ED`, teks `#18181B` / `#52525B`, aksen `#EA580C`, pairing Editorial Serif + Sans UI + `JetBrains Mono` (`tabular-nums`).
+   - *Palet & Tipografi:* Latar `#FAF9F6` / `#FFFFFF` / `#F3F1ED`, teks `#18181B` / `#52525B`, aksen `#EA580C`, unified Plus Jakarta Sans typography with tabular numerals.
    - *Rasional:* Kontras teks mencapai `16.83:1` (utama) dan `7.34:1` (sekunder), bebas biaya GPU blur berlebih di HP kelas menengah, memancarkan kredibilitas katalog teknis dan inspeksi *Quality Control* untuk pembeli B2C, sekolah (B2S), dan korporasi (B2B).
 2. **Kandidat 2 (Ditolak): Cyberpunk Neon Dark-Mode**
    - *Alasan Penolakan:* Teks bercahaya di atas latar gelap memicu *halation* pada tabel spesifikasi padat dan mengurangi kesan transparan/obyektif pada inspeksi foto perangkat bekas.
@@ -61,11 +61,11 @@ Pendekatan psikologi warna ViciTech dirancang untuk menyeimbangkan **energi komu
 | Danger Notice | `#991B1B` / `#FEF2F2` (atau `#FFFFFF` / `#DC2626`) | **7.60 : 1** (`4.83 : 1` solid) | Pass (AA/AAA) |
 
 ## 3. Tipografi & Skala
-- **Font Heading (Editorial Serif):** `Georgia` / `Playfair Display` (`var(--font-serif)`) — Digunakan untuk headline utama dan judul bagian guna memberi karakter tepercaya dan berkelas.
-- **Font Utama UI (Sans):** `Poppins` / `Plus Jakarta Sans` (`var(--font-poppins)`) — Digunakan untuk seluruh navigasi, tombol, deskripsi modul, dan diskusi komunitas.
-- **Font Angka & Telemetri (Mono):** `JetBrains Mono` (`var(--font-mono)`) — Digunakan khusus untuk harga Rupiah, skor *bottleneck*, pembacaan sensor ESP32, dan spesifikasi teknis dengan `font-variant-numeric: tabular-nums`.
+- **Font Utama (Sans):** `Plus Jakarta Sans` (`var(--font-sans)`) — Digunakan untuk semua headline, judul bagian, kartu, navigasi, tombol, deskripsi modul, dan diskusi komunitas pada bobot 400, 500, 600, 700, dan 800.
+- **Hierarki Judul:** Headline hero, judul bagian, dan judul kartu memakai bobot 700 atau 800 dengan `letter-spacing: -0.02em`.
+- **Angka & Telemetri:** Gunakan `Plus Jakarta Sans` dengan `font-variant-numeric: tabular-nums` untuk harga Rupiah, skor bottleneck, pembacaan sensor ESP32, dan spesifikasi teknis.
 - **Skala Tipografi:**
-  - `xs` (`12px` / `16px`), `sm` (`14px` / `20px`), `base` (`16px` / `24px`), `lg` (`18px` / `28px`), `xl` (`20px` / `28px`), `2xl` (`24px` / `32px`), `3xl` (`30px` / `36px`), `4xl`–`5xl` (`36px–48px` display hero dengan `line-height: 1.1` & `letter-spacing: -0.015em`).
+  - `xs` (`12px` / `16px`), `sm` (`14px` / `20px`), `base` (`16px` / `24px`), `lg` (`18px` / `28px`), `xl` (`20px` / `28px`), `2xl` (`24px` / `32px`), `3xl` (`30px` / `36px`), `4xl`–`5xl` (`36px–48px` display hero dengan `line-height: 1.1` & `letter-spacing: -0.02em`).
 - **Aturan Keterbacaan:** Maksimal panjang baris paragraf `65–75ch`; heading menggunakan `text-wrap: balance`.
 
 ## 4. Layout, Spacing, Gerakan & Interaksi

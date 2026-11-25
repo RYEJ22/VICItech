@@ -84,7 +84,7 @@ export function AdminConfirmDialog({
             <AlertTriangle className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h2 id={titleId} className="font-serif text-lg font-semibold text-primary">
+            <h2 id={titleId} className="tracking-tight font-sans text-lg font-bold text-primary">
               {title}
             </h2>
             <p id={descriptionId} className="mt-1.5 text-sm leading-relaxed text-secondary">

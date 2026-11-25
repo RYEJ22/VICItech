@@ -160,7 +160,7 @@ function OverlayHeader({ title, subtitle, onClose }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-default px-5 pb-4 pt-3 md:p-5">
       <div className="min-w-0">
-        <h2 className="font-serif text-lg font-semibold text-primary">{title}</h2>
+        <h2 className="tracking-tight font-sans text-lg font-bold text-primary">{title}</h2>
         {subtitle && <p className="mt-0.5 text-sm text-secondary">{subtitle}</p>}
       </div>
       <button type="button" onClick={onClose} aria-label="Tutup panel" className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas ${focusRing}`}>
@@ -205,7 +205,7 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
           <CondBadge cond={p.cond} />
           <span className="ml-auto text-xs text-secondary">{p.type}</span>
         </div>
-        <h3 className="mt-2.5 text-base font-semibold leading-snug text-primary">{p.name}</h3>
+        <h3 className="tracking-tight mt-2.5 text-base font-bold leading-snug text-primary">{p.name}</h3>
         <div className="mt-2">
           <p className="flex items-center gap-1 text-xs text-secondary"><Zap className="h-3 w-3 text-accent-primary" /> Indeks harga referensi</p>
           <p className="font-mono text-xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
@@ -287,7 +287,7 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
           <Delta d={p.delta} />
         </div>
         <section>
-          <h3 className="mb-2 text-sm font-medium text-primary">Semua Spesifikasi</h3>
+          <h3 className="tracking-tight mb-2 text-sm font-bold text-primary">Semua Spesifikasi</h3>
           <dl className="divide-y divide-default rounded-xl border border-default">
             {cfg.specs.map((s) => (
               <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm">
@@ -640,7 +640,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   return (
     <div className="bg-canvas text-primary antialiased">
       <div className={`mx-auto max-w-7xl px-4 py-8 sm:px-6 ${barVisible ? "pb-36 md:pb-24" : "pb-16 md:pb-10"}`}>
-        <h2 className="font-serif text-3xl font-normal tracking-tight text-primary sm:text-4xl">Hardware Library &amp; Periferal</h2>
+        <h2 className="font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">Hardware Library &amp; Periferal</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-secondary">Jelajahi ponsel, laptop, komponen PC, dan aksesori IT dengan spesifikasi inti lalu bandingkan berdampingan.</p>
         {inventoryError && <p role="status" className="mt-4 rounded-xl border border-default bg-surface p-4 text-sm text-accent-hover shadow-sm">{inventoryError} Menampilkan katalog terkurasi.</p>}
 

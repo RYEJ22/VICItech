@@ -380,7 +380,7 @@ export default function AdminIotQcPage(): ReactElement {
             <ShieldCheck className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Smart Bench · Akses Terbatas Admin</span>
           </span>
-          <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+          <h1 className="mt-1.5 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             Portal Kontrol IoT QC
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-secondary">
@@ -416,7 +416,7 @@ export default function AdminIotQcPage(): ReactElement {
         <div className="space-y-5">
           {/* Recent Orders Queue */}
           <section className="rounded-xl border border-default bg-surface p-4 shadow-sm">
-            <h2 className="mb-3 text-sm font-semibold text-primary">
+            <h2 className="tracking-tight mb-3 text-sm font-bold text-primary">
               Antrean Order Terbaru ·{' '}
               <span className="font-mono tabular-nums text-accent-hover">{orders.length}</span>
             </h2>
@@ -519,7 +519,7 @@ export default function AdminIotQcPage(): ReactElement {
                         <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-secondary">
                           {selectedUnit.order_id || 'Unit QC Mandiri'}
                         </p>
-                        <h2 className="mt-1 font-serif text-xl font-semibold text-primary">
+                        <h2 className="tracking-tight mt-1 font-sans text-xl font-bold text-primary">
                           {selectedUnit.device_name}
                         </h2>
                         <p className="mt-0.5 font-mono text-sm text-accent-hover">
@@ -549,7 +549,7 @@ export default function AdminIotQcPage(): ReactElement {
 
                     <div className="mt-5 space-y-4">
                       <section aria-label="Thermal dan airflow">
-                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-secondary">Thermal &amp; Airflow</h3>
+                        <h3 className="mb-2 text-xs font-bold uppercase tracking-tight text-secondary">Thermal &amp; Airflow</h3>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <MetricCard
                             icon={Cpu}
@@ -572,7 +572,7 @@ export default function AdminIotQcPage(): ReactElement {
                         </div>
                       </section>
                       <section aria-label="Power dan kestabilan voltase">
-                        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-secondary">Power / Voltage Stability</h3>
+                        <h3 className="mb-2 text-xs font-bold uppercase tracking-tight text-secondary">Power / Voltage Stability</h3>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <MetricCard
                             icon={Activity}
@@ -608,7 +608,7 @@ export default function AdminIotQcPage(): ReactElement {
                     </div>
 
                     <section aria-label="Final readiness" className="mt-4 rounded-lg border border-default bg-canvas p-3">
-                      <h3 className="text-xs font-semibold uppercase tracking-wider text-secondary">Final Readiness</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-tight text-secondary">Final Readiness</h3>
                       <p className="mt-2 text-xs text-secondary">
                         Status:{' '}
                         <strong className="text-primary">
@@ -683,7 +683,7 @@ export default function AdminIotQcPage(): ReactElement {
         {/* Technical Console Terminal (Intentional High-Contrast Dark Instrument Surface) */}
         <section className="min-h-80 overflow-hidden rounded-xl border border-ink bg-ink text-white shadow-sm">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-white">
+            <h2 className="tracking-tight flex items-center gap-2 text-sm font-bold text-white">
               <Terminal className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
               <span>Terminal Telemetri ESP32</span>
             </h2>

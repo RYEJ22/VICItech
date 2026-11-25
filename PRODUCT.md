@@ -48,7 +48,7 @@ Aplikasi web ini menggabungkan empat pilar utama dalam satu *app shell* terpadu:
 ## Brand Commitments
 
 - **Identitas Merek:** Pertahankan nama **ViciTech** secara konsisten.
-- **Sistem Visual Terpadu:** Mengusung estetika **Clean Editorial Light-Mode** dengan latar neutral hangat (`#FAF9F6`), aksen oranye cerah (`#EA580C`), dan *editorial serif headers* di seluruh halaman—termasuk navigasi global dan komponen autentikasi (*Sign-In / Sign-Up*).
+- **Sistem Visual Terpadu:** Mengusung estetika **Clean Editorial Light-Mode** dengan latar neutral hangat (`#FAF9F6`), aksen oranye cerah (`#EA580C`), dan tipografi sans-serif **Plus Jakarta Sans** di seluruh halaman—termasuk navigasi global dan komponen autentikasi (*Sign-In / Sign-Up*).
 - **Kejujuran Teknis & Bahasa:** Gunakan bahasa Indonesia yang santai, lugas, dan rapi dengan tetap mempertahankan istilah teknis baku (*GPU, RAM, FPS, Bottleneck, Telemetry*). Jaga transparansi mutlak pada label sumber data (`Live ESP32`, `Simulated`, `Sample`).
 
 ## Evidence on Hand

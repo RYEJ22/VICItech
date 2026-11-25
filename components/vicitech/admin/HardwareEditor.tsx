@@ -369,7 +369,7 @@ export default function HardwareEditor({ componentId }: { readonly componentId?:
             <ArrowLeft className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Kembali ke Hardware Inventory</span>
           </Link>
-          <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+          <h1 className="mt-1 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             {componentId ? 'Edit Komponen Hardware' : 'Tambah Hardware Baru'}
           </h1>
           <p className="mt-1 text-sm text-secondary">
@@ -381,7 +381,7 @@ export default function HardwareEditor({ componentId }: { readonly componentId?:
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,0.8fr)]">
         <form onSubmit={(e) => void submit(e)} className="space-y-5">
           <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
-            <h2 className="flex items-center gap-2 font-serif text-lg font-semibold text-primary">
+            <h2 className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
               <Cpu className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
               <span>Informasi Umum</span>
             </h2>
@@ -517,7 +517,7 @@ export default function HardwareEditor({ componentId }: { readonly componentId?:
           <section className="rounded-xl border border-default bg-surface p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="font-serif text-lg font-semibold text-primary">
+                <h2 className="tracking-tight font-sans text-lg font-bold text-primary">
                   Performa &amp; Spesifikasi Teknis
                 </h2>
                 <p className="mt-1 text-xs text-secondary">
@@ -662,7 +662,7 @@ export default function HardwareEditor({ componentId }: { readonly componentId?:
                 </span>
               </div>
               <p className="mt-4 text-xs font-medium text-secondary">{form.brand || 'Brand'}</p>
-              <h3 className="mt-1 break-words font-semibold text-primary">
+              <h3 className="tracking-tight mt-1 break-words font-bold text-primary">
                 {form.name || 'Nama komponen hardware'}
               </h3>
               {form.architecture ? (

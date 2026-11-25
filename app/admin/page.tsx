@@ -51,7 +51,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
             <ShieldCheck className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Ringkasan Ekosistem ViciTech OS</span>
           </span>
-          <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+          <h1 className="mt-1.5 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             Ringkasan Komando Admin
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
@@ -254,7 +254,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
       <div className="grid gap-6 xl:grid-cols-2">
         <section className="overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-default bg-canvas/70 px-5 py-3.5">
-            <h2 className="font-serif text-lg font-semibold text-primary">Pesanan Terbaru</h2>
+            <h2 className="tracking-tight font-sans text-lg font-bold text-primary">Pesanan Terbaru</h2>
             <Link
               href="/admin/dashboard"
               className="text-xs font-semibold text-accent-hover hover:underline"
@@ -295,7 +295,7 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
 
         <section className="overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
           <div className="flex items-center justify-between gap-3 border-b border-default bg-canvas/70 px-5 py-3.5">
-            <h2 className="font-serif text-lg font-semibold text-primary">Unit IoT QC Terbaru</h2>
+            <h2 className="tracking-tight font-sans text-lg font-bold text-primary">Unit IoT QC Terbaru</h2>
             <Link
               href="/admin/iot-qc"
               className="text-xs font-semibold text-accent-hover hover:underline"

@@ -168,7 +168,7 @@ export default function HardwareInventoryPage(): ReactElement {
             <Cpu className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Registry Komponen PC</span>
           </span>
-          <h1 className="mt-1.5 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+          <h1 className="mt-1.5 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             Inventori Hardware &amp; Spesifikasi
           </h1>
           <p className="mt-1 max-w-[65ch] text-sm text-secondary">
@@ -354,7 +354,7 @@ export default function HardwareInventoryPage(): ReactElement {
           </div>
         ) : filtered.length === 0 ? (
           <div className="px-4 py-12 text-center">
-            <p className="font-serif text-lg font-semibold text-primary">
+            <p className="font-sans text-lg font-semibold text-primary">
               {components.length ? 'Tidak ada komponen yang sesuai' : 'Registry hardware masih kosong'}
             </p>
             <Link

@@ -215,7 +215,7 @@ export function PartnersDirectory({
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-default bg-subtle text-accent-primary">
             <MapPin className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
           </div>
-          <h2 className="mt-4 font-serif text-2xl font-semibold text-primary">
+          <h2 className="tracking-tight mt-4 font-sans text-2xl font-bold text-primary">
             Belum ada mitra yang terdaftar
           </h2>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
@@ -362,7 +362,7 @@ export function PartnersDirectory({
               aria-live="polite"
               className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm"
             >
-              <p className="font-serif text-xl font-semibold text-primary">
+              <p className="font-sans text-xl font-semibold text-primary">
                 Mitra tidak ditemukan
               </p>
               <p className="mx-auto mt-2 max-w-[65ch] text-sm text-secondary">
@@ -406,7 +406,7 @@ export function PartnersDirectory({
 
                     <div className="mt-4 grid gap-6 lg:grid-cols-3 lg:items-end">
                       <div className="lg:col-span-2">
-                        <h2 className="font-serif text-2xl font-semibold text-primary [text-wrap:balance] sm:text-3xl">
+                        <h2 className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
                           {featuredPartner.name}
                         </h2>
                         <p className="mt-2.5 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
@@ -493,7 +493,7 @@ export function PartnersDirectory({
                             </span>
                           </div>
 
-                          <h3 className="mt-4 font-serif text-xl font-semibold text-primary [text-wrap:balance]">
+                          <h3 className="tracking-tight mt-4 font-sans text-xl font-bold text-primary [text-wrap:balance]">
                             {partner.name}
                           </h3>
                           <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
@@ -590,7 +590,7 @@ export function PartnersDirectory({
                 </div>
                 <h2
                   id={drawerTitleId}
-                  className="mt-2 font-serif text-xl font-semibold text-primary [text-wrap:balance]"
+                  className="tracking-tight mt-2 font-sans text-xl font-bold text-primary [text-wrap:balance]"
                 >
                   {activePartner.name}
                 </h2>

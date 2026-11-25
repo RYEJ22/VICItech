@@ -293,7 +293,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
             <ShieldCheck className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Pelacakan Pelanggan</span>
           </p>
-          <h2 className="mt-2 font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl">
+          <h2 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             Status Perakitan &amp; Telemetri IoT QC
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
@@ -311,7 +311,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
 
       {userId && (
         <section className="rounded-xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200">
-          <h3 className="text-sm font-semibold text-primary">Pesanan Akun Anda</h3>
+          <h3 className="tracking-tight text-sm font-bold text-primary">Pesanan Akun Anda</h3>
           {ordersLoading ? (
             <p role="status" className="mt-3 flex items-center gap-2 text-sm text-secondary">
               <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />
@@ -396,7 +396,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                 <p className="font-mono text-xs uppercase tracking-[0.14em] text-secondary">
                   {record.order_id || "Pelacakan Unit"}
                 </p>
-                <h2 className="mt-1 font-serif text-xl font-semibold text-primary">
+                <h2 className="tracking-tight mt-1 font-sans text-xl font-bold text-primary">
                   {record.device_name || "Unit Rakitan ViciTech"}
                 </h2>
                 <p className="mt-1 font-mono text-sm text-secondary">

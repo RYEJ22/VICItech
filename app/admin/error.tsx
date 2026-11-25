@@ -20,7 +20,7 @@ export default function AdminError({ error, reset }: AdminErrorProps): ReactElem
           <AlertCircle className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
         </span>
         <div>
-          <h1 className="font-serif text-xl font-semibold text-primary">
+          <h1 className="tracking-tight font-sans text-xl font-bold text-primary">
             Terjadi gangguan saat memuat workspace admin
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">

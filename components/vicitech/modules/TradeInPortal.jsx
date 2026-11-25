@@ -108,7 +108,7 @@ export default function CircularPortal() {
             Perpanjang Siklus Pakai Perangkat Keras
           </span>
         </div>
-        <h1 className="mt-2.5 flex items-center gap-2 font-serif text-2xl font-semibold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
+        <h1 className="mt-2.5 flex items-center gap-2 font-sans text-2xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
           <Recycle className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
           <span>Portal Trade-In &amp; Buyback Sirkular</span>
         </h1>
@@ -118,7 +118,7 @@ export default function CircularPortal() {
 
         {/* Form Trade-in */}
         <section className="mt-6 sm:mt-10" aria-labelledby="buyback-title">
-          <h2 id="buyback-title" className="flex items-center gap-2 font-serif text-2xl font-semibold text-primary">
+          <h2 id="buyback-title" className="tracking-tight flex items-center gap-2 font-sans text-2xl font-bold text-primary">
             <DollarSign className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Simulasi Valuasi &amp; Buyback Aset</span>
           </h2>
@@ -257,7 +257,7 @@ export default function CircularPortal() {
               </div>
               <h2
                 id="market-refurb-cta-title"
-                className="font-serif text-2xl font-semibold tracking-tight text-primary sm:text-3xl"
+                className="font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl"
               >
                 Cari unit refurbished lulus uji IoT QC 15 titik?
               </h2>

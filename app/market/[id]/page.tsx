@@ -200,7 +200,7 @@ export default async function ProductDetailPage({
               <div>
                 <h1
                   id="product-title"
-                  className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
+                  className="font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
                 >
                   {product.title}
                 </h1>
@@ -243,7 +243,7 @@ export default async function ProductDetailPage({
             <section aria-labelledby="specs-heading">
               <h2
                 id="specs-heading"
-                className="font-serif text-xl font-semibold text-primary sm:text-2xl"
+                className="tracking-tight font-sans text-xl font-bold text-primary sm:text-2xl"
               >
                 Spesifikasi Lengkap
               </h2>
@@ -275,7 +275,7 @@ export default async function ProductDetailPage({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2
                     id="preset-components-heading"
-                    className="flex items-center gap-2 font-serif text-xl font-semibold text-primary sm:text-2xl"
+                    className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary sm:text-2xl"
                   >
                     <Layers className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                     <span>Komponen dalam Preset</span>
@@ -312,7 +312,7 @@ export default async function ProductDetailPage({
             >
               <h2
                 id="description-heading"
-                className="font-serif text-xl font-semibold text-primary sm:text-2xl"
+                className="tracking-tight font-sans text-xl font-bold text-primary sm:text-2xl"
               >
                 Deskripsi Produk
               </h2>
@@ -359,7 +359,7 @@ export default async function ProductDetailPage({
               </span>
               <h2
                 id="guarantee-heading"
-                className="mt-3 font-serif text-xl font-semibold text-primary [text-wrap:balance]"
+                className="tracking-tight mt-3 font-sans text-xl font-bold text-primary [text-wrap:balance]"
               >
                 Jaminan IoT QC &amp; Garansi ViciTech
               </h2>
@@ -465,7 +465,7 @@ export default async function ProductDetailPage({
               <div>
                 <h2
                   id="recommendations-heading"
-                  className="font-serif text-2xl font-semibold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
+                  className="font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
                 >
                   {hasSameCategory ? 'Rekomendasi Produk Serupa' : 'Rekomendasi Untukmu'}
                 </h2>

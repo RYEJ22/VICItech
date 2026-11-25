@@ -107,7 +107,7 @@ export function AuthForm({ mode, next, initialError }: AuthFormProps): ReactElem
         <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-accent-subtle text-accent-primary">
           <MailCheck className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
         </span>
-        <h2 className="font-serif text-xl font-semibold text-primary">Periksa email Anda</h2>
+        <h2 className="tracking-tight font-sans text-xl font-bold text-primary">Periksa email Anda</h2>
         <p className="text-sm leading-relaxed text-secondary">
           Kami mengirim tautan konfirmasi ke{" "}
           <span className="font-mono font-semibold text-primary">{confirmationEmail}</span>. Buka kotak masuk
