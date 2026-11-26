@@ -4,6 +4,7 @@ export type NavIconKey =
   | 'home'
   | 'market'
   | 'builder'
+  | 'services'
   | 'tradein'
   | 'partners'
   | 'community';
@@ -45,6 +46,7 @@ export interface NavSubItem {
 export interface DesktopNavGroup {
   readonly id: DesktopNavUmbrellaId;
   readonly label: string;
+  readonly iconKey: NavIconKey;
   readonly href?: string;
   readonly description?: string;
   readonly items?: readonly NavSubItem[];
@@ -64,6 +66,7 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
   {
     id: 'market',
     label: 'Market',
+    iconKey: 'market',
     items: [
       {
         id: 'market-ready',
@@ -89,6 +92,7 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
   {
     id: 'toolkit',
     label: 'Toolkit',
+    iconKey: 'builder',
     items: [
       {
         id: 'toolkit-builder',
@@ -133,6 +137,7 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
   {
     id: 'services',
     label: 'Layanan & QC',
+    iconKey: 'services',
     items: [
       {
         id: 'service-qc',
@@ -161,6 +166,7 @@ export const DESKTOP_NAV_GROUPS: readonly DesktopNavGroup[] = [
   {
     id: 'community',
     label: 'Komunitas',
+    iconKey: 'community',
     href: '/community',
     description: 'Showcase rakitan, panduan teknis & tanya jawab komunitas.',
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
@@ -202,7 +208,7 @@ export const PRIMARY_NAV_ITEMS: readonly NavItem[] = [
     href: '/trade-in',
     label: 'Layanan & QC',
     shortLabel: 'Layanan',
-    iconKey: 'tradein',
+    iconKey: 'services',
     matchModules: ['tradein', 'qc', 'partners'],
     allowedRoles: ['guest', 'member', 'creator', 'admin'],
   },

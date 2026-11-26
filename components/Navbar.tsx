@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Search,
   Settings,
+  ShieldCheck,
   ShoppingBag,
   ShoppingCart,
   Sliders,
@@ -90,6 +91,8 @@ function NavIcon({
       return <ShoppingBag className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'builder':
       return <Wrench className={className} strokeWidth={1.75} aria-hidden="true" />;
+    case 'services':
+      return <ShieldCheck className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'tradein':
       return <RefreshCw className={className} strokeWidth={1.75} aria-hidden="true" />;
     case 'partners':
@@ -126,6 +129,8 @@ function SubNavIcon({
       return <Wrench className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'qc':
       return <Activity className={cls} strokeWidth={1.75} aria-hidden="true" />;
+    case 'services':
+      return <ShieldCheck className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'tradein':
       return <RefreshCw className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'partners':
@@ -297,7 +302,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   useEffect(() => {
     const handleScroll = (): void => {
-      setIsScrolled(window.scrollY > 40);
+      const scrolled = window.scrollY > 40;
+      setIsScrolled((prev) => (prev === scrolled ? prev : scrolled));
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -779,25 +785,26 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
     <>
       {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
       <header
-      className={`pointer-events-none fixed inset-x-0 top-0 z-40 px-0 transition-all duration-300 ease-out motion-reduce:transition-none md:px-6 ${
+        className={`pointer-events-none fixed inset-x-0 top-0 z-40 px-0 transition-all duration-300 ease-smooth motion-reduce:transition-none md:px-6 ${
           isScrolled ? 'md:top-2.5' : 'md:top-4'
         }`}
       >
         <div
-          className={`pointer-events-auto mx-auto flex h-14 w-full items-center justify-between gap-2 rounded-none px-3 transition-all duration-300 ease-out motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:rounded-full ${
+          className={`pointer-events-auto mx-auto flex h-14 w-full items-center justify-between gap-2 rounded-none px-3 transition-all duration-300 ease-smooth motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:rounded-full ${
             styles.floatingPill ?? ''
           } ${
             isScrolled
-              ? `${styles.floatingPillScrolled ?? ''} md:h-[54px] md:max-w-4xl md:gap-2.5 md:pl-4 md:pr-2.5`
-              : 'md:h-[66px] md:max-w-6xl md:gap-4 md:pl-5 md:pr-3.5'
+              ? `${styles.floatingPillScrolled ?? ''} md:h-[54px] md:max-w-3xl md:gap-2.5 md:pl-3.5 md:pr-2.5`
+              : 'md:h-[64px] md:max-w-6xl md:gap-4 md:pl-5 md:pr-3.5'
           }`}
         >
           {/* Left: Brand Logo -> Beranda ("/") */}
           <Link
             href="/"
             onClick={(event) => handleHrefClick(event, '/')}
+            title="ViciTech Beranda"
             aria-label="ViciTech Beranda"
-            className={`inline-flex w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-smooth hover:opacity-85 motion-reduce:transition-none ${
+            className={`inline-flex min-h-10 w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-smooth hover:opacity-85 motion-reduce:transition-none ${
               isScrolled ? 'gap-2' : 'gap-2.5'
             } ${focusRing}`}
           >
@@ -811,7 +818,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             </span>
           </Link>
 
-          {/* Center (Desktop): 4 Clean Umbrella Menus */}
+          {/* Center (Desktop): 4 Umbrella Menus (Icons + Labels at top, Icon-Only compact on scroll) */}
           <nav
             aria-label="Navigasi utama ViciTech"
             onMouseLeave={() => {
@@ -822,12 +829,16 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               }, 120);
             }}
             className={`hidden items-center justify-self-center transition-all duration-300 ease-smooth motion-reduce:transition-none md:flex ${
-              isScrolled ? 'gap-5 lg:gap-6' : 'gap-7 lg:gap-8'
+              isScrolled ? 'gap-1.5 lg:gap-2' : 'gap-2 lg:gap-3'
             }`}
           >
             {visibleDesktopGroups.map((group) => {
               const isOpen = openMenu === group.id;
               const isActive = activeUmbrella === group.id;
+              const iconTone =
+                isActive || isOpen
+                  ? 'text-accent-primary'
+                  : 'text-secondary group-hover/nav:text-accent-primary';
 
               if (!group.items?.length && group.href) {
                 return (
@@ -835,13 +846,33 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     key={group.id}
                     href={group.href}
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
+                    title={group.label}
+                    aria-label={group.label}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`vt-motion-press vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
-                      isActive ? 'text-accent-primary' : 'text-primary/80 hover:text-accent-primary'
+                    className={`group/nav vt-motion-press vt-nav-link relative inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ease-smooth motion-reduce:transition-none ${focusRing} ${
+                      isScrolled ? 'min-w-10 px-3 py-2' : 'px-3 py-2'
+                    } ${
+                      isActive
+                        ? isScrolled
+                          ? 'bg-accent-subtle text-accent-primary'
+                          : 'text-accent-primary'
+                        : 'text-primary/85 hover:bg-subtle hover:text-accent-primary'
                     }`}
                   >
-                    <span>{group.label}</span>
-                    <span aria-hidden="true" className={`vt-nav-underline ${isActive ? 'is-active' : ''}`} />
+                    <NavIcon
+                      iconKey={group.iconKey}
+                      className={`h-[18px] w-[18px] shrink-0 transition-colors ${iconTone}`}
+                    />
+                    <span
+                      className={`${styles.navLabel ?? ''} ${
+                        isScrolled ? (styles.navLabelCollapsed ?? '') : ''
+                      }`}
+                    >
+                      {group.label}
+                    </span>
+                    {!isScrolled && (
+                      <span aria-hidden="true" className={`vt-nav-underline !inset-x-3 ${isActive ? 'is-active' : ''}`} />
+                    )}
                   </Link>
                 );
               }
@@ -857,24 +888,44 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   <button
                     type="button"
                     onClick={() => toggleUmbrellaClick(group.id)}
+                    title={group.label}
+                    aria-label={group.label}
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     aria-controls={`nav-panel-${group.id}`}
-                    className={`vt-nav-link vt-motion-press relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
+                    className={`group/nav vt-nav-link vt-motion-press relative inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ease-smooth motion-reduce:transition-none ${focusRing} ${
+                      isScrolled ? 'min-w-10 px-2.5 py-2' : 'px-3 py-2'
+                    } ${
                       isActive || isOpen
-                        ? 'text-accent-primary'
-                        : 'text-primary/80 hover:text-accent-primary'
+                        ? isScrolled
+                          ? 'bg-accent-subtle text-accent-primary'
+                          : 'text-accent-primary'
+                        : 'text-primary/85 hover:bg-subtle hover:text-accent-primary'
                     }`}
                   >
-                    <span>{group.label}</span>
+                    <NavIcon
+                      iconKey={group.iconKey}
+                      className={`h-[18px] w-[18px] shrink-0 transition-colors ${iconTone}`}
+                    />
+                    <span
+                      className={`${styles.navLabel ?? ''} ${
+                        isScrolled ? (styles.navLabelCollapsed ?? '') : ''
+                      }`}
+                    >
+                      {group.label}
+                    </span>
                     <ChevronDown
-                      className={`vt-chevron h-3.5 w-3.5 shrink-0 ${
-                        isOpen ? 'rotate-180 text-accent-primary' : 'text-secondary'
+                      className={`vt-chevron shrink-0 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
+                        isScrolled ? 'ml-0.5 h-3 w-3' : 'ml-1 h-3.5 w-3.5'
+                      } ${
+                        isOpen ? 'rotate-180 text-accent-primary' : 'text-secondary group-hover/nav:text-accent-primary'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    <span aria-hidden="true" className={`vt-nav-underline ${isActive ? 'is-active' : ''}`} />
+                    {!isScrolled && (
+                      <span aria-hidden="true" className={`vt-nav-underline !inset-x-3 ${isActive ? 'is-active' : ''}`} />
+                    )}
                   </button>
 
                   {group.items && isOpen && (
@@ -1063,9 +1114,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       {/* Safe top clearance beneath the fixed header (Hero handles its own offset on "/") */}
       <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-14 md:h-[92px]'} />
 
-      {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items) ───────── */}
+      {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items — compact icon-only on scroll) ───────── */}
       <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
-        <ul className="mx-auto grid h-14 max-w-lg grid-cols-5 items-center gap-0.5 px-1.5 py-1.5">
+        <ul
+          className={`mx-auto grid max-w-lg grid-cols-5 items-center gap-0.5 px-1.5 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
+            isScrolled ? 'h-12 py-1' : 'h-14 py-1.5'
+          }`}
+        >
           {visibleBottomItems.map((item) => {
             const active = isActiveRoute(pathname, item.href, activeModule, activeView);
             return (
@@ -1073,8 +1128,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 <Link
                   href={item.href}
                   onClick={(event) => handleBottomNavClick(event, item)}
+                  title={item.label}
+                  aria-label={item.label}
                   aria-current={active ? 'page' : undefined}
-                  className={`vt-motion-press flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
+                  className={`vt-motion-press flex h-full min-h-[40px] flex-col items-center justify-center rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
                       ? 'bg-accent-subtle font-semibold text-accent-hover'
                       : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
@@ -1082,9 +1139,15 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 >
                   <NavIcon
                     iconKey={item.iconKey}
-                    className={`h-[18px] w-[18px] ${active ? 'text-accent-primary' : 'text-secondary'}`}
+                    className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-accent-primary' : 'text-secondary'}`}
                   />
-                  <span className="truncate">{item.shortLabel}</span>
+                  <span
+                    className={`truncate ${styles.mobileNavLabel ?? ''} ${
+                      isScrolled ? (styles.mobileNavLabelCollapsed ?? '') : ''
+                    }`}
+                  >
+                    {item.shortLabel}
+                  </span>
                 </Link>
               </li>
             );
