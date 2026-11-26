@@ -47,6 +47,6 @@
 
 :global(html[data-theme='dark']) .mobileDrawer {
   background-color: #12151c;
-  border-right: 2px solid #ea580c;
+  border-right: 2px solid #e11d48;
   box-shadow: 6px 0 0 #000000;
 }

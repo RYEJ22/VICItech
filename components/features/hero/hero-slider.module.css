@@ -107,15 +107,15 @@
 
 :global(html[data-theme='dark']) .pauseButton,
 :global(html.dark) .pauseButton {
-  border-radius: 2px;
+  border-radius: 0;
   border: 2px solid #2a303c;
   background: #12151c;
   color: #f8fafc;
-  box-shadow: 3px 3px 0 #000000;
+  box-shadow: 4px 4px 0 #000000;
 }
 
 :global(html[data-theme='dark']) .pauseButton:hover,
 :global(html.dark) .pauseButton:hover {
-  border-color: #ea580c;
+  border-color: #e11d48;
   background: #181c26;
 }

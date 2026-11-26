@@ -1073,44 +1073,59 @@ html[data-reduced-motion='true'] *::after {
   scroll-behavior: auto !important;
 }
 
-/* ───────────────────────────── Dark Mode · Obsidian Pixel Hardware UI ─────────────────────────────
-   Strictly scoped to html[data-theme='dark'] so Light Mode remains untouched.
+/* ───────────────────────────── Dark Mode · Obsidian Ruby Pixel UI (Design System v2.1) ─────────────────────────────
+   Strictly scoped to html[data-theme='dark'] so Light Mode (#FAF9F6 / #EA580C) remains untouched.
    Preserves Plus Jakarta Sans & JetBrains Mono tabular-nums typography while transforming
-   surfaces, geometry, borders, shadows, grids, controls, and telemetry into Pixel Obsidian. */
+   surfaces, geometry, borders, shadows, grids, controls, and telemetry into Obsidian Ruby Pixel UI. */
 
 html[data-theme='dark'] {
-  --bg-canvas: #09090b;
+  --dark-bg-canvas: #09090b;
+  --dark-bg-surface: #12151c;
+  --dark-bg-subtle: #181c26;
+  --dark-text-primary: #f8fafc;
+  --dark-text-secondary: #94a3b8;
+  --dark-accent-primary: #e11d48;
+  --dark-accent-hover: #be123c;
+  --dark-accent-soft: rgba(225, 29, 72, 0.14);
+  --dark-border-default: #2a303c;
+
+  --bg-canvas: var(--dark-bg-canvas);
   --bg-canvas-rgb: 9 9 11;
-  --bg-surface: #12151c;
+  --bg-surface: var(--dark-bg-surface);
   --bg-surface-rgb: 18 21 28;
-  --bg-subtle: #181c26;
+  --bg-subtle: var(--dark-bg-subtle);
   --bg-glass: rgba(18, 21, 28, 0.94);
   --bg-obsidian: #07090d;
-  --border-obsidian: #2a303c;
+  --border-obsidian: var(--dark-border-default);
   --text-on-obsidian: #f8fafc;
   --text-on-obsidian-muted: #94a3b8;
-  --text-primary: #f8fafc;
+  --text-primary: var(--dark-text-primary);
   --text-primary-rgb: 248 250 252;
-  --text-secondary: #94a3b8;
+  --text-secondary: var(--dark-text-secondary);
   --text-secondary-rgb: 148 163 184;
   --text-muted: #94a3b8;
-  --accent-primary: #ea580c;
-  --accent-cta: #ea580c;
-  --accent-cta-rgb: 234 88 12;
-  --accent-cta-hover: #c2410c;
-  --accent-cta-hover-rgb: 194 65 12;
-  --accent-hover: #c2410c;
-  --accent-subtle: rgba(234, 88, 12, 0.16);
-  --accent-glow: rgba(234, 88, 12, 0.28);
+  --accent-primary: var(--dark-accent-primary);
+  --accent-cta: var(--dark-accent-primary);
+  --accent-cta-rgb: 225 29 72;
+  --accent-cta-hover: var(--dark-accent-hover);
+  --accent-cta-hover-rgb: 190 18 60;
+  --accent-hover: var(--dark-accent-hover);
+  --accent-subtle: var(--dark-accent-soft);
+  --accent-glow: rgba(225, 29, 72, 0.28);
   --accent-foreground: #ffffff;
-  --border-default: #2a303c;
+  --border-default: var(--dark-border-default);
   --border-strong: #414b60;
   --status-live: #10b981;
   --status-simulated: #38bdf8;
   --status-sample: #fbbf24;
-  --status-danger: #ef4444;
-  --vt-radius: 2px;
+  --status-danger: #f43f5e;
+  --vt-radius: 0px;
   color-scheme: dark;
+}
+
+html[data-theme='dark'] ::selection {
+  background: rgba(225, 29, 72, 0.28);
+  color: #f8fafc;
 }
 
 /* 16×16px Obsidian Dot-Matrix Canvas & Blueprint Grid */
@@ -1129,13 +1144,35 @@ html[data-theme='dark'] .vt-grid-bg {
   background-size: 16px 16px;
 }
 
-/* WCAG AA Dark-Surface Accent Text Readability */
+/* WCAG 2.2 AA/AAA Dark-Surface Ruby Accent Readability */
 html[data-theme='dark'] .text-accent-primary,
 html[data-theme='dark'] .text-accent-hover,
 html[data-theme='dark'] .text-accent-cta,
 html[data-theme='dark'] .text-signal,
-html[data-theme='dark'] .text-signal-deep {
-  color: #fb923c;
+html[data-theme='dark'] .text-signal-deep,
+html[data-theme='dark'] [class*='text-[#EA580C]'] {
+  color: #fb7185;
+}
+
+html[data-theme='dark'] [class*='bg-[#EA580C]'] {
+  background-color: #e11d48;
+}
+
+html[data-theme='dark'] [class*='hover:bg-[#C2410C]']:hover,
+html[data-theme='dark'] [class*='hover:bg-[#EA580C]']:hover {
+  background-color: #be123c;
+}
+
+html[data-theme='dark'] [class*='border-[#EA580C]'] {
+  border-color: rgba(225, 29, 72, 0.52);
+}
+
+html[data-theme='dark'] [class*='border-l-[#EA580C]'] {
+  border-left-color: #e11d48;
+}
+
+html[data-theme='dark'] [class*='accent-[#EA580C]'] {
+  accent-color: #e11d48;
 }
 
 html[data-theme='dark'] .text-status-live {
@@ -1143,17 +1180,17 @@ html[data-theme='dark'] .text-status-live {
 }
 
 html[data-theme='dark'] .text-status-danger {
-  color: #f87171;
+  color: #fb7185;
 }
 
-/* Sharp Pixel Geometry (Override soft rounded corners on structural UI, preserve avatar imgs & tiny dots) */
+/* Sharp Pixel Geometry (rounded-none / chamfered pixel frame on structural UI; preserve avatar imgs & tiny dots) */
 html[data-theme='dark'] [class*='rounded-md'],
 html[data-theme='dark'] [class*='rounded-lg'],
 html[data-theme='dark'] [class*='rounded-xl'],
 html[data-theme='dark'] [class*='rounded-2xl'],
 html[data-theme='dark'] [class*='rounded-3xl'],
 html[data-theme='dark'] [class*='rounded-4xl'] {
-  border-radius: 2px;
+  border-radius: 0px;
 }
 
 html[data-theme='dark'] button[class*='rounded-full'],
@@ -1162,7 +1199,7 @@ html[data-theme='dark'] [role='tab'][class*='rounded-full'],
 html[data-theme='dark'] [role='switch'][class*='rounded-full'],
 html[data-theme='dark'] [class*='rounded-full'][class*='px-'],
 html[data-theme='dark'] header [class*='rounded-full']:not([class*='h-2']):not([class*='w-2']) {
-  border-radius: 2px;
+  border-radius: 0px;
 }
 
 html[data-theme='dark'] .vt-btn,
@@ -1173,11 +1210,11 @@ html[data-theme='dark'] .vt-tag,
 html[data-theme='dark'] .badge-certified,
 html[data-theme='dark'] .vt-nav-underline,
 html[data-theme='dark'] .skeleton-metallic {
-  border-radius: 2px;
+  border-radius: 0px;
 }
 
 html[data-theme='dark'] .vt-pixel-led {
-  border-radius: 0;
+  border-radius: 0px;
 }
 
 /* Crisp 2px Pixel Borders & Hard-Offset Pixel Shadows */
@@ -1223,16 +1260,16 @@ html[data-theme='dark'] [role='dialog'] {
   box-shadow: 6px 6px 0px #000000;
 }
 
-/* 4×4px Signal Orange Pixel Corner Ticks on Featured Cards, Telemetry Panels & Dialogs */
+/* 4×4px Ruby Red Pixel Corner Ticks on Featured Cards, Telemetry Panels & Dialogs */
 html[data-theme='dark'] .vt-obsidian-panel {
   background-color: var(--bg-obsidian);
   border: 2px solid var(--border-default);
   box-shadow: 4px 4px 0px #000000;
   background-image:
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c);
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48);
   background-size: 4px 4px;
   background-repeat: no-repeat;
   background-position:
@@ -1245,10 +1282,10 @@ html[data-theme='dark'] .vt-obsidian-panel {
 html[data-theme='dark'] .vt-card-lift,
 html[data-theme='dark'] [role='dialog'] {
   background-image:
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c),
-    linear-gradient(#ea580c, #ea580c);
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48);
   background-size: 4px 4px;
   background-repeat: no-repeat;
   background-position:
@@ -1258,15 +1295,15 @@ html[data-theme='dark'] [role='dialog'] {
     100% 100%;
 }
 
-/* Tactile Pixel Hover & Snap-Press Mechanics for Cards */
+/* Tactile Ruby Pixel Hover & Snap-Press Mechanics for Cards */
 @media (hover: hover) and (pointer: fine) {
   html[data-theme='dark'] .vt-card-lift:hover,
   html[data-theme='dark'] .vt-card-interactive:hover,
   html[data-theme='dark'] .vt-card-hover:hover,
   html[data-theme='dark'] .card-unibody-hover:hover {
     transform: translate(-2px, -2px);
-    border-color: #ea580c;
-    box-shadow: 5px 5px 0px #ea580c;
+    border-color: #e11d48;
+    box-shadow: 4px 4px 0px #e11d48;
   }
 }
 
@@ -1276,15 +1313,15 @@ html[data-theme='dark'] .vt-card-interactive:active:not(:disabled) {
   box-shadow: none;
 }
 
-/* Primary & Secondary Pixel Buttons */
+/* Primary Ruby Red & Secondary Pixel Buttons */
 html[data-theme='dark'] .vt-btn-primary,
 html[data-theme='dark'] .btn-signal,
 html[data-theme='dark'] button.bg-accent-primary,
 html[data-theme='dark'] a.bg-accent-primary,
 html[data-theme='dark'] button.bg-accent-cta,
 html[data-theme='dark'] a.bg-accent-cta {
-  border: 2px solid #fb923c;
-  box-shadow: 3px 3px 0px #000000;
+  border: 2px solid #f43f5e;
+  box-shadow: 4px 4px 0px #000000;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1294,8 +1331,8 @@ html[data-theme='dark'] a.bg-accent-cta {
   html[data-theme='dark'] a.bg-accent-primary:hover:not(:disabled),
   html[data-theme='dark'] button.bg-accent-cta:hover:not(:disabled),
   html[data-theme='dark'] a.bg-accent-cta:hover:not(:disabled) {
-    background-color: #c2410c;
-    border-color: #fdba74;
+    background-color: #be123c;
+    border-color: #fb7185;
     transform: translate(-1px, -1px);
     box-shadow: 4px 4px 0px #000000;
   }
@@ -1325,9 +1362,9 @@ html[data-theme='dark'] a.border-default {
   html[data-theme='dark'] .vt-btn-ghost:hover:not(:disabled),
   html[data-theme='dark'] button.border-default:hover:not(:disabled),
   html[data-theme='dark'] a.border-default:hover:not(:disabled) {
-    border-color: #ea580c;
+    border-color: #e11d48;
     transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0px #000000;
+    box-shadow: 4px 4px 0px #e11d48;
   }
 }
 
@@ -1348,9 +1385,9 @@ html[data-theme='dark'] textarea:focus,
 html[data-theme='dark'] .vt-input:focus,
 html[data-theme='dark'] .vt-select:focus,
 html[data-theme='dark'] .vt-textarea:focus {
-  border-color: #ea580c;
+  border-color: #e11d48;
   background-color: var(--bg-surface);
-  box-shadow: inset 2px 2px 0px #000000, 0 0 0 2px rgba(234, 88, 12, 0.35);
+  box-shadow: inset 2px 2px 0px #000000, 0 0 0 2px rgba(225, 29, 72, 0.35);
 }
 
 html[data-theme='dark'] .vt-select {
@@ -1387,55 +1424,55 @@ html[data-theme='dark'] .vt-pixel-bar::after {
 
 /* Chunky Blocky Pixel Toggle Switches (Settings & Cookie panels) */
 html[data-theme='dark'] [role='switch'] {
-  border-radius: 2px;
+  border-radius: 0px;
   border: 2px solid var(--border-strong);
   box-shadow: inset 2px 2px 0px #000000;
 }
 
 html[data-theme='dark'] [role='switch'][aria-checked='true'] {
-  border-color: #fb923c;
+  border-color: #f43f5e;
 }
 
 html[data-theme='dark'] [role='switch'] > span {
-  border-radius: 1px;
+  border-radius: 0px;
   box-shadow: 2px 2px 0px #000000;
 }
 
 /* Chunky Pixel Category Filter Tabs & Segmented Groups */
 html[data-theme='dark'] [role='tab'] {
   border-width: 2px;
-  border-radius: 2px;
+  border-radius: 0px;
 }
 
 html[data-theme='dark'] [role='tab'][aria-selected='true'] {
-  border-color: #fb923c;
+  border-color: #f43f5e;
   box-shadow: 3px 3px 0px #000000;
 }
 
 html[data-theme='dark'] [role='group'] > button[aria-pressed='true'] {
-  border: 2px solid #fb923c;
+  border: 2px solid #f43f5e;
   box-shadow: 2px 2px 0px #000000;
 }
 
-/* Glowing Obsidian Data-Source Badges (WCAG AA Contrast) */
+/* Glowing Obsidian Data-Source Badges (WCAG 2.2 AA Contrast) */
 html[data-theme='dark'] .vt-badge-live {
   background-color: #052e22;
   color: #34d399;
-  border-radius: 2px;
+  border-radius: 0px;
   box-shadow: inset 0 0 0 2px #10b981, 2px 2px 0px #000000;
 }
 
 html[data-theme='dark'] .vt-badge-simulated {
   background-color: #08273c;
   color: #38bdf8;
-  border-radius: 2px;
+  border-radius: 0px;
   box-shadow: inset 0 0 0 2px #0284c7, 2px 2px 0px #000000;
 }
 
 html[data-theme='dark'] .vt-badge-sample {
   background-color: #2b1d05;
   color: #fbbf24;
-  border-radius: 2px;
+  border-radius: 0px;
   box-shadow: inset 0 0 0 2px #f59e0b, 2px 2px 0px #000000;
 }
 
@@ -1447,16 +1484,16 @@ html[data-theme='dark'] .vt-tag {
 
 html[data-theme='dark'] .vt-tag-signal,
 html[data-theme='dark'] .badge-certified {
-  background-color: rgba(234, 88, 12, 0.16);
-  color: #fb923c;
-  box-shadow: inset 0 0 0 2px rgba(234, 88, 12, 0.55);
+  background-color: var(--dark-accent-soft);
+  color: #fb7185;
+  box-shadow: inset 0 0 0 2px rgba(225, 29, 72, 0.55);
 }
 
 html[data-theme='dark'] .vt-pixel-divider {
   background-image:
     linear-gradient(
       90deg,
-      #ea580c 0 10px,
+      #e11d48 0 10px,
       transparent 10px 14px,
       #414b60 14px 18px,
       transparent 18px 22px
@@ -1499,13 +1536,13 @@ html[data-theme='dark'] .text-amber-950 {
 
 html[data-theme='dark'] [class*='bg-red-50'],
 html[data-theme='dark'] [class*='bg-rose-50'] {
-  background-color: rgba(239, 68, 68, 0.14);
+  background-color: rgba(244, 63, 94, 0.14);
 }
 html[data-theme='dark'] [class*='border-red-200'],
 html[data-theme='dark'] [class*='border-red-300'],
 html[data-theme='dark'] [class*='border-rose-200'],
 html[data-theme='dark'] [class*='border-rose-300'] {
-  border-color: rgba(239, 68, 68, 0.5);
+  border-color: rgba(244, 63, 94, 0.52);
 }
 html[data-theme='dark'] .text-red-700,
 html[data-theme='dark'] .text-red-800,
@@ -1513,7 +1550,7 @@ html[data-theme='dark'] .text-red-900,
 html[data-theme='dark'] .text-rose-700,
 html[data-theme='dark'] .text-rose-800,
 html[data-theme='dark'] .text-rose-900 {
-  color: #f87171;
+  color: #fb7185;
 }
 
 html[data-theme='dark'] [class*='bg-sky-50'],
@@ -1533,15 +1570,15 @@ html[data-theme='dark'] .text-blue-800 {
 }
 
 html[data-theme='dark'] [class*='bg-orange-50'] {
-  background-color: rgba(234, 88, 12, 0.14);
+  background-color: rgba(225, 29, 72, 0.14);
 }
 html[data-theme='dark'] [class*='border-orange-200'] {
-  border-color: rgba(234, 88, 12, 0.48);
+  border-color: rgba(225, 29, 72, 0.48);
 }
 html[data-theme='dark'] .text-orange-700,
 html[data-theme='dark'] .text-orange-800,
 html[data-theme='dark'] .text-orange-900 {
-  color: #fb923c;
+  color: #fb7185;
 }
 
 /* Dark Scrollbar & Skeleton Shimmer */
@@ -1553,7 +1590,7 @@ html[data-theme='dark'] ::-webkit-scrollbar-thumb {
   border-radius: 0px;
 }
 html[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
-  background: #ea580c;
+  background: #e11d48;
 }
 
 html[data-theme='dark'] .skeleton-metallic {
@@ -1577,9 +1614,9 @@ html[data-theme='dark'][data-high-contrast='true'] {
   --border-default: #ffffff;
   --border-strong: #ffffff;
   --vt-line-strong: #ffffff;
-  --accent-primary: #ea580c;
-  --accent-cta: #ea580c;
-  --accent-hover: #c2410c;
+  --accent-primary: #e11d48;
+  --accent-cta: #e11d48;
+  --accent-hover: #be123c;
 }
 
 html[data-theme='dark'][data-high-contrast='true'] .vt-glass-bar,
@@ -1589,7 +1626,7 @@ html[data-theme='dark'][data-high-contrast='true'] .glass-floating {
 }
 
 html[data-theme='dark'][data-high-contrast='true'] :focus-visible {
-  outline: 3px solid #fb923c;
+  outline: 3px solid #fb7185;
   outline-offset: 2px;
 }
 

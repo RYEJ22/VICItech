@@ -157,16 +157,17 @@
 }
 
 :global(html[data-theme='dark']) .ctaPrimary {
-  border-radius: 2px;
-  border: 2px solid #fb923c;
+  border-radius: 0;
+  background: #e11d48;
+  border: 2px solid #f43f5e;
   box-shadow: 4px 4px 0 #000000;
 }
 
 :global(html[data-theme='dark']) .ctaPrimary:hover {
-  background: #c2410c;
-  border-color: #fdba74;
+  background: #be123c;
+  border-color: #fb7185;
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 #000000;
+  box-shadow: 4px 4px 0 #000000;
 }
 
 :global(html[data-theme='dark']) .ctaPrimary:active {
@@ -175,7 +176,7 @@
 }
 
 :global(html[data-theme='dark']) .ctaSecondary {
-  border-radius: 2px;
+  border-radius: 0;
   background: #12151c;
   color: #f8fafc;
   border: 2px solid #414b60;
@@ -184,9 +185,9 @@
 
 :global(html[data-theme='dark']) .ctaSecondary:hover {
   background: #181c26;
-  border-color: #ea580c;
+  border-color: #e11d48;
   transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 #ea580c;
+  box-shadow: 4px 4px 0 #e11d48;
 }
 
 :global(html[data-theme='dark']) .ctaSecondary:active {
