@@ -361,9 +361,10 @@ export interface Database {
           title: string;
           description: string;
           price: number;
-          category: 'pc-build' | 'laptop' | 'smartphone' | 'component' | 'accessory';
+          category: 'pc-build' | 'laptop' | 'smartphone' | 'console' | 'handheld' | 'component' | 'accessory';
           seller_type: 'vicitech' | 'partner';
           specs: Json;
+          metadata?: Json;
           images: string[];
           stock_status: 'ready' | 'preorder' | 'sold_out';
           is_preset: boolean;
@@ -381,9 +382,10 @@ export interface Database {
           title: string;
           description?: string;
           price?: number;
-          category: 'pc-build' | 'laptop' | 'smartphone' | 'component' | 'accessory';
+          category: 'pc-build' | 'laptop' | 'smartphone' | 'console' | 'handheld' | 'component' | 'accessory';
           seller_type?: 'vicitech' | 'partner';
           specs?: Json;
+          metadata?: Json;
           images?: string[];
           stock_status?: 'ready' | 'preorder' | 'sold_out';
           is_preset?: boolean;
@@ -401,9 +403,10 @@ export interface Database {
           title?: string;
           description?: string;
           price?: number;
-          category?: 'pc-build' | 'laptop' | 'smartphone' | 'component' | 'accessory';
+          category?: 'pc-build' | 'laptop' | 'smartphone' | 'console' | 'handheld' | 'component' | 'accessory';
           seller_type?: 'vicitech' | 'partner';
           specs?: Json;
+          metadata?: Json;
           images?: string[];
           stock_status?: 'ready' | 'preorder' | 'sold_out';
           is_preset?: boolean;

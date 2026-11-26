@@ -107,6 +107,12 @@ const SPEC_LABEL_MAP: Readonly<Record<string, string>> = {
   form_factor: 'Form Factor',
   vram: 'Memori Video (VRAM)',
   refresh_rate: 'Refresh Rate',
+  battery_wh: 'Kapasitas Baterai (Wh)',
+  storage_type: 'Tipe Penyimpanan',
+  controller_condition: 'Kondisi Kontroler / Analog',
+  firmware_status: 'Status Firmware / OS',
+  dock_included: 'Dock / Kelengkapan',
+  apu: 'APU / SoC',
 };
 
 const HIGHLIGHT_SPEC_PRIORITY: readonly string[] = [
@@ -114,11 +120,15 @@ const HIGHLIGHT_SPEC_PRIORITY: readonly string[] = [
   'gpu',
   'ram',
   'storage',
+  'display',
+  'battery_wh',
+  'storage_type',
+  'controller_condition',
+  'firmware_status',
   'grade',
   'battery_health',
   'tdp_watts',
   'chipset',
-  'display',
   'psu',
 ];
 
@@ -129,6 +139,10 @@ const CATEGORY_SUMMARY_FALLBACKS: Readonly<Record<ProductCategory, string>> = {
     'Unit laptop teruji kesiapan baterai, termal, serta ekspansi memori dan penyimpanan oleh teknisi ViciTech.',
   smartphone:
     'Perangkat mobile tersertifikasi pengecekan layar, kesehatan baterai, pengisian daya, dan sanitasi data aman.',
+  console:
+    'Unit konsol gaming terkurasi dengan pengujian termal, port HDMI, media penyimpanan, dan akurasi kontroler bebas drift.',
+  handheld:
+    'Handheld PC portabel terverifikasi performa APU, kesehatan baterai Wh, layar, analog, serta status OS/firmware bersih.',
   component:
     'Komponen hardware terverifikasi kompatibilitas soket, daya TDP, dan performa benchmark ViciTech.',
   accessory:
@@ -268,7 +282,24 @@ export function formatSpecValue(rawKey: string, rawValue: string): string {
   if (lowerKey === 'tdp_watts' && /^\d+(?:\.\d+)?$/.test(trimmed)) {
     return `${trimmed} W`;
   }
+  if (lowerKey === 'battery_wh' && /^\d+(?:\.\d+)?$/.test(trimmed)) {
+    return `${trimmed} Wh`;
+  }
   return trimmed;
+}
+
+export function getFormattedProductMetadata(
+  product: Pick<ProductRow, 'metadata'>,
+): readonly MarketSpecItem[] {
+  const entries = parseProductSpecs(product.metadata);
+  return entries
+    .map((entry) => ({
+      id: `meta-${entry.id}`,
+      key: entry.key.trim(),
+      label: formatSpecLabel(entry.key),
+      value: formatSpecValue(entry.key, entry.value),
+    }))
+    .filter((item) => item.value.length > 0);
 }
 
 export function getFormattedProductSpecs(

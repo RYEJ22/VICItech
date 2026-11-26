@@ -6,6 +6,8 @@ export const PRODUCT_CATEGORIES = [
   'pc-build',
   'laptop',
   'smartphone',
+  'console',
+  'handheld',
   'component',
   'accessory',
 ] as const;
@@ -17,6 +19,7 @@ export const PRODUCT_SELLER_TYPES = ['vicitech', 'partner'] as const;
 export type ProductRow = Tables<'products'> & {
   readonly image_url?: string | null;
   readonly gallery_urls?: readonly string[];
+  readonly metadata?: Json;
 };
 export type ProductInsert = TablesInsert<'products'>;
 export type ProductUpdate = TablesUpdate<'products'>;
@@ -66,6 +69,8 @@ export const PRODUCT_CATEGORY_LABELS: Readonly<Record<ProductCategory, string>> 
   'pc-build': 'PC Build',
   laptop: 'Laptop',
   smartphone: 'Smartphone',
+  console: 'Consoles',
+  handheld: 'Handhelds',
   component: 'Komponen',
   accessory: 'Aksesori',
 };

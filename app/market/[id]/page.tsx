@@ -23,6 +23,7 @@ import { isValidMediaUrl } from '@/lib/admin/products-validation';
 import {
   formatIdr,
   getCategoryLabel,
+  getFormattedProductMetadata,
   getFormattedProductSpecs,
   getHighlightSpecs,
   getProductHref,
@@ -102,6 +103,7 @@ export default async function ProductDetailPage({
   const stockMeta = getStockMeta(product.stock_status);
   const trustBadge = getProductTrustBadge(product);
   const formattedSpecs = getFormattedProductSpecs(product);
+  const formattedMetadata = getFormattedProductMetadata(product);
   const highlightSpecs = getHighlightSpecs(product, 4);
   const presetComponents = product.is_preset
     ? parsePresetComponents(product.preset_components)
@@ -270,6 +272,31 @@ export default async function ProductDetailPage({
                 </div>
               )}
             </section>
+
+            {/* Spesifikasi Khusus Perangkat (Metadata JSONB: Console / Handheld / Perangkat Terkurasi) */}
+            {formattedMetadata.length > 0 && (
+              <section aria-labelledby="device-metadata-heading">
+                <h2
+                  id="device-metadata-heading"
+                  className="tracking-tight font-sans text-xl font-bold text-primary sm:text-2xl"
+                >
+                  Datasheet Perangkat &amp; Kondisi
+                </h2>
+                <dl className="mt-4 divide-y divide-default overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
+                  {formattedMetadata.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-5 sm:gap-4 sm:px-5"
+                    >
+                      <dt className="font-medium text-secondary sm:col-span-2">{item.label}</dt>
+                      <dd className="font-mono font-medium tabular-nums text-primary sm:col-span-3">
+                        {item.value}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
 
             {/* Daftar Komponen Preset (bila is_preset) */}
             {presetComponents.length > 0 && (

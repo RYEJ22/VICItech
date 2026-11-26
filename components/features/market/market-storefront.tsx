@@ -82,11 +82,13 @@ export function MarketStorefront({
       'pc-build': 0,
       laptop: 0,
       smartphone: 0,
+      console: 0,
+      handheld: 0,
       component: 0,
       accessory: 0,
     };
     for (const item of initialProducts) {
-      counts[item.category] += 1;
+      counts[item.category] = (counts[item.category] ?? 0) + 1;
     }
     return counts;
   }, [initialProducts]);
@@ -104,7 +106,11 @@ export function MarketStorefront({
         product.specs && typeof product.specs === 'object' && !Array.isArray(product.specs)
           ? Object.values(product.specs).map(String).join(' ')
           : '';
-      const haystack = `${product.title} ${product.description} ${PRODUCT_CATEGORY_LABELS[product.category]} ${specsValues}`.toLowerCase();
+      const metadataValues =
+        product.metadata && typeof product.metadata === 'object' && !Array.isArray(product.metadata)
+          ? Object.values(product.metadata).map(String).join(' ')
+          : '';
+      const haystack = `${product.title} ${product.description} ${PRODUCT_CATEGORY_LABELS[product.category]} ${specsValues} ${metadataValues}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
 
@@ -238,7 +244,7 @@ export function MarketStorefront({
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Cari PC build, ThinkPad, GPU, atau komponen…"
+            placeholder="Cari PC build, ThinkPad, PS5, Steam Deck, GPU, atau komponen…"
             className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
           />
         </div>

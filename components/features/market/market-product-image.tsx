@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Cpu, Headphones, ImageOff, Laptop, Smartphone, Wrench } from 'lucide-react';
+import { Cpu, Gamepad2, Headphones, ImageOff, Laptop, Smartphone, Wrench } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import type { ProductCategory } from '@/lib/admin/products-validation';
@@ -26,6 +26,9 @@ function CategoryFallbackIcon({ category }: { readonly category: ProductCategory
       return <Laptop className={iconClass} strokeWidth={1.5} aria-hidden="true" />;
     case 'smartphone':
       return <Smartphone className={iconClass} strokeWidth={1.5} aria-hidden="true" />;
+    case 'console':
+    case 'handheld':
+      return <Gamepad2 className={iconClass} strokeWidth={1.5} aria-hidden="true" />;
     case 'component':
       return <Wrench className={iconClass} strokeWidth={1.5} aria-hidden="true" />;
     case 'accessory':
