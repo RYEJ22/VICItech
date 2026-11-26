@@ -10,6 +10,7 @@ const ECOSYSTEM_LINKS: readonly { readonly href: string; readonly label: string 
   { href: '/trade-in', label: 'Circular Trade-In' },
   { href: '/partners', label: 'Mitra & Service' },
   { href: '/community', label: 'Komunitas' },
+  { href: '/feedback', label: 'Umpan Balik & Validasi' },
 ];
 
 const STANDARD_ITEMS: readonly string[] = [
@@ -103,10 +104,24 @@ export function SiteFooter(): ReactElement {
         </details>
       </div>
       <div className="border-t border-default bg-surface/60">
-        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-1.5 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
+        <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
           <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
-          <p className="hidden md:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
-          <CookieSettingsButton />
+          <p className="hidden lg:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+            <Link
+              href="/feedback"
+              className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              Umpan Balik
+            </Link>
+            <Link
+              href="/cookies"
+              className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              Kebijakan Cookie &amp; Privasi
+            </Link>
+            <CookieSettingsButton />
+          </div>
         </div>
       </div>
     </footer>
