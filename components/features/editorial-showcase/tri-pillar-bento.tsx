@@ -17,7 +17,10 @@ import type { ReactElement } from 'react';
 
 export function TriPillarBento(): ReactElement {
   return (
-    <section aria-labelledby="tri-pillar-heading" className="space-y-6">
+    <section
+      aria-labelledby="tri-pillar-heading"
+      className="vt-grid-bg space-y-6 rounded-3xl border border-default bg-canvas/70 p-4 sm:p-7"
+    >
       <div className="max-w-3xl">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">
           Tri-Pillar Moat ViciTech
@@ -117,56 +120,59 @@ export function TriPillarBento(): ReactElement {
           </div>
         </article>
 
-        {/* Pillar 2 (Tall — 5 cols): Hybrid IoT QC */}
-        <article className="vt-card-lift group flex flex-col justify-between rounded-2xl border border-[#E4E4E7] bg-[#FAF9F6] p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#EA580C]/40 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:transform-none sm:p-7 lg:col-span-5">
+        {/* Pillar 2 (Tall — 5 cols): Obsidian Telemetry Anchor Card */}
+        <article className="vt-obsidian-panel vt-card-lift group flex flex-col justify-between rounded-2xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#EA580C]/50 motion-reduce:transition-none motion-reduce:hover:transform-none sm:p-7 lg:col-span-5">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#18181B] border border-[#E4E4E7]">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-[#FAFAFA]">
                 <Activity className="h-3.5 w-3.5 text-[#EA580C]" aria-hidden="true" />
                 Pilar 2 · Hybrid IoT QC
               </span>
-              <span className="vt-badge-simulated">Simulated / Demo</span>
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-sky-400/25 bg-sky-500/15 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-sky-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" aria-hidden="true" />
+                Simulated / Demo
+              </span>
             </div>
 
-            <h3 className="mt-4 font-sans text-xl font-bold tracking-tight text-[#18181B] sm:text-2xl">
+            <h3 className="mt-4 font-sans text-xl font-bold tracking-tight text-[#FAFAFA] sm:text-2xl">
               Verifikasi 15 titik &amp; sertifikat serial anti-zonk.
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-[#52525B]">
+            <p className="mt-2 text-sm leading-relaxed text-[#A1A1AA]">
               Transparansi log uji termal, voltase, dan sanitasi data NIST SP 800-88 yang dapat
               dicek publik lewat nomor seri. Integrasi sensor fisik ESP32 dijadwalkan di v2.5.
             </p>
 
-            {/* Mini Telemetry Card Preview */}
-            <div className="mt-5 space-y-2.5 rounded-xl border border-[#E4E4E7] bg-white p-4">
+            {/* Mini Obsidian Telemetry Terminal Preview */}
+            <div className="mt-5 space-y-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-bold text-[#18181B]">VICI-PC-2026-0104</span>
-                <span className="rounded bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-800">
+                <span className="font-mono text-xs font-bold text-[#FAFAFA]">VICI-PC-2026-0104</span>
+                <span className="rounded-md bg-sky-500/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-sky-300">
                   Profil Demo QC
                 </span>
               </div>
               <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-[#52525B]">
+                <div className="flex items-center justify-between text-[#A1A1AA]">
                   <span>Burn-In Termal CPU/GPU</span>
-                  <span className="font-mono font-semibold text-[#18181B]">64°C · Stabil</span>
+                  <span className="font-mono font-semibold text-[#FAFAFA]">64.0°C · Stabil</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#F3F1ED]">
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                   <div className="h-full w-[88%] rounded-full bg-[#EA580C]" />
                 </div>
-                <div className="flex items-center justify-between pt-1 text-[#52525B]">
-                  <span className="inline-flex items-center gap-1">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" aria-hidden="true" />
+                <div className="flex items-center justify-between pt-1 text-[#A1A1AA]">
+                  <span className="inline-flex items-center gap-1 text-emerald-400">
+                    <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     Sanitasi NIST SP 800-88
                   </span>
-                  <span className="font-mono font-semibold text-emerald-800">15/15 Lulus</span>
+                  <span className="font-mono font-semibold text-emerald-400">15/15 Lulus</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 border-t border-[#E4E4E7] pt-4">
+          <div className="mt-5 border-t border-white/10 pt-4">
             <Link
               href="/qc-panel"
-              className="vt-motion-press inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-4 text-xs font-semibold text-[#18181B] transition-colors hover:border-[#EA580C]/40 hover:text-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+              className="vt-motion-press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#C2410C] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/70"
             >
               <span>Buka Panel Simulasi IoT QC</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

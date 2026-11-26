@@ -228,8 +228,8 @@ export function MarketStorefront({
         </div>
       )}
 
-      {/* Sticky Search, Filter Controls & Category Pills */}
-      <div className="sticky top-14 z-20 space-y-2.5 rounded-2xl border border-default bg-surface p-3 shadow-sm sm:space-y-3 sm:p-4 md:top-[76px]">
+      {/* Sticky Frosted-Glass Search, Filter Controls & Category Pills */}
+      <div className="vt-glass-bar sticky top-14 z-20 space-y-2.5 rounded-2xl border border-default p-3 shadow-card sm:space-y-3 sm:p-4 md:top-[76px]">
         <div className="flex flex-col gap-2 sm:gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="relative flex-1">
             <label htmlFor={searchInputId} className="sr-only">

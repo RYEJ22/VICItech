@@ -122,14 +122,18 @@ export default function QCPanelDashboard() {
           </div>
 
           <aside className="space-y-4">
-            <SpotlightCard className="p-5">
+            <div className="vt-obsidian-panel rounded-2xl p-5">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">Waktu Lokal</p>
-                <span className="h-1.5 w-1.5 rounded-full bg-accent-primary" aria-hidden="true" />
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#A1A1AA]">
+                  Waktu Telemetri
+                </p>
+                <span className="h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
               </div>
-              <p className="mt-3 font-sans text-3xl font-semibold tabular-nums tracking-tight text-primary">{clock}</p>
-              <p className="mt-1 text-[10px] text-secondary">Waktu perangkat Anda</p>
-            </SpotlightCard>
+              <p className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-[#FAFAFA]">
+                {clock}
+              </p>
+              <p className="mt-1 text-[11px] text-[#A1A1AA]">Sinkron waktu perangkat Anda</p>
+            </div>
             <SpotlightCard className="p-5">
               <div className="flex items-center gap-2 text-accent-cta">
                 <Radio className="h-4 w-4 text-accent-primary" aria-hidden="true" />

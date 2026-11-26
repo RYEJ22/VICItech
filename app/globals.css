@@ -8,31 +8,39 @@
    Nothing else defines colour — components reference these variables. */
 
 :root {
-  /* DESIGN.md canonical semantic tokens */
-  --bg-canvas: #faf9f6;
-  --bg-canvas-rgb: 250 249 246;
+  /* ViciTech Design System v2.0 — Precision Hardware & Smooth UX */
+  --bg-canvas: #f9f8f6;
+  --bg-canvas-rgb: 249 248 246;
   --bg-surface: #ffffff;
   --bg-surface-rgb: 255 255 255;
-  --bg-subtle: #f3f1ed;
-  --text-primary: #18181b;
-  --text-primary-rgb: 24 24 27;
+  --bg-subtle: #f2f0ec;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-obsidian: #141417;
+  --border-obsidian: rgba(255, 255, 255, 0.1);
+  --text-on-obsidian: #fafafa;
+  --text-on-obsidian-muted: #a1a1aa;
+  --text-primary: #141416;
+  --text-primary-rgb: 20 20 22;
   --text-secondary: #52525b;
   --text-secondary-rgb: 82 82 91;
+  --text-muted: #71717a;
   --accent-primary: #ea580c;
   --accent-cta: #c2410c;
   --accent-cta-rgb: 194 65 12;
   --accent-cta-hover: #9a3412;
   --accent-cta-hover-rgb: 154 52 18;
   --accent-hover: #c2410c;
-  --accent-subtle: #fff7ed;
+  --accent-subtle: #fff5eb;
+  --accent-glow: rgba(234, 88, 12, 0.16);
   --accent-foreground: #ffffff;
-  --border-default: #e4e2dd;
-  --status-live: #059669;
+  --border-default: #e5e2dc;
+  --border-strong: #d4d0c8;
+  --status-live: #10b981;
   --status-simulated: #0284c7;
-  --status-sample: #d97706;
+  --status-sample: #f59e0b;
   --status-danger: #dc2626;
 
-  /* ViciTech shell aliases collapsed onto DESIGN.md canonical tokens */
+  /* ViciTech shell aliases collapsed onto DESIGN.md v2.0 tokens */
   --vt-paper: var(--bg-canvas);
   --vt-paper-deep: var(--bg-subtle);
   --vt-surface: var(--bg-surface);
@@ -40,16 +48,18 @@
   --vt-muted: var(--text-secondary);
   --vt-faint: var(--text-secondary);
   --vt-line: var(--border-default);
-  --vt-line-strong: rgba(24, 24, 27, 0.14);
+  --vt-line-strong: var(--border-strong);
   --vt-signal: var(--accent-primary);
   --vt-signal-deep: var(--accent-cta);
   --vt-signal-hover: var(--accent-cta-hover);
-  --vt-signal-wash: rgba(234, 88, 12, 0.1);
+  --vt-signal-wash: var(--accent-glow);
   --vt-brick: var(--status-danger);
   --vt-radius: 1rem;
-  --vt-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --vt-motion-press: 150ms;
-  --vt-motion-hover: 220ms;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --vt-motion-ease: var(--ease-smooth);
+  --vt-motion-press: 180ms;
+  --vt-motion-hover: 250ms;
   --vt-motion-reveal: 320ms;
   color-scheme: light;
 }
@@ -63,7 +73,14 @@ body {
 h1,
 h2,
 h3 {
+  font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, sans-serif);
   letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 html {
@@ -842,6 +859,28 @@ select,
   }
 }
 
+/* ───────────────────────────── Design System v2.0 Hardware Surfaces ───────────────────────────── */
+
+.vt-grid-bg {
+  background-image: radial-gradient(rgba(20, 20, 22, 0.065) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.vt-obsidian-panel {
+  background-color: var(--bg-obsidian, #141417);
+  color: var(--text-on-obsidian, #fafafa);
+  border: 1px solid var(--border-obsidian, rgba(255, 255, 255, 0.1));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 40px -16px rgba(20, 20, 22, 0.32);
+}
+
+.vt-glass-bar {
+  background-color: var(--bg-glass, rgba(255, 255, 255, 0.85));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 /* ───────────────────────────── Accessibility Overrides ───────────────────────────── */
 
 html[data-high-contrast='true'] {
@@ -850,16 +889,28 @@ html[data-high-contrast='true'] {
   --bg-surface: #ffffff;
   --bg-surface-rgb: 255 255 255;
   --bg-subtle: #eceae4;
-  --text-primary: #09090b;
-  --text-primary-rgb: 9 9 11;
+  --bg-glass: #ffffff;
+  --text-primary: #141416;
+  --text-primary-rgb: 20 20 22;
   --text-secondary: #27272a;
   --text-secondary-rgb: 39 39 42;
   --accent-primary: #c2410c;
   --accent-cta: #9a3412;
   --accent-cta-hover: #7c2d12;
   --accent-hover: #9a3412;
-  --border-default: #71717a;
-  --vt-line-strong: #52525b;
+  --border-default: #141416;
+  --border-strong: #141416;
+  --vt-line-strong: #141416;
+}
+
+html[data-high-contrast='true'] .vt-glass-bar {
+  background-color: #ffffff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-high-contrast='true'] .vt-obsidian-panel {
+  border-color: rgba(255, 255, 255, 0.45);
 }
 
 html[data-high-contrast='true'] :focus-visible {
@@ -868,9 +919,10 @@ html[data-high-contrast='true'] :focus-visible {
 }
 
 html[data-high-contrast='true'] [class*='border-[#E4E4E7]'],
+html[data-high-contrast='true'] [class*='border-[#E5E2DC]'],
 html[data-high-contrast='true'] [class*='border-[#EEEAE5]'],
 html[data-high-contrast='true'] [class*='border-[#E7E2DC]'] {
-  border-color: #71717a;
+  border-color: #141416;
 }
 
 html[data-high-contrast='true'] [class*='text-[#52525B]'],

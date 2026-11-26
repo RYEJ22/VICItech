@@ -110,6 +110,12 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
   const SevIcon = sevStyle.Icon;
   const clampedFraction = Math.min(1, Math.max(0.03, pct / 50));
   const dashOffset = RING_CIRCUMFERENCE * (1 - clampedFraction);
+  const obsidianBadge =
+    severity === "optimal"
+      ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+      : severity === "warning"
+        ? "border-amber-400/30 bg-amber-500/15 text-amber-300"
+        : "border-rose-400/30 bg-rose-500/15 text-rose-300";
 
   return (
     <div className="flex flex-col items-center">
@@ -126,7 +132,7 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
             r={RING_RADIUS}
             fill="none"
             strokeWidth="12"
-            className="stroke-subtle"
+            className="stroke-white/10"
           />
           <circle
             cx="72"
@@ -145,59 +151,65 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
             value={pct}
             format="percent"
             decimals={1}
-            className="font-mono text-3xl font-bold tracking-tight tabular-nums text-primary"
+            className="font-mono text-3xl font-bold tracking-tight tabular-nums text-[#FAFAFA]"
           />
-          <span className="mt-0.5 text-[11px] font-medium text-secondary">
+          <span className="mt-0.5 text-[11px] font-medium text-[#A1A1AA]">
             Bottleneck
           </span>
         </div>
       </div>
 
       <span
-        className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${sevStyle.badgeClass}`}
+        className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${obsidianBadge}`}
       >
         <SevIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
         <span>{statusBadge}</span>
       </span>
 
-      <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-secondary">
+      <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-[#A1A1AA]">
         <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-600" aria-hidden="true" />
-          <span className="font-mono font-semibold text-emerald-700">&lt;10%</span> Optimal
+          <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+          <span className="font-mono font-semibold text-emerald-400">&lt;10%</span> Optimal
         </li>
         <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
-          <span className="font-mono font-semibold text-amber-700">10–19.9%</span> Perhatian
+          <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
+          <span className="font-mono font-semibold text-amber-400">10–19.9%</span> Perhatian
         </li>
         <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-rose-600" aria-hidden="true" />
-          <span className="font-mono font-semibold text-rose-700">≥20%</span> Bottleneck
+          <span className="h-2 w-2 rounded-full bg-rose-400" aria-hidden="true" />
+          <span className="font-mono font-semibold text-rose-400">≥20%</span> Bottleneck
         </li>
       </ul>
     </div>
   );
 }
 
-function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass }) {
+function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass, dark = false }) {
   const clampedScale = Math.max(0.04, Math.min(1, valuePct / 100));
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-medium text-primary">{label}</span>
+          <span className={`font-medium ${dark ? "text-[#FAFAFA]" : "text-primary"}`}>{label}</span>
           {badgeLabel && (
-            <span className="rounded-md border border-accent-primary/30 bg-accent-subtle px-2 py-0.5 text-[11px] font-semibold text-accent-cta">
+            <span
+              className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${
+                dark
+                  ? "border-[#EA580C]/40 bg-[#EA580C]/20 text-orange-300"
+                  : "border-accent-primary/30 bg-accent-subtle text-accent-cta"
+              }`}
+            >
               {badgeLabel}
             </span>
           )}
         </div>
-        <span className="font-mono tabular-nums font-semibold text-primary">
-          {valuePct}%
+        <span className={`font-mono tabular-nums font-bold ${dark ? "text-[#FAFAFA]" : "text-primary"}`}>
+          {Math.round(valuePct)}%
         </span>
       </div>
-      <div className={styles.barTrack} role="presentation">
+      <div className={`h-2 overflow-hidden rounded-full ${dark ? "bg-white/10" : "bg-subtle"}`} role="presentation">
         <div
-          className={`${styles.barFill} ${barColorClass}`}
+          className={`h-full w-full origin-left rounded-full transition-transform duration-500 ease-out motion-reduce:transition-none ${barColorClass}`}
           style={{ transform: `scaleX(${clampedScale})` }}
         />
       </div>
@@ -869,19 +881,19 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
           {/* Right Panel: Telemetry Output */}
           <div className="space-y-6 lg:col-span-7">
-            {/* Bottleneck Gauge & Effective Load */}
+            {/* Obsidian Telemetry Highlight Card: Bottleneck Gauge & Effective Load */}
             <section
               aria-labelledby="gauge-heading"
-              className="rounded-xl border border-default bg-surface p-5 shadow-sm"
+              className="vt-obsidian-panel rounded-2xl p-5 sm:p-6"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                <h2 id="gauge-heading" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
-                  <Activity className="h-5 w-5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3.5">
+                <h2 id="gauge-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-[#FAFAFA] sm:text-xl">
+                  <Activity className="h-5 w-5 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
                   <span>Meter Bottleneck: {result.scenario.label}</span>
                 </h2>
-                <span className="font-mono text-xs text-secondary">
+                <span className="font-mono text-xs text-[#A1A1AA]">
                   {result.projectedMetricLabel}:{" "}
-                  <strong className="text-primary">
+                  <strong className="text-[#FAFAFA]">
                     <AnimatedNumber value={result.projectedMetricValue} format="number" /> {result.projectedMetricUnit}
                   </strong>
                 </span>
@@ -897,36 +909,38 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                 </div>
 
                 <div className="space-y-4 md:col-span-7">
-                  <div className={`rounded-lg border p-3.5 text-sm ${sevUi.badgeClass}`}>
-                    <p className="font-semibold">{result.directionLabel}</p>
-                    <p className="mt-1 text-xs leading-relaxed sm:text-sm">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3.5 text-sm text-[#FAFAFA]">
+                    <p className="font-bold text-[#FAFAFA]">{result.directionLabel}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-[#A1A1AA] sm:text-sm">
                       {result.explanation}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <GpuScaledBar
+                      dark
                       label={`Utilisasi CPU (${selectedCpu.name})`}
                       valuePct={result.cpuUtilizationPct}
                       badgeLabel={result.direction === "cpu" ? "Pembatas Utama" : undefined}
-                      barColorClass={result.direction === "cpu" ? "bg-accent-primary" : "bg-emerald-600"}
+                      barColorClass={result.direction === "cpu" ? "bg-[#EA580C]" : "bg-emerald-500"}
                     />
                     <GpuScaledBar
+                      dark
                       label={`Utilisasi GPU (${selectedGpu.name})`}
                       valuePct={result.gpuUtilizationPct}
                       badgeLabel={result.direction === "gpu" ? "Pembatas Utama" : undefined}
-                      barColorClass={result.direction === "gpu" ? "bg-accent-primary" : "bg-emerald-600"}
+                      barColorClass={result.direction === "gpu" ? "bg-[#EA580C]" : "bg-emerald-500"}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Aksi Cepat Hasil: Tanya ViciTech AI & Bagikan / Unduh Kartu PNG */}
-              <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-default pt-4">
+              <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-white/10 pt-4">
                 <button
                   type="button"
                   onClick={handleAskViciAi}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-accent-cta-hover sm:flex-initial sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#C2410C] active:scale-[0.98] sm:flex-initial sm:text-sm ${focusRing}`}
                 >
                   <Bot className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                   <span>Tanya ViciTech AI soal Hasil Ini</span>
@@ -936,12 +950,12 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   type="button"
                   disabled={isGeneratingCard}
                   onClick={() => void handleShareOrDownloadCard()}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2.5 text-xs font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-wait disabled:opacity-60 sm:flex-initial sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-[#FAFAFA] hover:border-[#EA580C]/60 hover:bg-white/[0.12] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:flex-initial sm:text-sm ${focusRing}`}
                 >
                   {isGeneratingCard ? (
-                    <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-accent-cta" aria-hidden="true" />
+                    <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-[#EA580C]" aria-hidden="true" />
                   ) : (
-                    <Download className="h-4 w-4 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                    <Download className="h-4 w-4 shrink-0 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
                   )}
                   <span>{isGeneratingCard ? "Menyiapkan Kartu…" : "Bagikan / Unduh Kartu Hasil"}</span>
                 </button>
@@ -1043,15 +1057,15 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
               </p>
             </section>
 
-            {/* PSU Headroom & Compatibility Checklist */}
+            {/* PSU Headroom (Obsidian Telemetry) & Compatibility Checklist */}
             <div className="grid gap-6 md:grid-cols-2">
               <section
                 aria-labelledby="psu-heading"
-                className="rounded-xl border border-default bg-surface p-5 shadow-sm"
+                className="vt-obsidian-panel rounded-2xl p-5"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
-                  <h2 id="psu-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
-                    <Zap className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                  <h2 id="psu-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-[#FAFAFA]">
+                    <Zap className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
                     <span>Headroom Daya PSU</span>
                   </h2>
                   <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors duration-300 ${psuUi.badgeClass}`}>
@@ -1060,15 +1074,15 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-default bg-canvas p-3">
-                    <p className="text-xs text-secondary">Estimasi Beban</p>
-                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-primary">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                    <p className="text-xs text-[#A1A1AA]">Estimasi Beban</p>
+                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#FAFAFA]">
                       <AnimatedNumber value={result.psuHeadroom.estimatedWattage} format="number" suffix=" W" />
                     </p>
                   </div>
-                  <div className="rounded-xl border border-default bg-canvas p-3">
-                    <p className="text-xs text-secondary">Rekomendasi (+35%)</p>
-                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-accent-cta">
+                  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                    <p className="text-xs text-[#A1A1AA]">Rekomendasi (+35%)</p>
+                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#EA580C]">
                       <AnimatedNumber value={result.psuHeadroom.recommendedPsuWatts} format="number" suffix=" W" />
                     </p>
                   </div>
@@ -1076,12 +1090,12 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-secondary">
+                    <span className="text-[#A1A1AA]">
                       {result.psuHeadroom.selectedPsuWatts
                         ? `Beban terhadap PSU ${result.psuHeadroom.selectedPsuWatts} W`
                         : "Belum ada PSU dipilih"}
                     </span>
-                    <span className="font-mono tabular-nums font-bold text-primary">
+                    <span className="font-mono tabular-nums font-bold text-[#FAFAFA]">
                       {result.psuHeadroom.loadPct !== null ? `${result.psuHeadroom.loadPct.toFixed(1)}%` : "-"}
                     </span>
                   </div>
@@ -1103,20 +1117,20 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                         <span
                           key={segIdx}
                           className={`h-2.5 rounded-sm transition-colors duration-300 motion-reduce:transition-none ${
-                            active ? psuUi.segmentActive : "bg-subtle"
+                            active ? psuUi.segmentActive : "bg-white/10"
                           }`}
                         />
                       );
                     })}
                   </div>
-                  <div className="flex justify-between font-mono text-[10px] text-secondary">
+                  <div className="flex justify-between font-mono text-[10px] text-[#A1A1AA]">
                     <span>0% Aman</span>
                     <span>75% Ideal</span>
                     <span>90%+ Kritis</span>
                   </div>
                 </div>
 
-                <p className="mt-3 text-xs leading-relaxed text-secondary">
+                <p className="mt-3 text-xs leading-relaxed text-[#A1A1AA]">
                   {result.psuHeadroom.explanation}
                 </p>
               </section>

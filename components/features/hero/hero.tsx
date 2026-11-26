@@ -147,51 +147,51 @@ export function Hero({
               </div>
             </div>
 
-            {/* Flagship Desktop Platform Snapshot Card (solid surface, zero backdrop-blur) */}
+            {/* Flagship Desktop Obsidian Telemetry Snapshot Card */}
             <aside
               aria-label="Ringkasan cepat modul ViciTech OS"
               className={`hidden lg:col-span-5 lg:block ${styles.previewReveal}`}
             >
-              <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-[0_20px_50px_-24px_rgba(24,24,27,0.22)]">
-                <div className="flex items-center justify-between gap-2 border-b border-[#EEEAE5] pb-3.5">
+              <div className="vt-obsidian-panel rounded-2xl p-5">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3.5">
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EA580C]">
-                      ViciTech OS · v2.2
+                    <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-[#EA580C]">
+                      VICITECH OS · v2.2
                     </p>
-                    <p className="mt-0.5 text-sm font-bold text-[#18181B]">
-                      Akses Cepat Ekosistem
+                    <p className="mt-0.5 text-sm font-bold text-[#FAFAFA]">
+                      Akses Cepat Precision Studio
                     </p>
                   </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
-                    <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-                    QC Demo Ready
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-sky-400/25 bg-sky-500/15 px-2.5 py-1 font-mono text-[10px] font-semibold text-sky-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-400" aria-hidden="true" />
+                    QC Simulated / Demo
                   </span>
                 </div>
 
-                <ul className="mt-3 space-y-2">
+                <ul className="mt-3.5 space-y-2">
                   {HERO_SNAPSHOT_MODULES.map((item) => {
                     const Icon = item.icon;
                     return (
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          className="group flex items-center justify-between gap-3 rounded-xl border border-[#EEEAE5] bg-[#FAF9F6] px-3.5 py-2.5 transition-colors hover:border-[#EA580C]/40 hover:bg-[#FFF7ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                          className="vt-motion-press group flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 transition-colors hover:border-[#EA580C]/50 hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/70"
                         >
                           <span className="flex min-w-0 items-center gap-3">
-                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-[#EA580C] border border-[#E4E4E7] transition-colors group-hover:bg-[#EA580C] group-hover:text-white group-hover:border-[#EA580C]">
-                              <Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden="true" />
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/[0.06] text-[#EA580C] transition-colors group-hover:border-[#EA580C] group-hover:bg-[#EA580C] group-hover:text-white">
+                              <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                             </span>
                             <span className="min-w-0">
-                              <span className="block truncate text-xs font-bold text-[#18181B]">
+                              <span className="block truncate text-xs font-bold text-[#FAFAFA]">
                                 {item.label}
                               </span>
-                              <span className="block truncate text-[11px] text-[#52525B]">
+                              <span className="block truncate font-mono text-[11px] text-[#A1A1AA]">
                                 {item.meta}
                               </span>
                             </span>
                           </span>
                           <ArrowRight
-                            className="h-4 w-4 shrink-0 text-[#52525B] transition-transform group-hover:translate-x-0.5 group-hover:text-[#EA580C] motion-reduce:transform-none"
+                            className="h-4 w-4 shrink-0 text-[#A1A1AA] transition-transform group-hover:translate-x-0.5 group-hover:text-[#EA580C] motion-reduce:transform-none"
                             aria-hidden="true"
                           />
                         </Link>
@@ -199,6 +199,14 @@ export function Hero({
                     );
                   })}
                 </ul>
+
+                <div className="mt-3.5 flex items-center justify-between border-t border-white/10 pt-3 font-mono text-[11px] text-[#A1A1AA]">
+                  <span className="inline-flex items-center gap-1.5 text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    NIST SP 800-88 Ready
+                  </span>
+                  <span>Gratis Tanpa Login</span>
+                </div>
               </div>
             </aside>
           </div>
