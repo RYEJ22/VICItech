@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
+import { UserSettingsSync } from "@/components/providers/UserSettingsSync";
 import IntroSplash from "@/components/ui/IntroSplash";
 import Navbar from "@/components/Navbar";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
           <CheckoutProvider>
+            <UserSettingsSync />
             <IntroSplash />
             <Navbar />
             <div className="pb-20 md:pb-0">{children}</div>

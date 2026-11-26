@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   LoaderCircle,
   LogOut,
+  Settings,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -347,11 +348,25 @@ export default function AuthNavigation({
                 className={`group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
               >
                 <UserRound
-                  className="h-4 w-4 shrink-0 text-[#71717A] transition-colors group-hover:text-[#EA580C]"
+                  className="h-4 w-4 shrink-0 text-[#52525B] transition-colors group-hover:text-[#EA580C]"
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
                 <span>Profil &amp; Akun</span>
+              </Link>
+
+              <Link
+                role="menuitem"
+                href="/settings"
+                onClick={closeMenu}
+                className={`group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
+              >
+                <Settings
+                  className="h-4 w-4 shrink-0 text-[#52525B] transition-colors group-hover:text-[#EA580C]"
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+                <span>Pengaturan &amp; Privasi</span>
               </Link>
 
               {isAdmin && (

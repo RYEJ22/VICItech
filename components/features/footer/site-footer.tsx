@@ -109,6 +109,12 @@ export function SiteFooter(): ReactElement {
           <p className="hidden lg:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
           <div className="flex flex-wrap items-center gap-1 sm:gap-2">
             <Link
+              href="/settings"
+              className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            >
+              Pengaturan
+            </Link>
+            <Link
               href="/feedback"
               className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
