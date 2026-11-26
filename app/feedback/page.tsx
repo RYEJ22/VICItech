@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ClipboardCheck, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import { FeedbackForm } from '@/components/feedback/FeedbackForm';
+import { FeedbackPageHeader } from '@/components/i18n/LocalizedRouteHeaders';
 
 export const metadata: Metadata = {
   title: 'Umpan Balik & Validasi Pengguna | ViciTech',
@@ -12,18 +13,7 @@ export const metadata: Metadata = {
 export default function FeedbackPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-      <header className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
-          Validasi Pengguna ViciTech OS
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
-          Umpan Balik &amp; Laporan Uji Coba
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
-          Bantu kami menyempurnakan Smart Preset Builder, Bottleneck Analyzer, Upgrade Analyzer,
-          Market, dan Konsultan AI. Setiap laporan Anda menjadi bukti validasi pengembangan ViciTech.
-        </p>
-      </header>
+      <FeedbackPageHeader />
 
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.75fr)]">
         <FeedbackForm />

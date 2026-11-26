@@ -1,7 +1,3 @@
-/*
- * `--hero-surface` and `--hero-ink` are defined by the parent Hero (space-separated RGB
- * channels). The fallbacks keep the slider usable on its own until DESIGN.md has tokens.
- */
 .root {
   position: absolute;
   inset: 0;
@@ -107,4 +103,19 @@
   .pauseButton {
     transition: none;
   }
+}
+
+:global(html[data-theme='dark']) .pauseButton,
+:global(html.dark) .pauseButton {
+  border-radius: 2px;
+  border: 2px solid #2a303c;
+  background: #12151c;
+  color: #f8fafc;
+  box-shadow: 3px 3px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .pauseButton:hover,
+:global(html.dark) .pauseButton:hover {
+  border-color: #ea580c;
+  background: #181c26;
 }

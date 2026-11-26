@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -865,6 +866,8 @@ function ManualUpgradePanel({ initialModelName = "" }) {
 /* ───────────────────────── Halaman Utama Upgrade Analyzer ───────────────────────── */
 
 export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }) {
+  const { t } = useLanguage();
+  const upg = t.routes.upgrade;
   const [localId, setLocalId] = useState("t14");
   const [analyzerMode, setAnalyzerMode] = useState("preset");
   const [searchQuery, setSearchQuery] = useState("");
@@ -936,17 +939,17 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
     <div className="bg-canvas text-primary antialiased">
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="vt-badge-sample">Data Referensi</span>
+          <span className="vt-badge-sample">{upg.badge}</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
-            Analisis Ekspansi Hardware
+            {upg.eyebrow}
           </span>
         </div>
         <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">
           <ArrowRightLeft className="h-8 w-8 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-          <span>Analisis Potensi Upgrade Maksimal</span>
+          <span>{upg.title}</span>
         </h1>
         <p className="mt-3 max-w-2xl text-secondary">
-          Cek batas kapasitas RAM, slot NVMe dan SATA kosong, serta estimasi biaya upgrade dari katalog preset maupun input manual perangkat Anda sendiri.
+          {upg.desc}
         </p>
 
         {/* Pengalih Mode: Katalog Preset vs Input Manual */}

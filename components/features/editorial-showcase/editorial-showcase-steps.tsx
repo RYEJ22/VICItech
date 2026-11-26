@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
 import type {
@@ -57,12 +58,41 @@ export function EditorialShowcaseSteps({
   pillars,
   onNavigate,
 }: EditorialShowcaseInteractiveProps): ReactElement {
+  const { t } = useLanguage();
+  const s = t.showcase;
+  const localizedSteps = steps.map((step) => {
+    const tr = s.steps[step.id];
+    return tr
+      ? {
+          ...step,
+          phaseLabel: tr.phaseLabel,
+          title: tr.title,
+          summary: tr.summary,
+          deliverables: tr.deliverables,
+          actionLabel: tr.actionLabel,
+        }
+      : step;
+  });
+  const localizedPillars = pillars.map((row) => {
+    const tr = s.pillars[row.id];
+    return tr
+      ? {
+          ...row,
+          title: tr.title,
+          description: tr.description,
+          tags: tr.tags,
+          badgeLabel: tr.badgeLabel,
+          actionLabel: tr.actionLabel,
+        }
+      : row;
+  });
+
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [previousStep, setPreviousStep] = useState<WorkflowStepCard | null>(null);
   const [activePillarId, setActivePillarId] = useState<string>(pillars[0].id);
 
-  const activeStep = steps[activeStepIndex] ?? steps[0];
+  const activeStep = localizedSteps[activeStepIndex] ?? localizedSteps[0];
 
   useEffect(() => {
     if (prefersReducedMotion) setPreviousStep(null);
@@ -71,7 +101,7 @@ export function EditorialShowcaseSteps({
   return (
     <div className="space-y-16">
       {/* Reference 00:14–00:21: Stacked Workflow Deck over Framed Hardware Photography */}
-      <RevealOnScroll as="section" ariaLabelledBy="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-primary">
+      <RevealOnScroll as="section" ariaLabelledBy="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-[#09090B]">
         <div className="relative min-h-[28rem] w-full p-5 sm:p-8 lg:p-10">
           <div key={`workflow-background-${activeStep.imageSrc}`} className="absolute inset-0 vt-crossfade">
             <Image
@@ -84,24 +114,24 @@ export function EditorialShowcaseSteps({
           </div>
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/45"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#09090B]/95 via-[#09090B]/85 to-[#09090B]/50"
           />
 
           <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center">
             {/* Stacked Interactive Step Deck */}
             <div className="space-y-2.5 lg:col-span-6">
               <div className="mb-4">
-                <span className="vt-badge-sample">Alur Kerja Terpadu</span>
+                <span className="vt-badge-sample">{s.workflowBadge}</span>
                 <h2
                   id="workflow-deck-heading"
-                  className="tracking-tight mt-3 font-sans text-2xl font-bold text-surface [text-wrap:balance] sm:text-3xl"
+                  className="tracking-tight mt-3 font-sans text-2xl font-bold text-[#FAFAFA] [text-wrap:balance] sm:text-3xl"
                 >
-                  Setiap perangkat melalui siklus riset hingga verifikasi yang rapi.
+                  {s.workflowHeadline}
                 </h2>
               </div>
 
               <div className="space-y-2">
-                {steps.map((step, index) => {
+                {localizedSteps.map((step, index) => {
                   const isActive = index === activeStepIndex;
                   return (
                     <div
@@ -238,25 +268,25 @@ export function EditorialShowcaseSteps({
       <RevealOnScroll as="section" ariaLabelledBy="editorial-pillars-heading">
         <div className="flex flex-wrap items-end justify-between gap-4 pb-6">
           <div>
-            <span className="vt-badge-sample">Direktori Pilar ViciTech</span>
+            <span className="vt-badge-sample">{s.pillarsBadge}</span>
             <h2
               id="editorial-pillars-heading"
               className="mt-3 max-w-xl font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
             >
-              Setiap komponen dan perangkat punya jejak verifikasi yang transparan.
+              {s.pillarsHeadline}
             </h2>
           </div>
           <Link
             href="/market"
             className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
-            <span>Lihat Etalase Market</span>
+            <span>{s.pillarsCta}</span>
             <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           </Link>
         </div>
 
         <ul className="divide-y divide-default border-y border-default">
-          {pillars.map((row) => {
+          {localizedPillars.map((row) => {
             const isPreviewed = activePillarId === row.id;
             return (
               <li

@@ -1,29 +1,28 @@
+'use client';
+
 import { Activity, Cpu, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { CookieSettingsButton } from './cookie-settings-button';
 
-const ECOSYSTEM_LINKS: readonly { readonly href: string; readonly label: string }[] = [
-  { href: '/', label: 'Beranda' },
-  { href: '/market', label: 'Market & Hardware Library' },
-  { href: '/builder', label: 'Smart Preset Builder' },
-  { href: '/trade-in', label: 'Circular Trade-In' },
-  { href: '/partners', label: 'Mitra & Service' },
-  { href: '/community', label: 'Komunitas' },
-  { href: '/feedback', label: 'Umpan Balik & Validasi' },
-];
-
-const STANDARD_ITEMS: readonly string[] = [
-  'Sanitasi Data NIST 800-88',
-  'Protokol 15-Titik IoT QC',
-  'Kebijakan JIT Dynamic Buffer 5%',
-  'Sertifikasi Refurbished Grade A+',
-];
+const ECOSYSTEM_HREFS = [
+  '/',
+  '/market',
+  '/builder',
+  '/trade-in',
+  '/partners',
+  '/community',
+  '/feedback',
+] as const;
 
 const linkCls =
   'vt-motion-press inline-flex min-h-9 items-center text-sm text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded';
 
 export function SiteFooter(): ReactElement {
+  const { t } = useLanguage();
+  const f = t.footer;
+
   return (
     <footer className="border-t border-default bg-canvas">
       <div className="mx-auto hidden max-w-shell gap-10 px-4 py-12 sm:px-6 md:grid md:grid-cols-4">
@@ -38,23 +37,22 @@ export function SiteFooter(): ReactElement {
             <span className="font-sans text-lg tracking-tight">ViciTech</span>
           </Link>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-secondary">
-            Ekosistem Circular IT untuk riset spesifikasi perangkat keras, rakitan B2S/B2B/B2C terkurasi,
-            tukar tambah aset, dan verifikasi kualitas berbasis telemetri ESP32.
+            {f.description}
           </p>
           <span aria-hidden="true" className="vt-pixel-divider mt-4 max-w-[14rem]" />
           <div className="mt-3.5 flex flex-wrap items-center gap-2">
             <span className="vt-badge-simulated">Simulated / Demo QC</span>
-            <span className="vt-badge-sample">Spesifikasi Referensi</span>
+            <span className="vt-badge-sample">{f.badgeRef}</span>
           </div>
         </div>
 
-        <nav aria-label="Navigasi ekosistem ViciTech">
-          <p className="vt-eyebrow">Ekosistem</p>
+        <nav aria-label={f.ecosystemHeading}>
+          <p className="vt-eyebrow">{f.ecosystemHeading}</p>
           <ul className="mt-3 space-y-1.5">
-            {ECOSYSTEM_LINKS.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className={linkCls}>
-                  {item.label}
+            {ECOSYSTEM_HREFS.map((href) => (
+              <li key={href}>
+                <Link href={href} className={linkCls}>
+                  {f.links[href] ?? href}
                 </Link>
               </li>
             ))}
@@ -64,7 +62,7 @@ export function SiteFooter(): ReactElement {
         <div>
           <p className="vt-eyebrow flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            Verifikasi &amp; Standar
+            {f.verificationHeading}
           </p>
           <ul className="mt-3 space-y-2">
             <li>
@@ -73,10 +71,10 @@ export function SiteFooter(): ReactElement {
                 className="inline-flex min-h-9 items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 rounded"
               >
                 <Activity className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Cek Nomor Seri IoT QC</span>
+                <span>{f.checkSerialCta}</span>
               </Link>
             </li>
-            {STANDARD_ITEMS.map((standard) => (
+            {f.standards.map((standard) => (
               <li key={standard} className="text-sm leading-relaxed text-secondary">
                 {standard}
               </li>
@@ -91,41 +89,41 @@ export function SiteFooter(): ReactElement {
           <span>ViciTech</span>
         </Link>
         <details className="border-t border-default pt-2">
-          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Ekosistem</summary>
-          <nav aria-label="Navigasi ekosistem ViciTech versi mobile" className="flex flex-wrap gap-x-4 gap-y-1 pb-2">
-            {ECOSYSTEM_LINKS.map((item) => <Link key={item.href} href={item.href} className="min-h-8 py-1 text-xs text-secondary">{item.label}</Link>)}
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">{f.ecosystemHeading}</summary>
+          <nav aria-label={f.ecosystemHeading} className="flex flex-wrap gap-x-4 gap-y-1 pb-2">
+            {ECOSYSTEM_HREFS.map((href) => <Link key={href} href={href} className="min-h-8 py-1 text-xs text-secondary">{f.links[href] ?? href}</Link>)}
           </nav>
         </details>
         <details className="border-t border-default pt-2">
-          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">Verifikasi &amp; Standar</summary>
+          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">{f.verificationHeading}</summary>
           <ul className="space-y-1 pb-2 text-xs text-secondary">
-            <li><Link href="/qc-panel" className="inline-flex min-h-8 items-center gap-1.5 text-primary"><Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />Cek Nomor Seri IoT QC</Link></li>
-            {STANDARD_ITEMS.map((standard) => <li key={standard} className="py-1">{standard}</li>)}
+            <li><Link href="/qc-panel" className="inline-flex min-h-8 items-center gap-1.5 text-primary"><Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />{f.checkSerialCta}</Link></li>
+            {f.standards.map((standard) => <li key={standard} className="py-1">{standard}</li>)}
           </ul>
         </details>
       </div>
       <div className="border-t border-default bg-surface/60">
         <div className="mx-auto flex max-w-shell flex-wrap items-center justify-between gap-2 px-4 py-3 text-[11px] text-secondary sm:px-6 md:py-4 md:text-xs">
-          <p>© {new Date().getFullYear()} ViciTech. Seluruh hak cipta dilindungi.</p>
-          <p className="hidden lg:block">Harga katalog sebagai referensi; data telemetri sensor &amp; profil simulasi dipisahkan eksplisit.</p>
+          <p>{f.copyright(new Date().getFullYear())}</p>
+          <p className="hidden lg:block">{f.disclaimer}</p>
           <div className="flex flex-wrap items-center gap-1 sm:gap-2">
             <Link
               href="/settings"
               className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
-              Pengaturan
+              {f.settings}
             </Link>
             <Link
               href="/feedback"
               className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
-              Umpan Balik
+              {f.feedback}
             </Link>
             <Link
               href="/cookies"
               className="vt-motion-press inline-flex min-h-11 items-center rounded px-2 text-xs font-medium text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
-              Kebijakan Cookie &amp; Privasi
+              {f.cookies}
             </Link>
             <CookieSettingsButton />
           </div>

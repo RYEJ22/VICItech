@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Activity, Cpu, Radio, ShieldCheck } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import SpotlightCard from "./SpotlightCard";
 
 const IoTQCConsumer = dynamic(() => import("./IoTQCConsumer"), {
@@ -24,16 +25,18 @@ const IoTQCConsumer = dynamic(() => import("./IoTQCConsumer"), {
   ),
 });
 
-const SYSTEM_STATS = [
-  { label: "Mesin Telemetri", value: "IoT QC 15-Titik", icon: Cpu },
-  { label: "Penyimpanan Laporan", value: "Supabase Realtime", icon: ShieldCheck },
-  { label: "Mode Inspeksi", value: "Pelacakan Serial & Order", icon: Radio },
-];
-
 export default function QCPanelDashboard() {
+  const { t } = useLanguage();
+  const qc = t.routes.qcPanel;
   const [clock, setClock] = useState("00:00:00");
   const [initialSerial, setInitialSerial] = useState("");
   const [telemetrySource, setTelemetrySource] = useState("idle");
+
+  const localizedStats = [
+    { label: qc.statEngineLabel, value: qc.statEngineValue, icon: Cpu },
+    { label: qc.statStorageLabel, value: qc.statStorageValue, icon: ShieldCheck },
+    { label: qc.statModeLabel, value: qc.statModeValue, icon: Radio },
+  ];
 
   useEffect(() => {
     const updateClock = () => setClock(new Date().toLocaleTimeString("id-ID", { hour12: false }));
@@ -68,10 +71,10 @@ export default function QCPanelDashboard() {
           }
         : {
             badgeClass: "vt-badge-sample",
-            badgeLabel: "Menunggu Data Serial",
-            description: "Masukkan nomor seri unit atau nomor pesanan untuk melihat profil Simulated / Demo maupun telemetri sensor fisik ESP32 terverifikasi.",
-            footerLabel: "Menunggu pencarian serial",
-            statusLabel: "Siap Melacak",
+            badgeLabel: qc.waitingBadge,
+            description: qc.desc,
+            footerLabel: qc.waitingBadge,
+            statusLabel: qc.waitingBadge,
           };
 
   return (
@@ -84,13 +87,13 @@ export default function QCPanelDashboard() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-primary">
-                ViciTech · Kontrol Kualitas
+                {qc.eyebrow}
               </p>
               <h1 className="mt-2 font-sans text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
-                Panel Diagnostik IoT QC
+                {qc.title}
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
-                Periksa kesehatan perangkat, pantau progres pesanan, dan verifikasi sumber data IoT QC secara transparan.
+                {qc.desc}
               </p>
             </div>
           </div>
@@ -100,7 +103,7 @@ export default function QCPanelDashboard() {
         <span aria-hidden="true" className="vt-pixel-divider mb-6" />
 
         <section className="mb-6 grid gap-3 sm:grid-cols-3" aria-label="Status ruang kerja">
-          {SYSTEM_STATS.map(({ label, value, icon: Icon }) => (
+          {localizedStats.map(({ label, value, icon: Icon }) => (
             <SpotlightCard key={label} className="flex items-center justify-between p-5">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">{label}</p>

@@ -6,10 +6,10 @@ import {
   Database,
   FileCheck2,
   MessageSquareWarning,
-  ShieldCheck,
   UserCheck,
 } from 'lucide-react';
 import { CookiePreferencesPanel } from '@/components/cookies/CookiePreferencesPanel';
+import { CookiesPageHeader } from '@/components/i18n/LocalizedRouteHeaders';
 
 export const metadata: Metadata = {
   title: 'Kebijakan Cookie & Privasi (UU PDP) | ViciTech',
@@ -20,23 +20,7 @@ export const metadata: Metadata = {
 export default function CookiesAndPrivacyPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-      <header className="max-w-3xl">
-        <p className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
-          <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-          Kepatuhan UU No. 27 Tahun 2022 (UU PDP)
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
-          Kebijakan Cookie &amp; Pelindungan Data Pribadi
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
-          ViciTech berkomitmen melindungi data pribadi pengguna secara transparan sesuai{' '}
-          <strong className="font-semibold text-primary">
-            Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP)
-          </strong>
-          . Halaman ini menjelaskan bagaimana kami menggunakan cookie, memproses data, dan menjamin
-          hak privasi Anda.
-        </p>
-      </header>
+      <CookiesPageHeader />
 
       <div className="mt-8 space-y-6">
         <CookiePreferencesPanel />

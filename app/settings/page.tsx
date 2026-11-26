@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SettingsPageHeader } from '@/components/i18n/LocalizedRouteHeaders';
 import { SettingsHub } from '@/components/settings/SettingsHub';
 
 export const metadata: Metadata = {
@@ -10,18 +11,7 @@ export const metadata: Metadata = {
 export default function SettingsPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-      <header className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
-          Pusat Pengaturan ViciTech OS
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
-          Pengaturan &amp; Privasi Akun
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
-          Sesuaikan kenyamanan visual, aksesibilitas antarmuka, serta hak pelindungan data pribadi
-          Anda dalam satu tempat.
-        </p>
-      </header>
+      <SettingsPageHeader />
 
       <div className="mt-8">
         <SettingsHub />

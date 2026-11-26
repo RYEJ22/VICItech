@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   Activity,
   AlertTriangle,
@@ -462,6 +463,8 @@ function findBottleneckMatch(list, rawHint) {
 }
 
 export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = [] }) {
+  const { t } = useLanguage();
+  const bn = t.routes.bottleneck;
   const [remoteComponents, setRemoteComponents] = useState([]);
   const [catalogNotice, setCatalogNotice] = useState("");
   const [selection, setSelection] = useState(DEFAULT_SELECTION);
@@ -667,17 +670,17 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <header className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="vt-badge-simulated">Simulasi Keseimbangan &amp; Daya</span>
+            <span className="vt-badge-simulated">{bn.badge}</span>
             <span className="text-xs font-medium text-secondary">
-              Kalkulator Telemetri ViciTech
+              {bn.eyebrow}
             </span>
           </div>
           <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             <Gauge className="h-7 w-7 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-            <span>Analisis Bottleneck &amp; Headroom PSU</span>
+            <span>{bn.title}</span>
           </h1>
           <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
-            Evaluasi keseimbangan CPU dan GPU berdasarkan skenario resolusi, cek kompatibilitas soket/DDR4–DDR5, hitung margin aman daya PSU +35%, dan dapatkan rekomendasi upgrade terukur.
+            {bn.desc}
           </p>
         </header>
 

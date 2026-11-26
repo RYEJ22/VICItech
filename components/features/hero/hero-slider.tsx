@@ -7,6 +7,7 @@ import type { CSSProperties, ReactElement } from 'react';
 
 import { usePageVisibility } from '@/hooks/use-page-visibility';
 import { usePrefersReducedMotion } from '@/hooks/use-prefers-reduced-motion';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 import type { HeroSlides } from './hero-content';
 import {
@@ -57,6 +58,7 @@ export function HeroSlider({
 }: HeroSliderProps): ReactElement {
   const { intervalMs, fadeMs, zoomScale } = motion;
   const total = slides.length;
+  const { t } = useLanguage();
 
   const prefersReducedMotion = usePrefersReducedMotion();
   const isPageVisible = usePageVisibility();
@@ -154,7 +156,7 @@ export function HeroSlider({
         <button
           type="button"
           className={styles.pauseButton}
-          aria-label={isUserPaused ? 'Putar animasi latar' : 'Jeda animasi latar'}
+          aria-label={isUserPaused ? t.hero.playBg : t.hero.pauseBg}
           onClick={() => {
             setIsUserPaused((paused) => !paused);
           }}

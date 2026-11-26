@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
   DEFAULT_USER_SETTINGS,
+  LANGUAGE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   USER_SETTINGS_STORAGE_KEY,
   USER_SETTINGS_UPDATED_EVENT,
@@ -35,7 +36,11 @@ export function UserSettingsSync() {
     };
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === USER_SETTINGS_STORAGE_KEY || event.key === THEME_STORAGE_KEY) {
+      if (
+        event.key === USER_SETTINGS_STORAGE_KEY ||
+        event.key === THEME_STORAGE_KEY ||
+        event.key === LANGUAGE_STORAGE_KEY
+      ) {
         handleSettingsUpdate();
       }
     };

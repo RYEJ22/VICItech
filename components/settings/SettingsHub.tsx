@@ -22,8 +22,10 @@ import {
   X,
 } from 'lucide-react';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
   DEFAULT_USER_SETTINGS,
+  LANGUAGE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   USER_SETTINGS_STORAGE_KEY,
   USER_SETTINGS_UPDATED_EVENT,
@@ -102,6 +104,8 @@ interface AuthUserSummary {
 }
 
 export function SettingsHub() {
+  const { t } = useLanguage();
+  const s = t.settings;
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [authUser, setAuthUser] = useState<AuthUserSummary | null>(null);
   const [osPrefersReducedMotion, setOsPrefersReducedMotion] = useState(false);
@@ -136,7 +140,11 @@ export function SettingsHub() {
       }
     };
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === USER_SETTINGS_STORAGE_KEY || event.key === THEME_STORAGE_KEY) {
+      if (
+        event.key === USER_SETTINGS_STORAGE_KEY ||
+        event.key === THEME_STORAGE_KEY ||
+        event.key === LANGUAGE_STORAGE_KEY
+      ) {
         handleExternalUpdate();
       }
     };
@@ -398,11 +406,10 @@ export function SettingsHub() {
                 id="settings-display-heading"
                 className="text-lg font-bold tracking-tight text-primary"
               >
-                Tampilan &amp; Aksesibilitas
+                {s.displayTitle}
               </h2>
               <p className="mt-0.5 text-xs leading-relaxed text-secondary">
-                Preferensi diterapkan langsung pada perangkat ini dan otomatis tersinkron ke profil
-                jika Anda masuk.
+                {s.displayDesc}
               </p>
             </div>
           </div>
@@ -415,17 +422,17 @@ export function SettingsHub() {
               {syncStatus === 'saving' ? (
                 <>
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin text-accent-primary" aria-hidden="true" />
-                  Menyimpan…
+                  {s.syncSaving}
                 </>
               ) : syncStatus === 'saved' ? (
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5 text-status-live" aria-hidden="true" />
-                  Tersinkron ke akun
+                  {s.syncSaved}
                 </>
               ) : authUser ? (
-                'Sinkronisasi akun aktif'
+                s.syncActive
               ) : (
-                'Tersimpan di perangkat'
+                s.syncLocal
               )}
             </span>
 
@@ -435,7 +442,7 @@ export function SettingsHub() {
               className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              Reset
+              {s.resetBtn}
             </button>
           </div>
         </div>
@@ -446,21 +453,23 @@ export function SettingsHub() {
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
                 <Monitor className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <p className="text-sm font-semibold text-primary">Tema Tampilan</p>
+                <p className="text-sm font-semibold text-primary">{s.themeTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                Pilih Mode Terang bersih sebagai standar, atau aktifkan Mode Gelap dengan estetika{' '}
-                <strong className="font-semibold text-primary">Obsidian Pixel Hardware UI</strong>{' '}
-                (tetap menjaga tipografi sans-serif &amp; angka monospace yang tajam).
+                {s.themeDescPrefix}
+                <strong className="font-semibold text-primary">{s.themeDescHighlight}</strong>
+                {s.themeDescSuffix}
               </p>
             </div>
             <div
               role="group"
-              aria-label="Pilihan tema tampilan"
+              aria-label={s.themeTitle}
               className="grid grid-cols-2 gap-1.5 rounded-lg border border-default bg-subtle p-1"
             >
               {THEME_OPTIONS.map((opt) => {
                 const selected = settings.theme === opt.value;
+                const optLabel = opt.value === 'dark' ? s.themeDarkLabel : s.themeLightLabel;
+                const optSub = opt.value === 'dark' ? s.themeDarkSub : s.themeLightSub;
                 return (
                   <button
                     key={opt.value}
@@ -479,13 +488,13 @@ export function SettingsHub() {
                       <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
                     )}
                     <span className="min-w-0">
-                      <span className="block leading-tight">{opt.label}</span>
+                      <span className="block leading-tight">{optLabel}</span>
                       <span
                         className={`block text-[10px] font-normal leading-tight ${
                           selected ? 'text-white/90' : 'text-secondary'
                         }`}
                       >
-                        {opt.sub}
+                        {optSub}
                       </span>
                     </span>
                   </button>
@@ -499,16 +508,15 @@ export function SettingsHub() {
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
                 <Globe className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <p className="text-sm font-semibold text-primary">Bahasa Antarmuka</p>
+                <p className="text-sm font-semibold text-primary">{s.langTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                Simpan preferensi bahasa pilihan Anda (ID / EN). Salinan utama ViciTech tetap
-                menjaga konsistensi Bahasa Indonesia hingga lokalisasi penuh tersedia.
+                {s.langDesc}
               </p>
             </div>
             <div
               role="group"
-              aria-label="Pilihan bahasa"
+              aria-label={s.langTitle}
               className="inline-flex rounded-lg border border-default bg-subtle p-1"
             >
               {LANGUAGE_OPTIONS.map((opt) => {
@@ -525,7 +533,7 @@ export function SettingsHub() {
                         : 'text-secondary hover:text-primary'
                     }`}
                   >
-                    {opt.sub}
+                    {opt.value === 'en' ? s.langEnSub : s.langIdSub}
                   </button>
                 );
               })}
@@ -535,15 +543,14 @@ export function SettingsHub() {
           {/* High Contrast */}
           <div className="flex items-center justify-between gap-4 py-5">
             <div className="max-w-lg">
-              <p className="text-sm font-semibold text-primary">Mode Kontras Tinggi</p>
+              <p className="text-sm font-semibold text-primary">{s.contrastTitle}</p>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                Mempertegas batas kartu, kontras teks, dan indikator fokus papan ketik untuk
-                keterbacaan maksimal di tema terang maupun gelap.
+                {s.contrastDesc}
               </p>
             </div>
             <SettingsSwitch
               checked={settings.highContrast}
-              label="Aktifkan Mode Kontras Tinggi"
+              label={s.contrastAria}
               onChange={() => void updateSettings({ highContrast: !settings.highContrast })}
             />
           </div>
@@ -553,20 +560,25 @@ export function SettingsHub() {
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
                 <Type className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <p className="text-sm font-semibold text-primary">Skala Ukuran Teks</p>
+                <p className="text-sm font-semibold text-primary">{s.textScaleTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                Sesuaikan ukuran dasar tipografi agar lebih nyaman dibaca tanpa merusak tata letak
-                halaman.
+                {s.textScaleDesc}
               </p>
             </div>
             <div
               role="group"
-              aria-label="Skala ukuran teks"
+              aria-label={s.textScaleTitle}
               className="grid grid-cols-3 gap-1.5 rounded-lg border border-default bg-subtle p-1"
             >
               {TEXT_SCALE_OPTIONS.map((option) => {
                 const selected = settings.textScale === option.value;
+                const scaleLabel =
+                  option.value === 'large'
+                    ? s.scaleLarge
+                    : option.value === 'xlarge'
+                      ? s.scaleXLarge
+                      : s.scaleNormal;
                 return (
                   <button
                     key={option.value}
@@ -579,7 +591,7 @@ export function SettingsHub() {
                         : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
-                    <span className="block">{option.label}</span>
+                    <span className="block">{scaleLabel}</span>
                     <span
                       className={`block font-mono text-[10px] font-normal tabular-nums ${
                         selected ? 'text-white/90' : 'text-secondary'
@@ -598,20 +610,19 @@ export function SettingsHub() {
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <p className="text-sm font-semibold text-primary">Kurangi Gerakan (Reduced Motion)</p>
+                <p className="text-sm font-semibold text-primary">{s.motionTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                Menonaktifkan animasi transisi dan efek gerak antarmuka. Status sistem perangkat
-                Anda saat ini:{' '}
+                {s.motionDescPrefix}
                 <strong className="font-semibold text-primary">
-                  {osPrefersReducedMotion ? 'Aktif (Reduced)' : 'Standar'}
+                  {osPrefersReducedMotion ? s.motionReduced : s.motionStandard}
                 </strong>
                 .
               </p>
             </div>
             <SettingsSwitch
               checked={settings.reducedMotion}
-              label="Aktifkan Kurangi Gerakan"
+              label={s.motionAria}
               onChange={() => void updateSettings({ reducedMotion: !settings.reducedMotion })}
             />
           </div>
@@ -632,11 +643,10 @@ export function SettingsHub() {
               id="settings-privacy-heading"
               className="text-lg font-bold tracking-tight text-primary"
             >
-              Privasi &amp; Data Akun (UU PDP)
+              {s.privacyTitle}
             </h2>
             <p className="mt-0.5 text-xs leading-relaxed text-secondary">
-              Kelola preferensi cookie, unduh salinan data pribadi Anda, atau ajukan permintaan
-              penghapusan akun sesuai UU No. 27 Tahun 2022.
+              {s.privacyDesc}
             </p>
           </div>
         </div>
@@ -647,18 +657,17 @@ export function SettingsHub() {
             <div>
               <div className="flex items-center gap-2 text-sm font-bold text-primary">
                 <Cookie className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <span>Pengaturan Cookie</span>
+                <span>{s.cookieCardTitle}</span>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-secondary">
-                Tinjau kategori cookie Esensial &amp; Preferensi serta kebijakan pelindungan data
-                pribadi ViciTech.
+                {s.cookieCardDesc}
               </p>
             </div>
             <Link
               href="/cookies"
               className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
-              Buka Pengaturan Cookie
+              {s.cookieCardBtn}
             </Link>
           </div>
 
@@ -667,11 +676,10 @@ export function SettingsHub() {
             <div>
               <div className="flex items-center gap-2 text-sm font-bold text-primary">
                 <Download className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <span>Ekspor Data Saya</span>
+                <span>{s.exportCardTitle}</span>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-secondary">
-                Unduh file JSON berisi ringkasan profil, riwayat pesanan, dan postingan komunitas
-                milik akun Anda.
+                {s.exportCardDesc}
               </p>
             </div>
             {authUser ? (
@@ -686,14 +694,14 @@ export function SettingsHub() {
                 ) : (
                   <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                <span>{exporting ? 'Menyiapkan JSON…' : 'Ekspor Data Saya (.json)'}</span>
+                <span>{exporting ? s.exportPreparing : s.exportBtn}</span>
               </button>
             ) : (
               <Link
                 href="/login"
                 className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
-                Masuk untuk Ekspor Data
+                {s.exportLoginBtn}
               </Link>
             )}
           </div>
@@ -703,11 +711,10 @@ export function SettingsHub() {
             <div>
               <div className="flex items-center gap-2 text-sm font-bold text-primary">
                 <Trash2 className="h-4 w-4 text-status-danger" aria-hidden="true" />
-                <span>Hapus Akun / Data</span>
+                <span>{s.deleteCardTitle}</span>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-secondary">
-                Ajukan penghapusan akun &amp; data pribadi secara permanen. Permintaan akan
-                diverifikasi admin demi keamanan.
+                {s.deleteCardDesc}
               </p>
             </div>
             {authUser ? (
@@ -720,14 +727,14 @@ export function SettingsHub() {
                 className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-red-300 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>Ajukan Penghapusan Akun / Data</span>
+                <span>{s.deleteBtn}</span>
               </button>
             ) : (
               <Link
                 href="/login"
                 className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
-                Masuk untuk Mengajukan
+                {s.deleteLoginBtn}
               </Link>
             )}
           </div>

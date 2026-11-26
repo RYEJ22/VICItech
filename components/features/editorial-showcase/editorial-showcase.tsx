@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -10,6 +12,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import {
   SHOWCASE_MANIFESTO,
@@ -124,16 +127,24 @@ function CalloutCard({
 }
 
 export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): ReactElement {
-  const leftCallouts = TECHNICAL_CALLOUTS.filter(
+  const { t } = useLanguage();
+  const s = t.showcase;
+  const localizedCallouts: TechnicalCallout[] = TECHNICAL_CALLOUTS.map((item) => {
+    const tr = s.callouts[item.id];
+    return tr
+      ? { ...item, badgeLabel: tr.badgeLabel, title: tr.title, summary: tr.summary }
+      : item;
+  });
+  const leftCallouts = localizedCallouts.filter(
     (item) => item.position === 'top-left' || item.position === 'bottom-left',
   );
-  const rightCallouts = TECHNICAL_CALLOUTS.filter(
+  const rightCallouts = localizedCallouts.filter(
     (item) => item.position === 'top-right' || item.position === 'bottom-right',
   );
 
   return (
     <section
-      aria-label="Ringkasan arsitektur Circular IT ViciTech"
+      aria-label={s.sectionAria}
       className="bg-canvas pb-24 pt-12 sm:pb-24 sm:pt-16"
     >
       <div className="mx-auto max-w-7xl space-y-14 px-4 sm:space-y-16 sm:px-6 lg:px-8">
@@ -146,10 +157,10 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
         <RevealOnScroll>
         <div className={`rounded-xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
           <span className="inline-flex items-center rounded-full border border-accent-primary/25 bg-surface px-3.5 py-1 text-xs font-semibold text-accent-hover shadow-card">
-            {SHOWCASE_MANIFESTO.badgeLabel}
+            {s.manifestoBadge}
           </span>
           <h2 className="mx-auto mt-5 max-w-3xl font-sans text-3xl font-extrabold leading-tight tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
-            {SHOWCASE_MANIFESTO.headline}
+            {s.manifestoHeadline}
           </h2>
           <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
             {onNavigate ? (
@@ -158,7 +169,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
                 onClick={() => onNavigate(SHOWCASE_MANIFESTO.ctaModule)}
                 className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-6 py-2.5 text-sm font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
-                <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
+                <span>{s.manifestoPrimaryCta}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               </button>
             ) : (
@@ -166,7 +177,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
                 href={resolveShowcaseHref(SHOWCASE_MANIFESTO.ctaModule)}
                 className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-6 py-2.5 text-sm font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
-                <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
+                <span>{s.manifestoPrimaryCta}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               </Link>
             )}
@@ -174,7 +185,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
               href={SHOWCASE_MANIFESTO.secondaryHref}
               className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
-              <span>{SHOWCASE_MANIFESTO.secondaryLabel}</span>
+              <span>{s.manifestoSecondaryCta}</span>
             </Link>
           </div>
         </div>
@@ -184,9 +195,9 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
         <RevealOnScroll>
         <div className={`rounded-xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
           <div className="mb-6 max-w-2xl">
-            <span className="vt-badge-simulated">Protokol Verifikasi Multi-Perangkat · Demo QC</span>
+            <span className="vt-badge-simulated">{s.diagramBadge}</span>
             <h2 className="tracking-tight mt-3 font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
-              Empat pilar pengujian dan jaminan di setiap unit ViciTech.
+              {s.diagramHeadline}
             </h2>
           </div>
 
@@ -263,10 +274,10 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
           <div className="relative -mt-3 flex flex-wrap items-center justify-between gap-6 sm:-mt-5">
             <div className="max-w-xl">
               <h2 className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
-                Rakit, diagnosa, dan kelola siklus hidup perangkat keras Anda.
+                {s.closingHeadline}
               </h2>
               <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
-                Dari rakitan PC kustom dan laptop enterprise hingga smartphone dan aksesori, semua terhubung dalam satu ekosistem transparan.
+                {s.closingDesc}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -274,14 +285,14 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
                 href="/community"
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
-                <span>Buka Community Hub</span>
+                <span>{s.closingPrimaryCta}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               </Link>
               <Link
                 href="/partners"
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
-                <span>Cari Mitra Servis</span>
+                <span>{s.closingSecondaryCta}</span>
               </Link>
             </div>
           </div>

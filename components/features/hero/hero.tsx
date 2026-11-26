@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowRight, Bot, Lock, ShieldCheck, Sparkles } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 import { HERO_CONTENT, HERO_SLIDES } from './hero-content';
 import type { HeroContent, HeroSlides } from './hero-content';
@@ -12,46 +15,32 @@ interface HeroProps {
   readonly slides?: HeroSlides;
 }
 
-const TRUST_PILLARS = [
-  {
-    icon: ShieldCheck,
-    title: '15 Titik Hybrid IoT QC',
-    subtitle: 'Mode Simulated / Demo',
-    badge: 'Simulated',
-    href: '/qc-panel',
-  },
-  {
-    icon: Lock,
-    title: 'Sanitasi Data NIST SP 800-88',
-    subtitle: 'Standar hapus data aman',
-    badge: null,
-    href: '/cookies',
-  },
-  {
-    icon: Bot,
-    title: 'ViciTech AI Katalog Langsung',
-    subtitle: 'Rekomendasi spek & harga',
-    badge: null,
-    href: '/toolkit/konsultan-ai',
-  },
-  {
-    icon: Sparkles,
-    title: 'Gratis Tanpa Login',
-    subtitle: 'Coba semua toolkit seketika',
-    badge: null,
-    href: '/builder',
-  },
+const TRUST_PILLAR_META = [
+  { icon: ShieldCheck, href: '/qc-panel' },
+  { icon: Lock, href: '/cookies' },
+  { icon: Bot, href: '/toolkit/konsultan-ai' },
+  { icon: Sparkles, href: '/builder' },
 ] as const;
 
 export function Hero({
   content = HERO_CONTENT,
   slides = HERO_SLIDES,
 }: HeroProps): ReactElement {
+  const { t, isEnglish } = useLanguage();
   const firstSlide = slides[0];
-  const headline = content.headline || firstSlide.headline;
-  const subheadline = content.subheadline || content.description || firstSlide.subheadline;
-  const primaryCta = content.primaryCta || firstSlide.primaryCta;
-  const secondaryCta = content.secondaryCta || firstSlide.secondaryCta;
+  const eyebrow = isEnglish ? t.hero.eyebrow : content.eyebrow;
+  const headline = isEnglish ? t.hero.headline : content.headline || firstSlide.headline;
+  const subheadline = isEnglish
+    ? t.hero.subheadline
+    : content.subheadline || content.description || firstSlide.subheadline;
+  const primaryCta = {
+    href: (content.primaryCta || firstSlide.primaryCta).href,
+    label: isEnglish ? t.hero.primaryCta : (content.primaryCta || firstSlide.primaryCta).label,
+  };
+  const secondaryCta = {
+    href: (content.secondaryCta || firstSlide.secondaryCta).href,
+    label: isEnglish ? t.hero.secondaryCta : (content.secondaryCta || firstSlide.secondaryCta).label,
+  };
 
   return (
     <>
@@ -62,7 +51,7 @@ export function Hero({
       >
         <HeroSlider slides={slides} />
         <div
-          className="pointer-events-none absolute inset-0 z-[3] bg-[#FAF9F6]/85 dark:bg-[#09090B]/88 md:bg-transparent md:bg-gradient-to-r md:from-[#FAF9F6]/95 md:via-[#FAF9F6]/75 md:to-transparent dark:md:bg-transparent dark:md:from-[#09090B]/96 dark:md:via-[#09090B]/82 dark:md:to-transparent"
+          className={`pointer-events-none absolute inset-0 z-[3] ${styles.scrim ?? ''}`}
           aria-hidden="true"
         />
 
@@ -75,7 +64,7 @@ export function Hero({
               className={`inline-flex items-center gap-2 rounded-full border border-default bg-surface px-3.5 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-card ${styles.stagger1}`}
             >
               <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
-              <span>{content.eyebrow}</span>
+              <span>{eyebrow}</span>
             </p>
 
             <h1
@@ -112,17 +101,18 @@ export function Hero({
 
       {/* Sleek Compact Trust Strip */}
       <section
-        aria-label="Keunggulan utama ViciTech"
+        aria-label={t.hero.trustAria}
         className="border-y border-default bg-surface"
       >
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-            {TRUST_PILLARS.map((pillar) => {
-              const Icon = pillar.icon;
+            {TRUST_PILLAR_META.map((meta, index) => {
+              const Icon = meta.icon;
+              const copy = t.hero.pillars[index];
               return (
-                <li key={pillar.title}>
+                <li key={meta.href}>
                   <Link
-                    href={pillar.href}
+                    href={meta.href}
                     className="group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 transition-all duration-200 ease-smooth hover:border-default hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
                   >
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary transition-colors group-hover:bg-accent-primary group-hover:text-white">
@@ -130,15 +120,15 @@ export function Hero({
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs font-bold text-primary">{pillar.title}</span>
-                        {pillar.badge ? (
+                        <span className="text-xs font-bold text-primary">{copy.title}</span>
+                        {copy.badge ? (
                           <span className="vt-badge-simulated font-mono !px-1.5 !py-0.5 !text-[10px]">
-                            {pillar.badge}
+                            {copy.badge}
                           </span>
                         ) : null}
                       </span>
                       <span className="mt-0.5 block truncate text-[11px] text-secondary">
-                        {pillar.subtitle}
+                        {copy.subtitle}
                       </span>
                     </span>
                   </Link>

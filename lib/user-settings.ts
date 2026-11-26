@@ -13,6 +13,7 @@ export interface UserSettings {
 }
 
 export const THEME_STORAGE_KEY = 'vici_theme';
+export const LANGUAGE_STORAGE_KEY = 'vici_language';
 export const USER_SETTINGS_STORAGE_KEY = 'vici_user_settings';
 export const USER_SETTINGS_UPDATED_EVENT = 'vicitech:user-settings-updated';
 
@@ -75,6 +76,30 @@ export function getStoredTheme(): ThemeMode {
   return 'light';
 }
 
+export function getStoredLanguage(): UserLanguage {
+  if (typeof window === 'undefined') {
+    return 'id';
+  }
+
+  try {
+    const direct = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (direct === 'en' || direct === 'id') {
+      return direct;
+    }
+    const rawSettings = window.localStorage.getItem(USER_SETTINGS_STORAGE_KEY);
+    if (rawSettings) {
+      const parsed: unknown = JSON.parse(rawSettings);
+      if (isRecord(parsed) && parsed.language === 'en') {
+        return 'en';
+      }
+    }
+  } catch {
+    return 'id';
+  }
+
+  return 'id';
+}
+
 export function getStoredUserSettings(): UserSettings | null {
   if (typeof window === 'undefined') {
     return null;
@@ -83,18 +108,29 @@ export function getStoredUserSettings(): UserSettings | null {
   try {
     const raw = window.localStorage.getItem(USER_SETTINGS_STORAGE_KEY);
     const directTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const directLang = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (!raw) {
-      if (directTheme === 'dark' || directTheme === 'light') {
-        return { ...DEFAULT_USER_SETTINGS, theme: directTheme };
+      if (
+        directTheme === 'dark' ||
+        directTheme === 'light' ||
+        directLang === 'en' ||
+        directLang === 'id'
+      ) {
+        return {
+          ...DEFAULT_USER_SETTINGS,
+          theme: directTheme === 'dark' ? 'dark' : 'light',
+          language: directLang === 'en' ? 'en' : 'id',
+        };
       }
       return null;
     }
     const parsed: unknown = JSON.parse(raw);
     const normalized = normalizeUserSettings(parsed);
-    if (directTheme === 'dark' || directTheme === 'light') {
-      return { ...normalized, theme: directTheme };
-    }
-    return normalized;
+    return {
+      ...normalized,
+      theme: directTheme === 'dark' || directTheme === 'light' ? directTheme : normalized.theme,
+      language: directLang === 'en' || directLang === 'id' ? directLang : normalized.language,
+    };
   } catch {
     return null;
   }
@@ -107,14 +143,15 @@ export function mergeRemoteUserSettings(
   const normalized = normalizeUserSettings(remoteRaw);
   const remoteHasTheme =
     isRecord(remoteRaw) && (remoteRaw.theme === 'dark' || remoteRaw.theme === 'light');
-
-  if (remoteHasTheme) {
-    return normalized;
-  }
+  const remoteHasLanguage =
+    isRecord(remoteRaw) && (remoteRaw.language === 'en' || remoteRaw.language === 'id');
 
   return {
     ...normalized,
-    theme: localFallback?.theme ?? getStoredTheme(),
+    theme: remoteHasTheme ? normalized.theme : (localFallback?.theme ?? getStoredTheme()),
+    language: remoteHasLanguage
+      ? normalized.language
+      : (localFallback?.language ?? getStoredLanguage()),
   };
 }
 
@@ -147,6 +184,7 @@ export function applyUserSettingsToDocument(settings: UserSettings): void {
     root.removeAttribute('data-reduced-motion');
   }
 
+  root.lang = settings.language;
   root.setAttribute('data-language', settings.language);
 }
 
@@ -159,6 +197,7 @@ export function saveStoredUserSettings(next: UserSettings): UserSettings {
   if (typeof window !== 'undefined') {
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, normalized.theme);
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, normalized.language);
       window.localStorage.setItem(USER_SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
     } catch {
       // Abaikan kegagalan storage pada mode privasi ketat.
@@ -175,5 +214,13 @@ export function setStoredTheme(theme: ThemeMode): UserSettings {
   return saveStoredUserSettings({
     ...current,
     theme,
+  });
+}
+
+export function setStoredLanguage(language: UserLanguage): UserSettings {
+  const current = getStoredUserSettings() ?? DEFAULT_USER_SETTINGS;
+  return saveStoredUserSettings({
+    ...current,
+    language,
   });
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   ArrowLeft,
   ArrowRight,
@@ -126,6 +127,8 @@ function Choice({ active, onClick, icon: Icon, badge, title, hint }) {
 /* ───────────────────────── Page ───────────────────────── */
 
 export default function CircularPortal() {
+  const { t } = useLanguage();
+  const ti = t.routes.tradeIn;
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ entity: "Sekolah / Lab CBT", equipment: "Laptop", condition: "Berfungsi Normal", qty: "25" });
   const [email, setEmail] = useState("");
@@ -160,17 +163,17 @@ export default function CircularPortal() {
     <div className="min-w-0 bg-canvas text-primary antialiased">
       <div className="mx-auto max-w-7xl px-3 pb-24 pt-5 sm:px-6 sm:pb-28 sm:pt-10">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="vt-badge-sample">Tarif Referensi</span>
+          <span className="vt-badge-sample">{ti.badge}</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
-            Perpanjang Siklus Pakai Perangkat Keras
+            {ti.eyebrow}
           </span>
         </div>
         <h1 className="mt-2.5 flex items-center gap-2 font-sans text-2xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
           <Recycle className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
-          <span>Portal Trade-In &amp; Buyback Sirkular</span>
+          <span>{ti.title}</span>
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-secondary sm:mt-3 sm:text-base">
-          Simulasikan estimasi nilai beli kembali (buyback) atau tukar tambah perangkat keras lama Anda dalam 3 langkah ringkas untuk pengajuan individu, sekolah, maupun perusahaan.
+          {ti.desc}
         </p>
 
         {/* Visual 3-Step Progress Stepper */}

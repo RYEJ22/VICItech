@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Component, Suspense, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   LayoutDashboard, Cpu, Sliders, RefreshCw, Activity, MessageSquare, Package, ShieldCheck, Layers, Zap,
   Gauge, Swords, User, Building2, GraduationCap, ArrowRight, CheckCircle2, ShoppingBag,
@@ -710,6 +711,8 @@ const MarketModule = memo(function MarketModule({
   marketError,
   marketCategory,
 }) {
+  const { t } = useLanguage();
+  const m = t.routes.market;
   const isLibraryView = view === "catalog" || view === "upgrade";
 
   return (
@@ -718,11 +721,9 @@ const MarketModule = memo(function MarketModule({
         <div className="mx-auto max-w-shell px-4 py-6 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <span className="vt-badge-sample">Market &amp; Hardware Library</span>
+              <span className="vt-badge-sample">{m.badge}</span>
               <h1 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl">
-                {isLibraryView
-                  ? "Hardware Library, Spesifikasi & Potensi Upgrade"
-                  : "Etalase Market & Unit Siap Kirim"}
+                {isLibraryView ? m.titleLibrary : m.titleReady}
               </h1>
             </div>
 
@@ -744,7 +745,7 @@ const MarketModule = memo(function MarketModule({
                 }`}
               >
                 <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span>Semua / Siap Kirim</span>
+                <span>{m.tabReady}</span>
               </button>
               <button
                 type="button"
@@ -758,7 +759,7 @@ const MarketModule = memo(function MarketModule({
                 }`}
               >
                 <Layers className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                <span>Hardware Library &amp; Spesifikasi</span>
+                <span>{m.tabLibrary}</span>
               </button>
             </div>
           </div>

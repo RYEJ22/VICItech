@@ -1,0 +1,1288 @@
+import type { UserLanguage } from '@/lib/user-settings';
+import type { DesktopNavUmbrellaId } from '@/components/navigation/navbar-state';
+
+export interface NavTranslationEntry {
+  readonly label: string;
+  readonly description?: string;
+}
+
+export interface TranslationDictionary {
+  readonly nav: {
+    readonly homeAria: string;
+    readonly mainNavAria: string;
+    readonly groups: Readonly<Record<DesktopNavUmbrellaId, NavTranslationEntry>>;
+    readonly subItems: Readonly<Record<string, NavTranslationEntry>>;
+    readonly mobileBottom: Readonly<Record<string, { readonly label: string; readonly shortLabel: string }>>;
+    readonly searchTitle: string;
+    readonly searchAria: string;
+    readonly cartTitle: string;
+    readonly cartAria: (count: number) => string;
+    readonly messagesAria: (unread: number) => string;
+    readonly notificationsTitle: string;
+    readonly notificationsAria: (unread: number) => string;
+    readonly markAllRead: string;
+    readonly notificationsLoginPrompt: string;
+    readonly loginToAccount: string;
+    readonly noNotifications: string;
+    readonly openMenuAria: string;
+    readonly closeMenuAria: string;
+    readonly drawerSubtitle: string;
+    readonly drawerSocialHeading: string;
+    readonly drawerThemeHeading: string;
+    readonly drawerWorkspaceHeading: string;
+    readonly homeLabel: string;
+    readonly homeDesc: string;
+    readonly dmLabel: string;
+    readonly dmDesc: string;
+    readonly dmUnread: (count: number) => string;
+    readonly profileLabel: string;
+    readonly profileDesc: string;
+    readonly settingsLabel: string;
+    readonly settingsDesc: string;
+  };
+  readonly themeToggle: {
+    readonly switchToLight: string;
+    readonly switchToDark: string;
+    readonly darkTitle: string;
+    readonly darkSub: string;
+    readonly lightTitle: string;
+    readonly lightSub: string;
+  };
+  readonly aiWidget: {
+    readonly ask: string;
+    readonly close: string;
+    readonly expandAria: string;
+    readonly minimizeAria: string;
+    readonly closeWindowAria: string;
+    readonly loading: string;
+  };
+  readonly hero: {
+    readonly eyebrow: string;
+    readonly headline: string;
+    readonly subheadline: string;
+    readonly primaryCta: string;
+    readonly secondaryCta: string;
+    readonly trustAria: string;
+    readonly pauseBg: string;
+    readonly playBg: string;
+    readonly pillars: readonly [
+      { readonly title: string; readonly subtitle: string; readonly badge: string | null },
+      { readonly title: string; readonly subtitle: string; readonly badge: string | null },
+      { readonly title: string; readonly subtitle: string; readonly badge: string | null },
+      { readonly title: string; readonly subtitle: string; readonly badge: string | null },
+    ];
+  };
+  readonly bento: {
+    readonly eyebrow: string;
+    readonly headline: string;
+    readonly subtitle: string;
+    readonly p1Badge: string;
+    readonly p1Meta: string;
+    readonly p1Title: string;
+    readonly p1Desc: string;
+    readonly p1PreviewTitle: string;
+    readonly p1PreviewStatus: string;
+    readonly p1PsuLabel: string;
+    readonly p1FpsLabel: string;
+    readonly p1JitLabel: string;
+    readonly p1JitValue: string;
+    readonly p1CtaBuilder: string;
+    readonly p1CtaBottleneck: string;
+    readonly p1CtaUpgrade: string;
+    readonly p1CtaAi: string;
+    readonly p2Badge: string;
+    readonly p2Title: string;
+    readonly p2Desc: string;
+    readonly p2DemoTag: string;
+    readonly p2BurnInLabel: string;
+    readonly p2BurnInValue: string;
+    readonly p2SanitationLabel: string;
+    readonly p2SanitationValue: string;
+    readonly p2Cta: string;
+    readonly p3Badge: string;
+    readonly p3Meta: string;
+    readonly p3Title: string;
+    readonly p3Desc: string;
+    readonly p3CtaCommunity: string;
+    readonly p3CtaMessages: string;
+    readonly p4Badge: string;
+    readonly p4Title: string;
+    readonly p4Desc: string;
+    readonly p4CtaMarket: string;
+    readonly p4CtaTradeIn: string;
+  };
+  readonly showcase: {
+    readonly sectionAria: string;
+    readonly manifestoBadge: string;
+    readonly manifestoHeadline: string;
+    readonly manifestoPrimaryCta: string;
+    readonly manifestoSecondaryCta: string;
+    readonly diagramBadge: string;
+    readonly diagramHeadline: string;
+    readonly callouts: Readonly<Record<string, { readonly badgeLabel: string; readonly title: string; readonly summary: string }>>;
+    readonly workflowBadge: string;
+    readonly workflowHeadline: string;
+    readonly steps: Readonly<
+      Record<
+        string,
+        {
+          readonly phaseLabel: string;
+          readonly title: string;
+          readonly summary: string;
+          readonly deliverables: readonly [string, string];
+          readonly actionLabel: string;
+        }
+      >
+    >;
+    readonly pillarsBadge: string;
+    readonly pillarsHeadline: string;
+    readonly pillarsCta: string;
+    readonly pillars: Readonly<
+      Record<
+        string,
+        {
+          readonly title: string;
+          readonly description: string;
+          readonly tags: readonly [string, string, string];
+          readonly badgeLabel: string;
+          readonly actionLabel: string;
+        }
+      >
+    >;
+    readonly closingHeadline: string;
+    readonly closingDesc: string;
+    readonly closingPrimaryCta: string;
+    readonly closingSecondaryCta: string;
+  };
+  readonly footer: {
+    readonly description: string;
+    readonly badgeRef: string;
+    readonly ecosystemHeading: string;
+    readonly verificationHeading: string;
+    readonly checkSerialCta: string;
+    readonly standards: readonly string[];
+    readonly links: Readonly<Record<string, string>>;
+    readonly copyright: (year: number) => string;
+    readonly disclaimer: string;
+    readonly settings: string;
+    readonly feedback: string;
+    readonly cookies: string;
+  };
+  readonly settings: {
+    readonly pageEyebrow: string;
+    readonly pageTitle: string;
+    readonly pageDesc: string;
+    readonly displayTitle: string;
+    readonly displayDesc: string;
+    readonly syncSaving: string;
+    readonly syncSaved: string;
+    readonly syncActive: string;
+    readonly syncLocal: string;
+    readonly resetBtn: string;
+    readonly themeTitle: string;
+    readonly themeDescPrefix: string;
+    readonly themeDescHighlight: string;
+    readonly themeDescSuffix: string;
+    readonly themeLightLabel: string;
+    readonly themeLightSub: string;
+    readonly themeDarkLabel: string;
+    readonly themeDarkSub: string;
+    readonly langTitle: string;
+    readonly langDesc: string;
+    readonly langIdSub: string;
+    readonly langEnSub: string;
+    readonly contrastTitle: string;
+    readonly contrastDesc: string;
+    readonly contrastAria: string;
+    readonly textScaleTitle: string;
+    readonly textScaleDesc: string;
+    readonly scaleNormal: string;
+    readonly scaleLarge: string;
+    readonly scaleXLarge: string;
+    readonly motionTitle: string;
+    readonly motionDescPrefix: string;
+    readonly motionReduced: string;
+    readonly motionStandard: string;
+    readonly motionAria: string;
+    readonly privacyTitle: string;
+    readonly privacyDesc: string;
+    readonly cookieCardTitle: string;
+    readonly cookieCardDesc: string;
+    readonly cookieCardBtn: string;
+    readonly exportCardTitle: string;
+    readonly exportCardDesc: string;
+    readonly exportBtn: string;
+    readonly exportPreparing: string;
+    readonly exportLoginBtn: string;
+    readonly deleteCardTitle: string;
+    readonly deleteCardDesc: string;
+    readonly deleteBtn: string;
+    readonly deleteLoginBtn: string;
+    readonly deleteModalTitle: string;
+    readonly deleteModalSub: string;
+    readonly deleteCancel: string;
+    readonly deleteSubmit: string;
+    readonly deleteSending: string;
+  };
+  readonly routes: {
+    readonly market: {
+      readonly badge: string;
+      readonly titleReady: string;
+      readonly titleLibrary: string;
+      readonly tabReady: string;
+      readonly tabLibrary: string;
+      readonly searchPlaceholder: string;
+      readonly stockAll: string;
+      readonly stockReady: string;
+      readonly stockPreorder: string;
+      readonly qcToggle: string;
+      readonly sortLabel: string;
+      readonly sortNewest: string;
+      readonly sortPriceAsc: string;
+      readonly sortPriceDesc: string;
+      readonly categoryAll: string;
+      readonly showingPrefix: string;
+      readonly showingUnit: string;
+      readonly reset: string;
+    };
+    readonly builder: {
+      readonly badge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly budgetHeading: string;
+    };
+    readonly bottleneck: {
+      readonly badge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+    };
+    readonly versus: {
+      readonly badge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+    };
+    readonly upgrade: {
+      readonly badge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+    };
+    readonly tradeIn: {
+      readonly badge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly step1Label: string;
+      readonly step1Title: string;
+    };
+    readonly qcPanel: {
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly waitingBadge: string;
+      readonly statEngineLabel: string;
+      readonly statEngineValue: string;
+      readonly statStorageLabel: string;
+      readonly statStorageValue: string;
+      readonly statModeLabel: string;
+      readonly statModeValue: string;
+    };
+    readonly partners: {
+      readonly verifiedBadge: (count: number) => string;
+      readonly fallbackBadge: string;
+      readonly qcBtn: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly dmCta: string;
+      readonly tradeInCta: string;
+      readonly shareLabel: string;
+    };
+    readonly community: {
+      readonly liveBadge: string;
+      readonly sampleBadge: string;
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly createPostBtn: string;
+    };
+    readonly aiConsultant: {
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly disclaimer: string;
+    };
+    readonly feedback: {
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly howProcessedTitle: string;
+      readonly privacyCardTitle: string;
+      readonly privacyCardCta: string;
+    };
+    readonly cookies: {
+      readonly eyebrow: string;
+      readonly title: string;
+      readonly desc: string;
+      readonly dataRequestCta: string;
+    };
+  };
+}
+
+export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>> = {
+  id: {
+    nav: {
+      homeAria: 'ViciTech Beranda',
+      mainNavAria: 'Navigasi utama ViciTech',
+      groups: {
+        market: { label: 'Market' },
+        toolkit: { label: 'Toolkit' },
+        services: { label: 'Layanan & QC' },
+        community: {
+          label: 'Komunitas',
+          description: 'Showcase rakitan, panduan teknis & tanya jawab komunitas.',
+        },
+      },
+      subItems: {
+        'market-ready': {
+          label: 'Etalase Market',
+          description: 'PC rakitan siap kirim & unit laptop lulus uji IoT QC.',
+        },
+        'market-catalog': {
+          label: 'Hardware Library',
+          description: 'Katalog spesifikasi CPU, GPU, laptop & komponen lengkap.',
+        },
+        'toolkit-builder': {
+          label: 'Preset Builder',
+          description: 'Rakit PC otomatis dengan cek kompatibilitas soket & TDP.',
+        },
+        'toolkit-bottleneck': {
+          label: 'Bottleneck Analyzer',
+          description: 'Hitung keseimbangan performa CPU & GPU.',
+        },
+        'toolkit-versus': {
+          label: 'Versus Arena',
+          description: 'Bandingkan spesifikasi hardware head-to-head.',
+        },
+        'toolkit-upgrade': {
+          label: 'Upgrade Analyzer',
+          description: 'Cek potensi ekspansi RAM & storage perangkatmu.',
+        },
+        'toolkit-ai-consultant': {
+          label: 'Konsultan Rakitan AI',
+          description: 'Konsultasi rakitan PC, upgrade laptop, dan katalog ViciTech.',
+        },
+        'service-qc': {
+          label: 'Panel IoT QC',
+          description: 'Lacak status perakitan & telemetri burn-in ESP32.',
+        },
+        'service-tradein': {
+          label: 'Trade-In & Refurbished',
+          description: 'Tukar tambah perangkat lama & unit bekas terverifikasi.',
+        },
+        'service-partners': {
+          label: 'Mitra & Service',
+          description: 'Cari toko komponen & service center lokal tepercaya.',
+        },
+      },
+      mobileBottom: {
+        home: { label: 'Beranda', shortLabel: 'Beranda' },
+        market: { label: 'Market', shortLabel: 'Market' },
+        builder: { label: 'Toolkit', shortLabel: 'Toolkit' },
+        tradein: { label: 'Layanan & QC', shortLabel: 'Layanan' },
+        community: { label: 'Komunitas', shortLabel: 'Komunitas' },
+      },
+      searchTitle: 'Cari cepat (Ctrl+K)',
+      searchAria: 'Cari di ViciTech (Ctrl+K)',
+      cartTitle: 'Keranjang Belanja',
+      cartAria: (count) => (count > 0 ? `Keranjang Belanja (${count} item)` : 'Keranjang Belanja'),
+      messagesAria: (unread) => (unread > 0 ? `Pesan Langsung (${unread} belum dibaca)` : 'Pesan Langsung'),
+      notificationsTitle: 'Notifikasi',
+      notificationsAria: (unread) => (unread > 0 ? `Notifikasi (${unread} belum dibaca)` : 'Notifikasi'),
+      markAllRead: 'Tandai dibaca',
+      notificationsLoginPrompt: 'Masuk untuk melihat notifikasi pesanan, komentar, dan pesan langsung Anda.',
+      loginToAccount: 'Masuk ke Akun',
+      noNotifications: 'Belum ada notifikasi baru.',
+      openMenuAria: 'Buka menu navigasi ViciTech',
+      closeMenuAria: 'Tutup menu navigasi',
+      drawerSubtitle: 'Ekosistem Circular IT & Hardware QC',
+      drawerSocialHeading: 'Sosial & Panduan',
+      drawerThemeHeading: 'Tema Tampilan',
+      drawerWorkspaceHeading: 'Workspace & Akun',
+      homeLabel: 'Beranda',
+      homeDesc: 'Halaman utama ekosistem Circular IT & Hardware QC ViciTech.',
+      dmLabel: 'Pesan Langsung',
+      dmDesc: 'Obrolan langsung dengan teknisi & builder.',
+      dmUnread: (count) => `${count} pesan belum dibaca`,
+      profileLabel: 'Profil & Akun',
+      profileDesc: 'Pesanan, preset tersimpan & preferensi akun.',
+      settingsLabel: 'Pengaturan & Privasi',
+      settingsDesc: 'Bahasa, tema, aksesibilitas tampilan, ekspor data & kontrol UU PDP.',
+    },
+    themeToggle: {
+      switchToLight: 'Ganti ke Mode Terang',
+      switchToDark: 'Aktifkan Mode Gelap (Pixel Obsidian)',
+      darkTitle: 'Mode Gelap · Pixel Obsidian',
+      darkSub: 'Ketuk untuk kembali ke tema terang',
+      lightTitle: 'Mode Terang · Standar',
+      lightSub: 'Ketuk untuk UI Pixel Obsidian gelap',
+    },
+    aiWidget: {
+      ask: 'Tanya ViciTech AI',
+      close: 'Tutup ViciTech AI',
+      expandAria: 'Perluas chat ke layar penuh',
+      minimizeAria: 'Minimalkan jendela chat',
+      closeWindowAria: 'Tutup jendela chat',
+      loading: 'Menyiapkan konsultan…',
+    },
+    hero: {
+      eyebrow: 'Ekosistem Circular IT & Hardware Toolkit Indonesia',
+      headline: 'Beli, rakit, dan upgrade PC & laptop tanpa rasa ragu.',
+      subheadline:
+        'Dari simulasi rakitan & bottleneck, verifikasi 15 titik Hybrid IoT QC (Simulated / Demo), hingga konsultasi ViciTech AI langsung ke katalog — semua dalam satu platform transparan.',
+      primaryCta: 'Jelajahi Market QC',
+      secondaryCta: 'Mulai Rakit PC',
+      trustAria: 'Keunggulan utama ViciTech',
+      pauseBg: 'Jeda animasi latar',
+      playBg: 'Putar animasi latar',
+      pillars: [
+        { title: '15 Titik Hybrid IoT QC', subtitle: 'Mode Simulated / Demo', badge: 'Simulated' },
+        { title: 'Sanitasi Data NIST SP 800-88', subtitle: 'Standar hapus data aman', badge: null },
+        { title: 'ViciTech AI Katalog Langsung', subtitle: 'Rekomendasi spek & harga', badge: null },
+        { title: 'Gratis Tanpa Login', subtitle: 'Coba semua toolkit seketika', badge: null },
+      ],
+    },
+    bento: {
+      eyebrow: 'Tri-Pillar Moat ViciTech',
+      headline: 'Tiga pilar yang bikin keputusan hardware Anda lebih presisi dan aman.',
+      subtitle:
+        'Satukan kalkulator simulasi, verifikasi kualitas transparan, dan komunitas teknis aktif sebelum mengeluarkan anggaran sepeser pun.',
+      p1Badge: 'Pilar 1 · Toolkit Simulasi',
+      p1Meta: 'Gratis · Tanpa Login',
+      p1Title: 'Simulasi rakitan, bottleneck, dan upgrade sebelum beli komponen.',
+      p1Desc:
+        'Cek kecocokan soket & DDR, hitung headroom daya PSU +35%, proyeksi FPS per game, hingga potensi ekspansi RAM/SSD laptop Anda dengan bantuan ViciTech AI.',
+      p1PreviewTitle: 'Contoh Simulasi · Ryzen 5 7600 + RTX 4060',
+      p1PreviewStatus: 'Seimbang (4.2%)',
+      p1PsuLabel: 'Beban PSU',
+      p1FpsLabel: '1080p Kompetitif',
+      p1JitLabel: 'Buffer JIT',
+      p1JitValue: '5% Dinamis',
+      p1CtaBuilder: 'Preset Builder',
+      p1CtaBottleneck: 'Bottleneck',
+      p1CtaUpgrade: 'Upgrade Analyzer',
+      p1CtaAi: 'Konsultan AI',
+      p2Badge: 'Pilar 2 · Hybrid IoT QC',
+      p2Title: 'Verifikasi 15 titik & sertifikat serial anti-zonk.',
+      p2Desc:
+        'Transparansi log uji termal, voltase, dan sanitasi data NIST SP 800-88 yang dapat dicek publik lewat nomor seri. Integrasi sensor fisik ESP32 dijadwalkan di v2.5.',
+      p2DemoTag: 'Profil Demo QC',
+      p2BurnInLabel: 'Burn-In Termal CPU/GPU',
+      p2BurnInValue: '64.0°C · Stabil',
+      p2SanitationLabel: 'Sanitasi NIST SP 800-88',
+      p2SanitationValue: '15/15 Lulus',
+      p2Cta: 'Buka Panel Simulasi IoT QC',
+      p3Badge: 'Pilar 3 · Community Hub',
+      p3Meta: 'Diskusi & DM Langsung',
+      p3Title: 'Belajar dari rakitan nyata, cari anggota, dan diskusi langsung.',
+      p3Desc:
+        'Bagikan hasil rakitan PC, tanyakan pengalaman upgrade laptop, atau kirim pesan langsung ke builder dan teknisi terpercaya di komunitas ViciTech.',
+      p3CtaCommunity: 'Jelajahi Komunitas',
+      p3CtaMessages: 'Pesan Langsung',
+      p4Badge: 'Market & Circular Trade-In',
+      p4Title: 'PC, Laptop, Consoles & Handhelds dalam satu etalase.',
+      p4Desc:
+        'Beli unit siap kirim dengan Smart Part Matcher atau tukar tambah perangkat lama Anda secara transparan.',
+      p4CtaMarket: 'Buka Market',
+      p4CtaTradeIn: 'Trade-In',
+    },
+    showcase: {
+      sectionAria: 'Ringkasan arsitektur Circular IT ViciTech',
+      manifestoBadge: 'Ekosistem Circular IT ViciTech',
+      manifestoHeadline:
+        'Kami menghadirkan transparansi perangkat keras presisi untuk builder, gamer, sekolah, dan armada bisnis.',
+      manifestoPrimaryCta: 'Mulai Rakit di Workspace',
+      manifestoSecondaryCta: 'Jelajahi Market',
+      diagramBadge: 'Protokol Verifikasi Multi-Perangkat · Demo QC',
+      diagramHeadline: 'Empat pilar pengujian dan jaminan di setiap unit ViciTech.',
+      callouts: {
+        'callout-esp32': {
+          badgeLabel: 'Simulated / Demo',
+          title: 'Protokol QC 15 Titik & Telemetri Burn-In',
+          summary:
+            'Simulasi profil uji suhu CPU/GPU, stabilitas voltase, dan sertifikat serial (integrasi sensor fisik ESP32 dijadwalkan di v2.5).',
+        },
+        'callout-nist': {
+          badgeLabel: 'Simulated / Demo',
+          title: 'Sanitasi Data Standar NIST 800-88',
+          summary: 'Penghapusan data permanen untuk unit enterprise B2B, sekolah B2S, dan unit Trade-In.',
+        },
+        'callout-jit': {
+          badgeLabel: 'Sample',
+          title: 'Buffer Pengadaan JIT 5% (B2S & B2B)',
+          summary: 'Kalkulasi stok cadangan dan daya listrik otomatis agar pengadaan lab tetap bebas kendala.',
+        },
+        'callout-tradein': {
+          badgeLabel: 'Sample',
+          title: 'Valuasi Trade-In & Refurbished Grade A+',
+          summary: 'Ubah perangkat lama menjadi kredit upgrade ke laptop bisnis atau komponen tersertifikasi.',
+        },
+      },
+      workflowBadge: 'Alur Kerja Terpadu',
+      workflowHeadline: 'Setiap perangkat melalui siklus riset hingga verifikasi yang rapi.',
+      steps: {
+        'step-riset': {
+          phaseLabel: 'Tahap Riset',
+          title: 'Analisis Spek & Potensi Upgrade',
+          summary:
+            'Bandingkan ponsel, laptop, desktop, dan aksesori secara berdampingan sekaligus cek jumlah slot RAM dan NVMe maksimum.',
+          deliverables: ['Komparasi hingga 4 perangkat', 'Cek kapasitas ekspansi slot'],
+          actionLabel: 'Buka Hardware Library',
+        },
+        'step-konfigurasi': {
+          phaseLabel: 'Tahap Konfigurasi',
+          title: 'Rakit Preset & Simulasi Bottleneck',
+          summary:
+            'Susun paket PC B2C, workstation kantor B2B, atau pengadaan lab CBT sekolah B2S dengan hitung TDP PSU dan bottleneck CPU/GPU.',
+          deliverables: ['Estimasi beban daya & FPS', 'Buffer pengadaan JIT 5%'],
+          actionLabel: 'Susun di Preset Builder',
+        },
+        'step-verifikasi': {
+          phaseLabel: 'Tahap Verifikasi QC',
+          title: 'Uji Burn-In & Sertifikasi Telemetri',
+          summary:
+            'Setiap perangkat yang dirakit atau direkondisi melewati 15 titik pengecekan dan terikat kode serial VICI-XXX untuk verifikasi publik.',
+          deliverables: ['Log telemetri suhu & voltase', 'Sertifikat digital anti-zonk'],
+          actionLabel: 'Cek Serial IoT QC',
+        },
+        'step-sirkular': {
+          phaseLabel: 'Tahap Ekosistem',
+          title: 'Trade-In Sirkular & Mitra Servis',
+          summary:
+            'Tukar tambah aset lama secara satuan maupun massal dan temukan pusat servis atau toko komponen terpercaya di jaringan mitra.',
+          deliverables: ['Estimasi valuasi tukar tambah', 'Terhubung ke DM & teknisi mitra'],
+          actionLabel: 'Buka Portal Trade-In',
+        },
+      },
+      pillarsBadge: 'Direktori Pilar ViciTech',
+      pillarsHeadline: 'Setiap komponen dan perangkat punya jejak verifikasi yang transparan.',
+      pillarsCta: 'Lihat Etalase Market',
+      pillars: {
+        'pillar-library': {
+          title: 'Hardware Library & Upgrade',
+          description:
+            'Katalog terpadu untuk membandingkan smartphone, laptop bisnis, GPU/CPU desktop, dan memeriksa batas upgrade RAM/NVMe.',
+          tags: ['4 Kategori Utama', 'Kalkulator Ekspansi', 'Perbandingan Spek'],
+          badgeLabel: 'Sample Catalog',
+          actionLabel: 'Buka Library',
+        },
+        'pillar-qc': {
+          title: 'IoT Smart Bench & QC Engine',
+          description:
+            'Pelacakan nomor serial dengan profil uji simulasi admin (Simulated / Demo) yang dipisahkan secara tegas dari sensor ESP32 fisik.',
+          tags: ['15-Point Protocol', 'NIST 800-88 Wipe', 'QR Verification'],
+          badgeLabel: 'Simulated / Demo',
+          actionLabel: 'Lacak QC Serial',
+        },
+        'pillar-market': {
+          title: 'Curated Market & Presets',
+          description:
+            'Etalase rakitan siap pakai untuk gaming, kreator, kantor, dan lab sekolah dengan validasi kompatibilitas menyeluruh.',
+          tags: ['Preset B2C / B2B / B2S', 'JIT 5% Buffer', 'Creator Verdict'],
+          badgeLabel: 'Sample Preview',
+          actionLabel: 'Lihat Market',
+        },
+        'pillar-partners': {
+          title: 'Service Center & Mitra Lokal',
+          description:
+            'Jaringan teknisi perbaikan laptop/PC dan mitra komponen terverifikasi untuk konsultasi langsung serta inspeksi Trade-In.',
+          tags: ['Hub Bandung & Jaksel', 'Support Lab B2S', 'Konsultasi DM'],
+          badgeLabel: 'Sample Mitra',
+          actionLabel: 'Direktori Mitra',
+        },
+      },
+      closingHeadline: 'Rakit, diagnosa, dan kelola siklus hidup perangkat keras Anda.',
+      closingDesc:
+        'Dari rakitan PC kustom dan laptop enterprise hingga smartphone dan aksesori, semua terhubung dalam satu ekosistem transparan.',
+      closingPrimaryCta: 'Buka Community Hub',
+      closingSecondaryCta: 'Cari Mitra Servis',
+    },
+    footer: {
+      description:
+        'Ekosistem Circular IT untuk riset spesifikasi perangkat keras, rakitan B2S/B2B/B2C terkurasi, tukar tambah aset, dan verifikasi kualitas berbasis telemetri ESP32.',
+      badgeRef: 'Spesifikasi Referensi',
+      ecosystemHeading: 'Ekosistem',
+      verificationHeading: 'Verifikasi & Standar',
+      checkSerialCta: 'Cek Nomor Seri IoT QC',
+      standards: [
+        'Sanitasi Data NIST 800-88',
+        'Protokol 15-Titik IoT QC',
+        'Kebijakan JIT Dynamic Buffer 5%',
+        'Sertifikasi Refurbished Grade A+',
+      ],
+      links: {
+        '/': 'Beranda',
+        '/market': 'Market & Hardware Library',
+        '/builder': 'Smart Preset Builder',
+        '/trade-in': 'Circular Trade-In',
+        '/partners': 'Mitra & Service',
+        '/community': 'Komunitas',
+        '/feedback': 'Umpan Balik & Validasi',
+      },
+      copyright: (year) => `© ${year} ViciTech. Seluruh hak cipta dilindungi.`,
+      disclaimer:
+        'Harga katalog sebagai referensi; data telemetri sensor & profil simulasi dipisahkan eksplisit.',
+      settings: 'Pengaturan',
+      feedback: 'Umpan Balik',
+      cookies: 'Kebijakan Cookie & Privasi',
+    },
+    settings: {
+      pageEyebrow: 'Pusat Pengaturan ViciTech OS',
+      pageTitle: 'Pengaturan & Privasi Akun',
+      pageDesc:
+        'Sesuaikan kenyamanan visual, bahasa antarmuka, aksesibilitas, serta hak pelindungan data pribadi Anda dalam satu tempat.',
+      displayTitle: 'Tampilan & Aksesibilitas',
+      displayDesc:
+        'Preferensi diterapkan langsung pada perangkat ini dan otomatis tersinkron ke profil jika Anda masuk.',
+      syncSaving: 'Menyimpan…',
+      syncSaved: 'Tersinkron ke akun',
+      syncActive: 'Sinkronisasi akun aktif',
+      syncLocal: 'Tersimpan di perangkat',
+      resetBtn: 'Reset',
+      themeTitle: 'Tema Tampilan',
+      themeDescPrefix: 'Pilih Mode Terang bersih sebagai standar, atau aktifkan Mode Gelap dengan estetika ',
+      themeDescHighlight: 'Obsidian Pixel Hardware UI',
+      themeDescSuffix: ' (tetap menjaga tipografi sans-serif & angka monospace yang tajam).',
+      themeLightLabel: 'Mode Terang',
+      themeLightSub: 'Default · Ceramic Light',
+      themeDarkLabel: 'Mode Gelap',
+      themeDarkSub: 'Pixel Obsidian UI',
+      langTitle: 'Bahasa Antarmuka',
+      langDesc:
+        'Ubah bahasa antarmuka ViciTech secara instan antara Bahasa Indonesia (ID) dan English (EN) di seluruh halaman utama.',
+      langIdSub: 'ID (Utama)',
+      langEnSub: 'EN (English)',
+      contrastTitle: 'Mode Kontras Tinggi',
+      contrastDesc:
+        'Mempertegas batas kartu, kontras teks, dan indikator fokus papan ketik untuk keterbacaan maksimal di tema terang maupun gelap.',
+      contrastAria: 'Aktifkan Mode Kontras Tinggi',
+      textScaleTitle: 'Skala Ukuran Teks',
+      textScaleDesc:
+        'Sesuaikan ukuran dasar tipografi agar lebih nyaman dibaca tanpa merusak tata letak halaman.',
+      scaleNormal: 'Normal',
+      scaleLarge: 'Besar',
+      scaleXLarge: 'Ekstra Besar',
+      motionTitle: 'Kurangi Gerakan (Reduced Motion)',
+      motionDescPrefix: 'Menonaktifkan animasi transisi dan efek gerak antarmuka. Status sistem perangkat Anda saat ini: ',
+      motionReduced: 'Aktif (Reduced)',
+      motionStandard: 'Standar',
+      motionAria: 'Aktifkan Kurangi Gerakan',
+      privacyTitle: 'Privasi & Data Akun (UU PDP)',
+      privacyDesc:
+        'Kelola preferensi cookie, unduh salinan data pribadi Anda, atau ajukan permintaan penghapusan akun sesuai UU No. 27 Tahun 2022.',
+      cookieCardTitle: 'Pengaturan Cookie',
+      cookieCardDesc:
+        'Tinjau kategori cookie Esensial & Preferensi serta kebijakan pelindungan data pribadi ViciTech.',
+      cookieCardBtn: 'Buka Pengaturan Cookie',
+      exportCardTitle: 'Ekspor Data Saya',
+      exportCardDesc:
+        'Unduh file JSON berisi ringkasan profil, riwayat pesanan, dan postingan komunitas milik akun Anda.',
+      exportBtn: 'Ekspor Data Saya (.json)',
+      exportPreparing: 'Menyiapkan JSON…',
+      exportLoginBtn: 'Masuk untuk Ekspor Data',
+      deleteCardTitle: 'Hapus Akun / Data',
+      deleteCardDesc:
+        'Ajukan penghapusan akun & data pribadi secara permanen. Permintaan akan diverifikasi admin demi keamanan.',
+      deleteBtn: 'Ajukan Penghapusan Akun / Data',
+      deleteLoginBtn: 'Masuk untuk Mengajukan',
+      deleteModalTitle: 'Konfirmasi Penghapusan Data',
+      deleteModalSub: 'Hak Penghapusan Data Pribadi (UU PDP)',
+      deleteCancel: 'Batal',
+      deleteSubmit: 'Kirim Permintaan Penghapusan',
+      deleteSending: 'Mengirim…',
+    },
+    routes: {
+      market: {
+        badge: 'Market & Hardware Library',
+        titleReady: 'Etalase Market & Unit Siap Kirim',
+        titleLibrary: 'Hardware Library, Spesifikasi & Potensi Upgrade',
+        tabReady: 'Semua / Siap Kirim',
+        tabLibrary: 'Hardware Library & Spesifikasi',
+        searchPlaceholder: 'Cari PC rakitan, laptop, CPU, GPU, konsol, atau merek…',
+        stockAll: 'Semua',
+        stockReady: 'Siap Kirim',
+        stockPreorder: 'Pre-Order',
+        qcToggle: 'Lulus IoT QC',
+        sortLabel: 'Urutkan:',
+        sortNewest: 'Terbaru',
+        sortPriceAsc: 'Harga Terendah',
+        sortPriceDesc: 'Harga Tertinggi',
+        categoryAll: 'Semua',
+        showingPrefix: 'Menampilkan',
+        showingUnit: 'produk',
+        reset: 'Reset',
+      },
+      builder: {
+        badge: 'Data Referensi & Inventori',
+        eyebrow: 'Rakit dengan Kepastian Kompatibilitas',
+        title: 'Smart Preset Builder & Konfigurator',
+        desc: 'Mulai dari preset teruji sesuai segmen kebutuhan, ganti komponen apa saja, dan pantau harga, estimasi beban daya PSU, serta Buffer Pasar JIT 5% secara langsung.',
+        budgetHeading: 'Filter Anggaran Cepat',
+      },
+      bottleneck: {
+        badge: 'Simulasi Keseimbangan & Daya',
+        eyebrow: 'Kalkulator Telemetri ViciTech',
+        title: 'Analisis Bottleneck & Headroom PSU',
+        desc: 'Evaluasi keseimbangan CPU dan GPU berdasarkan skenario resolusi, cek kompatibilitas soket/DDR4–DDR5, hitung margin aman daya PSU +35%, dan dapatkan rekomendasi upgrade terukur.',
+      },
+      versus: {
+        badge: 'Skor Simulasi Terbobot',
+        eyebrow: 'Mesin Komparasi ViciTech',
+        title: 'Versus Arena',
+        desc: 'Bandingkan dua konfigurasi PC, CPU, GPU, laptop, atau smartphone dalam kategori yang sama berdasarkan bobot skenario nyata dan indeks Price-to-Performance.',
+      },
+      upgrade: {
+        badge: 'Data Referensi',
+        eyebrow: 'Analisis Ekspansi Hardware',
+        title: 'Analisis Potensi Upgrade Maksimal',
+        desc: 'Cek batas kapasitas RAM, slot NVMe dan SATA kosong, serta estimasi biaya upgrade dari katalog preset maupun input manual perangkat Anda sendiri.',
+      },
+      tradeIn: {
+        badge: 'Tarif Referensi',
+        eyebrow: 'Perpanjang Siklus Pakai Perangkat Keras',
+        title: 'Portal Trade-In & Buyback Sirkular',
+        desc: 'Simulasikan estimasi nilai beli kembali (buyback) atau tukar tambah perangkat keras lama Anda dalam 3 langkah ringkas untuk pengajuan individu, sekolah, maupun perusahaan.',
+        step1Label: 'Langkah 1 dari 3',
+        step1Title: 'Pilih Segmen Pengaju Trade-In',
+      },
+      qcPanel: {
+        eyebrow: 'ViciTech · Kontrol Kualitas',
+        title: 'Panel Diagnostik IoT QC',
+        desc: 'Periksa kesehatan perangkat, pantau progres pesanan, dan verifikasi sumber data IoT QC secara transparan.',
+        waitingBadge: 'Menunggu Data Serial',
+        statEngineLabel: 'Mesin Telemetri',
+        statEngineValue: 'IoT QC 15-Titik',
+        statStorageLabel: 'Penyimpanan Laporan',
+        statStorageValue: 'Supabase Realtime',
+        statModeLabel: 'Mode Inspeksi',
+        statModeValue: 'Pelacakan Serial & Order',
+      },
+      partners: {
+        verifiedBadge: (count) => `${count} Mitra Terverifikasi`,
+        fallbackBadge: 'Direktori Mitra ViciTech',
+        qcBtn: 'Panel IoT QC Bench',
+        title: 'Toko komponen dan service center tepercaya.',
+        desc: 'Temukan mitra perakitan PC, pusat perbaikan laptop, dan titik inspeksi fisik Trade-In terverifikasi di kota Anda. Hubungi teknisi kami lewat pesan langsung atau cek lokasi Google Maps masing-masing mitra di bawah ini.',
+        dmCta: 'Chat Teknisi via DM',
+        tradeInCta: 'Ajukan Inspeksi Trade-In',
+        shareLabel: 'Bagikan Direktori',
+      },
+      community: {
+        liveBadge: 'Feed Komunitas Aktif',
+        sampleBadge: 'Feed Sampel Lokal',
+        eyebrow: 'Berbagi rakitan & solusi teknis',
+        title: 'Komunitas & Pusat Pengetahuan',
+        desc: 'Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.',
+        createPostBtn: 'Buat Postingan Lengkap',
+      },
+      aiConsultant: {
+        eyebrow: 'Toolkit ViciTech',
+        title: 'Konsultan Rakitan AI',
+        desc: 'Temukan arah rakitan PC, cek opsi upgrade laptop, dan pahami layanan ViciTech bersama konsultan hardware.',
+        disclaimer: 'Ketersediaan dan harga perangkat mengikuti katalog ViciTech Market saat konsultasi dimulai.',
+      },
+      feedback: {
+        eyebrow: 'Validasi Pengguna ViciTech OS',
+        title: 'Umpan Balik & Laporan Uji Coba',
+        desc: 'Bantu kami menyempurnakan Smart Preset Builder, Bottleneck Analyzer, Upgrade Analyzer, Market, dan Konsultan AI. Setiap laporan Anda menjadi bukti validasi pengembangan ViciTech.',
+        howProcessedTitle: 'Bagaimana Masukan Diproses?',
+        privacyCardTitle: 'Pelindungan Data Pribadi (UU PDP)',
+        privacyCardCta: 'Baca Kebijakan Cookie & Privasi (UU PDP)',
+      },
+      cookies: {
+        eyebrow: 'Kepatuhan UU No. 27 Tahun 2022 (UU PDP)',
+        title: 'Kebijakan Cookie & Pelindungan Data Pribadi',
+        desc: 'ViciTech berkomitmen melindungi data pribadi pengguna secara transparan sesuai Undang-Undang Nomor 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP). Halaman ini menjelaskan bagaimana kami menggunakan cookie, memproses data, dan menjamin hak privasi Anda.',
+        dataRequestCta: 'Ajukan Permintaan Data',
+      },
+    },
+  },
+  en: {
+    nav: {
+      homeAria: 'ViciTech Home',
+      mainNavAria: 'ViciTech main navigation',
+      groups: {
+        market: { label: 'Market' },
+        toolkit: { label: 'Toolkit' },
+        services: { label: 'Services & QC' },
+        community: {
+          label: 'Community',
+          description: 'Build showcases, technical guides & community Q&A.',
+        },
+      },
+      subItems: {
+        'market-ready': {
+          label: 'Market Storefront',
+          description: 'Ready-to-ship custom PCs & IoT QC-certified laptops.',
+        },
+        'market-catalog': {
+          label: 'Hardware Library',
+          description: 'Complete catalog of CPU, GPU, laptop & component specs.',
+        },
+        'toolkit-builder': {
+          label: 'Preset Builder',
+          description: 'Smart PC builder with socket, DDR & TDP compatibility checks.',
+        },
+        'toolkit-bottleneck': {
+          label: 'Bottleneck Analyzer',
+          description: 'Evaluate CPU & GPU balance plus PSU safety headroom.',
+        },
+        'toolkit-versus': {
+          label: 'Versus Arena',
+          description: 'Compare hardware specifications head-to-head.',
+        },
+        'toolkit-upgrade': {
+          label: 'Upgrade Analyzer',
+          description: 'Check maximum RAM & storage expansion slots for your device.',
+        },
+        'toolkit-ai-consultant': {
+          label: 'AI Build Consultant',
+          description: 'Live AI guidance for PC builds, laptop upgrades & ViciTech catalog.',
+        },
+        'service-qc': {
+          label: 'IoT QC Panel',
+          description: 'Track assembly status & ESP32 burn-in telemetry certificates.',
+        },
+        'service-tradein': {
+          label: 'Trade-In & Refurbished',
+          description: 'Trade in old hardware or explore certified refurbished units.',
+        },
+        'service-partners': {
+          label: 'Partners & Service',
+          description: 'Find trusted local component stores & verified repair centers.',
+        },
+      },
+      mobileBottom: {
+        home: { label: 'Home', shortLabel: 'Home' },
+        market: { label: 'Market', shortLabel: 'Market' },
+        builder: { label: 'Toolkit', shortLabel: 'Toolkit' },
+        tradein: { label: 'Services & QC', shortLabel: 'Services' },
+        community: { label: 'Community', shortLabel: 'Community' },
+      },
+      searchTitle: 'Quick search (Ctrl+K)',
+      searchAria: 'Search ViciTech (Ctrl+K)',
+      cartTitle: 'Shopping Cart',
+      cartAria: (count) => (count > 0 ? `Shopping Cart (${count} items)` : 'Shopping Cart'),
+      messagesAria: (unread) => (unread > 0 ? `Direct Messages (${unread} unread)` : 'Direct Messages'),
+      notificationsTitle: 'Notifications',
+      notificationsAria: (unread) => (unread > 0 ? `Notifications (${unread} unread)` : 'Notifications'),
+      markAllRead: 'Mark all read',
+      notificationsLoginPrompt: 'Sign in to view your order updates, comments, and direct messages.',
+      loginToAccount: 'Sign In',
+      noNotifications: 'No new notifications yet.',
+      openMenuAria: 'Open ViciTech navigation menu',
+      closeMenuAria: 'Close navigation menu',
+      drawerSubtitle: 'Circular IT & Hardware QC Ecosystem',
+      drawerSocialHeading: 'Social & Guides',
+      drawerThemeHeading: 'Appearance Theme',
+      drawerWorkspaceHeading: 'Workspace & Account',
+      homeLabel: 'Home',
+      homeDesc: 'Main landing page of the ViciTech Circular IT & Hardware QC ecosystem.',
+      dmLabel: 'Direct Messages',
+      dmDesc: 'Chat directly with certified technicians & fellow builders.',
+      dmUnread: (count) => `${count} unread messages`,
+      profileLabel: 'Profile & Account',
+      profileDesc: 'Orders, saved build presets & account preferences.',
+      settingsLabel: 'Settings & Privacy',
+      settingsDesc: 'Language, theme, display accessibility, data export & privacy controls.',
+    },
+    themeToggle: {
+      switchToLight: 'Switch to Light Mode',
+      switchToDark: 'Enable Dark Mode (Pixel Obsidian)',
+      darkTitle: 'Dark Mode · Pixel Obsidian',
+      darkSub: 'Tap to switch back to Light Mode',
+      lightTitle: 'Light Mode · Standard',
+      lightSub: 'Tap to enable Obsidian Pixel UI',
+    },
+    aiWidget: {
+      ask: 'Ask ViciTech AI',
+      close: 'Close ViciTech AI',
+      expandAria: 'Expand chat to full screen',
+      minimizeAria: 'Minimize chat window',
+      closeWindowAria: 'Close chat window',
+      loading: 'Preparing consultant…',
+    },
+    hero: {
+      eyebrow: 'Indonesian Circular IT & Precision Hardware Toolkit',
+      headline: 'Buy, build, and upgrade PCs & laptops with total confidence.',
+      subheadline:
+        'From real-time build & bottleneck simulation, 15-point Hybrid IoT QC verification (Simulated / Demo), to catalog-connected ViciTech AI — unified in one transparent platform.',
+      primaryCta: 'Explore QC Market',
+      secondaryCta: 'Start PC Builder',
+      trustAria: 'ViciTech core advantages',
+      pauseBg: 'Pause background animation',
+      playBg: 'Play background animation',
+      pillars: [
+        { title: '15-Point Hybrid IoT QC', subtitle: 'Simulated / Demo Mode', badge: 'Simulated' },
+        { title: 'NIST SP 800-88 Data Wipe', subtitle: 'Certified secure erasure', badge: null },
+        { title: 'Catalog-Live ViciTech AI', subtitle: 'Spec & price guidance', badge: null },
+        { title: 'Free Without Login', subtitle: 'Try every toolkit instantly', badge: null },
+      ],
+    },
+    bento: {
+      eyebrow: 'ViciTech Tri-Pillar Moat',
+      headline: 'Three pillars that make every hardware decision sharper and safer.',
+      subtitle:
+        'Combine precision simulation tools, transparent quality verification, and an active builder community before spending a single rupiah.',
+      p1Badge: 'Pillar 1 · Simulation Toolkit',
+      p1Meta: 'Free · No Login',
+      p1Title: 'Simulate builds, bottlenecks, and upgrades before buying parts.',
+      p1Desc:
+        'Validate socket & DDR compatibility, calculate +35% PSU safety headroom, estimate per-game FPS, and inspect RAM/SSD expansion limits with ViciTech AI.',
+      p1PreviewTitle: 'Sample Simulation · Ryzen 5 7600 + RTX 4060',
+      p1PreviewStatus: 'Balanced (4.2%)',
+      p1PsuLabel: 'PSU Load',
+      p1FpsLabel: '1080p Competitive',
+      p1JitLabel: 'JIT Buffer',
+      p1JitValue: '5% Dynamic',
+      p1CtaBuilder: 'Preset Builder',
+      p1CtaBottleneck: 'Bottleneck',
+      p1CtaUpgrade: 'Upgrade Analyzer',
+      p1CtaAi: 'AI Consultant',
+      p2Badge: 'Pillar 2 · Hybrid IoT QC',
+      p2Title: '15-point inspection & tamper-proof serial certificates.',
+      p2Desc:
+        'Transparent thermal burn-in logs, voltage stability checks, and NIST SP 800-88 data sanitization verifiable publicly by serial number. Physical ESP32 sensors roll out in v2.5.',
+      p2DemoTag: 'QC Demo Profile',
+      p2BurnInLabel: 'CPU/GPU Thermal Burn-In',
+      p2BurnInValue: '64.0°C · Stable',
+      p2SanitationLabel: 'NIST SP 800-88 Sanitization',
+      p2SanitationValue: '15/15 Passed',
+      p2Cta: 'Open IoT QC Simulation Panel',
+      p3Badge: 'Pillar 3 · Community Hub',
+      p3Meta: 'Discussions & Direct DM',
+      p3Title: 'Learn from real rigs, find members, and message builders directly.',
+      p3Desc:
+        'Share custom PC builds, ask about real-world laptop upgrades, or message trusted technicians and community builders directly on ViciTech.',
+      p3CtaCommunity: 'Explore Community',
+      p3CtaMessages: 'Direct Messages',
+      p4Badge: 'Market & Circular Trade-In',
+      p4Title: 'PCs, Laptops, Consoles & Handhelds in one curated storefront.',
+      p4Desc:
+        'Order ready-to-ship certified rigs with Smart Part Matcher or trade in your old devices transparently.',
+      p4CtaMarket: 'Open Market',
+      p4CtaTradeIn: 'Trade-In',
+    },
+    showcase: {
+      sectionAria: 'ViciTech Circular IT architecture overview',
+      manifestoBadge: 'ViciTech Circular IT Ecosystem',
+      manifestoHeadline:
+        'We deliver precision hardware transparency for builders, gamers, schools, and enterprise fleets.',
+      manifestoPrimaryCta: 'Start Building in Workspace',
+      manifestoSecondaryCta: 'Explore Market',
+      diagramBadge: 'Multi-Device Verification Protocol · Demo QC',
+      diagramHeadline: 'Four verification and guarantee pillars behind every ViciTech unit.',
+      callouts: {
+        'callout-esp32': {
+          badgeLabel: 'Simulated / Demo',
+          title: '15-Point QC Protocol & Burn-In Telemetry',
+          summary:
+            'Simulated CPU/GPU thermal profiles, voltage checks, and public serial certificates (physical ESP32 sensor integration scheduled for v2.5).',
+        },
+        'callout-nist': {
+          badgeLabel: 'Simulated / Demo',
+          title: 'NIST 800-88 Standard Data Sanitization',
+          summary: 'Permanent data erasure for B2B enterprise fleets, B2S school labs, and Trade-In units.',
+        },
+        'callout-jit': {
+          badgeLabel: 'Sample',
+          title: '5% JIT Procurement Buffer (B2S & B2B)',
+          summary: 'Automated reserve stock and power budget calculation so institutional rollouts stay smooth.',
+        },
+        'callout-tradein': {
+          badgeLabel: 'Sample',
+          title: 'Trade-In Valuation & Grade A+ Refurbished',
+          summary: 'Convert legacy hardware into upgrade credit toward certified business laptops or parts.',
+        },
+      },
+      workflowBadge: 'Unified Workflow',
+      workflowHeadline: 'Every device moves cleanly from research to verified deployment.',
+      steps: {
+        'step-riset': {
+          phaseLabel: 'Research Phase',
+          title: 'Spec Analysis & Upgrade Potential',
+          summary:
+            'Compare phones, laptops, desktops, and accessories side by side while checking maximum RAM and NVMe slot capacity.',
+          deliverables: ['Side-by-side 4-device compare', 'Slot expansion ceiling check'],
+          actionLabel: 'Open Hardware Library',
+        },
+        'step-konfigurasi': {
+          phaseLabel: 'Configuration Phase',
+          title: 'Preset Builds & Bottleneck Simulation',
+          summary:
+            'Configure B2C gaming rigs, B2B workstations, or B2S CBT school labs with live PSU wattage and CPU/GPU bottleneck checks.',
+          deliverables: ['Live wattage & FPS estimates', '5% JIT procurement buffer'],
+          actionLabel: 'Configure in Preset Builder',
+        },
+        'step-verifikasi': {
+          phaseLabel: 'QC Verification Phase',
+          title: 'Burn-In Testing & Telemetry Certification',
+          summary:
+            'Every assembled or refurbished unit completes a 15-point checklist bound to a public VICI-XXX verification serial code.',
+          deliverables: ['Thermal & voltage telemetry logs', 'Anti-lemon digital certificate'],
+          actionLabel: 'Check IoT QC Serial',
+        },
+        'step-sirkular': {
+          phaseLabel: 'Ecosystem Phase',
+          title: 'Circular Trade-In & Service Partners',
+          summary:
+            'Trade in single devices or bulk fleets and connect with verified local repair centers and component partners.',
+          deliverables: ['Instant trade-in valuation', 'Direct DM with partner technicians'],
+          actionLabel: 'Open Trade-In Portal',
+        },
+      },
+      pillarsBadge: 'ViciTech Pillar Directory',
+      pillarsHeadline: 'Every component and device carries a transparent verification trail.',
+      pillarsCta: 'Browse Market Storefront',
+      pillars: {
+        'pillar-library': {
+          title: 'Hardware Library & Upgrades',
+          description:
+            'Unified spec catalog to compare smartphones, business laptops, desktop CPUs/GPUs, and inspect RAM/NVMe expansion limits.',
+          tags: ['4 Core Categories', 'Expansion Calculator', 'Spec Comparison'],
+          badgeLabel: 'Sample Catalog',
+          actionLabel: 'Open Library',
+        },
+        'pillar-qc': {
+          title: 'IoT Smart Bench & QC Engine',
+          description:
+            'Serial number tracking powered by admin-simulated test profiles (Simulated / Demo) explicitly separated from live ESP32 sensors.',
+          tags: ['15-Point Protocol', 'NIST 800-88 Wipe', 'QR Verification'],
+          badgeLabel: 'Simulated / Demo',
+          actionLabel: 'Track QC Serial',
+        },
+        'pillar-market': {
+          title: 'Curated Market & Presets',
+          description:
+            'Ready-to-ship builds for gaming, creators, offices, and school labs with full socket and power validation.',
+          tags: ['B2C / B2B / B2S Presets', '5% JIT Buffer', 'Creator Verdict'],
+          badgeLabel: 'Sample Preview',
+          actionLabel: 'View Market',
+        },
+        'pillar-partners': {
+          title: 'Service Centers & Local Partners',
+          description:
+            'Verified network of laptop/PC repair technicians and parts shops for direct consultation and physical Trade-In inspection.',
+          tags: ['Bandung & South Jakarta Hubs', 'B2S Lab Support', 'Direct DM'],
+          badgeLabel: 'Sample Partners',
+          actionLabel: 'Partner Directory',
+        },
+      },
+      closingHeadline: 'Build, diagnose, and manage your hardware lifecycle in one place.',
+      closingDesc:
+        'From custom desktop builds and enterprise laptops to smartphones and peripherals, everything connects in one transparent ecosystem.',
+      closingPrimaryCta: 'Open Community Hub',
+      closingSecondaryCta: 'Find Service Partners',
+    },
+    footer: {
+      description:
+        'Circular IT ecosystem for hardware spec research, curated B2S/B2B/B2C builds, asset trade-in, and ESP32 telemetry-backed quality verification.',
+      badgeRef: 'Reference Specs',
+      ecosystemHeading: 'Ecosystem',
+      verificationHeading: 'Verification & Standards',
+      checkSerialCta: 'Check IoT QC Serial Number',
+      standards: [
+        'NIST 800-88 Data Sanitization',
+        '15-Point IoT QC Protocol',
+        '5% JIT Dynamic Buffer Policy',
+        'Grade A+ Refurbished Certification',
+      ],
+      links: {
+        '/': 'Home',
+        '/market': 'Market & Hardware Library',
+        '/builder': 'Smart Preset Builder',
+        '/trade-in': 'Circular Trade-In',
+        '/partners': 'Partners & Service',
+        '/community': 'Community',
+        '/feedback': 'Feedback & Validation',
+      },
+      copyright: (year) => `© ${year} ViciTech. All rights reserved.`,
+      disclaimer:
+        'Catalog prices are reference estimates; physical sensor telemetry and simulated profiles are explicitly separated.',
+      settings: 'Settings',
+      feedback: 'Feedback',
+      cookies: 'Cookie & Privacy Policy',
+    },
+    settings: {
+      pageEyebrow: 'ViciTech OS Control Center',
+      pageTitle: 'Account Settings & Privacy',
+      pageDesc:
+        'Customize display appearance, interface language, accessibility preferences, and personal data protection rights in one place.',
+      displayTitle: 'Appearance & Accessibility',
+      displayDesc:
+        'Preferences apply instantly on this device and automatically sync to your profile when signed in.',
+      syncSaving: 'Saving…',
+      syncSaved: 'Synced to account',
+      syncActive: 'Account sync active',
+      syncLocal: 'Saved on this device',
+      resetBtn: 'Reset',
+      themeTitle: 'Display Theme',
+      themeDescPrefix: 'Keep crisp Light Mode as default, or switch to Dark Mode powered by ',
+      themeDescHighlight: 'Obsidian Pixel Hardware UI',
+      themeDescSuffix: ' (while keeping sans-serif & monospace typography razor-sharp).',
+      themeLightLabel: 'Light Mode',
+      themeLightSub: 'Default · Ceramic Light',
+      themeDarkLabel: 'Dark Mode',
+      themeDarkSub: 'Pixel Obsidian UI',
+      langTitle: 'Interface Language',
+      langDesc:
+        'Switch the ViciTech interface language immediately between Bahasa Indonesia (ID) and English (EN) across core pages.',
+      langIdSub: 'ID (Primary)',
+      langEnSub: 'EN (English)',
+      contrastTitle: 'High Contrast Mode',
+      contrastDesc:
+        'Sharpen card borders, text contrast, and keyboard focus outlines for maximum legibility across light and dark themes.',
+      contrastAria: 'Enable High Contrast Mode',
+      textScaleTitle: 'Text Size Scale',
+      textScaleDesc: 'Adjust base typography sizing for comfortable reading without breaking page layouts.',
+      scaleNormal: 'Normal',
+      scaleLarge: 'Large',
+      scaleXLarge: 'Extra Large',
+      motionTitle: 'Reduce Motion',
+      motionDescPrefix: 'Disable UI transitions and motion effects. Your device OS preference is currently: ',
+      motionReduced: 'Active (Reduced)',
+      motionStandard: 'Standard',
+      motionAria: 'Enable Reduce Motion',
+      privacyTitle: 'Privacy & Account Data (UU PDP)',
+      privacyDesc:
+        'Manage cookie consent, export a copy of your personal data, or submit an account deletion request under Indonesia UU PDP No. 27/2022.',
+      cookieCardTitle: 'Cookie Settings',
+      cookieCardDesc:
+        'Review Essential & Preference cookie categories along with ViciTech personal data protection policies.',
+      cookieCardBtn: 'Open Cookie Settings',
+      exportCardTitle: 'Export My Data',
+      exportCardDesc:
+        'Download a JSON archive containing your profile summary, order history, and community posts.',
+      exportBtn: 'Export My Data (.json)',
+      exportPreparing: 'Preparing JSON…',
+      exportLoginBtn: 'Sign In to Export Data',
+      deleteCardTitle: 'Delete Account / Data',
+      deleteCardDesc:
+        'Submit a permanent account and personal data deletion request verified by ViciTech administrators.',
+      deleteBtn: 'Request Account / Data Deletion',
+      deleteLoginBtn: 'Sign In to Request',
+      deleteModalTitle: 'Confirm Data Deletion',
+      deleteModalSub: 'Personal Data Erasure Right (UU PDP)',
+      deleteCancel: 'Cancel',
+      deleteSubmit: 'Submit Deletion Request',
+      deleteSending: 'Submitting…',
+    },
+    routes: {
+      market: {
+        badge: 'Market & Hardware Library',
+        titleReady: 'Market Storefront & Ready-to-Ship Units',
+        titleLibrary: 'Hardware Library, Specs & Upgrade Potential',
+        tabReady: 'All / Ready to Ship',
+        tabLibrary: 'Hardware Library & Specs',
+        searchPlaceholder: 'Search custom PCs, laptops, CPUs, GPUs, consoles, or brands…',
+        stockAll: 'All',
+        stockReady: 'Ready Stock',
+        stockPreorder: 'Pre-Order',
+        qcToggle: 'IoT QC Passed',
+        sortLabel: 'Sort:',
+        sortNewest: 'Newest',
+        sortPriceAsc: 'Lowest Price',
+        sortPriceDesc: 'Highest Price',
+        categoryAll: 'All',
+        showingPrefix: 'Showing',
+        showingUnit: 'products',
+        reset: 'Reset',
+      },
+      builder: {
+        badge: 'Reference & Inventory Data',
+        eyebrow: 'Build with Verified Compatibility',
+        title: 'Smart Preset Builder & Configurator',
+        desc: 'Start from a validated segment preset, swap any component freely, and track pricing, PSU wattage load, and 5% JIT Market Buffer live.',
+        budgetHeading: 'Quick Budget Filter',
+      },
+      bottleneck: {
+        badge: 'Balance & Power Simulation',
+        eyebrow: 'ViciTech Telemetry Calculator',
+        title: 'Bottleneck & PSU Headroom Analyzer',
+        desc: 'Evaluate CPU and GPU balance by target resolution, check socket/DDR4–DDR5 compatibility, verify +35% PSU safety headroom, and get measurable upgrade recommendations.',
+      },
+      versus: {
+        badge: 'Weighted Simulation Score',
+        eyebrow: 'ViciTech Comparison Engine',
+        title: 'Versus Arena',
+        desc: 'Compare two PC configurations, CPUs, GPUs, laptops, or smartphones head-to-head using real workload weights and Price-to-Performance indexing.',
+      },
+      upgrade: {
+        badge: 'Reference Data',
+        eyebrow: 'Hardware Expansion Analysis',
+        title: 'Maximum Upgrade Potential Analyzer',
+        desc: 'Check RAM capacity ceilings, free NVMe and SATA slots, and estimated upgrade costs from preset catalogs or your own custom device specs.',
+      },
+      tradeIn: {
+        badge: 'Reference Rates',
+        eyebrow: 'Extend Your Hardware Lifecycle',
+        title: 'Circular Trade-In & Buyback Portal',
+        desc: 'Simulate buyback or trade-in valuations for your existing hardware in 3 guided steps for individual, school, or enterprise submissions.',
+        step1Label: 'Step 1 of 3',
+        step1Title: 'Choose Your Trade-In Segment',
+      },
+      qcPanel: {
+        eyebrow: 'ViciTech · Quality Control',
+        title: 'IoT QC Diagnostic Panel',
+        desc: 'Inspect hardware health, track order progress, and verify IoT QC telemetry data sources transparently.',
+        waitingBadge: 'Awaiting Serial Lookup',
+        statEngineLabel: 'Telemetry Engine',
+        statEngineValue: '15-Point IoT QC',
+        statStorageLabel: 'Report Storage',
+        statStorageValue: 'Supabase Realtime',
+        statModeLabel: 'Inspection Mode',
+        statModeValue: 'Serial & Order Tracking',
+      },
+      partners: {
+        verifiedBadge: (count) => `${count} Verified Partners`,
+        fallbackBadge: 'ViciTech Partner Directory',
+        qcBtn: 'IoT QC Bench Panel',
+        title: 'Trusted component stores and service centers.',
+        desc: 'Discover verified PC assembly partners, laptop repair specialists, and physical Trade-In inspection hubs near you. Message our technicians directly or check each partner location on Google Maps below.',
+        dmCta: 'Message Technician via DM',
+        tradeInCta: 'Request Trade-In Inspection',
+        shareLabel: 'Share Directory',
+      },
+      community: {
+        liveBadge: 'Live Community Feed',
+        sampleBadge: 'Local Sample Feed',
+        eyebrow: 'Build showcases & technical solutions',
+        title: 'Community & Knowledge Hub',
+        desc: 'Showcase your custom PC rigs, learn best practices from CBT lab admins and certified technicians, and discuss everyday hardware solutions.',
+        createPostBtn: 'Create Full Post',
+      },
+      aiConsultant: {
+        eyebrow: 'ViciTech Toolkit',
+        title: 'AI Build Consultant',
+        desc: 'Plan your next PC build, evaluate laptop upgrade paths, and explore ViciTech services with our hardware consultant.',
+        disclaimer: 'Device availability and pricing reflect the live ViciTech Market catalog when your consultation begins.',
+      },
+      feedback: {
+        eyebrow: 'ViciTech OS User Validation',
+        title: 'Feedback & Pilot Test Reports',
+        desc: 'Help us refine Smart Preset Builder, Bottleneck Analyzer, Upgrade Analyzer, Market, and AI Consultant. Every submission directly shapes the ViciTech roadmap.',
+        howProcessedTitle: 'How Is Feedback Processed?',
+        privacyCardTitle: 'Personal Data Protection (UU PDP)',
+        privacyCardCta: 'Read Cookie & Privacy Policy (UU PDP)',
+      },
+      cookies: {
+        eyebrow: 'Indonesia Law No. 27/2022 (UU PDP) Compliance',
+        title: 'Cookie & Personal Data Protection Policy',
+        desc: 'ViciTech is committed to protecting personal data transparently in compliance with Indonesia Personal Data Protection Law No. 27 of 2022 (UU PDP). This page explains how we use cookies, process data, and safeguard your privacy rights.',
+        dataRequestCta: 'Submit Data Request',
+      },
+    },
+  },
+};

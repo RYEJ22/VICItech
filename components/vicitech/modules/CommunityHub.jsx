@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Users, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
@@ -1231,6 +1232,8 @@ const FEED_PAGE_SIZE = 6;
 const SUPABASE_FETCH_STEP = 24;
 
 export default function CommunityHub() {
+  const { t } = useLanguage();
+  const com = t.routes.community;
   const [posts, setPosts] = useState([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [isSampleFallback, setIsSampleFallback] = useState(false);
@@ -1939,17 +1942,17 @@ export default function CommunityHub() {
         <header>
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
-              {isSampleFallback ? "Feed Sampel Lokal" : "Feed Komunitas Aktif"}
+              {isSampleFallback ? com.sampleBadge : com.liveBadge}
             </span>
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
-              Berbagi rakitan &amp; solusi teknis
+              {com.eyebrow}
             </span>
           </div>
           <h1 className="mt-2.5 flex min-w-0 items-center gap-2 font-sans text-xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
-            <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">Komunitas &amp; Pusat Pengetahuan</span>
+            <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">{com.title}</span>
           </h1>
           <p className="mt-2 max-w-2xl break-words text-xs text-secondary sm:mt-3 sm:text-base">
-            Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.
+            {com.desc}
           </p>
           <button
             type="button"
@@ -1957,7 +1960,7 @@ export default function CommunityHub() {
             className={`mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-4 py-2 text-xs font-medium text-accent-hover transition hover:bg-accent-subtle sm:mt-5 sm:min-h-11 sm:px-5 sm:py-2.5 sm:text-sm ${focusRing}`}
           >
             <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-            <span>Buat Postingan Lengkap</span>
+            <span>{com.createPostBtn}</span>
           </button>
         </header>
 

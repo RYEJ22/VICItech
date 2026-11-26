@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
   THEME_STORAGE_KEY,
   USER_SETTINGS_STORAGE_KEY,
@@ -17,6 +18,7 @@ interface ThemeToggleProps {
 }
 
 export default function ThemeToggle({ className = '', showLabel = false }: ThemeToggleProps) {
+  const { t } = useLanguage();
   const [theme, setTheme] = useState<ThemeMode>('light');
   const [mounted, setMounted] = useState(false);
 
@@ -44,9 +46,7 @@ export default function ThemeToggle({ className = '', showLabel = false }: Theme
 
   const isDark = mounted && theme === 'dark';
   const nextTheme: ThemeMode = isDark ? 'light' : 'dark';
-  const label = isDark
-    ? 'Ganti ke Mode Terang'
-    : 'Aktifkan Mode Gelap (Pixel Obsidian)';
+  const label = isDark ? t.themeToggle.switchToLight : t.themeToggle.switchToDark;
 
   const handleToggle = () => {
     const updated = setStoredTheme(nextTheme);
@@ -70,10 +70,10 @@ export default function ThemeToggle({ className = '', showLabel = false }: Theme
           )}
           <span className="min-w-0">
             <span className="block text-sm font-semibold text-primary">
-              {isDark ? 'Mode Gelap · Pixel Obsidian' : 'Mode Terang · Standar'}
+              {isDark ? t.themeToggle.darkTitle : t.themeToggle.lightTitle}
             </span>
             <span className="mt-0.5 block text-xs text-secondary">
-              {isDark ? 'Ketuk untuk kembali ke tema terang' : 'Ketuk untuk UI Pixel Obsidian gelap'}
+              {isDark ? t.themeToggle.darkSub : t.themeToggle.lightSub}
             </span>
           </span>
         </span>

@@ -7,6 +7,7 @@ import {
   LoaderCircle, Wind, Box, Copy, Check, Wrench, Sparkles, Video, ExternalLink, Store,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import { saveUserPreset } from "@/lib/supabase";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { useCheckout } from "@/context/CheckoutContext";
@@ -622,6 +623,8 @@ export default function PresetBuilder({
   initialProductId = "",
   marketProducts = [],
 }) {
+  const { t } = useLanguage();
+  const pb = t.routes.builder;
   const router = useRouter();
   const { triggerCheckout } = useCheckout();
   const initialPresetKey = role === "b2c" ? "b2c_budget" : (role && PRESETS[role] ? role : "b2s");
@@ -986,17 +989,17 @@ export default function PresetBuilder({
     <div className="min-w-0 bg-canvas text-primary antialiased">
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
+          <span className="vt-badge-sample">{pb.badge}</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
-            Rakit dengan Kepastian Kompatibilitas
+            {pb.eyebrow}
           </span>
         </div>
         <h1 className="mt-2.5 flex items-center gap-2.5 font-sans text-2xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
           <Sliders className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" strokeWidth={1.75} aria-hidden="true" />
-          <span>Smart Preset Builder &amp; Konfigurator</span>
+          <span>{pb.title}</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary sm:mt-4 sm:text-base">
-          Mulai dari preset teruji sesuai segmen kebutuhan, ganti komponen apa saja, dan pantau harga, estimasi beban daya PSU, serta Buffer Pasar JIT 5% secara langsung.
+          {pb.desc}
         </p>
 
         {/* Filter Anggaran Cepat + Tombol Custom Build */}
@@ -1007,7 +1010,7 @@ export default function PresetBuilder({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-cta">
-                Filter Anggaran Cepat
+                {pb.budgetHeading}
               </p>
               <p className="mt-0.5 text-sm text-secondary">
                 Geser batas anggaran per unit:{" "}

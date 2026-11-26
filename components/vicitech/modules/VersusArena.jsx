@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   ArrowRightLeft,
   ArrowUpRight,
@@ -336,6 +337,8 @@ function ItemPickerDrawer({ categoryLabel, sideLabel, items, otherId, currentId,
 }
 
 export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
+  const { t } = useLanguage();
+  const vs = t.routes.versus;
   const [remoteHardware, setRemoteHardware] = useState([]);
   const [catalogNotice, setCatalogNotice] = useState("");
   const [category, setCategory] = useState("build");
@@ -424,17 +427,17 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
       <div className="mx-auto max-w-shell px-4 pb-28 pt-8 sm:px-6 sm:pb-28 sm:pt-10">
         <header className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="vt-badge-simulated">Skor Simulasi Terbobot</span>
+            <span className="vt-badge-simulated">{vs.badge}</span>
             <span className="text-xs font-medium text-secondary">
-              Mesin Komparasi ViciTech
+              {vs.eyebrow}
             </span>
           </div>
           <h1 className="mt-3 flex items-center gap-3 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
             <Swords className="h-7 w-7 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-            <span>Versus Arena</span>
+            <span>{vs.title}</span>
           </h1>
           <p className="mt-3 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
-            Bandingkan dua konfigurasi PC, CPU, GPU, laptop, atau smartphone dalam kategori yang sama berdasarkan bobot skenario nyata dan indeks Price-to-Performance.
+            {vs.desc}
           </p>
         </header>
 

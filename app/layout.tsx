@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Plus_Jakarta_Sans, Silkscreen } from "next/font/google";
 import { CheckoutProvider } from "@/context/CheckoutContext";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import { UserSettingsSync } from "@/components/providers/UserSettingsSync";
 import IntroSplash from "@/components/ui/IntroSplash";
@@ -66,7 +67,7 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-const THEME_INIT_SCRIPT = `(function(){try{var k=localStorage.getItem('vici_theme');var s=null;var raw=localStorage.getItem('vici_user_settings');if(raw){s=JSON.parse(raw);}var t=(k==='dark'||k==='light')?k:(s&&s.theme==='dark'?'dark':'light');var r=document.documentElement;r.setAttribute('data-theme',t);if(t==='dark'){r.classList.add('dark');}else{r.classList.remove('dark');}if(s&&s.highContrast===true){r.setAttribute('data-high-contrast','true');}if(s&&(s.textScale==='large'||s.textScale==='xlarge')){r.setAttribute('data-text-scale',s.textScale);}if(s&&s.reducedMotion===true){r.setAttribute('data-reduced-motion','true');}}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{var k=localStorage.getItem('vici_theme');var l=localStorage.getItem('vici_language');var s=null;var raw=localStorage.getItem('vici_user_settings');if(raw){s=JSON.parse(raw);}var t=(k==='dark'||k==='light')?k:(s&&s.theme==='dark'?'dark':'light');var lang=(l==='en'||l==='id')?l:(s&&s.language==='en'?'en':'id');var r=document.documentElement;r.setAttribute('data-theme',t);r.setAttribute('data-language',lang);r.lang=lang;if(t==='dark'){r.classList.add('dark');}else{r.classList.remove('dark');}if(s&&s.highContrast===true){r.setAttribute('data-high-contrast','true');}if(s&&(s.textScale==='large'||s.textScale==='xlarge')){r.setAttribute('data-text-scale',s.textScale);}if(s&&s.reducedMotion===true){r.setAttribute('data-reduced-motion','true');}}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -81,14 +82,16 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       </head>
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">
         <ThemeProvider>
-          <CheckoutProvider>
-            <UserSettingsSync />
-            <IntroSplash />
-            <Navbar />
-            <div className="pb-20 md:pb-0">{children}</div>
-            <CookieConsentBanner />
-            <FloatingChatWidget />
-          </CheckoutProvider>
+          <LanguageProvider>
+            <CheckoutProvider>
+              <UserSettingsSync />
+              <IntroSplash />
+              <Navbar />
+              <div className="pb-20 md:pb-0">{children}</div>
+              <CookieConsentBanner />
+              <FloatingChatWidget />
+            </CheckoutProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

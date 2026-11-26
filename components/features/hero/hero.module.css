@@ -4,8 +4,41 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  background-color: var(--bg-canvas);
   min-height: 28rem;
   min-height: clamp(28rem, 78svh, 46rem);
+}
+
+.scrim {
+  background: rgb(250 249 246 / 0.85);
+}
+
+@media (min-width: 768px) {
+  .scrim {
+    background: linear-gradient(
+      to right,
+      rgb(250 249 246 / 0.95) 0%,
+      rgb(250 249 246 / 0.75) 55%,
+      rgb(250 249 246 / 0) 100%
+    );
+  }
+}
+
+:global(html[data-theme='dark']) .scrim,
+:global(html.dark) .scrim {
+  background: rgb(9 9 11 / 0.92);
+}
+
+@media (min-width: 768px) {
+  :global(html[data-theme='dark']) .scrim,
+  :global(html.dark) .scrim {
+    background: linear-gradient(
+      to right,
+      rgb(9 9 11 / 0.96) 0%,
+      rgb(9 9 11 / 0.85) 54%,
+      rgb(9 9 11 / 0.44) 100%
+    );
+  }
 }
 
 .content {
@@ -19,8 +52,19 @@
   font-family: var(--font-sans, 'Plus Jakarta Sans', Arial, sans-serif);
 }
 
+:global(html[data-theme='dark']) .headline,
+:global(html.dark) .headline {
+  color: #f8fafc;
+  text-shadow: 0 2px 14px rgb(0 0 0 / 0.5);
+}
+
 .description {
   color: var(--text-secondary);
+}
+
+:global(html[data-theme='dark']) .description,
+:global(html.dark) .description {
+  color: #cbd5e1;
 }
 
 /* Dominant primary CTA in ViciTech Signal Orange (#EA580C -> #C2410C hover) */

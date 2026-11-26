@@ -31,6 +31,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FocusEvent as ReactFocusEvent, MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
 import ThemeToggle from '@/components/ThemeToggle';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCheckout } from '@/context/CheckoutContext';
 import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -180,15 +181,16 @@ function NotificationsPanel({
   readonly onMarkAllRead: () => void;
   readonly onLoginClick: () => void;
 }): ReactElement {
+  const { t } = useLanguage();
   const unread = countUnreadNotifications(items);
   return (
     <div
       role="dialog"
-      aria-label="Notifikasi"
+      aria-label={t.nav.notificationsTitle}
       className={`absolute right-0 top-full z-[60] mt-3.5 w-[min(22rem,calc(100vw-1.5rem))] rounded-xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-default px-2.5 pb-2 pt-1">
-        <p className="text-sm font-semibold text-primary">Notifikasi</p>
+        <p className="text-sm font-semibold text-primary">{t.nav.notificationsTitle}</p>
         {isAuthenticated && (
           <button
             type="button"
@@ -196,7 +198,7 @@ function NotificationsPanel({
             disabled={unread === 0}
             className={`min-h-8 rounded-full px-2.5 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-primary disabled:cursor-default disabled:opacity-50 ${focusRing}`}
           >
-            Tandai dibaca
+            {t.nav.markAllRead}
           </button>
         )}
       </div>
@@ -204,14 +206,14 @@ function NotificationsPanel({
       {!isAuthenticated ? (
         <div className="mt-2 space-y-2.5 rounded-xl bg-canvas px-3 py-4 text-center">
           <p className="text-xs leading-relaxed text-secondary">
-            Masuk untuk melihat notifikasi pesanan, komentar, dan pesan langsung Anda.
+            {t.nav.notificationsLoginPrompt}
           </p>
           <Link
             href="/login"
             onClick={onLoginClick}
             className={`inline-flex min-h-9 items-center justify-center rounded-lg bg-accent-primary px-4 py-1.5 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing}`}
           >
-            Masuk ke Akun
+            {t.nav.loginToAccount}
           </Link>
         </div>
       ) : isLoading ? (
@@ -221,7 +223,7 @@ function NotificationsPanel({
         </div>
       ) : items.length === 0 ? (
         <p className="mt-2 rounded-xl bg-canvas px-3 py-5 text-center text-xs text-secondary">
-          Belum ada notifikasi baru.
+          {t.nav.noNotifications}
         </p>
       ) : (
         <ul className="mt-1 grid max-h-80 gap-0.5 overflow-y-auto">
@@ -267,6 +269,7 @@ function NotificationsPanel({
 export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactElement | null {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [role, setRole] = useState<UserRole>(initialRole);
@@ -803,8 +806,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           <Link
             href="/"
             onClick={(event) => handleHrefClick(event, '/')}
-            title="ViciTech Beranda"
-            aria-label="ViciTech Beranda"
+            title={t.nav.homeAria}
+            aria-label={t.nav.homeAria}
             className={`inline-flex min-h-10 w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-smooth hover:opacity-85 motion-reduce:transition-none ${
               isScrolled ? 'gap-2' : 'gap-2.5'
             } ${focusRing}`}
@@ -821,7 +824,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
           {/* Center (Desktop): 4 Umbrella Menus (Icons + Labels at top, Icon-Only compact on scroll) */}
           <nav
-            aria-label="Navigasi utama ViciTech"
+            aria-label={t.nav.mainNavAria}
             onMouseLeave={() => {
               clearHoverCloseTimer();
               hoverCloseTimerRef.current = window.setTimeout(() => {
@@ -836,6 +839,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             {visibleDesktopGroups.map((group) => {
               const isOpen = openMenu === group.id;
               const isActive = activeUmbrella === group.id;
+              const groupLabel = t.nav.groups[group.id]?.label ?? group.label;
               const iconTone =
                 isActive || isOpen
                   ? 'text-accent-primary'
@@ -847,8 +851,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     key={group.id}
                     href={group.href}
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
-                    title={group.label}
-                    aria-label={group.label}
+                    title={groupLabel}
+                    aria-label={groupLabel}
                     aria-current={isActive ? 'page' : undefined}
                     className={`group/nav vt-motion-press vt-nav-link relative inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ease-smooth motion-reduce:transition-none ${focusRing} ${
                       isScrolled ? 'min-w-10 px-3 py-2' : 'px-3 py-2'
@@ -869,7 +873,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                         isScrolled ? (styles.navLabelCollapsed ?? '') : ''
                       }`}
                     >
-                      {group.label}
+                      {groupLabel}
                     </span>
                     {!isScrolled && (
                       <span aria-hidden="true" className={`vt-nav-underline !inset-x-3 ${isActive ? 'is-active' : ''}`} />
@@ -889,8 +893,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   <button
                     type="button"
                     onClick={() => toggleUmbrellaClick(group.id)}
-                    title={group.label}
-                    aria-label={group.label}
+                    title={groupLabel}
+                    aria-label={groupLabel}
                     aria-expanded={isOpen}
                     aria-haspopup="true"
                     aria-controls={`nav-panel-${group.id}`}
@@ -913,7 +917,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                         isScrolled ? (styles.navLabelCollapsed ?? '') : ''
                       }`}
                     >
-                      {group.label}
+                      {groupLabel}
                     </span>
                     <ChevronDown
                       className={`vt-chevron shrink-0 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
@@ -938,6 +942,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                         <ul className="grid gap-0.5">
                           {group.items.map((subItem) => {
                             const subActive = isSubItemActive(subItem, pathname, activeModule, activeView);
+                            const subTr = t.nav.subItems[subItem.id];
                             return (
                               <li key={subItem.id}>
                                 <Link
@@ -957,10 +962,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                           : 'text-primary group-hover:text-accent-hover'
                                       }`}
                                     >
-                                      {subItem.label}
+                                      {subTr?.label ?? subItem.label}
                                     </span>
                                     <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                                      {subItem.description}
+                                      {subTr?.description ?? subItem.description}
                                     </span>
                                   </span>
                                 </Link>
@@ -985,8 +990,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             <button
               type="button"
               onClick={triggerGlobalSearch}
-              title="Cari cepat (Ctrl+K)"
-              aria-label="Cari di ViciTech (Ctrl+K)"
+              title={t.nav.searchTitle}
+              aria-label={t.nav.searchAria}
               aria-keyshortcuts="Control+K Meta+K"
               className={`${iconBtnBase} text-secondary hover:bg-subtle hover:text-primary`}
             >
@@ -999,12 +1004,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 closeAllMenus();
                 openCart();
               }}
-              title="Keranjang Belanja"
-              aria-label={
-                totalCartItems > 0
-                  ? `Keranjang Belanja (${totalCartItems} item)`
-                  : 'Keranjang Belanja'
-              }
+              title={t.nav.cartTitle}
+              aria-label={t.nav.cartAria(totalCartItems)}
               className={`${iconBtnBase} text-secondary hover:bg-subtle hover:text-primary`}
             >
               <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
@@ -1025,7 +1026,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 href="/messages"
                 onClick={(event) => handleHrefClick(event, '/messages')}
                 aria-current={isMessagesRoute ? 'page' : undefined}
-                aria-label={unreadCount > 0 ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
+                aria-label={t.nav.messagesAria(unreadCount)}
                 className={`${iconBtnBase} ${
                   isMessagesRoute
                     ? 'bg-accent-subtle text-accent-hover'
@@ -1047,11 +1048,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   onClick={() => toggleMenu('notifications')}
                   aria-haspopup="dialog"
                   aria-expanded={openMenu === 'notifications'}
-                  aria-label={
-                    unreadNotifications > 0
-                      ? `Notifikasi (${unreadNotifications} belum dibaca)`
-                      : 'Notifikasi'
-                  }
+                  aria-label={t.nav.notificationsAria(unreadNotifications)}
                   className={`${iconBtnBase} ${
                     openMenu === 'notifications'
                       ? 'bg-accent-subtle text-accent-hover'
@@ -1103,7 +1100,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 ref={menuTriggerRef}
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                aria-label="Buka menu navigasi ViciTech"
+                aria-label={t.nav.openMenuAria}
                 aria-expanded={sheetOpen}
                 aria-controls="mobile-nav-bottom-sheet"
                 className={`${iconBtnBase} text-primary hover:bg-subtle`}
@@ -1119,7 +1116,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-14 md:h-[92px]'} />
 
       {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items — compact icon-only on scroll) ───────── */}
-      <nav aria-label="Navigasi bawah mobile" className={`md:hidden ${styles.bottomNav ?? ''}`}>
+      <nav aria-label={t.nav.mainNavAria} className={`md:hidden ${styles.bottomNav ?? ''}`}>
         <ul
           className={`mx-auto grid max-w-lg grid-cols-5 items-center gap-0.5 px-1.5 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
             isScrolled ? 'h-12 py-1' : 'h-14 py-1.5'
@@ -1127,13 +1124,16 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
         >
           {visibleBottomItems.map((item) => {
             const active = isActiveRoute(pathname, item.href, activeModule, activeView);
+            const mobileTr = t.nav.mobileBottom[item.id];
+            const itemLabel = mobileTr?.label ?? item.label;
+            const itemShort = mobileTr?.shortLabel ?? item.shortLabel;
             return (
               <li key={item.id} className="h-full">
                 <Link
                   href={item.href}
                   onClick={(event) => handleBottomNavClick(event, item)}
-                  title={item.label}
-                  aria-label={item.label}
+                  title={itemLabel}
+                  aria-label={itemLabel}
                   aria-current={active ? 'page' : undefined}
                   className={`vt-motion-press flex h-full min-h-[40px] flex-col items-center justify-center rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
@@ -1150,7 +1150,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       isScrolled ? (styles.mobileNavLabelCollapsed ?? '') : ''
                     }`}
                   >
-                    {item.shortLabel}
+                    {itemShort}
                   </span>
                 </Link>
               </li>
@@ -1166,7 +1166,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             id="mobile-nav-bottom-sheet"
             role="dialog"
             aria-modal="true"
-            aria-label="Menu navigasi ViciTech"
+            aria-label={t.nav.mainNavAria}
             onClick={(event) => event.stopPropagation()}
             className={styles.bottomSheet}
           >
@@ -1177,27 +1177,29 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             <div className="flex items-center justify-between border-b border-default px-4 pb-3 pt-1">
               <div>
                 <p className="font-sans text-base font-bold text-primary">ViciTech</p>
-                <p className="text-xs text-secondary">Ekosistem Circular IT &amp; Hardware QC</p>
+                <p className="text-xs text-secondary">{t.nav.drawerSubtitle}</p>
               </div>
               <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={closeSheet}
-                aria-label="Tutup menu navigasi"
+                aria-label={t.nav.closeMenuAria}
                 className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </button>
             </div>
 
-            <nav aria-label="Menu lengkap mobile" className="grid gap-4 p-4">
+            <nav aria-label={t.nav.mainNavAria} className="grid gap-4 p-4">
               {visibleDesktopGroups.map((group) => {
+                const groupTr = t.nav.groups[group.id];
+                const groupLabel = groupTr?.label ?? group.label;
                 if (!group.items?.length && group.href) {
                   const active = activeUmbrella === group.id;
                   return (
                     <div key={group.id}>
                       <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                        Sosial &amp; Panduan
+                        {t.nav.drawerSocialHeading}
                       </p>
                       <Link
                         href={group.href}
@@ -1214,11 +1216,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                               active ? 'text-accent-hover' : 'text-primary group-hover:text-accent-hover'
                             }`}
                           >
-                            {group.label}
+                            {groupLabel}
                           </span>
-                          {group.description && (
+                          {(groupTr?.description ?? group.description) && (
                             <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                              {group.description}
+                              {groupTr?.description ?? group.description}
                             </span>
                           )}
                         </span>
@@ -1230,11 +1232,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 return (
                   <div key={group.id}>
                     <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                      {group.label}
+                      {groupLabel}
                     </p>
                     <div className="grid gap-1">
                       {group.items?.map((subItem) => {
                         const subActive = isSubItemActive(subItem, pathname, activeModule, activeView);
+                        const subTr = t.nav.subItems[subItem.id];
                         return (
                           <Link
                             key={subItem.id}
@@ -1254,10 +1257,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                     : 'text-primary group-hover:text-accent-hover'
                                 }`}
                               >
-                                {subItem.label}
+                                {subTr?.label ?? subItem.label}
                               </span>
                               <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                                {subItem.description}
+                                {subTr?.description ?? subItem.description}
                               </span>
                             </span>
                           </Link>
@@ -1270,14 +1273,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
               <div className="border-t border-default pt-3">
                 <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                  Tema Tampilan
+                  {t.nav.drawerThemeHeading}
                 </p>
                 <ThemeToggle showLabel />
               </div>
 
               <div className="border-t border-default pt-3">
                 <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
-                  Workspace &amp; Akun
+                  {t.nav.drawerWorkspaceHeading}
                 </p>
                 <div className="grid gap-1">
                   <Link
@@ -1296,10 +1299,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                             : 'text-primary group-hover:text-accent-hover'
                         }`}
                       >
-                        Beranda
+                        {t.nav.homeLabel}
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                        Halaman utama ekosistem Circular IT &amp; Hardware QC ViciTech.
+                        {t.nav.homeDesc}
                       </span>
                     </span>
                   </Link>
@@ -1314,15 +1317,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     <SubNavIcon iconKey="messages" active={isMessagesRoute} />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-2 text-sm font-semibold text-primary group-hover:text-accent-hover">
-                        <span>Pesan Langsung</span>
+                        <span>{t.nav.dmLabel}</span>
                         {hasUnreadAlerts && (
                           <span className="inline-flex h-2 w-2 rounded-full bg-accent-primary" aria-hidden="true" />
                         )}
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                        {unreadCount > 0
-                          ? `${unreadCount} pesan belum dibaca`
-                          : 'Obrolan langsung dengan teknisi & builder.'}
+                        {unreadCount > 0 ? t.nav.dmUnread(unreadCount) : t.nav.dmDesc}
                       </span>
                     </span>
                   </Link>
@@ -1337,10 +1338,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     <SubNavIcon iconKey="account" active={isProfileRoute} />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold text-primary group-hover:text-accent-hover">
-                        Profil &amp; Akun
+                        {t.nav.profileLabel}
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                        Pesanan, preset tersimpan &amp; preferensi akun.
+                        {t.nav.profileDesc}
                       </span>
                     </span>
                   </Link>
@@ -1362,10 +1363,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                             : 'text-primary group-hover:text-accent-hover'
                         }`}
                       >
-                        Pengaturan &amp; Privasi
+                        {t.nav.settingsLabel}
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
-                        Aksesibilitas tampilan, ekspor data &amp; kontrol UU PDP.
+                        {t.nav.settingsDesc}
                       </span>
                     </span>
                   </Link>

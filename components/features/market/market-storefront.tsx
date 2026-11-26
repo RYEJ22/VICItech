@@ -14,6 +14,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCheckout } from '@/context/CheckoutContext';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import {
@@ -55,6 +56,8 @@ export function MarketStorefront({
   onOpenLibrary,
   onOpenBuilder,
 }: MarketStorefrontProps): ReactElement {
+  const { t } = useLanguage();
+  const m = t.routes.market;
   const [selectedCategory, setSelectedCategory] = useState<'all' | ProductCategory>(() =>
     isProductCategory(initialCategory) ? initialCategory : 'all',
   );
@@ -245,7 +248,7 @@ export function MarketStorefront({
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Cari PC build, ThinkPad, PS5, Steam Deck, GPU, atau komponen…"
+              placeholder={m.searchPlaceholder}
               className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-subtle py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:bg-surface focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
             />
           </div>
@@ -258,6 +261,12 @@ export function MarketStorefront({
             >
               {STOCK_FILTER_OPTIONS.map((option) => {
                 const active = stockFilter === option.id;
+                const stockLabel =
+                  option.id === 'ready'
+                    ? m.stockReady
+                    : option.id === 'preorder'
+                      ? m.stockPreorder
+                      : m.stockAll;
                 return (
                   <button
                     key={option.id}
@@ -270,7 +279,7 @@ export function MarketStorefront({
                         : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
-                    {option.label}
+                    {stockLabel}
                   </button>
                 );
               })}
@@ -278,18 +287,18 @@ export function MarketStorefront({
 
             <ToggleSwitch
               compact
-              label="Lulus IoT QC"
+              label={m.qcToggle}
               checked={iotQcOnly}
               onChange={setIotQcOnly}
             />
 
             <div className="flex items-center gap-2">
               <label htmlFor={sortSelectId} className="sr-only">
-                Urutkan produk
+                {m.sortLabel}
               </label>
               <span className="inline-flex items-center gap-1.5 text-xs text-secondary">
                 <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                <span className="hidden sm:inline">Urutkan:</span>
+                <span className="hidden sm:inline">{m.sortLabel}</span>
               </span>
               <select
                 id={sortSelectId}
@@ -302,9 +311,9 @@ export function MarketStorefront({
                 }}
                 className="vt-form-control min-h-10 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:bg-surface focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
               >
-                <option value="newest">Terbaru</option>
-                <option value="price_asc">Harga Terendah</option>
-                <option value="price_desc">Harga Tertinggi</option>
+                <option value="newest">{m.sortNewest}</option>
+                <option value="price_asc">{m.sortPriceAsc}</option>
+                <option value="price_desc">{m.sortPriceDesc}</option>
               </select>
             </div>
           </div>
@@ -329,7 +338,7 @@ export function MarketStorefront({
                     : 'border border-default bg-canvas font-medium text-secondary hover:bg-subtle hover:text-primary'
                 }`}
               >
-                <span>Semua</span>
+                <span>{m.categoryAll}</span>
                 <span className="font-mono text-[11px] tabular-nums opacity-85">
                   {initialProducts.length}
                 </span>
@@ -365,13 +374,13 @@ export function MarketStorefront({
 
           <div className="flex shrink-0 items-center justify-between gap-2 md:justify-end">
             <p className="text-xs font-medium text-secondary">
-              Menampilkan{' '}
+              {m.showingPrefix}{' '}
               <AnimatedNumber
                 value={filteredProducts.length}
                 format="number"
                 className="font-semibold text-primary"
               />{' '}
-              produk
+              {m.showingUnit}
             </p>
             {hasActiveFilters && (
               <button
@@ -380,7 +389,7 @@ export function MarketStorefront({
                 className="inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-accent-cta hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <RotateCcw className="h-3 w-3" aria-hidden="true" />
-                <span>Reset</span>
+                <span>{m.reset}</span>
               </button>
             )}
           </div>
