@@ -10,12 +10,30 @@ const scriptSources = [
   'https://app.sandbox.midtrans.com',
   'https://app.midtrans.com',
 ].join(' ');
+const imgSources = [
+  "'self'",
+  'data:',
+  'blob:',
+  ...(supabaseOrigin ? [supabaseOrigin] : []),
+  'https://*.supabase.co',
+  'https://*.giphy.com',
+  'https://*.tenor.com',
+].join(' ');
+const mediaSources = [
+  "'self'",
+  'blob:',
+  'data:',
+  ...(supabaseOrigin ? [supabaseOrigin] : []),
+  'https://*.supabase.co',
+  'https://*.giphy.com',
+  'https://*.tenor.com',
+].join(' ');
 const csp = [
   "default-src 'self'",
   `script-src ${scriptSources}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin} https://media.giphy.com https://i.giphy.com`,
-  `media-src 'self' ${supabaseOrigin} blob: data:`,
+  `img-src ${imgSources}`,
+  `media-src ${mediaSources}`,
   `connect-src 'self' ${supabaseOrigin} ${supabaseSocket} https://api.giphy.com https://generativelanguage.googleapis.com https://app.sandbox.midtrans.com https://app.midtrans.com https://api.sandbox.midtrans.com https://api.midtrans.com`,
   "font-src 'self' data:",
   "frame-src 'self' https://app.sandbox.midtrans.com https://app.midtrans.com",
@@ -36,6 +54,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "**.giphy.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.tenor.com",
       },
     ],
   },

@@ -470,10 +470,9 @@ export default function AdminIotQcPage(): ReactElement {
               Pilih Unit QC
             </label>
             {isLoading ? (
-              <p className="flex items-center gap-2 py-2 text-sm text-secondary">
-                <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Memuat registry unit QC…</span>
-              </p>
+              <div role="status" aria-label="Memuat registry unit QC" className="space-y-2 py-1">
+                <div className="h-11 w-full animate-pulse rounded-lg bg-subtle" />
+              </div>
             ) : units.length ? (
               <select
                 id="admin-qc-unit"

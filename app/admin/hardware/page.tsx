@@ -348,9 +348,15 @@ export default function HardwareInventoryPage(): ReactElement {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center gap-2 px-4 py-12 text-sm text-secondary">
-            <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            <span>Memuat registry hardware…</span>
+          <div role="status" aria-label="Memuat registry hardware" className="space-y-3 p-4 sm:p-5">
+            {[0, 1, 2, 3, 4].map((row) => (
+              <div key={row} className="flex items-center gap-3 rounded-xl border border-default bg-canvas p-3">
+                <div className="h-4 w-24 animate-pulse rounded bg-subtle" />
+                <div className="h-4 flex-1 animate-pulse rounded bg-subtle" />
+                <div className="h-4 w-28 animate-pulse rounded bg-subtle" />
+                <div className="h-6 w-16 animate-pulse rounded-full bg-subtle" />
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="px-4 py-12 text-center">

@@ -24,7 +24,14 @@ export function FloatingChatWidget() {
     return () => window.removeEventListener(OPEN_AI_WIDGET_EVENT, handleOpenRequest);
   }, []);
 
-  if (pathname.startsWith('/admin') || pathname === '/toolkit/konsultan-ai') return null;
+  if (
+    pathname.startsWith('/admin') ||
+    pathname === '/messages' ||
+    pathname.startsWith('/messages/') ||
+    pathname === '/toolkit/konsultan-ai'
+  ) {
+    return null;
+  }
 
   const positionClass =
     pathname === '/builder'

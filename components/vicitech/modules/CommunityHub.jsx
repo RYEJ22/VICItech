@@ -5,7 +5,7 @@ import { RevealOnScroll } from "@/components/ui/RevealOnScroll";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Users, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
-  Gamepad2, Code2, Palette, Laugh,
+  Gamepad2, Code2, Palette, Laugh, Flag,
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -43,7 +43,7 @@ const CATEGORIES = {
   qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
   guide: { label: "Panduan & Diskusi", icon: BookOpen, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
   meme: { label: "Meme Tech", icon: Laugh, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
-  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
+  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-[#EA580C] bg-[#EA580C] font-semibold text-white shadow-sm" },
 };
 
 const CAT_ORDER = ["all", "hardware", "gaming", "dev", "creative", "qa", "guide", "meme", "news"];
@@ -481,10 +481,10 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isPublishing}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary transition hover:border-accent-primary/50 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary transition hover:border-accent-primary/50 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
         >
-          <ImageIcon className="h-4 w-4 text-accent-primary" />
-          <Video className="h-4 w-4 text-accent-primary" />
+          <ImageIcon className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+          <Video className="h-4 w-4 text-accent-primary" aria-hidden="true" />
           <span>Foto / Video</span>
         </button>
 
@@ -493,19 +493,19 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
             type="button"
             onClick={() => setAttachedSpecs((v) => !v)}
             disabled={isPublishing}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3.5 py-2 text-sm transition ${focusRing} ${
+            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm transition ${focusRing} ${
               attachedSpecs
                 ? "border-accent-primary bg-accent-subtle font-medium text-accent-hover"
                 : "border-default bg-canvas text-secondary hover:text-primary"
             }`}
           >
-            <Cpu className="h-4 w-4" />
+            <Cpu className="h-4 w-4" aria-hidden="true" />
             <span>{attachedSpecs ? "Spec Sheet Terlampir" : "Lampirkan Spec Sheet"}</span>
           </button>
         )}
 
         <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
-          {isPublishing ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {isPublishing ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
           <span>
             {publishStage === "uploading"
               ? "Mengunggah media…"
@@ -515,6 +515,9 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
           </span>
         </button>
       </div>
+      <p className="mt-2.5 text-[11px] leading-relaxed text-secondary">
+        Lampiran mendukung hingga {MAX_IMAGE_ATTACHMENTS} foto (JPG/PNG/WebP) atau 1 video (MP4/WebM), maksimal 30 MB per berkas.
+      </p>
       <div aria-live="polite">
         {error && (
           <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-status-danger/30 bg-red-50 p-3 text-sm text-status-danger">
@@ -630,22 +633,62 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     }
   };
 
-  const action = `vt-motion-press inline-flex min-h-10 items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors ${focusRing}`;
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportDone, setReportDone] = useState("");
+  const isOfficialAnnouncement = post.cat === "news";
+
+  const handleReportPost = async (reason) => {
+    if (reportSubmitting) return;
+    setReportSubmitting(true);
+    try {
+      if (isSupabaseAuthConfigured) {
+        const supabase = getSupabaseBrowserClient();
+        await supabase.from("user_feedback").insert({
+          category: "Lainnya",
+          rating: 3,
+          page_module: "Moderasi Komunitas (/community)",
+          message: `[LAPORAN KONTEN KOMUNITAS] Postingan "${post.title}" (ID: ${post.id}) dilaporkan dengan alasan: ${reason}.`,
+        });
+      }
+      setReportDone(`Laporan (${reason}) telah dikirim ke tim moderasi ViciTech.`);
+      setReportOpen(false);
+    } catch {
+      setReportDone("Laporan dicatat. Anda juga dapat melaporkannya melalui /feedback.");
+      setReportOpen(false);
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
+  const action = `vt-motion-press inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm ${focusRing}`;
   return (
-    <article className="vt-card-lift min-w-0 overflow-hidden rounded-xl border border-default bg-surface p-3 shadow-sm sm:p-6">
+    <article
+      className={`vt-card-lift min-w-0 overflow-hidden rounded-2xl border bg-surface p-4 shadow-sm sm:p-6 ${
+        isOfficialAnnouncement
+          ? "border-[#EA580C]/40 border-l-4 border-l-[#EA580C]"
+          : "border-default"
+      }`}
+    >
       <header className="flex items-start gap-3">
         <Avatar author={author} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             {authorProfile
-              ? <Link href={authorProfile} className="break-words font-medium text-primary hover:text-accent-hover">{author.name}</Link>
-              : <span className="break-words font-medium text-primary">{author.name}</span>}
+              ? <Link href={authorProfile} className="break-words font-semibold text-primary hover:text-accent-hover">{author.name}</Link>
+              : <span className="break-words font-semibold text-primary">{author.name}</span>}
             <RoleBadge role={author.role} />
+            {post.isLfg && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                <Gamepad2 className="h-3 w-3" aria-hidden="true" />
+                LFG
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-xs text-secondary">{timeAgo(post.createdAt)}</p>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs ${cat.cls || "border-default bg-subtle text-primary"}`}>
-          <CatIcon className="h-3.5 w-3.5" /> {cat.label}
+        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${cat.cls || "border-default bg-subtle text-primary"}`}>
+          <CatIcon className="h-3.5 w-3.5" aria-hidden="true" /> {cat.label}
         </span>
       </header>
 
@@ -759,16 +802,53 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
 
       <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-default pt-3">
         <button type="button" aria-pressed={post.liked} onClick={() => onLike(post.id)} className={`${action} ${post.liked ? "bg-accent-subtle text-accent-hover" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
-          <ThumbsUp key={post.liked ? "liked" : "idle"} className={`h-4 w-4 ${post.liked ? "vt-motion-pop" : ""}`} fill={post.liked ? "currentColor" : "none"} /> <span key={post.likes} className="vt-motion-pop font-mono tabular-nums">{post.likes}</span>
+          <ThumbsUp key={post.liked ? "liked" : "idle"} className={`h-4 w-4 ${post.liked ? "vt-motion-pop" : ""}`} fill={post.liked ? "currentColor" : "none"} aria-hidden="true" /> <span key={post.likes} className="vt-motion-pop font-mono tabular-nums">{post.likes}</span>
           <span className="sr-only">{post.liked ? "suka, Anda menyukai postingan ini" : "suka"}</span>
         </button>
         <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-subtle text-primary" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
-          <MessageSquare className="h-4 w-4" /> <span className="font-mono tabular-nums">{post.comments.length}</span> Komentar
+          <MessageSquare className="h-4 w-4" aria-hidden="true" /> <span className="font-mono tabular-nums">{post.comments.length}</span> Komentar
         </button>
-        <button type="button" onClick={share} className={`${action} ml-auto text-secondary hover:bg-subtle hover:text-primary`}>
-          <Share2 className="h-4 w-4" /> {post.specs ? "Bagikan Spek" : "Bagikan"}
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          <button type="button" onClick={share} className={`${action} text-secondary hover:bg-subtle hover:text-primary`}>
+            <Share2 className="h-4 w-4" aria-hidden="true" /> <span>{post.specs ? "Bagikan Spek" : "Bagikan"}</span>
+          </button>
+          <button
+            type="button"
+            aria-expanded={reportOpen}
+            aria-label={`Laporkan postingan ${post.title}`}
+            onClick={() => setReportOpen((v) => !v)}
+            className={`${action} ${reportOpen ? "bg-rose-50 text-rose-700" : "text-secondary hover:bg-rose-50 hover:text-rose-700"}`}
+          >
+            <Flag className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Laporkan</span>
+          </button>
+        </div>
       </div>
+
+      {reportOpen && (
+        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5 text-xs">
+          <span className="font-semibold text-rose-900">Laporkan konten ini:</span>
+          <div className="flex flex-wrap gap-1.5">
+            {["Spam / Penipuan", "Data Pribadi (UU PDP)", "Konten Tidak Pantas"].map((reason) => (
+              <button
+                key={reason}
+                type="button"
+                disabled={reportSubmitting}
+                onClick={() => void handleReportPost(reason)}
+                className="rounded-full border border-rose-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
+              >
+                {reason}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {reportDone && (
+        <p role="status" className="mt-2 text-xs font-medium text-emerald-800">
+          {reportDone}
+        </p>
+      )}
       <p role="status" className="min-h-0 text-right text-xs text-status-live">{shareNote}</p>
 
       {open && (
@@ -2063,9 +2143,33 @@ export default function CommunityHub() {
             </p>
 
             {isLoadingPosts ? (
-              <div className="space-y-3 sm:space-y-4" aria-label="Memuat postingan komunitas">
-                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
-                <div className="h-40 animate-pulse rounded-xl border border-default bg-surface" />
+              <div className="space-y-3 sm:space-y-4" role="status" aria-label="Memuat postingan komunitas">
+                {[0, 1, 2].map((skeletonIdx) => (
+                  <div
+                    key={skeletonIdx}
+                    className="space-y-4 rounded-2xl border border-default bg-surface p-4 shadow-sm sm:p-6"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-subtle" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 w-36 animate-pulse rounded bg-subtle" />
+                        <div className="h-3 w-20 animate-pulse rounded bg-subtle" />
+                      </div>
+                      <div className="h-6 w-28 animate-pulse rounded-full bg-subtle" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-5 w-3/4 animate-pulse rounded bg-subtle" />
+                      <div className="h-3.5 w-full animate-pulse rounded bg-subtle" />
+                      <div className="h-3.5 w-5/6 animate-pulse rounded bg-subtle" />
+                    </div>
+                    <div className="aspect-video w-full animate-pulse rounded-xl bg-subtle" />
+                    <div className="flex items-center gap-3 border-t border-default pt-3">
+                      <div className="h-8 w-16 animate-pulse rounded-lg bg-subtle" />
+                      <div className="h-8 w-24 animate-pulse rounded-lg bg-subtle" />
+                      <div className="ml-auto h-8 w-20 animate-pulse rounded-lg bg-subtle" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : paginatedPosts.length ? (
               <RevealOnScroll className="space-y-3 sm:space-y-4">
