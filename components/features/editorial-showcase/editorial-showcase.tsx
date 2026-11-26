@@ -21,6 +21,7 @@ import {
   type TechnicalCallout,
 } from './editorial-showcase-content';
 import { EditorialShowcaseSteps } from './editorial-showcase-steps';
+import { TriPillarBento } from './tri-pillar-bento';
 import styles from './editorial-showcase.module.css';
 
 interface EditorialShowcaseProps {
@@ -54,6 +55,25 @@ function badgeClass(variant: DataBadgeVariant): string {
   if (variant === 'live') return 'vt-badge-live';
   if (variant === 'simulated') return 'vt-badge-simulated';
   return 'vt-badge-sample';
+}
+
+function resolveShowcaseHref(targetModule: string, targetView?: string): string {
+  switch (targetModule) {
+    case 'builder':
+      return '/builder';
+    case 'qc':
+      return '/qc-panel';
+    case 'tradein':
+      return '/trade-in';
+    case 'library':
+      return targetView === 'upgrade' ? '/market?view=upgrade' : '/market?view=catalog';
+    case 'market':
+      return '/market';
+    case 'community':
+      return '/community';
+    default:
+      return '/';
+  }
 }
 
 function CalloutCard({
@@ -95,7 +115,7 @@ function CalloutCard({
 
   return (
     <Link
-      href={`/home?tab=${encodeURIComponent(item.targetModule)}`}
+      href={resolveShowcaseHref(item.targetModule, item.targetView)}
       className={sharedClasses}
     >
       {content}
@@ -114,9 +134,14 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
   return (
     <section
       aria-label="Ringkasan arsitektur Circular IT ViciTech"
-      className="border-t border-default bg-surface py-14 sm:py-16"
+      className="bg-surface pb-24 pt-12 sm:pb-24 sm:pt-16"
     >
-      <div className="mx-auto max-w-shell space-y-16 px-4 sm:px-6">
+      <div className="mx-auto max-w-shell space-y-14 px-4 sm:space-y-16 sm:px-6">
+        {/* Tri-Pillar Moat Asymmetric Bento Grid */}
+        <RevealOnScroll>
+          <TriPillarBento />
+        </RevealOnScroll>
+
         {/* Reference 00:07–00:08: Vibrant Tech Orange Editorial Manifesto Band */}
         <RevealOnScroll>
         <div className={`rounded-xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
@@ -138,7 +163,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
               </button>
             ) : (
               <Link
-                href={`/home?tab=${SHOWCASE_MANIFESTO.ctaModule}`}
+                href={resolveShowcaseHref(SHOWCASE_MANIFESTO.ctaModule)}
                 className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>

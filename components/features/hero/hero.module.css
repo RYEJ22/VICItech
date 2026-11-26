@@ -8,30 +8,30 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  min-height: 32rem;
-  min-height: clamp(32rem, 100svh, 60rem);
+  min-height: 30rem;
+  min-height: clamp(30rem, 84svh, 52rem);
 }
 
 /*
  * Light editorial overlay. Below 64rem the copy spans the full width, so the
  * wash is uniform. From 64rem the copy sits on the left and the photo opens up
- * on the right. Opacity stops keep body copy legible over dark hardware photography.
+ * on the right. High contrast opacity stops keep body copy sharp over photography.
  */
 .overlay {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  background: rgb(var(--bg-canvas-rgb) / 0.84);
+  background: rgb(var(--bg-canvas-rgb) / 0.89);
 }
 
 @media (min-width: 64rem) {
   .overlay {
     background: linear-gradient(
       to right,
-      rgb(var(--bg-canvas-rgb) / 0.94) 0%,
-      rgb(var(--bg-canvas-rgb) / 0.85) 62%,
-      rgb(var(--bg-canvas-rgb) / 0.25) 100%
+      rgb(var(--bg-canvas-rgb) / 0.96) 0%,
+      rgb(var(--bg-canvas-rgb) / 0.9) 56%,
+      rgb(var(--bg-canvas-rgb) / 0.28) 100%
     );
   }
 }
@@ -51,33 +51,34 @@
   color: var(--text-secondary);
 }
 
-/* Crisp white text on burnt orange CTA passes WCAG AA (>= 5.1:1) without hover polarity inversion. */
+/* Dominant primary CTA in ViciTech Signal Orange (#EA580C -> #C2410C hover) */
 .ctaPrimary {
-  background: var(--accent-cta);
+  background: var(--accent-primary);
   color: var(--accent-foreground);
   font-weight: 600;
-  box-shadow: 0 8px 20px -6px rgb(var(--accent-cta-rgb) / 0.45);
+  box-shadow: 0 10px 24px -8px rgb(var(--accent-cta-rgb) / 0.5);
   transition: background-color 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
 }
 
 .ctaPrimary:hover {
-  background: var(--accent-cta-hover);
+  background: var(--accent-hover);
   color: var(--accent-foreground);
   transform: translateY(-1px);
-  box-shadow: 0 10px 24px -6px rgb(var(--accent-cta-hover-rgb) / 0.55);
+  box-shadow: 0 12px 28px -8px rgb(var(--accent-cta-hover-rgb) / 0.6);
 }
 
+/* Crisp solid editorial secondary CTA without backdrop-filter blur */
 .ctaSecondary {
-  background: rgb(var(--bg-surface-rgb) / 0.88);
+  background: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid rgb(var(--text-primary-rgb) / 0.16);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.05);
   transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
 }
 
 .ctaSecondary:hover {
-  background: rgb(var(--bg-surface-rgb) / 0.98);
-  border-color: rgb(var(--text-primary-rgb) / 0.35);
+  background: var(--bg-subtle);
+  border-color: rgb(var(--text-primary-rgb) / 0.32);
   transform: translateY(-1px);
 }
 
