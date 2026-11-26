@@ -903,7 +903,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                     >
                                       {subItem.label}
                                     </span>
-                                    <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                                    <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                                       {subItem.description}
                                     </span>
                                   </span>
@@ -1073,12 +1073,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   className={`vt-motion-press flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
                       ? 'bg-[#EA580C]/10 font-semibold text-[#C2410C]'
-                      : 'font-medium text-[#71717A] hover:bg-[#F3F1ED] hover:text-[#18181B]'
+                      : 'font-medium text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
                   }`}
                 >
                   <NavIcon
                     iconKey={item.iconKey}
-                    className={`h-[18px] w-[18px] ${active ? 'text-[#C2410C]' : 'text-[#71717A]'}`}
+                    className={`h-[18px] w-[18px] ${active ? 'text-[#C2410C]' : 'text-[#52525B]'}`}
                   />
                   <span className="truncate">{item.shortLabel}</span>
                 </Link>
@@ -1106,7 +1106,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             <div className="flex items-center justify-between border-b border-[#E4E4E7] px-4 pb-3 pt-1">
               <div>
                 <p className="font-sans text-base font-semibold text-[#18181B]">ViciTech</p>
-                <p className="text-xs text-[#71717A]">Ekosistem Circular IT &amp; Hardware QC</p>
+                <p className="text-xs text-[#52525B]">Ekosistem Circular IT &amp; Hardware QC</p>
               </div>
               <button
                 ref={closeButtonRef}
@@ -1125,7 +1125,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   const active = activeUmbrella === group.id;
                   return (
                     <div key={group.id}>
-                      <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
+                      <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
                         Sosial &amp; Panduan
                       </p>
                       <Link
@@ -1146,7 +1146,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                             {group.label}
                           </span>
                           {group.description && (
-                            <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                            <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                               {group.description}
                             </span>
                           )}
@@ -1158,7 +1158,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
                 return (
                   <div key={group.id}>
-                    <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
+                    <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
                       {group.label}
                     </p>
                     <div className="grid gap-1">
@@ -1185,7 +1185,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                               >
                                 {subItem.label}
                               </span>
-                              <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                              <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                                 {subItem.description}
                               </span>
                             </span>
@@ -1198,7 +1198,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               })}
 
               <div className="border-t border-[#E4E4E7] pt-3">
-                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#71717A]">
+                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
                   Workspace &amp; Akun
                 </p>
                 <div className="grid gap-1">
@@ -1220,7 +1220,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       >
                         Beranda
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                         Halaman utama ekosistem Circular IT &amp; Hardware QC ViciTech.
                       </span>
                     </span>
@@ -1241,7 +1241,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                           <span className="inline-flex h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
                         )}
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                         {unreadCount > 0
                           ? `${unreadCount} pesan belum dibaca`
                           : 'Obrolan langsung dengan teknisi & builder.'}
@@ -1261,7 +1261,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#C2410C]">
                         Profil &amp; Akun
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#71717A]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                         Pesanan, preset tersimpan &amp; preferensi akun.
                       </span>
                     </span>

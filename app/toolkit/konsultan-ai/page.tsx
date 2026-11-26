@@ -12,11 +12,11 @@ export default function KonsultanAiPage() {
     <div className="max-w-3xl">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">Toolkit ViciTech</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#18181B] sm:text-4xl">Konsultan Rakitan AI</h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-[#71717A] sm:text-base">Temukan arah rakitan PC, cek opsi upgrade laptop, dan pahami layanan ViciTech bersama konsultan hardware.</p>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-[#52525B] sm:text-base">Temukan arah rakitan PC, cek opsi upgrade laptop, dan pahami layanan ViciTech bersama konsultan hardware.</p>
     </div>
     <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(240px,0.72fr)_minmax(0,1.6fr)]">
       <ConsultationPresets />
-      <div className="min-w-0"><ViciChatInterface variant="page" /><p className="mt-3 px-1 text-xs leading-5 text-[#71717A]">Ketersediaan dan harga perangkat mengikuti katalog ViciTech Market saat konsultasi dimulai.</p></div>
+      <div className="min-w-0"><ViciChatInterface variant="page" /><p className="mt-3 px-1 text-xs leading-5 text-[#52525B]">Ketersediaan dan harga perangkat mengikuti katalog ViciTech Market saat konsultasi dimulai.</p></div>
     </div>
   </main>;
 }
