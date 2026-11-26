@@ -22,8 +22,9 @@ export function TriPillarBento(): ReactElement {
       className="vt-grid-bg space-y-6 rounded-xl border border-default bg-canvas/80 p-4 sm:p-7"
     >
       <div className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
-          Tri-Pillar Moat ViciTech
+        <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
+          <span className="vt-pixel-led bg-accent-primary" aria-hidden="true" />
+          <span>Tri-Pillar Moat ViciTech</span>
         </p>
         <h2
           id="tri-pillar-heading"
@@ -35,6 +36,7 @@ export function TriPillarBento(): ReactElement {
           Satukan kalkulator simulasi, verifikasi kualitas transparan, dan komunitas teknis aktif
           sebelum mengeluarkan anggaran sepeser pun.
         </p>
+        <span aria-hidden="true" className="vt-pixel-divider mt-5 max-w-xs" />
       </div>
 
       {/* Asymmetric 12-column Bento Grid */}
@@ -144,8 +146,11 @@ export function TriPillarBento(): ReactElement {
             {/* Contained Mini Obsidian Telemetry Widget */}
             <div className="vt-obsidian-panel mt-5 space-y-2.5 rounded-xl p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="font-mono text-xs font-bold tabular-nums text-[#FAFAFA]">VICI-PC-2026-0104</span>
-                <span className="vt-badge-simulated font-mono !px-2 !py-0.5 !text-[10px]">
+                <span className="inline-flex items-center gap-2 font-mono text-xs font-bold tabular-nums text-[#FAFAFA]">
+                  <span className="vt-pixel-led vt-pixel-led-pulse bg-sky-400" aria-hidden="true" />
+                  <span>VICI-PC-2026-0104</span>
+                </span>
+                <span className="vt-badge-simulated !px-2 !py-0.5 !text-[10px]">
                   Profil Demo QC
                 </span>
               </div>
@@ -154,8 +159,8 @@ export function TriPillarBento(): ReactElement {
                   <span>Burn-In Termal CPU/GPU</span>
                   <span className="font-mono font-semibold tabular-nums text-[#FAFAFA]">64.0°C · Stabil</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
-                  <div className="h-full w-[88%] rounded-full bg-accent-primary" />
+                <div className="vt-pixel-bar h-2 overflow-hidden rounded-[3px] bg-white/15">
+                  <div className="h-full w-[88%] rounded-[2px] bg-accent-primary" />
                 </div>
                 <div className="flex items-center justify-between pt-1 text-[#D4D4D8]">
                   <span className="inline-flex items-center gap-1 text-emerald-400">

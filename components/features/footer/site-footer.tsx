@@ -41,7 +41,8 @@ export function SiteFooter(): ReactElement {
             Ekosistem Circular IT untuk riset spesifikasi perangkat keras, rakitan B2S/B2B/B2C terkurasi,
             tukar tambah aset, dan verifikasi kualitas berbasis telemetri ESP32.
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span aria-hidden="true" className="vt-pixel-divider mt-4 max-w-[14rem]" />
+          <div className="mt-3.5 flex flex-wrap items-center gap-2">
             <span className="vt-badge-simulated">Simulated / Demo QC</span>
             <span className="vt-badge-sample">Spesifikasi Referensi</span>
           </div>

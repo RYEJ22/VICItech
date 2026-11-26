@@ -686,8 +686,8 @@ export default function AdminIotQcPage(): ReactElement {
               <Terminal className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
               <span>Terminal Telemetri ESP32</span>
             </h2>
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-status-live">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-status-live" aria-hidden="true" />
+            <span className="vt-pixel-tag flex items-center gap-1.5 text-status-live">
+              <span className="vt-pixel-led vt-pixel-led-pulse bg-status-live" aria-hidden="true" />
               <span>Aliran Aman</span>
             </span>
           </div>

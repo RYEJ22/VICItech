@@ -167,17 +167,17 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
       </span>
 
       <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-[#A1A1AA]">
-        <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
-          <span className="font-mono font-semibold text-emerald-400">&lt;10%</span> Optimal
+        <li className="inline-flex items-center gap-1.5">
+          <span className="vt-pixel-led bg-emerald-400" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-emerald-400">&lt;10%</span> Optimal
         </li>
-        <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
-          <span className="font-mono font-semibold text-amber-400">10–19.9%</span> Perhatian
+        <li className="inline-flex items-center gap-1.5">
+          <span className="vt-pixel-led bg-amber-400" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-amber-400">10–19.9%</span> Perhatian
         </li>
-        <li className="inline-flex items-center gap-1">
-          <span className="h-2 w-2 rounded-full bg-rose-400" aria-hidden="true" />
-          <span className="font-mono font-semibold text-rose-400">≥20%</span> Bottleneck
+        <li className="inline-flex items-center gap-1.5">
+          <span className="vt-pixel-led bg-rose-400" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-rose-400">≥20%</span> Bottleneck
         </li>
       </ul>
     </div>
@@ -193,10 +193,10 @@ function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass, dark = false
           <span className={`font-medium ${dark ? "text-[#FAFAFA]" : "text-primary"}`}>{label}</span>
           {badgeLabel && (
             <span
-              className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${
+              className={`vt-pixel-tag rounded border px-2 py-0.5 ${
                 dark
-                  ? "border-[#EA580C]/40 bg-[#EA580C]/20 text-orange-300"
-                  : "border-accent-primary/30 bg-accent-subtle text-accent-cta"
+                  ? "border-accent-primary/40 bg-accent-primary/20 text-orange-300"
+                  : "border-accent-primary/30 bg-accent-subtle text-accent-hover"
               }`}
             >
               {badgeLabel}
@@ -207,9 +207,12 @@ function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass, dark = false
           {Math.round(valuePct)}%
         </span>
       </div>
-      <div className={`h-2 overflow-hidden rounded-full ${dark ? "bg-white/10" : "bg-subtle"}`} role="presentation">
+      <div
+        className={`h-2.5 overflow-hidden ${dark ? "vt-pixel-bar rounded-[3px] bg-white/10" : "rounded-full bg-subtle"}`}
+        role="presentation"
+      >
         <div
-          className={`h-full w-full origin-left rounded-full transition-transform duration-500 ease-out motion-reduce:transition-none ${barColorClass}`}
+          className={`h-full w-full origin-left transition-transform duration-500 ease-out motion-reduce:transition-none ${dark ? "rounded-[2px]" : "rounded-full"} ${barColorClass}`}
           style={{ transform: `scaleX(${clampedScale})` }}
         />
       </div>
@@ -1042,9 +1045,9 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                           {Math.round(item.barPct)}% indeks
                         </span>
                       </div>
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle">
+                      <div className="vt-pixel-bar mt-2 h-2 overflow-hidden rounded-[3px] bg-subtle">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 motion-reduce:transition-none ${tierBarClass}`}
+                          className={`h-full rounded-[2px] transition-all duration-500 motion-reduce:transition-none ${tierBarClass}`}
                           style={{ width: `${item.barPct}%` }}
                         />
                       </div>

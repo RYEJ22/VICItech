@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans, Silkscreen } from "next/font/google";
 import { CheckoutProvider } from "@/context/CheckoutContext";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import { UserSettingsSync } from "@/components/providers/UserSettingsSync";
@@ -21,6 +21,13 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-mono",
+  display: "swap",
+});
+
+const silkscreen = Silkscreen({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-pixel",
   display: "swap",
 });
 
@@ -63,7 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable}`}
+      className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} ${silkscreen.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">

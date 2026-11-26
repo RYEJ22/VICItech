@@ -432,11 +432,12 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
 
       {status === "ready" && record && typeof record === "object" && (
         <section aria-label="Status pelacakan perangkat" className="mt-6 space-y-5">
-          <div className="vt-obsidian-panel rounded-2xl p-6">
+          <div className="vt-obsidian-panel rounded-xl p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-xs uppercase tracking-[0.14em] text-[#EA580C]">
-                  {record.order_id || "Pelacakan Unit"}
+                <p className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-accent-primary">
+                  <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
+                  <span>{record.order_id || "Pelacakan Unit"}</span>
                 </p>
                 <h2 className="tracking-tight mt-1 font-sans text-xl font-bold text-[#FAFAFA]">
                   {record.device_name || "Unit Rakitan ViciTech"}
@@ -447,7 +448,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {sourceBadge}
-                <span className="inline-flex items-center rounded-md border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-[#FAFAFA]">
+                <span className="vt-pixel-tag inline-flex items-center rounded border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[#FAFAFA]">
                   {translateStressStatus(record.shipping_status) || testLabel}
                 </span>
               </div>
@@ -459,7 +460,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                 <span className="font-mono tabular-nums font-bold text-[#FAFAFA]">{Math.round(progress)}%</span>
               </div>
               <div
-                className="h-2 overflow-hidden rounded-full bg-white/10"
+                className="vt-pixel-bar h-2.5 overflow-hidden rounded-[3px] bg-white/10"
                 role="progressbar"
                 aria-valuenow={progress}
                 aria-valuemin={0}
@@ -467,7 +468,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                 aria-label="Progres perakitan dan uji burn-in"
               >
                 <div
-                  className="h-full w-full origin-left rounded-full bg-[#EA580C] transition-transform duration-300 motion-reduce:transition-none"
+                  className="h-full w-full origin-left rounded-[2px] bg-accent-primary transition-transform duration-300 motion-reduce:transition-none"
                   style={{ transform: `scaleX(${Math.max(0, Math.min(100, progress)) / 100})` }}
                 />
               </div>
@@ -536,8 +537,8 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
       )}
 
       {/* Protokol Inspeksi 15 Titik Hybrid IoT QC */}
-      <section aria-labelledby="qc-15-points-heading" className="rounded-2xl border border-default bg-surface p-5 shadow-card sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3.5">
+      <section aria-labelledby="qc-15-points-heading" className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5">
           <div>
             <h3 id="qc-15-points-heading" className="font-sans text-base font-bold text-primary sm:text-lg">
               Standar Inspeksi 15 Titik Hybrid IoT QC
@@ -548,6 +549,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
           </div>
           <span className="vt-badge-simulated">Protokol Referensi · ESP32 v2.5</span>
         </div>
+        <span aria-hidden="true" className="vt-pixel-divider" />
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           {QC_15_POINT_GROUPS.map((group) => (
             <div key={group.title} className="rounded-xl border border-default bg-canvas p-4">

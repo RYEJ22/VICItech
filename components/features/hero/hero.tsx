@@ -74,7 +74,7 @@ export function Hero({
             <p
               className={`inline-flex items-center gap-2 rounded-full border border-default bg-surface px-3.5 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-card ${styles.stagger1}`}
             >
-              <span className="h-2 w-2 rounded-full bg-accent-primary" aria-hidden="true" />
+              <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
               <span>{content.eyebrow}</span>
             </p>
 

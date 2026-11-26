@@ -14,6 +14,7 @@ module.exports = {
         sans: ["var(--font-sans)", "Plus Jakarta Sans", "Inter", "Arial", "sans-serif"],
         serif: ["var(--font-sans)", "Plus Jakarta Sans", "Inter", "Arial", "sans-serif"],
         mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+        pixel: ["var(--font-pixel)", "Silkscreen", "var(--font-mono)", "monospace"],
       },
       letterSpacing: {
         tight: "-0.02em",

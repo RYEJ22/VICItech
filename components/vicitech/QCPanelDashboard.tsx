@@ -97,6 +97,8 @@ export default function QCPanelDashboard() {
           <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
         </header>
 
+        <span aria-hidden="true" className="vt-pixel-divider mb-6" />
+
         <section className="mb-6 grid gap-3 sm:grid-cols-3" aria-label="Status ruang kerja">
           {SYSTEM_STATS.map(({ label, value, icon: Icon }) => (
             <SpotlightCard key={label} className="flex items-center justify-between p-5">
@@ -124,10 +126,10 @@ export default function QCPanelDashboard() {
           <aside className="space-y-4">
             <div className="vt-obsidian-panel rounded-xl p-5">
               <div className="flex items-center justify-between">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#A1A1AA]">
+                <p className="vt-pixel-tag text-[#D4D4D8]">
                   Waktu Telemetri
                 </p>
-                <span className="h-2 w-2 rounded-full bg-accent-primary" aria-hidden="true" />
+                <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
               </div>
               <p className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-[#FAFAFA]">
                 {clock}
