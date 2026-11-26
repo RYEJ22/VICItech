@@ -160,11 +160,16 @@ export function BuilderRouteView({
   );
 }
 
-export function BottleneckRouteView(): ReactElement {
+export function BottleneckRouteView({
+  marketProducts = [],
+}: {
+  readonly marketProducts?: readonly ProductRow[];
+}): ReactElement {
   const router = useRouter();
   return (
     <main className="min-h-[calc(100vh-5.5rem)] min-w-0 bg-canvas text-primary">
       <BottleneckAnalyzer
+        marketProducts={marketProducts as never[]}
         onSwapToPreset={(parts: unknown) => {
           savePendingBuilderConfig(parts);
           router.push('/builder');

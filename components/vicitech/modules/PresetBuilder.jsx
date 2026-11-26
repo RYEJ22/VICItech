@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Sliders, CheckCircle2, Zap, Building2, GraduationCap, Gamepad2, ShoppingCart, FileText, RefreshCw,
   Cpu, CircuitBoard, MemoryStick, HardDrive, Gauge, Monitor, ShieldCheck, Truck, Bookmark, Plus, Minus, X,
-  LoaderCircle, Wind, Box, Copy, Check, Wrench, Sparkles, Video,
+  LoaderCircle, Wind, Box, Copy, Check, Wrench, Sparkles, Video, ExternalLink, Store,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { saveUserPreset } from "@/lib/supabase";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { useCheckout } from "@/context/CheckoutContext";
 import { listHardwareComponents } from "@/lib/hardware/components";
+import { buildMarketCatalogUrl, matchPartToMarket } from "@/lib/part-matcher";
 
 /* ───────────────────────── Katalog (data referensi, harga dalam IDR) ───────────────────────── */
 
@@ -367,8 +369,9 @@ const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible
 
 /* ───────────────────────── Small UI pieces ───────────────────────── */
 
-function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
+function PartRow({ slot, current, marketMatch, open, onToggle, options, deltaFor, onPick }) {
   const Icon = slot.icon;
+  const showBuyBridge = current.price > 0 && marketMatch;
   return (
     <li className="vt-card-lift rounded-xl border border-default bg-surface shadow-sm">
       <div className="flex flex-wrap items-center gap-2.5 p-3.5 sm:gap-3 sm:p-4">
@@ -376,7 +379,15 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
           <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1 basis-48">
-          <p className="text-xs text-secondary">{slot.label}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs text-secondary">{slot.label}</p>
+            {showBuyBridge && marketMatch.matched ? (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                <Store className="h-3 w-3" aria-hidden="true" />
+                {marketMatch.badge}
+              </span>
+            ) : null}
+          </div>
           <p className="font-medium text-primary">{current.name}</p>
           <p className="text-xs text-secondary">{current.spec}</p>
         </div>
@@ -384,19 +395,45 @@ function PartRow({ slot, current, open, onToggle, options, deltaFor, onPick }) {
           <p className="font-mono font-semibold tabular-nums text-primary">{idr(current.price)}</p>
           <p className="font-mono text-xs tabular-nums text-secondary">{current.w} W · garansi {current.wr} bln</p>
         </div>
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={onToggle}
-          className={`vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
-            open
-              ? "border-accent-primary bg-accent-subtle text-accent-cta"
-              : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
-          }`}
-        >
-          <RefreshCw className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-          <span>Ganti / Upgrade</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {showBuyBridge ? (
+            marketMatch.matched ? (
+              <Link
+                href={marketMatch.href}
+                aria-label={`Beli ${current.name} di ViciTech Market`}
+                className={`vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-accent-cta-hover ${focusRing}`}
+              >
+                <Store className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span>{marketMatch.ctaLabel}</span>
+              </Link>
+            ) : (
+              <a
+                href={marketMatch.href}
+                target="_blank"
+                rel="noopener noreferrer sponsored"
+                title={marketMatch.badge}
+                aria-label={`Cek ${current.name} di Toko Resmi (Partner)`}
+                className={`vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-accent-primary/35 bg-accent-subtle px-3 py-2 text-xs font-semibold text-accent-cta transition-colors hover:bg-accent-primary/15 ${focusRing}`}
+              >
+                <span>{marketMatch.ctaLabel}</span>
+                <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+              </a>
+            )
+          ) : null}
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={onToggle}
+            className={`vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${focusRing} ${
+              open
+                ? "border-accent-primary bg-accent-subtle text-accent-cta"
+                : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
+            }`}
+          >
+            <RefreshCw className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+            <span>Ganti / Upgrade</span>
+          </button>
+        </div>
       </div>
 
       {open && (
@@ -1143,6 +1180,7 @@ export default function PresetBuilder({
                   key={r.key}
                   slot={r}
                   current={r.part}
+                  marketMatch={matchPartToMarket(r.part.name, r.key, marketProducts)}
                   open={openSlot === r.key}
                   onToggle={() => setOpenSlot(openSlot === r.key ? null : r.key)}
                   options={optionsFor(catalog, r.key, sel)}
@@ -1248,8 +1286,16 @@ export default function PresetBuilder({
               <span>Tinjau Pre-Order Cepat</span>
             </button>
 
-            {/* Aksi Lintas Modul: Cek Bottleneck & Salin Spec Sheet */}
+            {/* Aksi Lintas Modul: Cek Market, Bottleneck & Salin Spec Sheet */}
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+              <Link
+                href={buildMarketCatalogUrl()}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-accent-primary/40 bg-accent-subtle px-4 py-2.5 text-xs font-semibold text-accent-cta transition-colors hover:bg-accent-primary/15 sm:text-sm ${focusRing}`}
+              >
+                <Store className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span>Cek Semua Komponen di Market</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={handleCheckBottleneck}

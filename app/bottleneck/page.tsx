@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { BottleneckRouteView } from '@/components/vicitech/StandaloneModuleHost';
+import { listMarketProducts } from '@/lib/market/products';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Bottleneck Analyzer | ViciTech',
@@ -10,6 +13,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BottleneckPage() {
-  return <BottleneckRouteView />;
+export default async function BottleneckPage() {
+  const { products } = await listMarketProducts();
+  return <BottleneckRouteView marketProducts={products} />;
 }
