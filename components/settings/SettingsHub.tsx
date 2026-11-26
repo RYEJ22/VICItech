@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
+  Activity,
   AlertTriangle,
   Check,
   CheckCircle2,
@@ -10,61 +11,66 @@ import {
   Download,
   Eye,
   Globe,
+  Hash,
+  Layers,
   LoaderCircle,
   Monitor,
   Moon,
+  Navigation,
   RotateCcw,
   ShieldCheck,
+  SlidersHorizontal,
+  Smartphone,
   Sparkles,
   Sun,
+  Tag,
+  Thermometer,
   Trash2,
   Type,
+  Wand2,
   X,
 } from 'lucide-react';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import {
+  COMFORT_PRESET_PATCHES,
   DEFAULT_USER_SETTINGS,
   LANGUAGE_STORAGE_KEY,
   THEME_STORAGE_KEY,
   USER_SETTINGS_STORAGE_KEY,
   USER_SETTINGS_UPDATED_EVENT,
+  formatIdrPreference,
+  formatTelemetryMetric,
+  formatTemperature,
   getStoredUserSettings,
   mergeRemoteUserSettings,
+  resolveActiveComfortPreset,
   saveStoredUserSettings,
+  type ComfortPresetId,
+  type MobileDensity,
+  type NavbarScrollBehavior,
+  type PixelIntensity,
+  type TemperatureUnit,
   type TextScale,
   type ThemeMode,
   type UserLanguage,
   type UserSettings,
 } from '@/lib/user-settings';
 
-const THEME_OPTIONS: readonly {
-  readonly value: ThemeMode;
-  readonly label: string;
-  readonly sub: string;
-}[] = [
-  { value: 'light', label: 'Mode Terang', sub: 'Default · Ceramic Light' },
-  { value: 'dark', label: 'Mode Gelap', sub: 'Pixel Obsidian UI' },
-];
+// ── Static Option Descriptors ──
 
-const TEXT_SCALE_OPTIONS: readonly {
-  readonly value: TextScale;
-  readonly label: string;
-  readonly sample: string;
-}[] = [
-  { value: 'normal', label: 'Normal', sample: '100%' },
-  { value: 'large', label: 'Besar', sample: '112.5%' },
-  { value: 'xlarge', label: 'Ekstra Besar', sample: '125%' },
+const THEME_OPTIONS: readonly ThemeMode[] = ['light', 'dark'];
+const PIXEL_INTENSITY_OPTIONS: readonly PixelIntensity[] = ['standard', 'subtle'];
+const TEXT_SCALE_OPTIONS: readonly { readonly value: TextScale; readonly sample: string }[] = [
+  { value: 'normal', sample: '100%' },
+  { value: 'large', sample: '112.5%' },
+  { value: 'xlarge', sample: '125%' },
 ];
-
-const LANGUAGE_OPTIONS: readonly {
-  readonly value: UserLanguage;
-  readonly label: string;
-  readonly sub: string;
-}[] = [
-  { value: 'id', label: 'Bahasa Indonesia', sub: 'ID (Utama)' },
-  { value: 'en', label: 'English', sub: 'EN (Preferensi)' },
-];
+const LANGUAGE_OPTIONS: readonly UserLanguage[] = ['id', 'en'];
+const TEMP_UNIT_OPTIONS: readonly TemperatureUnit[] = ['C', 'F'];
+const NAV_SCROLL_OPTIONS: readonly NavbarScrollBehavior[] = ['collapse', 'keep-labels'];
+const MOBILE_DENSITY_OPTIONS: readonly MobileDensity[] = ['comfortable', 'compact'];
+const COMFORT_PRESETS: readonly ComfortPresetId[] = ['balanced', 'readability', 'obsidian'];
 
 function SettingsSwitch({
   checked,
@@ -82,7 +88,7 @@ function SettingsSwitch({
       aria-checked={checked}
       aria-label={label}
       onClick={onChange}
-      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2 ${
+      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors after:absolute after:-inset-x-1 after:-inset-y-2 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2 ${
         checked ? 'bg-accent-primary' : 'bg-border-strong'
       }`}
     >
@@ -104,12 +110,14 @@ interface AuthUserSummary {
 }
 
 export function SettingsHub() {
-  const { t } = useLanguage();
+  const { t, isEnglish } = useLanguage();
   const s = t.settings;
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_USER_SETTINGS);
   const [authUser, setAuthUser] = useState<AuthUserSummary | null>(null);
   const [osPrefersReducedMotion, setOsPrefersReducedMotion] = useState(false);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'saved' | 'local-only'>('idle');
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [resetNotice, setResetNotice] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
 
@@ -225,6 +233,7 @@ export function SettingsHub() {
   }, [deleteModalOpen, submittingDelete]);
 
   async function updateSettings(patch: Partial<UserSettings>): Promise<void> {
+    setResetNotice(null);
     const merged: UserSettings = {
       ...settings,
       ...patch,
@@ -254,10 +263,23 @@ export function SettingsHub() {
     }
   }
 
+  async function handleConfirmResetDefaults(): Promise<void> {
+    setConfirmResetOpen(false);
+    await updateSettings({
+      ...DEFAULT_USER_SETTINGS,
+      deletionRequestedAt: settings.deletionRequestedAt ?? null,
+    });
+    setResetNotice(s.resetDoneNotice);
+  }
+
   async function handleExportMyData(): Promise<void> {
     if (exporting) return;
     if (!authUser || !isSupabaseAuthConfigured) {
-      setExportNotice('Silakan masuk ke akun Anda terlebih dahulu untuk mengekspor data pribadi.');
+      setExportNotice(
+        isEnglish
+          ? 'Please sign in to your account first to export your personal data.'
+          : 'Silakan masuk ke akun Anda terlebih dahulu untuk mengekspor data pribadi.',
+      );
       return;
     }
 
@@ -324,10 +346,16 @@ export function SettingsHub() {
       URL.revokeObjectURL(url);
 
       setExportNotice(
-        `Ringkasan data Anda (${(ordersResult.data ?? []).length} pesanan, ${communityPosts.length} postingan komunitas) berhasil diunduh.`,
+        isEnglish
+          ? `Your data archive (${(ordersResult.data ?? []).length} orders, ${communityPosts.length} community posts) has been downloaded.`
+          : `Ringkasan data Anda (${(ordersResult.data ?? []).length} pesanan, ${communityPosts.length} postingan komunitas) berhasil diunduh.`,
       );
     } catch {
-      setExportNotice('Gagal menyiapkan ekspor data. Silakan coba beberapa saat lagi.');
+      setExportNotice(
+        isEnglish
+          ? 'Unable to prepare data export right now. Please try again shortly.'
+          : 'Gagal menyiapkan ekspor data. Silakan coba beberapa saat lagi.',
+      );
     } finally {
       setExporting(false);
     }
@@ -382,42 +410,54 @@ export function SettingsHub() {
     }
   }
 
+  const activePreset = resolveActiveComfortPreset(settings);
   const formattedDeletionDate = settings.deletionRequestedAt
-    ? new Date(settings.deletionRequestedAt).toLocaleString('id-ID', {
+    ? new Date(settings.deletionRequestedAt).toLocaleString(isEnglish ? 'en-US' : 'id-ID', {
         dateStyle: 'medium',
         timeStyle: 'short',
       })
     : null;
 
+  const previewTemp = formatTemperature(64.0, settings.temperatureUnit, 1);
+  const previewFan = formatTelemetryMetric(1850, {
+    compact: settings.compactNumbers,
+    unit: 'RPM',
+    language: settings.language,
+  });
+  const previewPrice = formatIdrPreference(12500000, settings.compactNumbers, settings.language);
+
   return (
     <div className="space-y-6">
-      {/* ── Section 1: Tampilan & Aksesibilitas ── */}
+      {/* ── Section 0: Quick Comfort Presets & Safe Reset ── */}
       <section
-        aria-labelledby="settings-display-heading"
+        aria-labelledby="settings-presets-heading"
         className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
       >
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-default pb-4">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
-              <Eye className="h-5 w-5" aria-hidden="true" />
+              <Wand2 className="h-5 w-5" aria-hidden="true" />
             </span>
-            <div>
-              <h2
-                id="settings-display-heading"
-                className="text-lg font-bold tracking-tight text-primary"
-              >
-                {s.displayTitle}
-              </h2>
-              <p className="mt-0.5 text-xs leading-relaxed text-secondary">
-                {s.displayDesc}
-              </p>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2
+                  id="settings-presets-heading"
+                  className="text-lg font-bold tracking-tight text-primary"
+                >
+                  {s.presetsTitle}
+                </h2>
+                <span className="vt-pixel-tag rounded border border-default bg-canvas px-2 py-0.5 text-secondary">
+                  {activePreset ? s.presetActive : s.presetCustom}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs leading-relaxed text-secondary">{s.presetsDesc}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               aria-live="polite"
-              className="inline-flex items-center gap-1.5 rounded-md border border-default bg-canvas px-3 py-1 text-xs font-medium text-secondary"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-default bg-canvas px-3 py-1 text-xs font-medium text-secondary"
             >
               {syncStatus === 'saving' ? (
                 <>
@@ -438,21 +478,147 @@ export function SettingsHub() {
 
             <button
               type="button"
-              onClick={() => void updateSettings(DEFAULT_USER_SETTINGS)}
-              className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+              onClick={() => {
+                setResetNotice(null);
+                setConfirmResetOpen((open) => !open);
+              }}
+              aria-expanded={confirmResetOpen}
+              className="vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3.5 text-xs font-semibold text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              {s.resetBtn}
+              <span>{s.resetBtn}</span>
             </button>
           </div>
         </div>
 
+        {/* Inline Safe Reset Confirmation */}
+        {confirmResetOpen ? (
+          <div
+            role="region"
+            aria-label={s.resetBtn}
+            className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3.5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="text-xs leading-relaxed text-amber-950">{s.resetConfirmPrompt}</p>
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmResetOpen(false)}
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-surface px-3.5 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+              >
+                {s.resetCancelAction}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmResetDefaults()}
+                className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+              >
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{s.resetConfirmAction}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {resetNotice ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="mt-4 flex items-center gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-xs font-medium text-primary"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-status-live" aria-hidden="true" />
+            <span>{resetNotice}</span>
+          </p>
+        ) : null}
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {COMFORT_PRESETS.map((presetId) => {
+            const isSelected = activePreset === presetId;
+            const title =
+              presetId === 'readability'
+                ? s.presetReadabilityTitle
+                : presetId === 'obsidian'
+                  ? s.presetObsidianTitle
+                  : s.presetBalancedTitle;
+            const desc =
+              presetId === 'readability'
+                ? s.presetReadabilityDesc
+                : presetId === 'obsidian'
+                  ? s.presetObsidianDesc
+                  : s.presetBalancedDesc;
+            const Icon =
+              presetId === 'readability' ? Eye : presetId === 'obsidian' ? Moon : Sun;
+
+            return (
+              <button
+                key={presetId}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => {
+                  setConfirmResetOpen(false);
+                  void updateSettings(COMFORT_PRESET_PATCHES[presetId]);
+                }}
+                className={`vt-motion-press flex min-h-11 flex-col justify-between rounded-xl border p-4 text-left transition-all duration-200 ease-smooth active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                  isSelected
+                    ? 'border-accent-primary bg-accent-subtle shadow-card'
+                    : 'border-default bg-canvas hover:border-strong hover:bg-subtle'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+                      isSelected
+                        ? 'bg-accent-primary text-white'
+                        : 'bg-surface text-accent-primary border border-default'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  {isSelected ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-accent-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                      <Check className="h-3 w-3" aria-hidden="true" />
+                      {s.presetActive}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-3">
+                  <p className="text-sm font-bold text-primary">{title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-secondary">{desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── Section 1: Appearance & Pixel UX ── */}
+      <section
+        aria-labelledby="settings-display-heading"
+        className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
+      >
+        <div className="flex items-start gap-3 border-b border-default pb-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
+            <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2
+              id="settings-display-heading"
+              className="text-lg font-bold tracking-tight text-primary"
+            >
+              {s.displayTitle}
+            </h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">{s.displayDesc}</p>
+          </div>
+        </div>
+
         <div className="divide-y divide-default">
-          {/* Tema Tampilan */}
-          <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-lg">
+          {/* Theme */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
               <div className="flex items-center gap-2">
-                <Monitor className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <Monitor className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
                 <p className="text-sm font-semibold text-primary">{s.themeTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
@@ -464,17 +630,17 @@ export function SettingsHub() {
             <div
               role="group"
               aria-label={s.themeTitle}
-              className="grid grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
+              className="grid shrink-0 grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
             >
-              {THEME_OPTIONS.map((opt) => {
-                const selected = settings.theme === opt.value;
-                const optLabel = opt.value === 'dark' ? s.themeDarkLabel : s.themeLightLabel;
-                const optSub = opt.value === 'dark' ? s.themeDarkSub : s.themeLightSub;
+              {THEME_OPTIONS.map((value) => {
+                const selected = settings.theme === value;
+                const optLabel = value === 'dark' ? s.themeDarkLabel : s.themeLightLabel;
+                const optSub = value === 'dark' ? s.themeDarkSub : s.themeLightSub;
                 return (
                   <button
-                    key={opt.value}
+                    key={value}
                     type="button"
-                    onClick={() => void updateSettings({ theme: opt.value })}
+                    onClick={() => void updateSettings({ theme: value })}
                     aria-pressed={selected}
                     className={`vt-motion-press flex min-h-11 items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                       selected
@@ -482,7 +648,7 @@ export function SettingsHub() {
                         : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
-                    {opt.value === 'dark' ? (
+                    {value === 'dark' ? (
                       <Moon className="h-4 w-4 shrink-0" aria-hidden="true" />
                     ) : (
                       <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -503,73 +669,71 @@ export function SettingsHub() {
             </div>
           </div>
 
-          {/* Bahasa */}
-          <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-lg">
+          {/* Pixel UI Accent Intensity */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
               <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <p className="text-sm font-semibold text-primary">{s.langTitle}</p>
+                <Layers className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.pixelIntensityTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
-                {s.langDesc}
+                {s.pixelIntensityDesc}
               </p>
             </div>
             <div
               role="group"
-              aria-label={s.langTitle}
-              className="inline-flex rounded-lg border border-default bg-subtle p-1"
+              aria-label={s.pixelIntensityTitle}
+              className="grid shrink-0 grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
             >
-              {LANGUAGE_OPTIONS.map((opt) => {
-                const selected = settings.language === opt.value;
+              {PIXEL_INTENSITY_OPTIONS.map((value) => {
+                const selected = settings.pixelIntensity === value;
+                const optLabel = value === 'subtle' ? s.pixelSubtleLabel : s.pixelStandardLabel;
+                const optSub = value === 'subtle' ? s.pixelSubtleSub : s.pixelStandardSub;
                 return (
                   <button
-                    key={opt.value}
+                    key={value}
                     type="button"
-                    onClick={() => void updateSettings({ language: opt.value })}
+                    onClick={() => void updateSettings({ pixelIntensity: value })}
                     aria-pressed={selected}
-                    className={`vt-motion-press min-h-9 rounded-md px-3.5 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                    className={`vt-motion-press min-h-11 rounded-md px-3.5 py-1.5 text-left text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                       selected
                         ? 'bg-accent-primary text-white shadow-card'
-                        : 'text-secondary hover:text-primary'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
-                    {opt.value === 'en' ? s.langEnSub : s.langIdSub}
+                    <span className="block leading-tight">{optLabel}</span>
+                    <span
+                      className={`block text-[10px] font-normal leading-tight ${
+                        selected ? 'text-white/90' : 'text-secondary'
+                      }`}
+                    >
+                      {optSub}
+                    </span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* High Contrast */}
-          <div className="flex items-center justify-between gap-4 py-5">
-            <div className="max-w-lg">
-              <p className="text-sm font-semibold text-primary">{s.contrastTitle}</p>
-              <p className="mt-1 text-xs leading-relaxed text-secondary">
-                {s.contrastDesc}
-              </p>
-            </div>
-            <SettingsSwitch
-              checked={settings.highContrast}
-              label={s.contrastAria}
-              onChange={() => void updateSettings({ highContrast: !settings.highContrast })}
-            />
-          </div>
-
-          {/* Text Scaling */}
-          <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="max-w-lg">
+          {/* Text Scale */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
               <div className="flex items-center gap-2">
-                <Type className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <Type className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
                 <p className="text-sm font-semibold text-primary">{s.textScaleTitle}</p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-secondary">
-                {s.textScaleDesc}
-              </p>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">{s.textScaleDesc}</p>
             </div>
             <div
               role="group"
               aria-label={s.textScaleTitle}
-              className="grid grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-3"
+              className="grid shrink-0 grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-3"
             >
               {TEXT_SCALE_OPTIONS.map((option) => {
                 const selected = settings.textScale === option.value;
@@ -585,7 +749,7 @@ export function SettingsHub() {
                     type="button"
                     onClick={() => void updateSettings({ textScale: option.value })}
                     aria-pressed={selected}
-                    className={`vt-motion-press min-h-10 rounded-md px-3 py-1.5 text-center text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                    className={`vt-motion-press min-h-11 rounded-md px-3 py-1.5 text-center text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                       selected
                         ? 'bg-accent-primary text-white shadow-card'
                         : 'text-secondary hover:bg-surface hover:text-primary'
@@ -605,11 +769,33 @@ export function SettingsHub() {
             </div>
           </div>
 
-          {/* Reduced Motion */}
-          <div className="flex items-center justify-between gap-4 py-5">
-            <div className="max-w-lg">
+          {/* High Contrast */}
+          <div
+            data-settings-row="true"
+            className="flex items-center justify-between gap-4 py-5"
+          >
+            <div className="max-w-lg min-w-0">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <Eye className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.contrastTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">{s.contrastDesc}</p>
+            </div>
+            <SettingsSwitch
+              checked={settings.highContrast}
+              label={s.contrastAria}
+              onChange={() => void updateSettings({ highContrast: !settings.highContrast })}
+            />
+          </div>
+
+          {/* Reduced Motion */}
+          <div
+            data-settings-row="true"
+            className="flex items-center justify-between gap-4 py-5"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
                 <p className="text-sm font-semibold text-primary">{s.motionTitle}</p>
               </div>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
@@ -629,7 +815,319 @@ export function SettingsHub() {
         </div>
       </section>
 
-      {/* ── Section 2: Privasi & Data Akun (UU PDP) ── */}
+      {/* ── Section 2: Language & Telemetry Readout ── */}
+      <section
+        aria-labelledby="settings-telemetry-heading"
+        className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
+      >
+        <div className="flex items-start gap-3 border-b border-default pb-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
+            <Activity className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2
+              id="settings-telemetry-heading"
+              className="text-lg font-bold tracking-tight text-primary"
+            >
+              {s.telemetrySectionTitle}
+            </h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
+              {s.telemetrySectionDesc}
+            </p>
+          </div>
+        </div>
+
+        <div className="divide-y divide-default">
+          {/* Global Language */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.langTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">{s.langDesc}</p>
+            </div>
+            <div
+              role="group"
+              aria-label={s.langTitle}
+              className="grid shrink-0 grid-cols-2 gap-1.5 rounded-lg border border-default bg-subtle p-1"
+            >
+              {LANGUAGE_OPTIONS.map((code) => {
+                const selected = settings.language === code;
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => void updateSettings({ language: code })}
+                    aria-pressed={selected}
+                    className={`vt-motion-press min-h-11 rounded-md px-3.5 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                      selected
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    {code === 'en' ? s.langEnSub : s.langIdSub}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Temperature Unit */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Thermometer className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.tempUnitTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">{s.tempUnitDesc}</p>
+            </div>
+            <div
+              role="group"
+              aria-label={s.tempUnitTitle}
+              className="grid shrink-0 grid-cols-2 gap-1.5 rounded-lg border border-default bg-subtle p-1"
+            >
+              {TEMP_UNIT_OPTIONS.map((unit) => {
+                const selected = settings.temperatureUnit === unit;
+                return (
+                  <button
+                    key={unit}
+                    type="button"
+                    onClick={() => void updateSettings({ temperatureUnit: unit })}
+                    aria-pressed={selected}
+                    className={`vt-motion-press min-h-11 rounded-md px-3.5 font-mono text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                      selected
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    {unit === 'F' ? s.tempFahrenheitLabel : s.tempCelsiusLabel}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Compact Numbers */}
+          <div
+            data-settings-row="true"
+            className="flex items-center justify-between gap-4 py-5"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.compactNumbersTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
+                {s.compactNumbersDesc}
+              </p>
+            </div>
+            <SettingsSwitch
+              checked={settings.compactNumbers}
+              label={s.compactNumbersAria}
+              onChange={() => void updateSettings({ compactNumbers: !settings.compactNumbers })}
+            />
+          </div>
+
+          {/* Data-Source Badge Visibility */}
+          <div
+            data-settings-row="true"
+            className="flex items-center justify-between gap-4 py-5"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.sourceBadgesTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
+                {s.sourceBadgesDesc}
+              </p>
+            </div>
+            <SettingsSwitch
+              checked={settings.showSourceBadges}
+              label={s.sourceBadgesAria}
+              onChange={() =>
+                void updateSettings({ showSourceBadges: !settings.showSourceBadges })
+              }
+            />
+          </div>
+        </div>
+
+        {/* Live Telemetry & Readout Preview */}
+        <div className="mt-2 rounded-xl border border-default bg-canvas p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-secondary">
+              <span className="vt-pixel-led bg-accent-primary" aria-hidden="true" />
+              <span>{s.readoutPreviewTitle}</span>
+            </span>
+            {settings.showSourceBadges ? (
+              <span className="vt-badge-simulated">Simulated / Demo</span>
+            ) : (
+              <span className="text-[11px] text-secondary">{s.readoutPreviewBadgesMinimal}</span>
+            )}
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block">
+              <p className="text-[11px] text-secondary">{s.readoutPreviewTemp}</p>
+              <p className="font-mono text-sm font-bold tabular-nums text-primary sm:mt-0.5">
+                {previewTemp}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block">
+              <p className="text-[11px] text-secondary">{s.readoutPreviewFan}</p>
+              <p className="font-mono text-sm font-bold tabular-nums text-primary sm:mt-0.5">
+                {previewFan}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block">
+              <p className="text-[11px] text-secondary">{s.readoutPreviewPrice}</p>
+              <p className="font-mono text-sm font-bold tabular-nums text-accent-primary sm:mt-0.5">
+                {previewPrice}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Section 3: Navigation & Mobile Comfort ── */}
+      <section
+        aria-labelledby="settings-nav-heading"
+        className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
+      >
+        <div className="flex items-start gap-3 border-b border-default pb-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
+            <Smartphone className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2
+              id="settings-nav-heading"
+              className="text-lg font-bold tracking-tight text-primary"
+            >
+              {s.navSectionTitle}
+            </h2>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">{s.navSectionDesc}</p>
+          </div>
+        </div>
+
+        <div className="divide-y divide-default">
+          {/* Navbar Scroll Behavior */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Navigation className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.navScrollTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">{s.navScrollDesc}</p>
+            </div>
+            <div
+              role="group"
+              aria-label={s.navScrollTitle}
+              className="grid shrink-0 grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
+            >
+              {NAV_SCROLL_OPTIONS.map((behavior) => {
+                const selected = settings.navbarScrollBehavior === behavior;
+                const optLabel =
+                  behavior === 'keep-labels' ? s.navScrollKeepLabel : s.navScrollCollapseLabel;
+                const optSub =
+                  behavior === 'keep-labels' ? s.navScrollKeepSub : s.navScrollCollapseSub;
+                return (
+                  <button
+                    key={behavior}
+                    type="button"
+                    onClick={() => void updateSettings({ navbarScrollBehavior: behavior })}
+                    aria-pressed={selected}
+                    className={`vt-motion-press min-h-11 rounded-md px-3.5 py-1.5 text-left text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                      selected
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    <span className="block leading-tight">{optLabel}</span>
+                    <span
+                      className={`block text-[10px] font-normal leading-tight ${
+                        selected ? 'text-white/90' : 'text-secondary'
+                      }`}
+                    >
+                      {optSub}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Density */}
+          <div
+            data-settings-row="true"
+            className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="max-w-lg min-w-0">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">{s.mobileDensityTitle}</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
+                {s.mobileDensityDesc}
+              </p>
+            </div>
+            <div
+              role="group"
+              aria-label={s.mobileDensityTitle}
+              className="grid shrink-0 grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
+            >
+              {MOBILE_DENSITY_OPTIONS.map((density) => {
+                const selected = settings.mobileDensity === density;
+                const optLabel =
+                  density === 'compact'
+                    ? s.mobileDensityCompactLabel
+                    : s.mobileDensityComfortableLabel;
+                const optSub =
+                  density === 'compact'
+                    ? s.mobileDensityCompactSub
+                    : s.mobileDensityComfortableSub;
+                return (
+                  <button
+                    key={density}
+                    type="button"
+                    onClick={() => void updateSettings({ mobileDensity: density })}
+                    aria-pressed={selected}
+                    className={`vt-motion-press min-h-11 rounded-md px-3.5 py-1.5 text-left text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                      selected
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    <span className="block leading-tight">{optLabel}</span>
+                    <span
+                      className={`block text-[10px] font-normal leading-tight ${
+                        selected ? 'text-white/90' : 'text-secondary'
+                      }`}
+                    >
+                      {optSub}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-2 flex items-start gap-2 rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-xs leading-relaxed text-secondary">
+          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-live" aria-hidden="true" />
+          <span>{s.touchTargetNote}</span>
+        </p>
+      </section>
+
+      {/* ── Section 4: Privasi & Data Akun (UU PDP) ── */}
       <section
         aria-labelledby="settings-privacy-heading"
         className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
@@ -638,16 +1136,14 @@ export function SettingsHub() {
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
             <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           </span>
-          <div>
+          <div className="min-w-0">
             <h2
               id="settings-privacy-heading"
               className="text-lg font-bold tracking-tight text-primary"
             >
               {s.privacyTitle}
             </h2>
-            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
-              {s.privacyDesc}
-            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">{s.privacyDesc}</p>
           </div>
         </div>
 
@@ -665,7 +1161,7 @@ export function SettingsHub() {
             </div>
             <Link
               href="/cookies"
-              className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+              className="vt-motion-press mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               {s.cookieCardBtn}
             </Link>
@@ -687,7 +1183,7 @@ export function SettingsHub() {
                 type="button"
                 onClick={() => void handleExportMyData()}
                 disabled={exporting}
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
+                className="vt-motion-press mt-4 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
               >
                 {exporting ? (
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
@@ -699,7 +1195,7 @@ export function SettingsHub() {
             ) : (
               <Link
                 href="/login"
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+                className="vt-motion-press mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 {s.exportLoginBtn}
               </Link>
@@ -724,7 +1220,7 @@ export function SettingsHub() {
                   setDeleteError(null);
                   setDeleteModalOpen(true);
                 }}
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-red-300 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                className="vt-motion-press mt-4 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-red-300 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>{s.deleteBtn}</span>
@@ -732,7 +1228,7 @@ export function SettingsHub() {
             ) : (
               <Link
                 href="/login"
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                className="vt-motion-press mt-4 inline-flex min-h-11 items-center justify-center rounded-lg border border-red-200 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
                 {s.deleteLoginBtn}
               </Link>
@@ -789,9 +1285,9 @@ export function SettingsHub() {
                     id="delete-account-modal-title"
                     className="text-base font-bold text-primary"
                   >
-                    Konfirmasi Penghapusan Data
+                    {s.deleteModalTitle}
                   </h3>
-                  <p className="text-xs text-secondary">Hak Penghapusan Data Pribadi (UU PDP)</p>
+                  <p className="text-xs text-secondary">{s.deleteModalSub}</p>
                 </div>
               </div>
               <button
@@ -799,7 +1295,7 @@ export function SettingsHub() {
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={submittingDelete}
                 aria-label="Tutup dialog konfirmasi"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -807,7 +1303,7 @@ export function SettingsHub() {
 
             <p className="mt-4 text-xs leading-relaxed text-secondary">
               Tindakan ini akan mencatat permintaan penghapusan akun{' '}
-              <strong className="font-semibold text-primary">
+              <strong className="break-all font-semibold text-primary">
                 {authUser?.email || authUser?.displayName}
               </strong>{' '}
               untuk diverifikasi oleh admin ViciTech. Data transaksi yang masih terikat garansi
@@ -847,7 +1343,7 @@ export function SettingsHub() {
                   onChange={(event) => setDeleteConfirmText(event.target.value)}
                   placeholder="HAPUS"
                   autoComplete="off"
-                  className="mt-1.5 min-h-10 w-full rounded-lg border border-default bg-subtle px-3 font-mono text-sm text-primary placeholder:text-secondary focus-visible:border-status-danger focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                  className="mt-1.5 min-h-11 w-full rounded-lg border border-default bg-subtle px-3 font-mono text-sm text-primary placeholder:text-secondary focus-visible:border-status-danger focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
                 />
               </div>
             </div>
@@ -863,22 +1359,22 @@ export function SettingsHub() {
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={submittingDelete}
-                className="inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
-                Batal
+                {s.deleteCancel}
               </button>
               <button
                 type="button"
                 onClick={() => void handleSubmitDeletionRequest()}
                 disabled={submittingDelete || deleteConfirmText.trim().toUpperCase() !== 'HAPUS'}
-                className="vt-motion-press inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-status-danger px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-red-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2"
+                className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg bg-status-danger px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-red-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2"
               >
                 {submittingDelete ? (
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                 ) : (
                   <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                <span>{submittingDelete ? 'Mengirim…' : 'Kirim Permintaan Penghapusan'}</span>
+                <span>{submittingDelete ? s.deleteSending : s.deleteSubmit}</span>
               </button>
             </div>
           </div>

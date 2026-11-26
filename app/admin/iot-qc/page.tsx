@@ -12,6 +12,8 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactElement } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { formatTelemetryMetric, formatTemperature } from '@/lib/user-settings';
 
 interface TelemetryEntry {
   readonly id?: string;
@@ -120,6 +122,7 @@ function MetricCard({ icon: Icon, label, value, level }: MetricCardProps): React
 }
 
 export default function AdminIotQcPage(): ReactElement {
+  const userSettings = useUserSettings();
   const [units, setUnits] = useState<readonly QcUnit[]>([]);
   const [orders, setOrders] = useState<readonly QcOrderRow[]>([]);
   const [selectedSerial, setSelectedSerial] = useState('');
@@ -527,11 +530,11 @@ export default function AdminIotQcPage(): ReactElement {
                       </div>
 
                       {telemetry.source === 'esp32' ? (
-                        <span className="vt-badge-live">Live ESP32</span>
+                        <span data-badge-essential="true" className="vt-badge-live">Live ESP32</span>
                       ) : telemetry.source === 'admin_simulation' ? (
-                        <span className="vt-badge-simulated">Simulasi IoT QC</span>
+                        <span data-badge-essential="true" className="vt-badge-simulated">Simulasi IoT QC</span>
                       ) : (
-                        <span className="vt-badge-sample">Menunggu Telemetri</span>
+                        <span data-badge-essential="true" className="vt-badge-sample">Menunggu Telemetri</span>
                       )}
                     </div>
 
@@ -553,19 +556,23 @@ export default function AdminIotQcPage(): ReactElement {
                           <MetricCard
                             icon={Cpu}
                             label="Suhu CPU"
-                            value={telemetry.cpu_temp_c == null ? '—' : `${telemetry.cpu_temp_c} °C`}
+                            value={formatTemperature(telemetry.cpu_temp_c, userSettings.temperatureUnit, 1)}
                             level={telemetry.cpu_temp_c == null ? null : (Number(telemetry.cpu_temp_c) / 120) * 100}
                           />
                           <MetricCard
                             icon={Thermometer}
                             label="Suhu GPU"
-                            value={telemetry.gpu_temp_c == null ? '—' : `${telemetry.gpu_temp_c} °C`}
+                            value={formatTemperature(telemetry.gpu_temp_c, userSettings.temperatureUnit, 1)}
                             level={telemetry.gpu_temp_c == null ? null : (Number(telemetry.gpu_temp_c) / 120) * 100}
                           />
                           <MetricCard
                             icon={Activity}
                             label="Kecepatan Kipas"
-                            value={telemetry.fan_rpm == null ? '—' : `${telemetry.fan_rpm} RPM`}
+                            value={formatTelemetryMetric(telemetry.fan_rpm, {
+                              compact: userSettings.compactNumbers,
+                              unit: 'RPM',
+                              language: userSettings.language,
+                            })}
                             level={telemetry.fan_rpm == null ? null : (Number(telemetry.fan_rpm) / 2500) * 100}
                           />
                         </div>

@@ -172,13 +172,27 @@ export interface TranslationDictionary {
     readonly pageEyebrow: string;
     readonly pageTitle: string;
     readonly pageDesc: string;
+    readonly presetsTitle: string;
+    readonly presetsDesc: string;
+    readonly presetActive: string;
+    readonly presetCustom: string;
+    readonly presetBalancedTitle: string;
+    readonly presetBalancedDesc: string;
+    readonly presetReadabilityTitle: string;
+    readonly presetReadabilityDesc: string;
+    readonly presetObsidianTitle: string;
+    readonly presetObsidianDesc: string;
+    readonly resetBtn: string;
+    readonly resetConfirmPrompt: string;
+    readonly resetConfirmAction: string;
+    readonly resetCancelAction: string;
+    readonly resetDoneNotice: string;
     readonly displayTitle: string;
     readonly displayDesc: string;
     readonly syncSaving: string;
     readonly syncSaved: string;
     readonly syncActive: string;
     readonly syncLocal: string;
-    readonly resetBtn: string;
     readonly themeTitle: string;
     readonly themeDescPrefix: string;
     readonly themeDescHighlight: string;
@@ -187,10 +201,12 @@ export interface TranslationDictionary {
     readonly themeLightSub: string;
     readonly themeDarkLabel: string;
     readonly themeDarkSub: string;
-    readonly langTitle: string;
-    readonly langDesc: string;
-    readonly langIdSub: string;
-    readonly langEnSub: string;
+    readonly pixelIntensityTitle: string;
+    readonly pixelIntensityDesc: string;
+    readonly pixelStandardLabel: string;
+    readonly pixelStandardSub: string;
+    readonly pixelSubtleLabel: string;
+    readonly pixelSubtleSub: string;
     readonly contrastTitle: string;
     readonly contrastDesc: string;
     readonly contrastAria: string;
@@ -204,6 +220,42 @@ export interface TranslationDictionary {
     readonly motionReduced: string;
     readonly motionStandard: string;
     readonly motionAria: string;
+    readonly telemetrySectionTitle: string;
+    readonly telemetrySectionDesc: string;
+    readonly langTitle: string;
+    readonly langDesc: string;
+    readonly langIdSub: string;
+    readonly langEnSub: string;
+    readonly tempUnitTitle: string;
+    readonly tempUnitDesc: string;
+    readonly tempCelsiusLabel: string;
+    readonly tempFahrenheitLabel: string;
+    readonly compactNumbersTitle: string;
+    readonly compactNumbersDesc: string;
+    readonly compactNumbersAria: string;
+    readonly sourceBadgesTitle: string;
+    readonly sourceBadgesDesc: string;
+    readonly sourceBadgesAria: string;
+    readonly readoutPreviewTitle: string;
+    readonly readoutPreviewTemp: string;
+    readonly readoutPreviewFan: string;
+    readonly readoutPreviewPrice: string;
+    readonly readoutPreviewBadgesMinimal: string;
+    readonly navSectionTitle: string;
+    readonly navSectionDesc: string;
+    readonly navScrollTitle: string;
+    readonly navScrollDesc: string;
+    readonly navScrollCollapseLabel: string;
+    readonly navScrollCollapseSub: string;
+    readonly navScrollKeepLabel: string;
+    readonly navScrollKeepSub: string;
+    readonly mobileDensityTitle: string;
+    readonly mobileDensityDesc: string;
+    readonly mobileDensityComfortableLabel: string;
+    readonly mobileDensityComfortableSub: string;
+    readonly mobileDensityCompactLabel: string;
+    readonly mobileDensityCompactSub: string;
+    readonly touchTargetNote: string;
     readonly privacyTitle: string;
     readonly privacyDesc: string;
     readonly cookieCardTitle: string;
@@ -640,30 +692,48 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
     },
     settings: {
       pageEyebrow: 'Pusat Pengaturan ViciTech OS',
-      pageTitle: 'Pengaturan & Privasi Akun',
+      pageTitle: 'Pengaturan, Kenyamanan & Privasi',
       pageDesc:
-        'Sesuaikan kenyamanan visual, bahasa antarmuka, aksesibilitas, serta hak pelindungan data pribadi Anda dalam satu tempat.',
-      displayTitle: 'Tampilan & Aksesibilitas',
+        'Sesuaikan tampilan, intensitas Pixel UX, bahasa, format pembacaan telemetri, kenyamanan navigasi mobile, serta hak privasi Anda dalam satu tempat.',
+      presetsTitle: 'Preset Kenyamanan Cepat',
+      presetsDesc:
+        'Terapkan kombinasi tampilan, keterbacaan, dan navigasi dalam satu klik—bahasa aktif dan status privasi Anda tetap terjaga.',
+      presetActive: 'Aktif',
+      presetCustom: 'Kustom',
+      presetBalancedTitle: 'Default Seimbang',
+      presetBalancedDesc: 'Mode Terang standar, ukuran teks 100%, navbar ringkas saat gulir.',
+      presetReadabilityTitle: 'Keterbacaan Tinggi',
+      presetReadabilityDesc: 'Kontras tinggi, teks 112.5%, aksen pixel halus, label navbar selalu tampil.',
+      presetObsidianTitle: 'Obsidian Pixel',
+      presetObsidianDesc: 'Mode Gelap Obsidian Ruby Pixel penuh dengan kepadatan mobile ringkas.',
+      resetBtn: 'Reset Default',
+      resetConfirmPrompt:
+        'Kembalikan semua preferensi tampilan, telemetri, dan navigasi ke pengaturan bawaan? Permintaan privasi akun tidak terhapus.',
+      resetConfirmAction: 'Ya, Reset Default',
+      resetCancelAction: 'Batal',
+      resetDoneNotice: 'Semua preferensi tampilan, telemetri, dan navigasi telah dikembalikan ke bawaan.',
+      displayTitle: 'Tampilan & Pixel UX',
       displayDesc:
-        'Preferensi diterapkan langsung pada perangkat ini dan otomatis tersinkron ke profil jika Anda masuk.',
+        'Preferensi diterapkan instan di perangkat ini dan otomatis tersinkron ke profil saat Anda masuk.',
       syncSaving: 'Menyimpan…',
       syncSaved: 'Tersinkron ke akun',
       syncActive: 'Sinkronisasi akun aktif',
       syncLocal: 'Tersimpan di perangkat',
-      resetBtn: 'Reset',
       themeTitle: 'Tema Tampilan',
       themeDescPrefix: 'Pilih Mode Terang bersih sebagai standar, atau aktifkan Mode Gelap dengan estetika ',
       themeDescHighlight: 'Obsidian Ruby Pixel UI',
-      themeDescSuffix: ' (tetap menjaga tipografi sans-serif & angka monospace yang tajam).',
+      themeDescSuffix: ' (tipografi sans-serif & angka tabular tetap tajam).',
       themeLightLabel: 'Mode Terang',
       themeLightSub: 'Default · Tech Orange',
       themeDarkLabel: 'Mode Gelap',
       themeDarkSub: 'Obsidian Ruby Pixel',
-      langTitle: 'Bahasa Antarmuka',
-      langDesc:
-        'Ubah bahasa antarmuka ViciTech secara instan antara Bahasa Indonesia (ID) dan English (EN) di seluruh halaman utama.',
-      langIdSub: 'ID (Utama)',
-      langEnSub: 'EN (English)',
+      pixelIntensityTitle: 'Intensitas Aksen Pixel UI',
+      pixelIntensityDesc:
+        'Pilih gaya Pixel standar (bayangan tegas, grid obsidian, tag Silkscreen) atau Halus untuk sudut lebih lembut dan tampilan lebih tenang.',
+      pixelStandardLabel: 'Standar',
+      pixelStandardSub: 'Gaya Pixel penuh',
+      pixelSubtleLabel: 'Halus',
+      pixelSubtleSub: 'Minimal & tenang',
       contrastTitle: 'Mode Kontras Tinggi',
       contrastDesc:
         'Mempertegas batas kartu, kontras teks, dan indikator fokus papan ketik untuk keterbacaan maksimal di tema terang maupun gelap.',
@@ -679,6 +749,51 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
       motionReduced: 'Aktif (Reduced)',
       motionStandard: 'Standar',
       motionAria: 'Aktifkan Kurangi Gerakan',
+      telemetrySectionTitle: 'Bahasa & Pembacaan Telemetri',
+      telemetrySectionDesc:
+        'Sinkronkan bahasa antarmuka di seluruh rute sekaligus atur format angka, satuan suhu sensor IoT QC, dan tampilan badge sumber data.',
+      langTitle: 'Bahasa Antarmuka',
+      langDesc:
+        'Ubah bahasa antarmuka ViciTech secara instan antara Bahasa Indonesia (ID) dan English (EN) di navbar, modal, dan seluruh halaman utama.',
+      langIdSub: 'ID (Utama)',
+      langEnSub: 'EN (English)',
+      tempUnitTitle: 'Satuan Suhu Telemetri',
+      tempUnitDesc:
+        'Berlaku langsung pada pembacaan suhu CPU/GPU di Panel IoT QC, pratinjau Burn-In Beranda, dan konsol diagnostik.',
+      tempCelsiusLabel: 'Celsius (°C)',
+      tempFahrenheitLabel: 'Fahrenheit (°F)',
+      compactNumbersTitle: 'Format Angka Ringkas',
+      compactNumbersDesc:
+        'Ringkas angka besar telemetri (mis. 1.850 RPM → 1,9 rb RPM) agar lebih cepat dipindai pada layar sempit.',
+      compactNumbersAria: 'Aktifkan Format Angka Ringkas',
+      sourceBadgesTitle: 'Badge Sumber Data Referensi',
+      sourceBadgesDesc:
+        'Tampilkan seluruh badge Sample / Simulated di etalase & beranda. Jika dimatikan, indikator verifikasi penting di Panel IoT QC tetap tampil ringkas.',
+      sourceBadgesAria: 'Tampilkan Badge Sumber Data Referensi',
+      readoutPreviewTitle: 'Pratinjau Pembacaan Langsung',
+      readoutPreviewTemp: 'Burn-In CPU',
+      readoutPreviewFan: 'Kipas Bench',
+      readoutPreviewPrice: 'Estimasi Rig',
+      readoutPreviewBadgesMinimal: 'Badge dekoratif disembunyikan · indikator QC penting tetap aktif',
+      navSectionTitle: 'Navigasi & Kenyamanan Mobile',
+      navSectionDesc:
+        'Atur perilaku bilah navigasi saat halaman digulir dan sesuaikan kepadatan ruang pada layar ponsel (360px–414px).',
+      navScrollTitle: 'Perilaku Navbar Saat Gulir',
+      navScrollDesc:
+        'Pilih mode Ikon Saja agar layar terasa lebih lega saat menggulir, atau Tetap Tampilkan Label untuk pengenalan menu lebih cepat.',
+      navScrollCollapseLabel: 'Ikon Saat Gulir',
+      navScrollCollapseSub: 'Ringkas otomatis',
+      navScrollKeepLabel: 'Tetap Tampilkan Label',
+      navScrollKeepSub: 'Teks selalu terlihat',
+      mobileDensityTitle: 'Kepadatan Tata Letak Mobile',
+      mobileDensityDesc:
+        'Mode Ringkas merapatkan jarak kartu & padding vertikal di layar ponsel agar lebih banyak informasi terlihat sekali pandang.',
+      mobileDensityComfortableLabel: 'Nyaman',
+      mobileDensityComfortableSub: 'Ruang lega (Default)',
+      mobileDensityCompactLabel: 'Ringkas',
+      mobileDensityCompactSub: 'Lebih padat di mobile',
+      touchTargetNote:
+        'Target sentuh minimum 44px dan ruang aman bawah (pb-24) tetap dijaga otomatis di semua mode kepadatan.',
       privacyTitle: 'Privasi & Data Akun (UU PDP)',
       privacyDesc:
         'Kelola preferensi cookie, unduh salinan data pribadi Anda, atau ajukan permintaan penghapusan akun sesuai UU No. 27 Tahun 2022.',
@@ -1117,30 +1232,48 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
     },
     settings: {
       pageEyebrow: 'ViciTech OS Control Center',
-      pageTitle: 'Account Settings & Privacy',
+      pageTitle: 'Settings, Comfort & Privacy',
       pageDesc:
-        'Customize display appearance, interface language, accessibility preferences, and personal data protection rights in one place.',
-      displayTitle: 'Appearance & Accessibility',
+        'Customize visual appearance, Pixel UX intensity, language, telemetry readouts, mobile navigation comfort, and privacy rights in one place.',
+      presetsTitle: 'Quick Comfort Presets',
+      presetsDesc:
+        'Apply a curated visual, readability, and navigation profile in one tap—your active language and privacy status stay untouched.',
+      presetActive: 'Active',
+      presetCustom: 'Custom',
+      presetBalancedTitle: 'Default Balanced',
+      presetBalancedDesc: 'Clean Light Mode, 100% text scale, compact icon-only navbar on scroll.',
+      presetReadabilityTitle: 'High Readability',
+      presetReadabilityDesc: 'High contrast, 112.5% text scale, subtle pixel accents, persistent nav labels.',
+      presetObsidianTitle: 'Obsidian Pixel',
+      presetObsidianDesc: 'Full Obsidian Ruby Pixel Dark Mode with compact mobile spacing.',
+      resetBtn: 'Reset Defaults',
+      resetConfirmPrompt:
+        'Restore all appearance, telemetry, and navigation preferences to defaults? Any account privacy request remains preserved.',
+      resetConfirmAction: 'Confirm Reset',
+      resetCancelAction: 'Cancel',
+      resetDoneNotice: 'Appearance, telemetry, and navigation preferences have been restored to defaults.',
+      displayTitle: 'Appearance & Pixel UX',
       displayDesc:
         'Preferences apply instantly on this device and automatically sync to your profile when signed in.',
       syncSaving: 'Saving…',
       syncSaved: 'Synced to account',
       syncActive: 'Account sync active',
       syncLocal: 'Saved on this device',
-      resetBtn: 'Reset',
       themeTitle: 'Display Theme',
       themeDescPrefix: 'Keep crisp Light Mode as default, or switch to Dark Mode powered by ',
       themeDescHighlight: 'Obsidian Ruby Pixel UI',
-      themeDescSuffix: ' (while keeping sans-serif & monospace typography razor-sharp).',
+      themeDescSuffix: ' (while keeping sans-serif & tabular monospace typography sharp).',
       themeLightLabel: 'Light Mode',
       themeLightSub: 'Default · Tech Orange',
       themeDarkLabel: 'Dark Mode',
       themeDarkSub: 'Obsidian Ruby Pixel',
-      langTitle: 'Interface Language',
-      langDesc:
-        'Switch the ViciTech interface language immediately between Bahasa Indonesia (ID) and English (EN) across core pages.',
-      langIdSub: 'ID (Primary)',
-      langEnSub: 'EN (English)',
+      pixelIntensityTitle: 'Pixel UI Accent Intensity',
+      pixelIntensityDesc:
+        'Use Standard pixel styling (hard shadows, obsidian grid, Silkscreen tags) or Subtle for softer radii and calmer visual framing.',
+      pixelStandardLabel: 'Standard',
+      pixelStandardSub: 'Full Pixel UI',
+      pixelSubtleLabel: 'Subtle',
+      pixelSubtleSub: 'Minimal & calm',
       contrastTitle: 'High Contrast Mode',
       contrastDesc:
         'Sharpen card borders, text contrast, and keyboard focus outlines for maximum legibility across light and dark themes.',
@@ -1155,6 +1288,51 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
       motionReduced: 'Active (Reduced)',
       motionStandard: 'Standard',
       motionAria: 'Enable Reduce Motion',
+      telemetrySectionTitle: 'Language & Telemetry Readout',
+      telemetrySectionDesc:
+        'Sync interface language globally across routes while configuring numeric formatting, IoT QC temperature units, and data-source badges.',
+      langTitle: 'Interface Language',
+      langDesc:
+        'Switch ViciTech language immediately between Bahasa Indonesia (ID) and English (EN) across the navbar, modals, and core pages.',
+      langIdSub: 'ID (Primary)',
+      langEnSub: 'EN (English)',
+      tempUnitTitle: 'Telemetry Temperature Unit',
+      tempUnitDesc:
+        'Applies live to CPU/GPU thermal readouts on the IoT QC Panel, Homepage burn-in preview, and diagnostic console.',
+      tempCelsiusLabel: 'Celsius (°C)',
+      tempFahrenheitLabel: 'Fahrenheit (°F)',
+      compactNumbersTitle: 'Compact Telemetry Numbers',
+      compactNumbersDesc:
+        'Shorten large telemetry numbers (e.g. 1,850 RPM → 1.9K RPM) for faster scanning on compact viewports.',
+      compactNumbersAria: 'Enable Compact Telemetry Numbers',
+      sourceBadgesTitle: 'Reference Data-Source Badges',
+      sourceBadgesDesc:
+        'Show all Sample / Simulated badges across storefronts & landing pages. When off, essential live QC verification tags stay compact and visible.',
+      sourceBadgesAria: 'Show Reference Data-Source Badges',
+      readoutPreviewTitle: 'Live Readout Preview',
+      readoutPreviewTemp: 'CPU Burn-In',
+      readoutPreviewFan: 'Bench Fan',
+      readoutPreviewPrice: 'Rig Estimate',
+      readoutPreviewBadgesMinimal: 'Decorative badges hidden · essential QC verification indicators remain visible',
+      navSectionTitle: 'Navigation & Mobile Comfort',
+      navSectionDesc:
+        'Control how navigation bars behave while scrolling and tailor spacing density for compact mobile viewports (360px–414px).',
+      navScrollTitle: 'Navbar Scroll Behavior',
+      navScrollDesc:
+        'Collapse labels into compact icons while scrolling for extra reading room, or keep text labels visible at all times.',
+      navScrollCollapseLabel: 'Icon-Only on Scroll',
+      navScrollCollapseSub: 'Auto-compact',
+      navScrollKeepLabel: 'Keep Labels',
+      navScrollKeepSub: 'Always visible',
+      mobileDensityTitle: 'Mobile Layout Density',
+      mobileDensityDesc:
+        'Compact mode tightens card padding and vertical gaps on phones so more hardware specs fit cleanly above the fold.',
+      mobileDensityComfortableLabel: 'Comfortable',
+      mobileDensityComfortableSub: 'Roomy (Default)',
+      mobileDensityCompactLabel: 'Compact',
+      mobileDensityCompactSub: 'Higher mobile density',
+      touchTargetNote:
+        'Minimum 44px touch targets and safe bottom clearance (pb-24) are automatically preserved in every density mode.',
       privacyTitle: 'Privacy & Account Data (UU PDP)',
       privacyDesc:
         'Manage cookie consent, export a copy of your personal data, or submit an account deletion request under Indonesia UU PDP No. 27/2022.',
