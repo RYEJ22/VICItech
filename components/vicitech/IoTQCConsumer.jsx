@@ -280,7 +280,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
   const sourceBadge = telemetry?.source === "esp32" ? (
     <span className="vt-badge-live">Live ESP32</span>
   ) : telemetry?.source === "admin_simulation" ? (
-    <span className="vt-badge-simulated">Simulasi Admin</span>
+    <span className="vt-badge-simulated">Simulated / Demo</span>
   ) : (
     <span className="vt-badge-sample">Menunggu Telemetri</span>
   );

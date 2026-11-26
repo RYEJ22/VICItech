@@ -33,11 +33,10 @@ function hasValidSignature(body: MidtransNotification, keys: string[]): boolean 
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const signatureSecret = process.env.MIDTRANS_SIGNATURE_SECRET_KEY?.trim();
   const serverKey = process.env.MIDTRANS_SERVER_KEY?.trim();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if ((!signatureSecret && !serverKey) || !url || !serviceKey) {
+  if (!serverKey || !url || !serviceKey) {
     console.error('[ViciTech] Midtrans webhook configuration is missing.');
     return NextResponse.json({ error: 'Webhook is not configured.' }, { status: 503 });
   }
@@ -52,11 +51,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: 'Notification order ID is missing.' }, { status: 400 });
   }
 
-  const candidateKeys = [...new Set([
-    signatureSecret,
-    signatureSecret && !signatureSecret.startsWith('SB-') ? `SB-${signatureSecret}` : undefined,
-    serverKey,
-  ].filter((key): key is string => Boolean(key?.trim())).map((key) => key.trim()))];
+  // Midtrans webhook signature formula: SHA512(order_id + status_code + gross_amount + ServerKey)
+  const candidateKeys = [serverKey];
   let verifiedNotification = body;
   let locallyVerified = hasValidSignature(body, candidateKeys);
 

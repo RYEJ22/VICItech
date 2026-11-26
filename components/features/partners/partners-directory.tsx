@@ -66,6 +66,18 @@ function formatCoordinates(partner: PartnerRow): string | null {
   return `${Number(partner.latitude).toFixed(4)}, ${Number(partner.longitude).toFixed(4)}`;
 }
 
+function isSamplePartner(partner: PartnerRow): boolean {
+  const hay = `${partner.name} ${partner.city} ${partner.address}`.toLowerCase();
+  const wa = (partner.whatsapp_number ?? '').replace(/[^\d]/g, '');
+  if (/(sample|demo|contoh|hub bandung|vicitech hub|jaksel|jakarta selatan)/i.test(hay)) {
+    return true;
+  }
+  if (/^(62|0)?812345678/.test(wa)) {
+    return true;
+  }
+  return false;
+}
+
 function PartnerTypeIcon({ type }: { readonly type: PartnerType }): ReactElement {
   return type === 'service_center' ? (
     <Wrench className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
@@ -387,17 +399,23 @@ export function PartnersDirectory({
                 const whatsappUrl = getPartnerWhatsappUrl(featuredPartner);
                 const coords = formatCoordinates(featuredPartner);
                 const typeLabel = PARTNER_TYPE_LABELS[featuredPartner.type] ?? featuredPartner.type;
+                const featuredIsSample = isSamplePartner(featuredPartner);
                 return (
                   <article className="vt-card-lift rounded-xl border border-accent-primary/25 bg-accent-subtle p-6 shadow-sm sm:p-8">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      {featuredPartner.is_verified ? (
-                        <span className="vt-badge-live">
-                          <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                          <span>Terverifikasi ViciTech</span>
-                        </span>
-                      ) : (
-                        <span className="vt-badge-sample">Mitra Terdaftar</span>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {featuredPartner.is_verified ? (
+                          <span className="vt-badge-live">
+                            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                            <span>Terverifikasi ViciTech</span>
+                          </span>
+                        ) : (
+                          <span className="vt-badge-sample">Mitra Terdaftar</span>
+                        )}
+                        {featuredIsSample && (
+                          <span className="vt-badge-sample">Sample</span>
+                        )}
+                      </div>
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
                         <PartnerTypeIcon type={featuredPartner.type} />
                         <span>{typeLabel}</span>
@@ -471,6 +489,7 @@ export function PartnersDirectory({
                     const whatsappUrl = getPartnerWhatsappUrl(partner);
                     const coords = formatCoordinates(partner);
                     const typeLabel = PARTNER_TYPE_LABELS[partner.type] ?? partner.type;
+                    const partnerIsSample = isSamplePartner(partner);
 
                     return (
                       <article
@@ -479,14 +498,19 @@ export function PartnersDirectory({
                       >
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            {partner.is_verified ? (
-                              <span className="vt-badge-live">
-                                <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                                <span>Terverifikasi</span>
-                              </span>
-                            ) : (
-                              <span className="vt-badge-sample">Mitra Terdaftar</span>
-                            )}
+                            <div className="flex flex-wrap items-center gap-2">
+                              {partner.is_verified ? (
+                                <span className="vt-badge-live">
+                                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                                  <span>Terverifikasi</span>
+                                </span>
+                              ) : (
+                                <span className="vt-badge-sample">Mitra Terdaftar</span>
+                              )}
+                              {partnerIsSample && (
+                                <span className="vt-badge-sample">Sample</span>
+                              )}
+                            </div>
                             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary">
                               <PartnerTypeIcon type={partner.type} />
                               <span>{typeLabel}</span>

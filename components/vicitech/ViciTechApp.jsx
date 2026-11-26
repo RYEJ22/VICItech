@@ -437,17 +437,17 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
 
   const dataTransparency = [
     {
-      badgeClass: "vt-badge-live",
-      badgeLabel: "Live ESP32",
-      title: "Sensor IoT QC & Burn-In",
-      detail: "Pembacaan suhu CPU/GPU, voltase, dan stabilitas aktual dari smart bench.",
+      badgeClass: "vt-badge-simulated",
+      badgeLabel: "Simulated / Demo",
+      title: "Profil Uji IoT QC & Burn-In",
+      detail: "Skenario uji terkalibrasi (Simulated / Demo) yang dipisahkan secara eksplisit dari sensor fisik ESP32 (v2.5).",
       go: ["qc"],
     },
     {
-      badgeClass: "vt-badge-simulated",
-      badgeLabel: "Simulasi IoT QC",
-      title: "Profil Simulasi Admin",
-      detail: "Skenario uji terkalibrasi yang dipisahkan secara eksplisit dari sensor fisik.",
+      badgeClass: "vt-badge-live",
+      badgeLabel: "Live ESP32",
+      title: "Sensor Fisik Terverifikasi",
+      detail: "Khusus untuk telemetri suhu CPU/GPU dan voltase aktual yang masuk langsung dari perangkat ESP32.",
       go: ["qc"],
     },
     {

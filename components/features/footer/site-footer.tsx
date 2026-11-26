@@ -41,7 +41,7 @@ export function SiteFooter(): ReactElement {
             tukar tambah aset, dan verifikasi kualitas berbasis telemetri ESP32.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="vt-badge-live">Live ESP32</span>
+            <span className="vt-badge-simulated">Simulated / Demo QC</span>
             <span className="vt-badge-sample">Spesifikasi Referensi</span>
           </div>
         </div>

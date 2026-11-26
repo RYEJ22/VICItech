@@ -61,15 +61,15 @@ export default function QCPanelDashboard() {
       : telemetrySource === "admin_simulation"
         ? {
             badgeClass: "vt-badge-simulated",
-            badgeLabel: "Simulasi Admin",
-            description: "Data yang tampil saat ini berasal dari profil simulasi admin dan dipisahkan secara eksplisit dari sensor fisik.",
-            footerLabel: "Simulasi Admin",
-            statusLabel: "Simulasi Terkontrol",
+            badgeLabel: "Simulated / Demo",
+            description: "Data yang tampil saat ini berasal dari profil uji simulasi admin (Demo) dan dipisahkan secara eksplisit dari sensor fisik ESP32.",
+            footerLabel: "Simulated / Demo",
+            statusLabel: "Simulasi / Demo Terkontrol",
           }
         : {
             badgeClass: "vt-badge-sample",
             badgeLabel: "Menunggu Data Serial",
-            description: "Masukkan nomor seri unit atau nomor pesanan untuk melihat status telemetri ESP32 maupun profil simulasi admin secara jujur.",
+            description: "Masukkan nomor seri unit atau nomor pesanan untuk melihat profil Simulated / Demo maupun telemetri sensor fisik ESP32 terverifikasi.",
             footerLabel: "Menunggu pencarian serial",
             statusLabel: "Siap Melacak",
           };

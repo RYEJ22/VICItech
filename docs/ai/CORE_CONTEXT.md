@@ -45,17 +45,19 @@ docs/                       # ROADMAP.md, ai/ (CORE_CONTEXT, CODING_STANDARDS, W
 PRODUCT.md  DESIGN.md
 ```
 
-## Data & Access Control (Target; verify against actual schema)
+## Data & Access Control (Verified against SQL Migrations)
 | Table | Read | Write |
 |---|---|---|
-| profiles | Public | UPDATE owner only; row created via `handle_new_user` trigger |
+| profiles | Public (`profiles_select_public`) | Owner only (`profiles_insert_owner`, `profiles_update_owner`, `profiles_delete_owner`); created via `private.handle_new_user` trigger |
 | community_posts | Public | INSERT/UPDATE/DELETE owner only |
-| messages | Conversation participants only | Participants only; sender = `auth.uid()` |
-| notifications | Recipient only (`user_id`) | Created by triggers; recipient updates `is_read` only |
-| products | Public | ViciTech admins only |
-| partners | Public | ViciTech admins only (confirm) |
+| direct_messages (`/messages`) | Authenticated participants only (`direct_messages_select_participant`: `auth.uid() = sender_id OR auth.uid() = receiver_id`) | Sender insert only (`direct_messages_insert_sender`: `auth.uid() = sender_id AND sender_id <> receiver_id`); receiver read-flag update only (`direct_messages_update_receiver` + `prevent_direct_message_edits` immutability trigger). Supports `media_urls`/`media_type` & atomic RPC `send_direct_message_with_notification`. |
+| notifications | Recipient only (`user_id`) | Created by triggers/RPC; recipient updates `is_read` or deletes own |
+| products | Public | ViciTech admins only (`public.is_admin()`) |
+| partners (`/partners`) | Public (`partners_select_public` for `anon, authenticated`) | ViciTech admins only (`partners_insert_admin`, `partners_update_admin`, `partners_delete_admin` via `public.is_admin()`). Columns: `id, name, type ('toko_komponen' | 'service_center'), address, city, gmaps_url, latitude, longitude, is_verified, whatsapp_number, created_at, updated_at`. |
 
-Storage: `post-media` (public read, authenticated upload only, size limits enforced). `audio-tracks` (public read, admin write; confirm).
+AI Consultant (`/api/chat`): Uses Gemini REST SSE streaming with ordered model fallback chain `['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-4-hydrogen', 'gemini-2.5-flash-lite']`, 10s per-model timeout, 15 req/min IP rate limit, and 60s cached Supabase `products` catalog context.
+
+Storage: `post-media` (public read, authenticated upload only, size limits enforced), `profile-media` (public read, owner folder upload/update/delete only). `audio-tracks` (public read, admin write).
 
 ## Architectural Constraints (Never Violate)
 1. Default to Server Components. Place `'use client'` only on the smallest leaf components requiring interactivity, state, or browser APIs.
