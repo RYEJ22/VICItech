@@ -120,12 +120,12 @@ export function TriPillarBento(): ReactElement {
           </div>
         </article>
 
-        {/* Pillar 2 (Tall — 5 cols): Obsidian Telemetry Anchor Card */}
-        <article className="vt-obsidian-panel vt-card-lift group flex flex-col justify-between rounded-xl p-5 transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:border-accent-primary/50 motion-reduce:transition-none motion-reduce:hover:transform-none sm:p-7 lg:col-span-5">
+        {/* Pillar 2 (Tall — 5 cols): Hybrid IoT QC with Contained Obsidian Telemetry Preview */}
+        <article className="vt-card-lift group flex flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-card transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:border-strong hover:shadow-card-hover motion-reduce:transition-none motion-reduce:hover:transform-none sm:p-7 lg:col-span-5">
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-1 text-xs font-semibold text-[#FAFAFA]">
-                <Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-subtle px-3 py-1 text-xs font-semibold text-accent-hover">
+                <Activity className="h-3.5 w-3.5" aria-hidden="true" />
                 Pilar 2 · Hybrid IoT QC
               </span>
               <span className="vt-badge-simulated font-mono">
@@ -133,16 +133,16 @@ export function TriPillarBento(): ReactElement {
               </span>
             </div>
 
-            <h3 className="mt-4 font-sans text-xl font-bold tracking-tight text-[#FAFAFA] sm:text-2xl">
+            <h3 className="mt-4 font-sans text-xl font-bold tracking-tight text-primary sm:text-2xl">
               Verifikasi 15 titik &amp; sertifikat serial anti-zonk.
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-[#A1A1AA]">
+            <p className="mt-2 text-sm leading-relaxed text-secondary">
               Transparansi log uji termal, voltase, dan sanitasi data NIST SP 800-88 yang dapat
               dicek publik lewat nomor seri. Integrasi sensor fisik ESP32 dijadwalkan di v2.5.
             </p>
 
-            {/* Mini Obsidian Telemetry Terminal Preview */}
-            <div className="mt-5 space-y-2.5 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+            {/* Contained Mini Obsidian Telemetry Widget */}
+            <div className="vt-obsidian-panel mt-5 space-y-2.5 rounded-xl p-4">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-xs font-bold tabular-nums text-[#FAFAFA]">VICI-PC-2026-0104</span>
                 <span className="vt-badge-simulated font-mono !px-2 !py-0.5 !text-[10px]">
@@ -150,14 +150,14 @@ export function TriPillarBento(): ReactElement {
                 </span>
               </div>
               <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-[#A1A1AA]">
+                <div className="flex items-center justify-between text-[#D4D4D8]">
                   <span>Burn-In Termal CPU/GPU</span>
                   <span className="font-mono font-semibold tabular-nums text-[#FAFAFA]">64.0°C · Stabil</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
                   <div className="h-full w-[88%] rounded-full bg-accent-primary" />
                 </div>
-                <div className="flex items-center justify-between pt-1 text-[#A1A1AA]">
+                <div className="flex items-center justify-between pt-1 text-[#D4D4D8]">
                   <span className="inline-flex items-center gap-1 text-emerald-400">
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     Sanitasi NIST SP 800-88
@@ -168,10 +168,10 @@ export function TriPillarBento(): ReactElement {
             </div>
           </div>
 
-          <div className="mt-5 border-t border-white/10 pt-4">
+          <div className="mt-5 border-t border-default pt-4">
             <Link
               href="/qc-panel"
-              className="vt-motion-press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/70"
+              className="vt-motion-press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <span>Buka Panel Simulasi IoT QC</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
