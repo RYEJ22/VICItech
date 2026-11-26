@@ -10,9 +10,9 @@ export const metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "ViciTech — Marketplace & Ekosistem Circular IT Terverifikasi IoT QC",
+    title: "ViciTech — Ekosistem Circular IT & Hardware Toolkit Indonesia",
     description:
-      "Beli, rakit, dan tukar tambah PC, laptop, serta perangkat teknologi dengan jaminan uji telemetri IoT QC 15 titik yang transparan dan anti-zonk.",
+      "Beli, rakit, dan upgrade PC & laptop dengan Toolkit Simulasi Presisi, protokol 15 titik Hybrid IoT QC (Simulated/Demo), dan ViciTech AI terhubung ke katalog.",
     url: SITE_URL,
     images: [
       {

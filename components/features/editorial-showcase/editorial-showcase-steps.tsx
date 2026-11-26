@@ -27,6 +27,31 @@ function getBadgeClassName(variant: DataBadgeVariant): string {
   return 'vt-badge-sample';
 }
 
+function resolveCanonicalHref(targetModule: string, targetView?: string): string {
+  switch (targetModule) {
+    case 'builder':
+      return '/builder';
+    case 'bottleneck':
+      return '/bottleneck';
+    case 'versus':
+      return '/versus';
+    case 'qc':
+      return '/qc-panel';
+    case 'tradein':
+      return '/trade-in';
+    case 'partners':
+      return '/partners';
+    case 'community':
+      return '/community';
+    case 'library':
+      return targetView === 'upgrade' ? '/market?view=upgrade' : '/market?view=catalog';
+    case 'market':
+      return '/market';
+    default:
+      return '/market';
+  }
+}
+
 export function EditorialShowcaseSteps({
   steps,
   pillars,
@@ -149,7 +174,7 @@ export function EditorialShowcaseSteps({
                               </button>
                             ) : (
                               <Link
-                                href={`/home?tab=${encodeURIComponent(step.targetModule)}`}
+                                href={resolveCanonicalHref(step.targetModule, step.targetView)}
                                 className="vt-motion-press group inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                               >
                                 <span>{step.actionLabel}</span>
@@ -301,7 +326,7 @@ export function EditorialShowcaseSteps({
                       </button>
                     ) : (
                       <Link
-                        href={`/home?tab=${encodeURIComponent(row.targetModule ?? 'library')}`}
+                        href={resolveCanonicalHref(row.targetModule ?? 'library')}
                         className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3.5 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                       >
                         <span>{row.actionLabel}</span>

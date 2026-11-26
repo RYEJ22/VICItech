@@ -22,16 +22,16 @@
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  background: rgb(var(--bg-canvas-rgb) / 0.89);
+  background: rgb(var(--bg-canvas-rgb) / 0.9);
 }
 
 @media (min-width: 64rem) {
   .overlay {
     background: linear-gradient(
       to right,
-      rgb(var(--bg-canvas-rgb) / 0.96) 0%,
-      rgb(var(--bg-canvas-rgb) / 0.9) 56%,
-      rgb(var(--bg-canvas-rgb) / 0.28) 100%
+      rgb(var(--bg-canvas-rgb) / 0.97) 0%,
+      rgb(var(--bg-canvas-rgb) / 0.92) 56%,
+      rgb(var(--bg-canvas-rgb) / 0.42) 100%
     );
   }
 }
@@ -88,6 +88,38 @@
   outline-offset: 2px;
 }
 
+/* Lightweight pure-CSS staggered entrance animations */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger1 {
+  animation: heroFadeUp 420ms var(--vt-motion-ease) 40ms both;
+}
+
+.stagger2 {
+  animation: heroFadeUp 460ms var(--vt-motion-ease) 100ms both;
+}
+
+.stagger3 {
+  animation: heroFadeUp 460ms var(--vt-motion-ease) 170ms both;
+}
+
+.stagger4 {
+  animation: heroFadeUp 480ms var(--vt-motion-ease) 230ms both;
+}
+
+.previewReveal {
+  animation: heroFadeUp 520ms var(--vt-motion-ease) 260ms both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ctaPrimary,
   .ctaSecondary {
@@ -97,4 +129,19 @@
   .ctaSecondary:hover {
     transform: none;
   }
+  .stagger1,
+  .stagger2,
+  .stagger3,
+  .stagger4,
+  .previewReveal {
+    animation: none;
+  }
+}
+
+:global(html[data-reduced-motion='true']) .stagger1,
+:global(html[data-reduced-motion='true']) .stagger2,
+:global(html[data-reduced-motion='true']) .stagger3,
+:global(html[data-reduced-motion='true']) .stagger4,
+:global(html[data-reduced-motion='true']) .previewReveal {
+  animation: none;
 }

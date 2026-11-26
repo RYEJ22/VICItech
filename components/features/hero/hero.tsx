@@ -1,5 +1,15 @@
 import Link from 'next/link';
-import { ArrowRight, Bot, Lock, ShieldCheck, Sparkles } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  Bot,
+  CheckCircle2,
+  Gauge,
+  Lock,
+  ShieldCheck,
+  Sliders,
+  Sparkles,
+} from 'lucide-react';
 import type { ReactElement } from 'react';
 
 import { HERO_CONTENT, HERO_SLIDES } from './hero-content';
@@ -43,6 +53,33 @@ const TRUST_PILLARS = [
   },
 ] as const;
 
+const HERO_SNAPSHOT_MODULES = [
+  {
+    icon: Sliders,
+    label: 'Smart Preset Builder',
+    meta: 'B2C · B2B · B2S · JIT 5%',
+    href: '/builder',
+  },
+  {
+    icon: Gauge,
+    label: 'Bottleneck & PSU +35%',
+    meta: 'Proyeksi FPS & Headroom',
+    href: '/bottleneck',
+  },
+  {
+    icon: Activity,
+    label: 'Panel Hybrid IoT QC',
+    meta: '15 Titik · Simulated / Demo',
+    href: '/qc-panel',
+  },
+  {
+    icon: Bot,
+    label: 'Konsultan Rakitan AI',
+    meta: 'Terhubung ke Katalog Market',
+    href: '/toolkit/konsultan-ai',
+  },
+] as const;
+
 export function Hero({
   content = HERO_CONTENT,
   slides = HERO_SLIDES,
@@ -71,36 +108,99 @@ export function Hero({
           className={`relative z-10 mx-auto w-full max-w-6xl px-4 pb-16 pt-28 sm:px-6 md:pb-20 md:pt-32 lg:px-8 ${styles.content}`}
           style={{ position: 'relative', zIndex: 10 }}
         >
-          <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-[#E4E4E7] bg-white px-3.5 py-1.5 text-xs font-semibold tracking-wide text-[#18181B] shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
-              <span>{content.eyebrow}</span>
-            </p>
+          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+            <div className="max-w-2xl lg:col-span-7">
+              <p
+                className={`inline-flex items-center gap-2 rounded-full border border-[#E4E4E7] bg-white px-3.5 py-1.5 text-xs font-semibold tracking-wide text-[#18181B] shadow-sm ${styles.stagger1}`}
+              >
+                <span className="h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
+                <span>{content.eyebrow}</span>
+              </p>
 
-            <h1
-              id="hero-heading"
-              className={`mt-5 text-4xl font-extrabold leading-[1.08] tracking-tight [text-wrap:balance] sm:text-5xl lg:text-6xl ${styles.headline}`}
-            >
-              {headline}
-            </h1>
-            <p className={`mt-5 max-w-[62ch] text-base leading-relaxed sm:text-lg ${styles.description}`}>
-              {subheadline}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3 sm:mt-10 sm:gap-4">
-              <Link
-                href={primaryCta.href}
-                className={`vt-motion-press active:scale-[0.97] motion-reduce:active:transform-none inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:text-base ${styles.ctaPrimary}`}
+              <h1
+                id="hero-heading"
+                className={`mt-5 text-4xl font-extrabold leading-[1.06] tracking-tight [text-wrap:balance] sm:text-5xl lg:text-[3.5rem] ${styles.headline} ${styles.stagger2}`}
               >
-                <span>{primaryCta.label}</span>
-                <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-              </Link>
-              <Link
-                href={secondaryCta.href}
-                className={`vt-motion-press active:scale-[0.97] motion-reduce:active:transform-none inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold sm:text-base ${styles.ctaSecondary}`}
+                {headline}
+              </h1>
+              <p
+                className={`mt-5 max-w-[60ch] text-base leading-relaxed sm:text-lg ${styles.description} ${styles.stagger3}`}
               >
-                {secondaryCta.label}
-              </Link>
+                {subheadline}
+              </p>
+              <div
+                className={`mt-8 flex flex-wrap items-center gap-3 sm:mt-10 sm:gap-4 ${styles.stagger4}`}
+              >
+                <Link
+                  href={primaryCta.href}
+                  className={`vt-motion-press active:scale-[0.97] motion-reduce:active:transform-none inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold sm:text-base ${styles.ctaPrimary}`}
+                >
+                  <span>{primaryCta.label}</span>
+                  <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                </Link>
+                <Link
+                  href={secondaryCta.href}
+                  className={`vt-motion-press active:scale-[0.97] motion-reduce:active:transform-none inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold sm:text-base ${styles.ctaSecondary}`}
+                >
+                  {secondaryCta.label}
+                </Link>
+              </div>
             </div>
+
+            {/* Flagship Desktop Platform Snapshot Card (solid surface, zero backdrop-blur) */}
+            <aside
+              aria-label="Ringkasan cepat modul ViciTech OS"
+              className={`hidden lg:col-span-5 lg:block ${styles.previewReveal}`}
+            >
+              <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-[0_20px_50px_-24px_rgba(24,24,27,0.22)]">
+                <div className="flex items-center justify-between gap-2 border-b border-[#EEEAE5] pb-3.5">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#EA580C]">
+                      ViciTech OS · v2.2
+                    </p>
+                    <p className="mt-0.5 text-sm font-bold text-[#18181B]">
+                      Akses Cepat Ekosistem
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800">
+                    <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+                    QC Demo Ready
+                  </span>
+                </div>
+
+                <ul className="mt-3 space-y-2">
+                  {HERO_SNAPSHOT_MODULES.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className="group flex items-center justify-between gap-3 rounded-xl border border-[#EEEAE5] bg-[#FAF9F6] px-3.5 py-2.5 transition-colors hover:border-[#EA580C]/40 hover:bg-[#FFF7ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                        >
+                          <span className="flex min-w-0 items-center gap-3">
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-[#EA580C] border border-[#E4E4E7] transition-colors group-hover:bg-[#EA580C] group-hover:text-white group-hover:border-[#EA580C]">
+                              <Icon className="h-4 w-4" strokeWidth={1.85} aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-bold text-[#18181B]">
+                                {item.label}
+                              </span>
+                              <span className="block truncate text-[11px] text-[#52525B]">
+                                {item.meta}
+                              </span>
+                            </span>
+                          </span>
+                          <ArrowRight
+                            className="h-4 w-4 shrink-0 text-[#52525B] transition-transform group-hover:translate-x-0.5 group-hover:text-[#EA580C] motion-reduce:transform-none"
+                            aria-hidden="true"
+                          />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
