@@ -242,6 +242,12 @@ function SlotGroup({ icon: Icon, title, detail, children }) {
 function ScoreRing({ value, grade }) {
   const r = 34;
   const len = 2 * Math.PI * r;
+  const strokeTone =
+    value >= 75
+      ? "stroke-emerald-600"
+      : value >= 45
+        ? "stroke-amber-500"
+        : "stroke-rose-600";
   return (
     <svg
       viewBox="0 0 80 80"
@@ -258,7 +264,7 @@ function ScoreRing({ value, grade }) {
         strokeWidth="7"
         strokeLinecap="round"
         strokeDasharray={`${(len * value) / 100} ${len}`}
-        className="stroke-accent-primary transition-all duration-500 motion-reduce:transition-none"
+        className={`${strokeTone} transition-[stroke-dasharray,stroke] duration-500 motion-reduce:transition-none`}
       />
       <text
         x="40"
@@ -534,7 +540,7 @@ function ManualUpgradePanel({ initialModelName = "" }) {
   return (
     <div className="mt-6 grid gap-6 lg:grid-cols-12">
       {/* Form Input Manual */}
-      <section className={`${card} space-y-4 lg:col-span-5 lg:self-start`} aria-labelledby="manual-form-title">
+      <section className={`${card} space-y-4 lg:sticky lg:top-24 lg:col-span-5 lg:self-start`} aria-labelledby="manual-form-title">
         <div className="border-b border-default pb-3">
           <h2 id="manual-form-title" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-primary">
             <SlidersHorizontal className="h-5 w-5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
@@ -1258,7 +1264,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                 </section>
               </div>
 
-              <div className="space-y-6 lg:col-span-2 lg:self-start">
+              <div className="space-y-6 lg:sticky lg:top-24 lg:col-span-2 lg:self-start">
                 <Planner key={d.id} d={d} onNavigate={onNavigate} />
                 <section className={card} aria-labelledby="notes-title">
                   <h2 id="notes-title" className="tracking-tight font-sans text-lg font-bold text-primary">

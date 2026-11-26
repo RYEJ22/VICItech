@@ -1319,8 +1319,8 @@ export default function PresetBuilder({
             </div>
 
             {specCopyNotice && (
-              <p role="status" aria-live="polite" className="flex items-center gap-2 rounded-lg border border-status-live/30 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
-                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-status-live" aria-hidden="true" />
+              <p role="status" aria-live="polite" className="vt-pop flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-900">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
                 <span>{specCopyNotice}</span>
               </p>
             )}

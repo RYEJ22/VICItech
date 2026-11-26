@@ -41,8 +41,6 @@ import {
 } from "@/lib/algorithms/bottleneckEngine";
 import styles from "./bottleneck-analyzer.module.css";
 
-const GAUGE_ARC_LENGTH = Math.PI * 80;
-
 const DEFAULT_SELECTION = {
   cpuId: "i5-12400f",
   gpuId: "rtx-3060",
@@ -56,16 +54,19 @@ const SEVERITY_UI = {
   optimal: {
     badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
     strokeClass: "stroke-emerald-600",
+    textClass: "text-emerald-700",
     Icon: CheckCircle2,
   },
   warning: {
     badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
     strokeClass: "stroke-amber-500",
+    textClass: "text-amber-700",
     Icon: AlertTriangle,
   },
   high: {
-    badgeClass: "border-red-200 bg-red-50 text-red-800",
-    strokeClass: "stroke-red-600",
+    badgeClass: "border-rose-200 bg-rose-50 text-rose-800",
+    strokeClass: "stroke-rose-600",
+    textClass: "text-rose-700",
     Icon: ShieldAlert,
   },
 };
@@ -74,18 +75,26 @@ const PSU_STATUS_UI = {
   safe: {
     badgeClass: "border-emerald-200 bg-emerald-50 text-emerald-800",
     barClass: "bg-emerald-600",
+    strokeClass: "stroke-emerald-600",
+    segmentActive: "bg-emerald-600",
   },
   tight: {
     badgeClass: "border-amber-200 bg-amber-50 text-amber-800",
     barClass: "bg-amber-500",
+    strokeClass: "stroke-amber-500",
+    segmentActive: "bg-amber-500",
   },
   insufficient: {
-    badgeClass: "border-red-200 bg-red-50 text-red-800",
-    barClass: "bg-red-600",
+    badgeClass: "border-rose-200 bg-rose-50 text-rose-800",
+    barClass: "bg-rose-600",
+    strokeClass: "stroke-rose-600",
+    segmentActive: "bg-rose-600",
   },
   unspecified: {
     badgeClass: "border-default bg-subtle text-secondary",
     barClass: "bg-secondary/40",
+    strokeClass: "stroke-secondary/40",
+    segmentActive: "bg-secondary/40",
   },
 };
 
@@ -93,67 +102,76 @@ const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 const selectClass = `vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary ${focusRing}`;
 
+const RING_RADIUS = 56;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
 function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
   const sevStyle = SEVERITY_UI[severity];
   const SevIcon = sevStyle.Icon;
-  const clampedFraction = Math.min(1, Math.max(0, pct / 50));
-  const dashOffset = GAUGE_ARC_LENGTH * (1 - clampedFraction);
+  const clampedFraction = Math.min(1, Math.max(0.03, pct / 50));
+  const dashOffset = RING_CIRCUMFERENCE * (1 - clampedFraction);
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-full max-w-[240px]">
+      <div className="relative h-40 w-40">
         <svg
-          viewBox="0 0 200 118"
-          className="w-full"
+          viewBox="0 0 144 144"
+          className="h-full w-full -rotate-90"
           role="img"
           aria-label={`Skor bottleneck ${pct.toFixed(1)} persen, status ${statusBadge}`}
         >
-          <path
-            d="M20 100 A80 80 0 0 1 180 100"
+          <circle
+            cx="72"
+            cy="72"
+            r={RING_RADIUS}
             fill="none"
-            strokeWidth="14"
-            strokeLinecap="round"
+            strokeWidth="12"
             className="stroke-subtle"
           />
-          <path
-            d="M20 100 A80 80 0 0 1 180 100"
+          <circle
+            cx="72"
+            cy="72"
+            r={RING_RADIUS}
             fill="none"
-            strokeWidth="14"
+            strokeWidth="12"
             strokeLinecap="round"
-            strokeDasharray={`${GAUGE_ARC_LENGTH} ${GAUGE_ARC_LENGTH}`}
+            strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
             strokeDashoffset={dashOffset}
-            className={`${sevStyle.strokeClass} ${styles.gaugeArc}`}
+            className={`${sevStyle.strokeClass} transition-[stroke-dashoffset,stroke] duration-500 ease-out motion-reduce:transition-none`}
           />
         </svg>
-        <div className="pointer-events-none absolute inset-x-0 bottom-2 flex flex-col items-center">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <AnimatedNumber
             value={pct}
             format="percent"
             decimals={1}
-            className="text-3xl font-semibold tracking-tight text-primary"
+            className="font-mono text-3xl font-bold tracking-tight tabular-nums text-primary"
           />
           <span className="mt-0.5 text-[11px] font-medium text-secondary">
-            Selisih Keseimbangan
+            Bottleneck
           </span>
         </div>
       </div>
 
       <span
-        className={`mt-3 inline-flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-semibold ${sevStyle.badgeClass}`}
+        className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${sevStyle.badgeClass}`}
       >
         <SevIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
         <span>{statusBadge}</span>
       </span>
 
-      <ul className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-secondary">
-        <li>
-          <span className="font-mono font-semibold text-emerald-700">&lt; 10%</span> Optimal
+      <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-secondary">
+        <li className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-emerald-600" aria-hidden="true" />
+          <span className="font-mono font-semibold text-emerald-700">&lt;10%</span> Optimal
         </li>
-        <li>
+        <li className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
           <span className="font-mono font-semibold text-amber-700">10–19.9%</span> Perhatian
         </li>
-        <li>
-          <span className="font-mono font-semibold text-red-700">&gt;= 20%</span> Tinggi
+        <li className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-rose-600" aria-hidden="true" />
+          <span className="font-mono font-semibold text-rose-700">≥20%</span> Bottleneck
         </li>
       </ul>
     </div>
@@ -538,9 +556,6 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
   const sevUi = SEVERITY_UI[result.severity];
   const psuUi = PSU_STATUS_UI[result.psuHeadroom.status];
-  const psuLoadScale = result.psuHeadroom.loadPct
-    ? Math.max(0.04, Math.min(1, result.psuHeadroom.loadPct / 100))
-    : 0.04;
 
   const handleApplySuggestion = (suggestion) => {
     if (suggestion.targetKind === "cpu") {
@@ -696,7 +711,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
           {/* Left Panel: Hardware Inputs */}
           <section
             aria-labelledby="pairing-heading"
-            className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-sm lg:col-span-5 lg:self-start"
+            className="space-y-4 rounded-xl border border-default bg-surface p-5 shadow-sm lg:sticky lg:top-24 lg:col-span-5 lg:self-start"
           >
             <div className="flex items-center justify-between gap-2 border-b border-default pb-3">
               <h2 id="pairing-heading" className="tracking-tight font-sans text-xl font-bold text-primary">
@@ -815,10 +830,24 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
             </div>
 
             {actionNote && (
-              <p role="status" className="flex items-start gap-2 rounded-lg border border-accent-primary/30 bg-accent-subtle p-3 text-xs font-medium text-primary">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
-                <span>{actionNote}</span>
-              </p>
+              <div
+                role="status"
+                aria-live="polite"
+                className="vt-pop flex items-start justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900"
+              >
+                <span className="flex items-start gap-2">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" strokeWidth={1.75} aria-hidden="true" />
+                  <span>{actionNote}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActionNote("")}
+                  aria-label="Tutup notifikasi penyeimbangan"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              </div>
             )}
 
             <div className="flex items-center justify-between border-t border-default pt-4 text-sm">
@@ -919,10 +948,24 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
               </div>
 
               {shareStatus && (
-                <p role="status" aria-live="polite" className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
-                  <Share2 className="h-3.5 w-3.5 shrink-0 text-emerald-700" strokeWidth={1.75} aria-hidden="true" />
-                  <span>{shareStatus}</span>
-                </p>
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="vt-pop mt-3 inline-flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-900"
+                >
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" strokeWidth={2} aria-hidden="true" />
+                    <span>{shareStatus}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShareStatus("")}
+                    aria-label="Tutup notifikasi kartu hasil"
+                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                </div>
               )}
             </section>
 
@@ -944,41 +987,56 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {result.scenarioBenchmarks.map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-xl border border-default bg-canvas p-3.5"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-primary">{item.title}</p>
-                        <p className="truncate text-[11px] text-secondary">{item.preset}</p>
+                {result.scenarioBenchmarks.map((item) => {
+                  const tierBarClass =
+                    item.tierLabel === "Sangat Lancar"
+                      ? "bg-emerald-600"
+                      : item.tierLabel === "Lancar"
+                        ? "bg-accent-primary"
+                        : item.tierLabel === "Cukup"
+                          ? "bg-amber-500"
+                          : "bg-rose-600";
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-default bg-canvas p-3.5 transition-colors hover:border-accent-primary/35"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-primary">{item.title}</p>
+                          <p className="truncate text-[11px] text-secondary">{item.preset}</p>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            item.tierLabel === "Sangat Lancar"
+                              ? "bg-emerald-50 text-emerald-800"
+                              : item.tierLabel === "Lancar"
+                                ? "bg-accent-subtle text-accent-cta"
+                                : item.tierLabel === "Cukup"
+                                  ? "bg-amber-50 text-amber-800"
+                                  : "bg-rose-50 text-rose-700"
+                          }`}
+                        >
+                          {item.tierLabel}
+                        </span>
                       </div>
-                      <span
-                        className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold ${
-                          item.tierLabel === "Sangat Lancar"
-                            ? "bg-emerald-50 text-emerald-800"
-                            : item.tierLabel === "Lancar"
-                              ? "bg-accent-subtle text-accent-cta"
-                              : item.tierLabel === "Cukup"
-                                ? "bg-amber-50 text-amber-800"
-                                : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        {item.tierLabel}
-                      </span>
+                      <div className="mt-2.5 flex items-baseline justify-between gap-2">
+                        <p className="font-mono text-base font-bold tabular-nums text-primary">
+                          {item.metricDisplay}
+                        </p>
+                        <span className="font-mono text-[10px] text-secondary">
+                          {Math.round(item.barPct)}% indeks
+                        </span>
+                      </div>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-subtle">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 motion-reduce:transition-none ${tierBarClass}`}
+                          style={{ width: `${item.barPct}%` }}
+                        />
+                      </div>
                     </div>
-                    <p className="mt-2 font-mono text-base font-bold tabular-nums text-primary">
-                      {item.metricDisplay}
-                    </p>
-                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-subtle">
-                      <div
-                        className="h-full rounded-full bg-accent-primary transition-all duration-500 motion-reduce:transition-none"
-                        style={{ width: `${item.barPct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <p className="mt-3 text-[11px] text-secondary">
                 Catatan: Angka merupakan <strong>Estimasi Simulasi</strong> berbasis skor CPU/GPU/RAM/VRAM dan dapat bervariasi tergantung patch game, driver, serta suhu perangkat.
@@ -996,42 +1054,65 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                     <Zap className="h-4 w-4 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                     <span>Headroom Daya PSU</span>
                   </h2>
-                  <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${psuUi.badgeClass}`}>
+                  <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors duration-300 ${psuUi.badgeClass}`}>
                     {result.psuHeadroom.statusLabel}
                   </span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-default bg-canvas p-3">
+                  <div className="rounded-xl border border-default bg-canvas p-3">
                     <p className="text-xs text-secondary">Estimasi Beban</p>
-                    <p className="mt-1 text-xl font-semibold text-primary">
+                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-primary">
                       <AnimatedNumber value={result.psuHeadroom.estimatedWattage} format="number" suffix=" W" />
                     </p>
                   </div>
-                  <div className="rounded-lg border border-default bg-canvas p-3">
+                  <div className="rounded-xl border border-default bg-canvas p-3">
                     <p className="text-xs text-secondary">Rekomendasi (+35%)</p>
-                    <p className="mt-1 text-xl font-semibold text-accent-cta">
+                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-accent-cta">
                       <AnimatedNumber value={result.psuHeadroom.recommendedPsuWatts} format="number" suffix=" W" />
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 space-y-1.5">
+                <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-secondary">
                       {result.psuHeadroom.selectedPsuWatts
                         ? `Beban terhadap PSU ${result.psuHeadroom.selectedPsuWatts} W`
                         : "Belum ada PSU dipilih"}
                     </span>
-                    <span className="font-mono tabular-nums font-semibold text-primary">
+                    <span className="font-mono tabular-nums font-bold text-primary">
                       {result.psuHeadroom.loadPct !== null ? `${result.psuHeadroom.loadPct.toFixed(1)}%` : "-"}
                     </span>
                   </div>
-                  <div className={styles.barTrack} role="presentation">
-                    <div
-                      className={`${styles.barFill} ${psuUi.barClass}`}
-                      style={{ transform: `scaleX(${psuLoadScale})` }}
-                    />
+                  {/* 10-Segment Health Bar */}
+                  <div
+                    role="meter"
+                    aria-label="Persentase beban daya PSU"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={result.psuHeadroom.loadPct !== null ? Math.round(result.psuHeadroom.loadPct) : 0}
+                    className="grid grid-cols-10 gap-1"
+                  >
+                    {Array.from({ length: 10 }, (_, segIdx) => {
+                      const threshold = (segIdx + 1) * 10;
+                      const active =
+                        result.psuHeadroom.loadPct !== null &&
+                        result.psuHeadroom.loadPct >= threshold - 5;
+                      return (
+                        <span
+                          key={segIdx}
+                          className={`h-2.5 rounded-sm transition-colors duration-300 motion-reduce:transition-none ${
+                            active ? psuUi.segmentActive : "bg-subtle"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-between font-mono text-[10px] text-secondary">
+                    <span>0% Aman</span>
+                    <span>75% Ideal</span>
+                    <span>90%+ Kritis</span>
                   </div>
                 </div>
 
