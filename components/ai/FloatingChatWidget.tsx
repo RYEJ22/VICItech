@@ -47,8 +47,17 @@ export function FloatingChatWidget() {
       </div>
       <ViciChatInterface variant="widget" />
     </section> : null}
-    <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={open ? 'Tutup jendela chat ViciTech AI' : 'Buka chat ViciTech AI'} className="vt-motion-press ml-auto flex min-h-12 items-center gap-2 rounded-full bg-[#EA580C] px-5 text-sm font-semibold text-white shadow-lg shadow-[#EA580C]/20 transition-[transform,box-shadow,background-color] duration-motion-hover ease-natural hover:-translate-y-0.5 hover:bg-[#C2410C] hover:shadow-xl active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2">
-      <Bot size={18} aria-hidden="true" />{open ? 'Tutup ViciTech AI' : 'Tanya ViciTech AI'}
+    <button
+      type="button"
+      onClick={() => setOpen((value) => !value)}
+      aria-expanded={open}
+      aria-label={open ? 'Tutup ViciTech AI' : 'Tanya ViciTech AI'}
+      className="group ml-auto flex h-12 min-w-12 items-center justify-center rounded-full bg-[#EA580C] px-3.5 text-sm font-semibold text-white shadow-md shadow-[#EA580C]/25 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 hover:bg-[#C2410C] hover:px-4 hover:shadow-lg hover:shadow-[#EA580C]/30 focus-visible:px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100 motion-reduce:active:scale-100"
+    >
+      <Bot size={20} className="shrink-0" aria-hidden="true" />
+      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:ml-2 group-hover:max-w-[180px] group-hover:opacity-100 group-focus-visible:ml-2 group-focus-visible:max-w-[180px] group-focus-visible:opacity-100 motion-reduce:transition-none">
+        {open ? 'Tutup ViciTech AI' : 'Tanya ViciTech AI'}
+      </span>
     </button>
   </div>;
 }
