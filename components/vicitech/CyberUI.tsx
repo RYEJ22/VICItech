@@ -74,7 +74,7 @@ export function CyberToast({
           initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0, transition: { duration: prefersReducedMotion ? 0 : 0.2, ease: 'easeOut' } }}
           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8, transition: { duration: 0.15, ease: 'easeIn' } }}
-          className="fixed bottom-20 right-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-default bg-surface p-4 text-primary shadow-xl md:bottom-6 md:right-6"
+          className="fixed inset-x-3 bottom-20 z-50 flex items-center gap-3 rounded-xl border border-default bg-surface p-4 text-primary shadow-xl sm:inset-x-auto sm:right-4 sm:max-w-sm md:bottom-6 md:right-6"
           role="status"
         >
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">

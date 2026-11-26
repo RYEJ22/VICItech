@@ -89,15 +89,15 @@ export function SiteFooter(): ReactElement {
           <span>ViciTech</span>
         </Link>
         <details className="border-t border-default pt-2">
-          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">{f.ecosystemHeading}</summary>
-          <nav aria-label={f.ecosystemHeading} className="flex flex-wrap gap-x-4 gap-y-1 pb-2">
-            {ECOSYSTEM_HREFS.map((href) => <Link key={href} href={href} className="min-h-8 py-1 text-xs text-secondary">{f.links[href] ?? href}</Link>)}
+          <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold uppercase tracking-wide text-secondary">{f.ecosystemHeading}</summary>
+          <nav aria-label={f.ecosystemHeading} className="grid grid-cols-2 gap-x-3 gap-y-0.5 pb-2">
+            {ECOSYSTEM_HREFS.map((href) => <Link key={href} href={href} className="inline-flex min-h-11 items-center py-1 text-xs text-secondary hover:text-primary">{f.links[href] ?? href}</Link>)}
           </nav>
         </details>
         <details className="border-t border-default pt-2">
-          <summary className="cursor-pointer py-1 text-xs font-semibold uppercase tracking-wide text-secondary">{f.verificationHeading}</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center text-xs font-semibold uppercase tracking-wide text-secondary">{f.verificationHeading}</summary>
           <ul className="space-y-1 pb-2 text-xs text-secondary">
-            <li><Link href="/qc-panel" className="inline-flex min-h-8 items-center gap-1.5 text-primary"><Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />{f.checkSerialCta}</Link></li>
+            <li><Link href="/qc-panel" className="inline-flex min-h-11 items-center gap-1.5 font-medium text-primary"><Activity className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />{f.checkSerialCta}</Link></li>
             {f.standards.map((standard) => <li key={standard} className="py-1">{standard}</li>)}
           </ul>
         </details>

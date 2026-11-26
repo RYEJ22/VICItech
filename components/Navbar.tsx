@@ -7,13 +7,16 @@ import {
   Activity,
   Bell,
   ChevronDown,
+  Cookie,
   Cpu,
   Gauge,
+  Globe,
   LayoutGrid,
   Layers,
   MapPin,
   Menu,
   MessageSquare,
+  MessageSquarePlus,
   RefreshCw,
   Search,
   Settings,
@@ -35,6 +38,7 @@ import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCheckout } from '@/context/CheckoutContext';
 import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useUserSettings } from '@/hooks/useUserSettings';
 import { shouldInterceptRouteLink, startRouteTransition } from '@/lib/motion/view-transition';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
@@ -77,7 +81,7 @@ const SHELL_ROUTES = ['/market', '/community'];
 const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50';
 const iconBtnBase =
-  `vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-smooth active:scale-[0.98] sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
+  `vt-motion-press relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-smooth active:scale-[0.98] sm:h-10 sm:w-10 ${focusRing}`;
 
 function NavIcon({
   iconKey,
@@ -187,7 +191,7 @@ function NotificationsPanel({
     <div
       role="dialog"
       aria-label={t.nav.notificationsTitle}
-      className={`absolute right-0 top-full z-[60] mt-3.5 w-[min(22rem,calc(100vw-1.5rem))] rounded-xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
+      className={`fixed inset-x-3 top-16 z-[60] max-h-[75dvh] overflow-y-auto rounded-xl p-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3.5 sm:w-[22rem] ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
     >
       <div className="flex items-center justify-between gap-2 border-b border-default px-2.5 pb-2 pt-1">
         <p className="text-sm font-semibold text-primary">{t.nav.notificationsTitle}</p>
@@ -269,7 +273,8 @@ function NotificationsPanel({
 export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactElement | null {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
+  const { navbarScrollBehavior } = useUserSettings();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [role, setRole] = useState<UserRole>(initialRole);
@@ -785,20 +790,22 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
   if (pathname && isShellOwnedRoute(pathname)) return null;
 
+  const collapseOnScroll = isScrolled && navbarScrollBehavior === 'collapse';
+
   return (
     <>
       {/* ───────── Floating Pill Navbar (Progressive Disclosure) ───────── */}
       <header
         className={`pointer-events-none fixed inset-x-0 top-0 z-40 px-0 transition-all duration-300 ease-smooth motion-reduce:transition-none md:px-6 ${
-          isScrolled ? 'md:top-2.5' : 'md:top-4'
+          collapseOnScroll ? 'md:top-2.5' : 'md:top-4'
         }`}
       >
         <div
           className={`pointer-events-auto mx-auto flex h-14 w-full items-center justify-between gap-2 rounded-none px-3 transition-all duration-300 ease-smooth motion-reduce:transition-none md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:rounded-full ${
             styles.floatingPill ?? ''
-          } ${
-            isScrolled
-              ? `${styles.floatingPillScrolled ?? ''} md:h-[54px] md:max-w-3xl md:gap-2.5 md:pl-3.5 md:pr-2.5`
+          } ${isScrolled ? (styles.floatingPillScrolled ?? '') : ''} ${
+            collapseOnScroll
+              ? 'md:h-[54px] md:max-w-3xl md:gap-2.5 md:pl-3.5 md:pr-2.5'
               : 'md:h-[64px] md:max-w-6xl md:gap-4 md:pl-5 md:pr-3.5'
           }`}
         >
@@ -809,20 +816,20 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             title={t.nav.homeAria}
             aria-label={t.nav.homeAria}
             className={`inline-flex min-h-10 w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-smooth hover:opacity-85 motion-reduce:transition-none ${
-              isScrolled ? 'gap-2' : 'gap-2.5'
+              collapseOnScroll ? 'gap-2' : 'gap-2.5'
             } ${focusRing}`}
           >
-            <BrandMark compact={isScrolled} />
+            <BrandMark compact={collapseOnScroll} />
             <span
               className={`hidden font-sans font-bold tracking-tight text-primary transition-all duration-300 ease-smooth motion-reduce:transition-none min-[420px]:inline ${
-                isScrolled ? 'text-base' : 'text-lg'
+                collapseOnScroll ? 'text-base' : 'text-lg'
               }`}
             >
               ViciTech
             </span>
           </Link>
 
-          {/* Center (Desktop): 4 Umbrella Menus (Icons + Labels at top, Icon-Only compact on scroll) */}
+          {/* Center (Desktop): 4 Umbrella Menus (Icons + Labels at top, Icon-Only compact on scroll when enabled) */}
           <nav
             aria-label={t.nav.mainNavAria}
             onMouseLeave={() => {
@@ -833,7 +840,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               }, 120);
             }}
             className={`hidden items-center justify-self-center transition-all duration-300 ease-smooth motion-reduce:transition-none md:flex ${
-              isScrolled ? 'gap-1.5 lg:gap-2' : 'gap-2 lg:gap-3'
+              collapseOnScroll ? 'gap-1.5 lg:gap-2' : 'gap-2 lg:gap-3'
             }`}
           >
             {visibleDesktopGroups.map((group) => {
@@ -855,10 +862,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     aria-label={groupLabel}
                     aria-current={isActive ? 'page' : undefined}
                     className={`group/nav vt-motion-press vt-nav-link relative inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ease-smooth motion-reduce:transition-none ${focusRing} ${
-                      isScrolled ? 'min-w-10 px-3 py-2' : 'px-3 py-2'
+                      collapseOnScroll ? 'min-w-10 px-3 py-2' : 'px-3 py-2'
                     } ${
                       isActive
-                        ? isScrolled
+                        ? collapseOnScroll
                           ? 'bg-accent-subtle text-accent-primary'
                           : 'text-accent-primary'
                         : 'text-primary/85 hover:bg-subtle hover:text-accent-primary'
@@ -870,12 +877,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     />
                     <span
                       className={`${styles.navLabel ?? ''} ${
-                        isScrolled ? (styles.navLabelCollapsed ?? '') : ''
+                        collapseOnScroll ? (styles.navLabelCollapsed ?? '') : ''
                       }`}
                     >
                       {groupLabel}
                     </span>
-                    {!isScrolled && (
+                    {!collapseOnScroll && (
                       <span aria-hidden="true" className={`vt-nav-underline !inset-x-3 ${isActive ? 'is-active' : ''}`} />
                     )}
                   </Link>
@@ -899,10 +906,10 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     aria-haspopup="true"
                     aria-controls={`nav-panel-${group.id}`}
                     className={`group/nav vt-nav-link vt-motion-press relative inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-all duration-300 ease-smooth motion-reduce:transition-none ${focusRing} ${
-                      isScrolled ? 'min-w-10 px-2.5 py-2' : 'px-3 py-2'
+                      collapseOnScroll ? 'min-w-10 px-2.5 py-2' : 'px-3 py-2'
                     } ${
                       isActive || isOpen
-                        ? isScrolled
+                        ? collapseOnScroll
                           ? 'bg-accent-subtle text-accent-primary'
                           : 'text-accent-primary'
                         : 'text-primary/85 hover:bg-subtle hover:text-accent-primary'
@@ -914,21 +921,21 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     />
                     <span
                       className={`${styles.navLabel ?? ''} ${
-                        isScrolled ? (styles.navLabelCollapsed ?? '') : ''
+                        collapseOnScroll ? (styles.navLabelCollapsed ?? '') : ''
                       }`}
                     >
                       {groupLabel}
                     </span>
                     <ChevronDown
                       className={`vt-chevron shrink-0 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
-                        isScrolled ? 'ml-0.5 h-3 w-3' : 'ml-1 h-3.5 w-3.5'
+                        collapseOnScroll ? 'ml-0.5 h-3 w-3' : 'ml-1 h-3.5 w-3.5'
                       } ${
                         isOpen ? 'rotate-180 text-accent-primary' : 'text-secondary group-hover/nav:text-accent-primary'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    {!isScrolled && (
+                    {!collapseOnScroll && (
                       <span aria-hidden="true" className={`vt-nav-underline !inset-x-3 ${isActive ? 'is-active' : ''}`} />
                     )}
                   </button>
@@ -1027,7 +1034,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 onClick={(event) => handleHrefClick(event, '/messages')}
                 aria-current={isMessagesRoute ? 'page' : undefined}
                 aria-label={t.nav.messagesAria(unreadCount)}
-                className={`${iconBtnBase} ${
+                className={`${iconBtnBase} hidden min-[414px]:inline-flex ${
                   isMessagesRoute
                     ? 'bg-accent-subtle text-accent-hover'
                     : 'text-secondary hover:bg-subtle hover:text-primary'
@@ -1106,6 +1113,12 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 className={`${iconBtnBase} text-primary hover:bg-subtle`}
               >
                 <Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                {unreadCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-primary ring-2 ring-surface min-[414px]:hidden"
+                  />
+                )}
               </button>
             </div>
           </div>
@@ -1115,11 +1128,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
       {/* Safe top clearance beneath the fixed header (Hero handles its own offset on "/") */}
       <div aria-hidden="true" className={pathname === '/' ? 'h-0' : 'h-14 md:h-[92px]'} />
 
-      {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items — compact icon-only on scroll) ───────── */}
+      {/* ───────── Mobile Fixed Bottom Navigation (< md, 5 core items — compact icon-only on scroll when enabled) ───────── */}
       <nav aria-label={t.nav.mainNavAria} className={`md:hidden ${styles.bottomNav ?? ''}`}>
         <ul
           className={`mx-auto grid max-w-lg grid-cols-5 items-center gap-0.5 px-1.5 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
-            isScrolled ? 'h-12 py-1' : 'h-14 py-1.5'
+            collapseOnScroll ? 'h-12 py-1' : 'h-14 py-1.5'
           }`}
         >
           {visibleBottomItems.map((item) => {
@@ -1147,7 +1160,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   />
                   <span
                     className={`truncate ${styles.mobileNavLabel ?? ''} ${
-                      isScrolled ? (styles.mobileNavLabelCollapsed ?? '') : ''
+                      collapseOnScroll ? (styles.mobileNavLabelCollapsed ?? '') : ''
                     }`}
                   >
                     {itemShort}
@@ -1271,11 +1284,41 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 );
               })}
 
-              <div className="border-t border-default pt-3">
+              <div className="space-y-2 border-t border-default pt-3">
                 <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
                   {t.nav.drawerThemeHeading}
                 </p>
                 <ThemeToggle showLabel />
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-default bg-canvas px-3 py-2">
+                  <span className="flex min-w-0 items-center gap-2.5 text-sm font-semibold text-primary">
+                    <Globe className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                    <span className="truncate">{t.settings.langTitle}</span>
+                  </span>
+                  <div
+                    role="group"
+                    aria-label={t.settings.langTitle}
+                    className="inline-flex shrink-0 rounded-md border border-default bg-subtle p-0.5"
+                  >
+                    {(['id', 'en'] as const).map((code) => {
+                      const active = language === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => setLanguage(code)}
+                          aria-pressed={active}
+                          className={`min-h-9 rounded px-3 text-xs font-semibold transition-colors ${focusRing} ${
+                            active
+                              ? 'bg-accent-primary text-white'
+                              : 'text-secondary hover:text-primary'
+                          }`}
+                        >
+                          {code.toUpperCase()}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               <div className="border-t border-default pt-3">
@@ -1370,6 +1413,25 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       </span>
                     </span>
                   </Link>
+
+                  <div className="mt-1 grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      href="/feedback"
+                      onClick={(event) => handleHrefClick(event, '/feedback')}
+                      className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-subtle ${focusRing}`}
+                    >
+                      <MessageSquarePlus className="h-3.5 w-3.5 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                      <span className="truncate">{t.footer.feedback}</span>
+                    </Link>
+                    <Link
+                      href="/cookies"
+                      onClick={(event) => handleHrefClick(event, '/cookies')}
+                      className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-subtle ${focusRing}`}
+                    >
+                      <Cookie className="h-3.5 w-3.5 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                      <span className="truncate">{t.settings.cookieCardTitle}</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </nav>

@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-height: 92svh;
+  max-height: 88dvh;
   overflow: hidden;
   border-top-left-radius: 1.25rem;
   border-top-right-radius: 1.25rem;
@@ -94,4 +94,24 @@
   .panel {
     animation: none;
   }
+}
+
+:global(html[data-theme='dark']) .panel {
+  border-radius: 0;
+  background-color: #12151c;
+  border-top: 2px solid #e11d48;
+  box-shadow: 0 -6px 0 #000000;
+}
+
+@media (min-width: 768px) {
+  :global(html[data-theme='dark']) .panel {
+    border-top: 0;
+    border-left: 2px solid #e11d48;
+    box-shadow: -6px 0 0 #000000;
+  }
+}
+
+:global(html[data-theme='dark']) .dragHandle {
+  border-radius: 0;
+  background-color: #e11d48;
 }

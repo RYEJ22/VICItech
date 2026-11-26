@@ -199,23 +199,23 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
   }
 
   return (
-    <section className={`flex min-h-0 flex-col bg-surface ${compact ? 'h-full' : 'min-h-[560px] rounded-xl border border-default shadow-card'}`} aria-label="Konsultan Rakitan AI">
-      <header className="flex items-center justify-between gap-3 border-b border-default px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-subtle text-accent-primary"><Sparkles size={18} aria-hidden="true" /></span>
-          <div><h2 className="text-sm font-bold text-primary">ViciTech AI</h2><p className="text-xs text-secondary">Konsultan Rakitan &amp; Hardware</p></div>
+    <section className={`flex min-h-0 flex-col bg-surface ${compact ? 'h-full' : 'min-h-[460px] rounded-xl border border-default shadow-card sm:min-h-[560px]'}`} aria-label="Konsultan Rakitan AI">
+      <header className="flex items-center justify-between gap-2 border-b border-default px-3.5 py-3 sm:gap-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary"><Sparkles size={18} aria-hidden="true" /></span>
+          <div className="min-w-0"><h2 className="truncate text-sm font-bold text-primary">ViciTech AI</h2><p className="truncate text-xs text-secondary">Konsultan Rakitan &amp; Hardware</p></div>
         </div>
-        <button type="button" onClick={resetChat} className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><RotateCcw size={14} aria-hidden="true" />Reset Obrolan</button>
+        <button type="button" onClick={resetChat} className="vt-motion-press inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><RotateCcw size={14} aria-hidden="true" />Reset Obrolan</button>
       </header>
 
-      <div className={`min-h-0 flex-1 space-y-4 overflow-y-auto p-4 ${compact ? 'max-h-[360px]' : 'max-h-[min(68vh,760px)] sm:p-6'}`} aria-live="polite">
+      <div className={`min-h-0 flex-1 space-y-4 overflow-y-auto p-3.5 sm:p-4 ${compact ? 'max-h-[340px]' : 'max-h-[min(58dvh,680px)] sm:max-h-[min(68vh,760px)] sm:p-6'}`} aria-live="polite">
         {messages.length === 0 ? <div className="mx-auto max-w-lg py-5 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-accent-subtle text-accent-primary"><Sparkles aria-hidden="true" /></span>
           <h3 className="mt-3 font-bold tracking-tight text-primary">Ada yang ingin dirakit?</h3>
           <p className="mt-1 text-sm text-secondary">Ceritakan kebutuhan atau anggaranmu, kami bantu cari opsi yang pas.</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">{STARTERS.map((starter) => <button key={starter} type="button" onClick={() => void sendMessage(undefined, starter)} className="vt-motion-press rounded-full border border-default bg-canvas px-3 py-2 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:border-accent-primary/40 hover:bg-accent-subtle hover:text-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50">{starter}</button>)}</div>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">{STARTERS.map((starter) => <button key={starter} type="button" onClick={() => void sendMessage(undefined, starter)} className="vt-motion-press min-h-10 rounded-full border border-default bg-canvas px-3.5 py-2 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:border-accent-primary/40 hover:bg-accent-subtle hover:text-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50">{starter}</button>)}</div>
         </div> : messages.map((message, index) => <div key={`${index}-${message.role}`} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-          <div className={`max-w-[90%] rounded-xl px-4 py-3 ${message.role === 'user' ? 'bg-accent-primary text-white' : 'border border-default bg-canvas text-primary shadow-card'}`}>
+          <div className={`max-w-[92%] break-words overflow-x-auto rounded-xl px-3.5 py-3 sm:max-w-[90%] sm:px-4 ${message.role === 'user' ? 'bg-accent-primary text-white' : 'border border-default bg-canvas text-primary shadow-card'}`}>
             {message.content ? (
               message.role === 'user' ? (
                 <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>

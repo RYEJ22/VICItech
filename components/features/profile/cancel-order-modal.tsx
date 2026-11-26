@@ -69,21 +69,21 @@ export function CancelOrderModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cancel-order-title"
-        className="vt-dialog-enter w-full max-w-md rounded-xl border border-default bg-surface p-5 text-primary shadow-floating sm:p-6"
+        className="vt-dialog-enter max-h-[85dvh] w-full max-w-md overflow-y-auto rounded-xl border border-default bg-surface p-5 text-primary shadow-floating sm:p-6"
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
+          <div className="flex min-w-0 items-start gap-3">
             <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-red-200 bg-red-50 text-status-danger">
               <AlertTriangle className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </span>
-            <div>
+            <div className="min-w-0">
               <h2
                 id="cancel-order-title"
                 className="font-sans text-lg font-bold tracking-tight text-primary"
               >
                 Batalkan Pesanan?
               </h2>
-              <p className="mt-0.5 font-mono text-xs text-secondary">
+              <p className="mt-0.5 break-all font-mono text-xs text-secondary">
                 {order.orderNumber || order.id}
               </p>
             </div>
@@ -94,7 +94,7 @@ export function CancelOrderModal({
             onClick={onClose}
             disabled={isSubmitting}
             aria-label="Tutup dialog pembatalan"
-            className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle disabled:opacity-50 ${focusRing}`}
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle disabled:opacity-50 ${focusRing}`}
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -119,7 +119,7 @@ export function CancelOrderModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setSelectedPreset(active ? '' : reason)}
-                  className={`min-h-9 rounded-full border px-3 py-1 text-xs transition-all duration-200 ease-smooth ${focusRing} ${
+                  className={`min-h-10 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ease-smooth ${focusRing} ${
                     active
                       ? 'border-accent-primary bg-accent-subtle font-semibold text-accent-hover'
                       : 'border-default bg-canvas text-secondary hover:border-strong hover:text-primary'
@@ -140,7 +140,7 @@ export function CancelOrderModal({
               maxLength={240}
               onChange={(event) => setCustomReason(event.target.value)}
               placeholder="Atau tulis alasan singkat lainnya (opsional)…"
-              className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-subtle px-3 py-2 text-xs text-primary placeholder:text-secondary focus:border-accent-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
+              className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-subtle px-3 py-2 text-sm text-primary placeholder:text-secondary focus:border-accent-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             />
           </label>
         </div>

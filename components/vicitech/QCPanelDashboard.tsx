@@ -97,7 +97,7 @@ export default function QCPanelDashboard() {
               </p>
             </div>
           </div>
-          <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
+          <span data-badge-essential="true" className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
         </header>
 
         <span aria-hidden="true" className="vt-pixel-divider mb-6" />
@@ -145,7 +145,7 @@ export default function QCPanelDashboard() {
                 <h2 className="tracking-tight text-xs font-bold">Sumber Data Aktif</h2>
               </div>
               <div className="mt-2">
-                <span className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
+                <span data-badge-essential="true" className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-secondary">
                 {sourceMeta.description}

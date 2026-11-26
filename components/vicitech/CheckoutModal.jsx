@@ -305,7 +305,7 @@ export default function CheckoutModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="checkout-title"
-        className="vt-dialog-enter flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-default bg-surface text-primary shadow-2xl"
+        className="vt-dialog-enter flex max-h-[88dvh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-default bg-surface text-primary shadow-2xl"
       >
         <header className="flex items-start justify-between gap-4 border-b border-default p-5 sm:p-6">
           <div>
@@ -357,8 +357,8 @@ export default function CheckoutModal({
                   {orderSummary.items.map((item) => {
                     const lineQty = Math.max(1, Number(item.quantity ?? orderSummary.quantity) || 1);
                     return (
-                      <li key={item.id} className="flex items-center justify-between gap-4 px-3.5 py-2.5 text-sm">
-                        <span className="min-w-0">
+                      <li key={item.id} className="flex flex-wrap items-start justify-between gap-2 px-3.5 py-2.5 text-sm sm:flex-nowrap sm:items-center sm:gap-4">
+                        <span className="min-w-0 break-words">
                           <span className="block font-medium text-primary">
                             {item.label}: {item.name}
                           </span>

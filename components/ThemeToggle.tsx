@@ -91,7 +91,7 @@ export default function ThemeToggle({ className = '', showLabel = false }: Theme
       aria-label={label}
       title={label}
       aria-pressed={isDark}
-      className={`vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-9 sm:w-9 md:h-10 md:w-10 ${
+      className={`vt-motion-press relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-10 sm:w-10 ${
         isDark ? 'text-accent-primary hover:text-accent-primary' : ''
       } ${className}`}
     >

@@ -987,7 +987,7 @@ export default function PresetBuilder({
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-36 pt-6 sm:px-6 sm:pt-10 lg:px-8 lg:pb-24">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">{pb.badge}</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
@@ -1339,10 +1339,10 @@ export default function PresetBuilder({
                     <li key={s.id} className="flex items-center gap-2 text-sm">
                       <span className="min-w-0 flex-1 truncate text-primary">{s.label}</span>
                       <span className="font-mono text-xs tabular-nums text-secondary">{idr(s.unit)}</span>
-                      <button type="button" onClick={() => loadSaved(s)} className={`min-h-9 rounded px-2 py-1 text-xs font-medium text-accent-cta hover:bg-accent-subtle ${focusRing}`}>
+                      <button type="button" onClick={() => loadSaved(s)} className={`min-h-10 rounded px-2.5 py-1 text-xs font-medium text-accent-cta hover:bg-accent-subtle ${focusRing}`}>
                         Muat
                       </button>
-                      <button type="button" aria-label={`Hapus ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`inline-flex h-9 w-9 items-center justify-center rounded text-secondary hover:text-primary ${focusRing}`}>
+                      <button type="button" aria-label={`Hapus ${s.label}`} onClick={() => setSaved((l) => l.filter((x) => x.id !== s.id))} className={`inline-flex h-10 w-10 items-center justify-center rounded text-secondary hover:text-primary ${focusRing}`}>
                         <X className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     </li>
@@ -1362,7 +1362,7 @@ export default function PresetBuilder({
             <AnimatedNumber value={calc.total} format="currency" />
           </p>
         </div>
-        <button type="button" onClick={() => setDrawer(true)} className={`vt-btn-tactile inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg bg-accent-cta px-3.5 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm ${focusRing}`}>
+        <button type="button" onClick={() => setDrawer(true)} className={`vt-btn-tactile inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:gap-2 sm:py-2.5 sm:text-sm ${focusRing}`}>
           <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           <span>Checkout</span>
         </button>

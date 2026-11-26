@@ -337,7 +337,7 @@ function HardwareSearchCombobox({
             setSearch(event.target.value);
           }}
           onKeyDown={handleKeyDown}
-          className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-9 pr-10 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+          className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-9 pr-12 text-sm text-primary placeholder:text-secondary ${focusRing}`}
         />
         {open && search ? (
           <button
@@ -347,7 +347,7 @@ function HardwareSearchCombobox({
               setSearch("");
               inputRef.current?.focus();
             }}
-            className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary"
+            className="absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary"
           >
             <X className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -362,7 +362,7 @@ function HardwareSearchCombobox({
                 inputRef.current?.focus();
               }
             }}
-            className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary"
+            className="absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary"
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
@@ -942,11 +942,11 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
               </div>
 
               {/* Aksi Cepat Hasil: Tanya ViciTech AI & Bagikan / Unduh Kartu PNG */}
-              <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-white/10 pt-4">
+              <div className="mt-5 grid grid-cols-1 gap-2.5 border-t border-white/10 pt-4 sm:flex sm:flex-wrap sm:items-center">
                 <button
                   type="button"
                   onClick={handleAskViciAi}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#C2410C] active:scale-[0.98] sm:flex-initial sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#C2410C] active:scale-[0.98] sm:w-auto sm:text-sm ${focusRing}`}
                 >
                   <Bot className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                   <span>Tanya ViciTech AI soal Hasil Ini</span>
@@ -956,7 +956,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   type="button"
                   disabled={isGeneratingCard}
                   onClick={() => void handleShareOrDownloadCard()}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-[#FAFAFA] hover:border-[#EA580C]/60 hover:bg-white/[0.12] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:flex-initial sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-[#FAFAFA] hover:border-[#EA580C]/60 hover:bg-white/[0.12] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:text-sm ${focusRing}`}
                 >
                   {isGeneratingCard ? (
                     <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-[#EA580C]" aria-hidden="true" />
@@ -973,15 +973,15 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   aria-live="polite"
                   className="vt-pop mt-3 inline-flex w-full items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-semibold text-emerald-900"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" strokeWidth={2} aria-hidden="true" />
-                    <span>{shareStatus}</span>
+                    <span className="break-words">{shareStatus}</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setShareStatus("")}
                     aria-label="Tutup notifikasi kartu hasil"
-                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
@@ -1079,16 +1079,16 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   </span>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+                  <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-3">
                     <p className="text-xs text-[#A1A1AA]">Estimasi Beban</p>
-                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#FAFAFA]">
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#FAFAFA] sm:text-xl">
                       <AnimatedNumber value={result.psuHeadroom.estimatedWattage} format="number" suffix=" W" />
                     </p>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
+                  <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-3">
                     <p className="text-xs text-[#A1A1AA]">Rekomendasi (+35%)</p>
-                    <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#EA580C]">
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#EA580C] sm:text-xl">
                       <AnimatedNumber value={result.psuHeadroom.recommendedPsuWatts} format="number" suffix=" W" />
                     </p>
                   </div>

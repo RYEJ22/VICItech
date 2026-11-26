@@ -37,11 +37,11 @@ export function FloatingChatWidget() {
 
   const positionClass =
     pathname === '/builder'
-      ? 'bottom-[7.5rem] right-4 md:bottom-20 md:right-5 lg:bottom-5'
-      : 'bottom-[4.5rem] right-4 md:bottom-5 md:right-5';
+      ? 'bottom-[calc(8.25rem+env(safe-area-inset-bottom))] right-3 sm:right-4 md:bottom-20 md:right-5 lg:bottom-5'
+      : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-3 sm:right-4 md:bottom-5 md:right-5';
 
   return <div className={`fixed z-40 ${positionClass}`}>
-    {open ? <section className="vt-panel-enter mb-3 flex h-[min(570px,calc(100dvh-7rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-floating" aria-label="Chat ViciTech AI">
+    {open ? <section className="vt-panel-enter mb-3 flex h-[min(520px,calc(100dvh-10.5rem))] w-[min(380px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-floating sm:h-[min(570px,calc(100dvh-7rem))]" aria-label="Chat ViciTech AI">
       <div className="flex items-center justify-end gap-1 border-b border-default px-2 py-1.5">
         <Link href="/toolkit/konsultan-ai" aria-label={t.aiWidget.expandAria} title={t.aiWidget.expandAria} className="vt-motion-press grid h-9 w-9 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><Maximize2 size={16} aria-hidden="true" /></Link>
         <button type="button" onClick={() => setOpen(false)} aria-label={t.aiWidget.minimizeAria} title={t.aiWidget.minimizeAria} className="vt-motion-press grid h-9 w-9 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><Minus size={17} aria-hidden="true" /></button>

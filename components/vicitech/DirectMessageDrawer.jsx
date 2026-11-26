@@ -857,8 +857,8 @@ export default function DirectMessageDrawer({
         <div className={`flex h-full min-h-0 min-w-0 flex-1 flex-col bg-canvas ${!selectedId ? "hidden md:flex" : "flex"}`}>
           {selectedId && selectedProfile ? (
             <>
-              <header className="flex shrink-0 items-center gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-6">
-                <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="rounded-full p-2 text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-4 w-4" /></button>
+              <header className="flex shrink-0 items-center gap-2.5 border-b border-default bg-surface px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
+                <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-5 w-5" /></button>
                 {selectedProfile.username ? (
                   <Link
                     href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
@@ -1023,7 +1023,7 @@ export default function DirectMessageDrawer({
                         onClick={() => removeAttachment(item.id)}
                         disabled={isSending}
                         aria-label={`Hapus lampiran ${item.name}`}
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-subtle text-primary transition hover:bg-red-50 hover:text-status-danger"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-primary transition hover:bg-red-50 hover:text-status-danger"
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
@@ -1033,7 +1033,7 @@ export default function DirectMessageDrawer({
               </div>
             )}
 
-            <form onSubmit={sendMessage} className="relative flex shrink-0 items-end gap-2 rounded-b-xl border-t border-default bg-surface p-3 sm:gap-3 sm:p-4 md:rounded-br-xl md:rounded-bl-none">
+            <form onSubmit={sendMessage} className="relative flex min-w-0 shrink-0 items-end gap-2 rounded-b-xl border-t border-default bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:gap-3 sm:p-4 md:rounded-br-xl md:rounded-bl-none">
               <ChatMediaPicker
                 isOpen={isPickerOpen}
                 onClose={() => setIsPickerOpen(false)}

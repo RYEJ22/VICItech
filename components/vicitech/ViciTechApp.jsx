@@ -171,7 +171,7 @@ function ToastHost({ toast, onDone }) {
   }, [toast, onDone]);
   if (!toast) return null;
   return (
-    <div role="status" className="vt-in fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-xl border border-default bg-surface p-4 text-sm text-primary shadow-floating">
+    <div role="status" className="vt-in fixed inset-x-3 bottom-[4.75rem] z-[80] flex items-start gap-2.5 rounded-xl border border-default bg-surface p-4 text-sm text-primary shadow-floating sm:inset-x-auto sm:bottom-6 sm:right-4 sm:max-w-sm">
       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
       <span className="font-medium leading-snug">{toast.msg}</span>
     </div>

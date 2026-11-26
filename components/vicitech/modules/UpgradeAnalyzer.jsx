@@ -1251,9 +1251,9 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                       ["Grafis (GPU)", d.gpu.text, d.gpu.score > 0],
                       ["Prosesor (CPU)", d.cpu.text, d.cpu.score > 0],
                     ].map(([k, v, ok]) => (
-                      <div key={k} className="grid grid-cols-4 gap-3 py-2.5">
-                        <dt className="font-medium text-secondary">{k}</dt>
-                        <dd className="col-span-3 flex gap-2 text-primary">
+                      <div key={k} className="grid grid-cols-1 gap-1 py-2.5 sm:grid-cols-4 sm:gap-3">
+                        <dt className="text-xs font-medium text-secondary sm:text-sm">{k}</dt>
+                        <dd className="flex gap-2 text-primary sm:col-span-3">
                           {ok ? (
                             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-live" strokeWidth={1.75} aria-hidden="true" />
                           ) : (

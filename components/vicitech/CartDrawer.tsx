@@ -88,7 +88,7 @@ export function CartDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
-        className="vt-panel-enter flex h-full w-full max-w-md flex-col border-l border-default bg-canvas text-primary shadow-floating"
+        className="vt-panel-enter flex h-[100dvh] max-h-[100dvh] w-full max-w-md flex-col border-l border-default bg-canvas text-primary shadow-floating"
       >
         <header className="flex items-center justify-between gap-3 border-b border-default bg-surface px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -129,7 +129,7 @@ export function CartDrawer({
               type="button"
               onClick={onClose}
               aria-label="Tutup keranjang belanja"
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
             >
               <X className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -242,7 +242,7 @@ export function CartDrawer({
                               ? `Hapus ${displayTitle} dari keranjang`
                               : `Kurangi jumlah ${displayTitle}`
                           }
-                          className={`grid h-9 w-9 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
+                          className={`grid h-10 w-10 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
                         >
                           <Minus className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
@@ -257,7 +257,7 @@ export function CartDrawer({
                           type="button"
                           onClick={() => onUpdateQuantity(item.id, qty + 1)}
                           aria-label={`Tambah jumlah ${displayTitle}`}
-                          className={`grid h-9 w-9 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
+                          className={`grid h-10 w-10 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
                         >
                           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
@@ -286,7 +286,7 @@ export function CartDrawer({
         </div>
 
         {items.length > 0 && (
-          <footer className="space-y-3 border-t border-default bg-surface p-4 sm:p-5">
+          <footer className="space-y-3 border-t border-default bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
             <div className="space-y-1.5 text-sm">
               <div className="flex items-center justify-between text-secondary">
                 <span>Subtotal ({totalItems} item)</span>

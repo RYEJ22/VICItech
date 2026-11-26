@@ -17,10 +17,15 @@ import {
 } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { formatTemperature } from '@/lib/user-settings';
 
 export function TriPillarBento(): ReactElement {
-  const { t } = useLanguage();
+  const { t, isEnglish } = useLanguage();
+  const userSettings = useUserSettings();
   const b = t.bento;
+  const burnInTemp = formatTemperature(64.0, userSettings.temperatureUnit, 1);
+  const burnInDisplay = `${burnInTemp} · ${isEnglish ? 'Stable' : 'Stabil'}`;
 
   return (
     <section
@@ -75,18 +80,18 @@ export function TriPillarBento(): ReactElement {
                   {b.p1PreviewStatus}
                 </span>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg border border-default bg-surface px-2.5 py-2">
-                  <p className="text-[10px] font-medium text-secondary">{b.p1PsuLabel}</p>
-                  <p className="mt-0.5 font-mono text-xs font-bold tabular-nums text-primary">340 W / 550 W</p>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3 sm:text-center">
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block sm:px-2.5">
+                  <p className="text-[11px] font-medium text-secondary sm:text-[10px]">{b.p1PsuLabel}</p>
+                  <p className="font-mono text-xs font-bold tabular-nums text-primary sm:mt-0.5">340 W / 550 W</p>
                 </div>
-                <div className="rounded-lg border border-default bg-surface px-2.5 py-2">
-                  <p className="text-[10px] font-medium text-secondary">{b.p1FpsLabel}</p>
-                  <p className="mt-0.5 font-mono text-xs font-bold tabular-nums text-accent-primary">240+ FPS</p>
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block sm:px-2.5">
+                  <p className="text-[11px] font-medium text-secondary sm:text-[10px]">{b.p1FpsLabel}</p>
+                  <p className="font-mono text-xs font-bold tabular-nums text-accent-primary sm:mt-0.5">240+ FPS</p>
                 </div>
-                <div className="rounded-lg border border-default bg-surface px-2.5 py-2">
-                  <p className="text-[10px] font-medium text-secondary">{b.p1JitLabel}</p>
-                  <p className="mt-0.5 font-mono text-xs font-bold tabular-nums text-primary">{b.p1JitValue}</p>
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-default bg-surface px-3 py-2 sm:block sm:px-2.5">
+                  <p className="text-[11px] font-medium text-secondary sm:text-[10px]">{b.p1JitLabel}</p>
+                  <p className="font-mono text-xs font-bold tabular-nums text-primary sm:mt-0.5">{b.p1JitValue}</p>
                 </div>
               </div>
             </div>
@@ -158,7 +163,7 @@ export function TriPillarBento(): ReactElement {
               <div className="space-y-1.5 text-xs">
                 <div className="flex items-center justify-between text-secondary">
                   <span>{b.p2BurnInLabel}</span>
-                  <span className="font-mono font-semibold tabular-nums text-primary">{b.p2BurnInValue}</span>
+                  <span className="font-mono font-semibold tabular-nums text-primary">{burnInDisplay}</span>
                 </div>
                 <div className="vt-pixel-bar h-2.5 overflow-hidden rounded-[3px] border border-default bg-subtle">
                   <div className="h-full w-[88%] rounded-[2px] bg-accent-primary" />

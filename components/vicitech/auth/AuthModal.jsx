@@ -351,14 +351,14 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-title"
-        className="vt-dialog-enter w-full max-w-md overflow-hidden rounded-xl border border-default bg-surface text-primary shadow-2xl shadow-black/25"
+        className="vt-dialog-enter flex max-h-[88dvh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-default bg-surface text-primary shadow-2xl shadow-black/25"
       >
-        <header className="flex items-start justify-between border-b border-default bg-canvas p-5 sm:p-6">
-          <div>
-            <h2 id="auth-title" className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance]">
+        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-default bg-canvas p-5 sm:p-6">
+          <div className="min-w-0">
+            <h2 id="auth-title" className="tracking-tight font-sans text-xl font-bold text-primary [text-wrap:balance] sm:text-2xl">
               {step === "verify-otp" ? "Verify your email" : mode === "sign-in" ? "Welcome back to ViciTech" : "Create your ViciTech account"}
             </h2>
-            <p className="mt-1 text-sm text-secondary">
+            <p className="mt-1 break-words text-sm text-secondary">
               {step === "verify-otp"
                 ? `Enter the 8-digit code sent to ${email}.`
                 : mode === "sign-in"
@@ -371,13 +371,13 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
             onClick={onClose}
             disabled={isSubmitting || isResetting}
             aria-label="Close sign-in dialog"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary transition hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:opacity-50"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-secondary transition hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:opacity-50"
           >
             <X className="h-5 w-5" strokeWidth={1.75} />
           </button>
         </header>
 
-        <div className="space-y-4 p-5 sm:p-6">
+        <div className="flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
           {step === "credentials" && <>
           {!configured && (
             <p
@@ -415,9 +415,9 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
           </div></>}
 
           {step === "credentials" && (mode === "sign-in" || mode === "sign-up") && (
-            <div className="flex rounded-lg border border-default bg-canvas p-1 text-sm">
-              <button type="button" onClick={() => { setAuthMethod("password"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "password" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Email + password</button>
-              <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-10 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Sign in with 8-digit OTP code</button>
+            <div className="flex gap-1 rounded-lg border border-default bg-canvas p-1 text-xs sm:text-sm">
+              <button type="button" onClick={() => { setAuthMethod("password"); setMessage(""); }} className={`min-h-11 flex-1 rounded-md px-2 font-medium transition ${authMethod === "password" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Email + password</button>
+              <button type="button" onClick={() => { setAuthMethod("otp"); setMessage(""); }} className={`min-h-11 flex-1 rounded-md px-2 font-medium transition ${authMethod === "otp" ? "bg-surface text-primary shadow-sm" : "text-secondary hover:text-primary"}`}>Sign in with 8-digit OTP code</button>
             </div>
           )}
 
@@ -436,9 +436,9 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
             </form>
           ) : step === "verify-otp" ? (
             <form onSubmit={verifyOtp} className="space-y-4">
-              <div className="flex items-center justify-between text-sm"><span className="text-secondary">Code sent to <strong className="font-medium text-primary">{email}</strong></span><button type="button" onClick={returnToCredentials} disabled={isSubmitting} className="font-semibold text-accent-primary underline underline-offset-4">Change email</button></div>
-              <div className="flex justify-between gap-1.5" onPaste={(event) => { const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8); if (pasted) { event.preventDefault(); updateOtp(0, pasted); } }}>
-                {otp.map((digit, index) => <input key={index} ref={(element) => { otpRefs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} aria-label={`Code digit ${index + 1}`} maxLength={1} value={digit} onChange={(event) => updateOtp(index, event.target.value)} onKeyDown={(event) => { if (event.key === "Backspace") { if (digit) setOtp((current) => current.map((value, i) => i === index ? "" : value)); if (index > 0) otpRefs.current[index - 1]?.focus(); } if (event.key === "ArrowLeft" && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 7) otpRefs.current[index + 1]?.focus(); }} disabled={isSubmitting || isResetting} className="vt-form-control h-12 min-w-0 w-full rounded-lg border border-default bg-canvas text-center text-lg font-semibold text-primary outline-none transition focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/20 disabled:opacity-50" />)}
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="min-w-0 break-all text-secondary">Code sent to <strong className="font-medium text-primary">{email}</strong></span><button type="button" onClick={returnToCredentials} disabled={isSubmitting} className="min-h-9 shrink-0 font-semibold text-accent-primary underline underline-offset-4">Change email</button></div>
+              <div className="flex justify-between gap-1 sm:gap-1.5" onPaste={(event) => { const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8); if (pasted) { event.preventDefault(); updateOtp(0, pasted); } }}>
+                {otp.map((digit, index) => <input key={index} ref={(element) => { otpRefs.current[index] = element; }} type="text" inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} aria-label={`Code digit ${index + 1}`} maxLength={1} value={digit} onChange={(event) => updateOtp(index, event.target.value)} onKeyDown={(event) => { if (event.key === "Backspace") { if (digit) setOtp((current) => current.map((value, i) => i === index ? "" : value)); if (index > 0) otpRefs.current[index - 1]?.focus(); } if (event.key === "ArrowLeft" && index > 0) otpRefs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 7) otpRefs.current[index + 1]?.focus(); }} disabled={isSubmitting || isResetting} className="vt-form-control h-12 min-w-0 w-full rounded-lg border border-default bg-canvas text-center font-mono text-base font-semibold text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50 sm:text-lg" />)}
               </div>
               {message && <MessageNotice message={message} messageType={messageType} hasTokenError={hasTokenError} isResetting={isResetting} onReset={handleForceResetSession} />}
               <button type="submit" disabled={isSubmitting || isResetting || otp.join("").length !== 8 || !configured} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" />}Verify &amp; Continue</button>

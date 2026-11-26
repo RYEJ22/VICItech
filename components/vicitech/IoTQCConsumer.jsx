@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, Cpu, Gauge, LoaderCircle, Radio, Search, ShieldCheck, Thermometer, Timer, Wifi } from "lucide-react";
 import { getQcTrackingRecord, listMyOrders } from "@/lib/supabase";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useUserSettings } from "@/hooks/useUserSettings";
+import { formatTelemetryMetric, formatTemperature } from "@/lib/user-settings";
 
 const SERIAL_PATTERN = /^VICI-[A-Z]{3}-\d{4}-\d{4}$/;
 const ORDER_PATTERN = /^VT-PO-\d{4}-\d{4}$/;
@@ -105,6 +107,7 @@ function Stat({ icon: Icon, label, value, detail, color = "text-[#EA580C]", barC
 }
 
 export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }) {
+  const userSettings = useUserSettings();
   const [query, setQuery] = useState(typeof initialSerial === "string" ? initialSerial.trim().toUpperCase() : "");
   const [record, setRecord] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
@@ -311,11 +314,11 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
   const burninHours = Number(telemetry?.burnin_hours ?? record?.burnin_hours ?? 0);
 
   const sourceBadge = telemetry?.source === "esp32" ? (
-    <span className="vt-badge-live">Live ESP32</span>
+    <span data-badge-essential="true" className="vt-badge-live">Live ESP32</span>
   ) : telemetry?.source === "admin_simulation" ? (
-    <span className="vt-badge-simulated">Simulated / Demo</span>
+    <span data-badge-essential="true" className="vt-badge-simulated">Simulated / Demo</span>
   ) : (
-    <span className="vt-badge-sample">Menunggu Telemetri</span>
+    <span data-badge-essential="true" className="vt-badge-sample">Menunggu Telemetri</span>
   );
 
   return (
@@ -432,17 +435,17 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
 
       {status === "ready" && record && typeof record === "object" && (
         <section aria-label="Status pelacakan perangkat" className="mt-6 space-y-5">
-          <div className="vt-obsidian-panel rounded-xl p-6">
+          <div className="vt-obsidian-panel rounded-xl p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-accent-primary">
+              <div className="min-w-0 flex-1">
+                <p className="inline-flex max-w-full items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-accent-primary">
                   <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
-                  <span>{record.order_id || "Pelacakan Unit"}</span>
+                  <span className="break-all">{record.order_id || "Pelacakan Unit"}</span>
                 </p>
-                <h2 className="tracking-tight mt-1 font-sans text-xl font-bold text-[#FAFAFA]">
+                <h2 className="tracking-tight mt-1 break-words font-sans text-xl font-bold text-[#FAFAFA]">
                   {record.device_name || "Unit Rakitan ViciTech"}
                 </h2>
-                <p className="mt-1 font-mono text-sm text-[#A1A1AA]">
+                <p className="mt-1 break-all font-mono text-sm text-[#A1A1AA]">
                   {record.serial_number || "Nomor seri QC sedang disiapkan"}
                 </p>
               </div>
@@ -484,7 +487,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
             <Stat
               icon={Cpu}
               label="Suhu CPU"
-              value={telemetry?.cpu_temp_c == null ? "—" : `${Number(telemetry.cpu_temp_c).toFixed(1)} °C`}
+              value={formatTemperature(telemetry?.cpu_temp_c, userSettings.temperatureUnit, 1)}
               detail="Pembacaan sensor terbaru"
               color="text-[#EA580C]"
               barColor="bg-[#EA580C]"
@@ -493,7 +496,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
             <Stat
               icon={Thermometer}
               label="Suhu GPU"
-              value={telemetry?.gpu_temp_c == null ? "—" : `${Number(telemetry.gpu_temp_c).toFixed(1)} °C`}
+              value={formatTemperature(telemetry?.gpu_temp_c, userSettings.temperatureUnit, 1)}
               detail="Pembacaan sensor terbaru"
               color="text-amber-400"
               barColor="bg-amber-400"
@@ -502,7 +505,11 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
             <Stat
               icon={Gauge}
               label="Kecepatan Kipas"
-              value={telemetry?.fan_rpm == null ? "—" : `${telemetry.fan_rpm} RPM`}
+              value={formatTelemetryMetric(telemetry?.fan_rpm, {
+                compact: userSettings.compactNumbers,
+                unit: "RPM",
+                language: userSettings.language,
+              })}
               detail="Pembacaan sensor terbaru"
               color="text-sky-400"
               barColor="bg-sky-400"

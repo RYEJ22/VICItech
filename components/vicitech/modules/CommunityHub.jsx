@@ -443,7 +443,7 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
                     onClick={() => removeStagedMedia(item.id)}
                     disabled={isPublishing}
                     aria-label={`Hapus ${item.name}`}
-                    className={`absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-ink/80 text-white hover:bg-status-danger ${focusRing}`}
+                    className={`absolute right-1.5 top-1.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink/80 text-white hover:bg-status-danger ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -2033,14 +2033,14 @@ export default function CommunityHub() {
                       ? "Cari nama lengkap atau @username anggota (cth. Rizky, @bagas)…"
                       : "Cari topik, hardware, atau tag seperti #RTX4060"
                   }
-                  className={`vt-form-control w-full rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary focus:bg-surface sm:py-3 sm:pl-12 ${focusRing}`}
+                  className={`vt-form-control w-full rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-11 text-sm text-primary placeholder:text-secondary focus:bg-surface sm:py-3 sm:pl-12 ${focusRing}`}
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
                     aria-label="Bersihkan kata kunci pencarian"
-                    className={`absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
+                    className={`absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
                   </button>

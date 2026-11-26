@@ -464,7 +464,7 @@ export function SettingsHub() {
             <div
               role="group"
               aria-label={s.themeTitle}
-              className="grid grid-cols-2 gap-1.5 rounded-lg border border-default bg-subtle p-1"
+              className="grid grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-2"
             >
               {THEME_OPTIONS.map((opt) => {
                 const selected = settings.theme === opt.value;
@@ -569,7 +569,7 @@ export function SettingsHub() {
             <div
               role="group"
               aria-label={s.textScaleTitle}
-              className="grid grid-cols-3 gap-1.5 rounded-lg border border-default bg-subtle p-1"
+              className="grid grid-cols-1 gap-1.5 rounded-lg border border-default bg-subtle p-1 min-[380px]:grid-cols-3"
             >
               {TEXT_SCALE_OPTIONS.map((option) => {
                 const selected = settings.textScale === option.value;
@@ -777,7 +777,7 @@ export function SettingsHub() {
             aria-modal="true"
             aria-labelledby="delete-account-modal-title"
             onClick={(event) => event.stopPropagation()}
-            className="vt-dialog-enter w-full max-w-md rounded-xl border border-default bg-surface p-5 shadow-floating sm:p-6"
+            className="vt-dialog-enter max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-xl border border-default bg-surface p-5 shadow-floating sm:p-6"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">

@@ -370,15 +370,15 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
           <h3 className="tracking-tight mb-2.5 text-sm font-bold text-primary">Spesifikasi Teknis Lengkap</h3>
           <dl className="divide-y divide-default overflow-hidden rounded-xl border border-default">
             {cfg.specs.map((s) => (
-              <div key={s.key} className="grid grid-cols-5 gap-3 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface">
-                <dt className="col-span-2 font-medium text-secondary">{s.label}</dt>
-                <dd className="col-span-3 font-mono text-xs font-semibold text-primary sm:text-sm">{specValue(p, s)}</dd>
+              <div key={s.key} className="grid grid-cols-1 gap-0.5 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface sm:grid-cols-5 sm:gap-3">
+                <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">{s.label}</dt>
+                <dd className="break-words font-mono text-xs font-semibold text-primary sm:col-span-3 sm:text-sm">{specValue(p, s)}</dd>
               </div>
             ))}
             {hasPerf && (
-              <div className="grid grid-cols-5 gap-3 bg-accent-subtle/60 px-3.5 py-2.5 text-sm">
-                <dt className="col-span-2 font-medium text-secondary">Performa per Rp 1 juta</dt>
-                <dd className="col-span-3 font-mono font-bold tabular-nums text-status-live">{perfPerMillion(p).toFixed(1)}</dd>
+              <div className="grid grid-cols-1 gap-0.5 bg-accent-subtle/60 px-3.5 py-2.5 text-sm sm:grid-cols-5 sm:gap-3">
+                <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">Performa per Rp 1 juta</dt>
+                <dd className="font-mono font-bold tabular-nums text-status-live sm:col-span-3">{perfPerMillion(p).toFixed(1)}</dd>
               </div>
             )}
           </dl>
@@ -552,9 +552,9 @@ function FilterControls({ cfg, f, options, bounds, setFilter, fieldClass }) {
     <>
       <div>
         <p className="mb-1.5 text-sm font-medium text-primary">Kondisi</p>
-        <div role="radiogroup" aria-label="Kondisi" className="grid grid-cols-4 gap-1 rounded-xl border border-default bg-subtle p-1">
+        <div role="radiogroup" aria-label="Kondisi" className="grid grid-cols-2 gap-1.5 rounded-xl border border-default bg-subtle p-1 sm:grid-cols-4 sm:gap-1">
           {[["all", "Semua"], ["new", "Baru"], ["refurb", "Refurb A+"], ["used", "Bekas"]].map(([v, label]) => (
-            <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`min-h-11 rounded-lg px-1 py-1.5 text-xs font-medium transition-colors ${focusRing} ${f.cond === v ? "bg-accent-cta font-semibold text-white shadow-sm" : "text-secondary hover:text-primary"}`}>{label}</button>
+            <button key={v} type="button" role="radio" aria-checked={f.cond === v} onClick={() => setFilter("cond", v)} className={`min-h-11 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors ${focusRing} ${f.cond === v ? "bg-accent-cta font-semibold text-white shadow-sm" : "text-secondary hover:text-primary"}`}>{label}</button>
           ))}
         </div>
       </div>

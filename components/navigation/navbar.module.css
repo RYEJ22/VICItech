@@ -242,3 +242,42 @@
   border-radius: 0;
   background-color: #e11d48;
 }
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .floatingPill {
+  border-bottom-width: 1px;
+  box-shadow: 0 4px 16px -6px rgba(0, 0, 0, 0.55);
+}
+
+@media (min-width: 768px) {
+  :global(html[data-theme='dark'][data-pixel-intensity='subtle']) .floatingPill {
+    border-radius: 9999px;
+    border-width: 1px;
+    box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.65);
+  }
+
+  :global(html[data-theme='dark'][data-pixel-intensity='subtle']) .floatingPillScrolled {
+    border-color: rgba(225, 29, 72, 0.55);
+    box-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.72);
+  }
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .dropdownPanel {
+  border-radius: 0.75rem;
+  border-width: 1px;
+  box-shadow: 0 18px 36px -12px rgba(0, 0, 0, 0.7);
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .bottomNav {
+  border-top-width: 1px;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .bottomSheet {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+  border-top-width: 1px;
+  box-shadow: 0 -10px 30px -10px rgba(0, 0, 0, 0.65);
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .dragHandle {
+  border-radius: 9999px;
+}

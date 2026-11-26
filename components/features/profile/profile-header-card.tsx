@@ -247,22 +247,22 @@ export function ProfileHeaderCard({
         </div>
 
         {/* Compact Stats Row */}
-        <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-default pt-4 sm:gap-3">
-          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
-            <dt className="text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">Postingan Komunitas</dt>
+        <dl className="mt-5 grid grid-cols-2 gap-2 border-t border-default pt-4 sm:grid-cols-3 sm:gap-3">
+          <div className="flex min-h-20 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2.5 py-2.5 sm:min-h-24 sm:px-3">
+            <dt className="text-[11px] font-medium leading-tight text-secondary">Postingan Komunitas</dt>
             <dd className="text-lg font-semibold text-primary">
               <AnimatedNumber value={stats.communityPosts} format="number" />
             </dd>
           </div>
-          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
-            <dt className="text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">Preset Tersimpan</dt>
+          <div className="flex min-h-20 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2.5 py-2.5 sm:min-h-24 sm:px-3">
+            <dt className="text-[11px] font-medium leading-tight text-secondary">Preset Tersimpan</dt>
             <dd className="text-lg font-semibold text-primary">
               <AnimatedNumber value={stats.savedPresets} format="number" />
             </dd>
           </div>
-          <div className="flex min-h-24 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2 py-2.5 sm:px-3">
-            <dt className="flex items-center gap-1 text-[10px] font-medium leading-tight text-secondary sm:text-[11px]">
-              <Sparkles className="h-3 w-3 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
+          <div className="col-span-2 flex min-h-20 min-w-0 flex-col justify-between gap-2 rounded-lg border border-default bg-canvas px-2.5 py-2.5 sm:col-span-1 sm:min-h-24 sm:px-3">
+            <dt className="flex items-center gap-1 text-[11px] font-medium leading-tight text-secondary">
+              <Sparkles className="h-3 w-3 shrink-0 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
               <span>Bergabung</span>
             </dt>
             <dd className="truncate font-mono text-xs font-semibold text-primary sm:text-sm">
