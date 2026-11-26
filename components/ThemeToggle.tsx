@@ -1,43 +1,105 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useEffect, useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import {
+  THEME_STORAGE_KEY,
+  USER_SETTINGS_STORAGE_KEY,
+  USER_SETTINGS_UPDATED_EVENT,
+  getStoredTheme,
+  setStoredTheme,
+  type ThemeMode,
+} from '@/lib/user-settings';
 
 interface ThemeToggleProps {
-  className?: string;
+  readonly className?: string;
+  readonly showLabel?: boolean;
 }
 
-export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
-  const { resolvedTheme, setTheme } = useTheme();
+export default function ThemeToggle({ className = '', showLabel = false }: ThemeToggleProps) {
+  const [theme, setTheme] = useState<ThemeMode>('light');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const syncTheme = () => {
+      setTheme(getStoredTheme());
+    };
 
-  const isDark = !mounted || resolvedTheme === "dark";
-  const Icon = isDark ? Sun : Moon;
+    syncTheme();
+    setMounted(true);
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === THEME_STORAGE_KEY || event.key === USER_SETTINGS_STORAGE_KEY) {
+        syncTheme();
+      }
+    };
+
+    window.addEventListener(USER_SETTINGS_UPDATED_EVENT, syncTheme);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener(USER_SETTINGS_UPDATED_EVENT, syncTheme);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  const isDark = mounted && theme === 'dark';
+  const nextTheme: ThemeMode = isDark ? 'light' : 'dark';
+  const label = isDark
+    ? 'Ganti ke Mode Terang'
+    : 'Aktifkan Mode Gelap (Pixel Obsidian)';
+
+  const handleToggle = () => {
+    const updated = setStoredTheme(nextTheme);
+    setTheme(updated.theme);
+  };
+
+  if (showLabel) {
+    return (
+      <button
+        type="button"
+        onClick={handleToggle}
+        aria-label={label}
+        aria-pressed={isDark}
+        className={`vt-motion-press flex w-full items-center justify-between gap-3 rounded-lg border border-default bg-canvas px-3 py-2.5 text-left transition-colors hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${className}`}
+      >
+        <span className="flex items-center gap-3">
+          {isDark ? (
+            <Sun className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          ) : (
+            <Moon className="h-4 w-4 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
+          )}
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-primary">
+              {isDark ? 'Mode Gelap · Pixel Obsidian' : 'Mode Terang · Standar'}
+            </span>
+            <span className="mt-0.5 block text-xs text-secondary">
+              {isDark ? 'Ketuk untuk kembali ke tema terang' : 'Ketuk untuk UI Pixel Obsidian gelap'}
+            </span>
+          </span>
+        </span>
+        <span className="vt-pixel-tag rounded border border-default bg-surface px-2 py-1 text-primary">
+          {isDark ? 'DARK' : 'LIGHT'}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button
       type="button"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-surface text-secondary shadow-card transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${className}`}
+      onClick={handleToggle}
+      aria-label={label}
+      title={label}
+      aria-pressed={isDark}
+      className={`vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-9 sm:w-9 md:h-10 md:w-10 ${
+        isDark ? 'text-accent-primary hover:text-accent-primary' : ''
+      } ${className}`}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={isDark ? "sun" : "moon"}
-          initial={{ rotate: -90, scale: 0.5, opacity: 0 }}
-          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-          exit={{ rotate: 90, scale: 0.5, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 320, damping: 22 }}
-          className="flex"
-        >
-          <Icon className="h-4 w-4" />
-        </motion.span>
-      </AnimatePresence>
+      {isDark ? (
+        <Sun className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+      ) : (
+        <Moon className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
+      )}
     </button>
   );
 }

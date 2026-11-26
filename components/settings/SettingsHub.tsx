@@ -11,9 +11,12 @@ import {
   Eye,
   Globe,
   LoaderCircle,
+  Monitor,
+  Moon,
   RotateCcw,
   ShieldCheck,
   Sparkles,
+  Sun,
   Trash2,
   Type,
   X,
@@ -21,13 +24,26 @@ import {
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
   DEFAULT_USER_SETTINGS,
+  THEME_STORAGE_KEY,
+  USER_SETTINGS_STORAGE_KEY,
+  USER_SETTINGS_UPDATED_EVENT,
   getStoredUserSettings,
-  normalizeUserSettings,
+  mergeRemoteUserSettings,
   saveStoredUserSettings,
   type TextScale,
+  type ThemeMode,
   type UserLanguage,
   type UserSettings,
 } from '@/lib/user-settings';
+
+const THEME_OPTIONS: readonly {
+  readonly value: ThemeMode;
+  readonly label: string;
+  readonly sub: string;
+}[] = [
+  { value: 'light', label: 'Mode Terang', sub: 'Default · Ceramic Light' },
+  { value: 'dark', label: 'Mode Gelap', sub: 'Pixel Obsidian UI' },
+];
 
 const TEXT_SCALE_OPTIONS: readonly {
   readonly value: TextScale;
@@ -113,7 +129,26 @@ export function SettingsHub() {
       setSettings({ ...DEFAULT_USER_SETTINGS, reducedMotion: true });
     }
 
-    if (!isSupabaseAuthConfigured) return;
+    const handleExternalUpdate = () => {
+      const latest = getStoredUserSettings();
+      if (latest) {
+        setSettings(latest);
+      }
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === USER_SETTINGS_STORAGE_KEY || event.key === THEME_STORAGE_KEY) {
+        handleExternalUpdate();
+      }
+    };
+    window.addEventListener(USER_SETTINGS_UPDATED_EVENT, handleExternalUpdate);
+    window.addEventListener('storage', handleStorage);
+
+    if (!isSupabaseAuthConfigured) {
+      return () => {
+        window.removeEventListener(USER_SETTINGS_UPDATED_EVENT, handleExternalUpdate);
+        window.removeEventListener('storage', handleStorage);
+      };
+    }
 
     let active = true;
     const supabase = getSupabaseBrowserClient();
@@ -153,7 +188,7 @@ export function SettingsHub() {
           typeof profile.settings === 'object' &&
           Object.keys(profile.settings).length > 0
         ) {
-          const remote = normalizeUserSettings(profile.settings);
+          const remote = mergeRemoteUserSettings(profile.settings, getStoredUserSettings());
           setSettings(remote);
           saveStoredUserSettings(remote);
         }
@@ -165,6 +200,8 @@ export function SettingsHub() {
     void loadAccountAndSettings();
     return () => {
       active = false;
+      window.removeEventListener(USER_SETTINGS_UPDATED_EVENT, handleExternalUpdate);
+      window.removeEventListener('storage', handleStorage);
     };
   }, []);
 
@@ -404,6 +441,59 @@ export function SettingsHub() {
         </div>
 
         <div className="divide-y divide-default">
+          {/* Tema Tampilan */}
+          <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-lg">
+              <div className="flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">Tema Tampilan</p>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
+                Pilih Mode Terang bersih sebagai standar, atau aktifkan Mode Gelap dengan estetika{' '}
+                <strong className="font-semibold text-primary">Obsidian Pixel Hardware UI</strong>{' '}
+                (tetap menjaga tipografi sans-serif &amp; angka monospace yang tajam).
+              </p>
+            </div>
+            <div
+              role="group"
+              aria-label="Pilihan tema tampilan"
+              className="grid grid-cols-2 gap-1.5 rounded-lg border border-default bg-subtle p-1"
+            >
+              {THEME_OPTIONS.map((opt) => {
+                const selected = settings.theme === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => void updateSettings({ theme: opt.value })}
+                    aria-pressed={selected}
+                    className={`vt-motion-press flex min-h-11 items-center gap-2 rounded-md px-3 py-1.5 text-left text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                      selected
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    {opt.value === 'dark' ? (
+                      <Moon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    ) : (
+                      <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    )}
+                    <span className="min-w-0">
+                      <span className="block leading-tight">{opt.label}</span>
+                      <span
+                        className={`block text-[10px] font-normal leading-tight ${
+                          selected ? 'text-white/90' : 'text-secondary'
+                        }`}
+                      >
+                        {opt.sub}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Bahasa */}
           <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-lg">
@@ -448,7 +538,7 @@ export function SettingsHub() {
               <p className="text-sm font-semibold text-primary">Mode Kontras Tinggi</p>
               <p className="mt-1 text-xs leading-relaxed text-secondary">
                 Mempertegas batas kartu, kontras teks, dan indikator fokus papan ketik untuk
-                keterbacaan maksimal di tema terang.
+                keterbacaan maksimal di tema terang maupun gelap.
               </p>
             </div>
             <SettingsSwitch

@@ -111,3 +111,48 @@
 :global(html[data-reduced-motion='true']) .stagger4 {
   animation: none;
 }
+
+:global(html[data-theme='dark']) .ctaPrimary {
+  border-radius: 2px;
+  border: 2px solid #fb923c;
+  box-shadow: 4px 4px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .ctaPrimary:hover {
+  background: #c2410c;
+  border-color: #fdba74;
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .ctaPrimary:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+:global(html[data-theme='dark']) .ctaSecondary {
+  border-radius: 2px;
+  background: #12151c;
+  color: #f8fafc;
+  border: 2px solid #414b60;
+  box-shadow: 4px 4px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .ctaSecondary:hover {
+  background: #181c26;
+  border-color: #ea580c;
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #ea580c;
+}
+
+:global(html[data-theme='dark']) .ctaSecondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+:global(html[data-theme='dark'][data-reduced-motion='true']) .ctaPrimary:hover,
+:global(html[data-theme='dark'][data-reduced-motion='true']) .ctaPrimary:active,
+:global(html[data-theme='dark'][data-reduced-motion='true']) .ctaSecondary:hover,
+:global(html[data-theme='dark'][data-reduced-motion='true']) .ctaSecondary:active {
+  transform: none;
+}

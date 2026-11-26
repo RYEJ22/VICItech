@@ -4,11 +4,12 @@ import { useEffect } from 'react';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
   DEFAULT_USER_SETTINGS,
+  THEME_STORAGE_KEY,
   USER_SETTINGS_STORAGE_KEY,
   USER_SETTINGS_UPDATED_EVENT,
   applyUserSettingsToDocument,
   getStoredUserSettings,
-  normalizeUserSettings,
+  mergeRemoteUserSettings,
   saveStoredUserSettings,
 } from '@/lib/user-settings';
 
@@ -34,7 +35,7 @@ export function UserSettingsSync() {
     };
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === USER_SETTINGS_STORAGE_KEY) {
+      if (event.key === USER_SETTINGS_STORAGE_KEY || event.key === THEME_STORAGE_KEY) {
         handleSettingsUpdate();
       }
     };
@@ -65,7 +66,7 @@ export function UserSettingsSync() {
             : [];
         if (remoteKeys.length === 0) return;
 
-        const merged = normalizeUserSettings(profile.settings);
+        const merged = mergeRemoteUserSettings(profile.settings, getStoredUserSettings());
         saveStoredUserSettings(merged);
       } catch {
         // Pertahankan preferensi lokal jika sinkronisasi profil belum tersedia.

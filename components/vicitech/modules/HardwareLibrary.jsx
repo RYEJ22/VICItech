@@ -162,7 +162,7 @@ function Overlay({ label, onClose, wide = false, children }) {
         aria-modal="true"
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
-        className={`vt-panel-enter fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-150 motion-reduce:transition-none ${closing ? "translate-x-6 opacity-0" : "translate-x-0 opacity-100"} ${wide ? "max-w-3xl" : "max-w-lg"}`}
+        className={`vt-panel-enter fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-surface pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-150 motion-reduce:transition-none ${closing ? "translate-x-6 opacity-0" : "translate-x-0 opacity-100"} ${wide ? "max-w-3xl" : "max-w-lg"}`}
       >
         <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
           <span className="h-1 w-10 rounded-full bg-default" />

@@ -51,3 +51,37 @@
     transform: translateX(20px);
   }
 }
+
+:global(html[data-theme='dark']) .track {
+  width: 46px;
+  height: 26px;
+  border-radius: 2px;
+  border-width: 2px;
+  background-color: #07090d;
+  border-color: #414b60;
+  box-shadow: inset 2px 2px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .switchControl[aria-checked='true'] .track {
+  background-color: #ea580c;
+  border-color: #fb923c;
+}
+
+:global(html[data-theme='dark']) .thumb {
+  border-radius: 1px;
+  background-color: #f8fafc;
+  box-shadow: 2px 2px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .switchControl:active:not(:disabled) .thumb {
+  transform: translateX(0);
+}
+
+:global(html[data-theme='dark']) .switchControl[aria-checked='true']:active:not(:disabled) .thumb {
+  transform: translateX(20px);
+}
+
+:global(html[data-reduced-motion='true']) .track,
+:global(html[data-reduced-motion='true']) .thumb {
+  transition: none;
+}

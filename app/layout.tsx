@@ -66,15 +66,21 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const THEME_INIT_SCRIPT = `(function(){try{var k=localStorage.getItem('vici_theme');var s=null;var raw=localStorage.getItem('vici_user_settings');if(raw){s=JSON.parse(raw);}var t=(k==='dark'||k==='light')?k:(s&&s.theme==='dark'?'dark':'light');var r=document.documentElement;r.setAttribute('data-theme',t);if(t==='dark'){r.classList.add('dark');}else{r.classList.remove('dark');}if(s&&s.highContrast===true){r.setAttribute('data-high-contrast','true');}if(s&&(s.textScale==='large'||s.textScale==='xlarge')){r.setAttribute('data-text-scale',s.textScale);}if(s&&s.reducedMotion===true){r.setAttribute('data-reduced-motion','true');}}catch(e){}})();`;
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html
       lang="id"
+      data-theme="light"
       className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} ${silkscreen.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-screen overflow-x-hidden bg-canvas text-primary font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light">
+        <ThemeProvider>
           <CheckoutProvider>
             <UserSettingsSync />
             <IntroSplash />

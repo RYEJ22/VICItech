@@ -1,7 +1,9 @@
 export type UserLanguage = 'id' | 'en';
 export type TextScale = 'normal' | 'large' | 'xlarge';
+export type ThemeMode = 'light' | 'dark';
 
 export interface UserSettings {
+  readonly theme: ThemeMode;
   readonly language: UserLanguage;
   readonly highContrast: boolean;
   readonly textScale: TextScale;
@@ -10,10 +12,12 @@ export interface UserSettings {
   readonly deletionRequestedAt?: string | null;
 }
 
+export const THEME_STORAGE_KEY = 'vici_theme';
 export const USER_SETTINGS_STORAGE_KEY = 'vici_user_settings';
 export const USER_SETTINGS_UPDATED_EVENT = 'vicitech:user-settings-updated';
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
+  theme: 'light',
   language: 'id',
   highContrast: false,
   textScale: 'normal',
@@ -30,11 +34,13 @@ export function normalizeUserSettings(raw: unknown): UserSettings {
     return DEFAULT_USER_SETTINGS;
   }
 
+  const theme: ThemeMode = raw.theme === 'dark' ? 'dark' : 'light';
   const language: UserLanguage = raw.language === 'en' ? 'en' : 'id';
   const textScale: TextScale =
     raw.textScale === 'large' || raw.textScale === 'xlarge' ? raw.textScale : 'normal';
 
   return {
+    theme,
     language,
     highContrast: raw.highContrast === true,
     textScale,
@@ -45,6 +51,30 @@ export function normalizeUserSettings(raw: unknown): UserSettings {
   };
 }
 
+export function getStoredTheme(): ThemeMode {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  try {
+    const direct = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (direct === 'dark' || direct === 'light') {
+      return direct;
+    }
+    const rawSettings = window.localStorage.getItem(USER_SETTINGS_STORAGE_KEY);
+    if (rawSettings) {
+      const parsed: unknown = JSON.parse(rawSettings);
+      if (isRecord(parsed) && parsed.theme === 'dark') {
+        return 'dark';
+      }
+    }
+  } catch {
+    return 'light';
+  }
+
+  return 'light';
+}
+
 export function getStoredUserSettings(): UserSettings | null {
   if (typeof window === 'undefined') {
     return null;
@@ -52,12 +82,40 @@ export function getStoredUserSettings(): UserSettings | null {
 
   try {
     const raw = window.localStorage.getItem(USER_SETTINGS_STORAGE_KEY);
-    if (!raw) return null;
+    const directTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (!raw) {
+      if (directTheme === 'dark' || directTheme === 'light') {
+        return { ...DEFAULT_USER_SETTINGS, theme: directTheme };
+      }
+      return null;
+    }
     const parsed: unknown = JSON.parse(raw);
-    return normalizeUserSettings(parsed);
+    const normalized = normalizeUserSettings(parsed);
+    if (directTheme === 'dark' || directTheme === 'light') {
+      return { ...normalized, theme: directTheme };
+    }
+    return normalized;
   } catch {
     return null;
   }
+}
+
+export function mergeRemoteUserSettings(
+  remoteRaw: unknown,
+  localFallback?: UserSettings | null,
+): UserSettings {
+  const normalized = normalizeUserSettings(remoteRaw);
+  const remoteHasTheme =
+    isRecord(remoteRaw) && (remoteRaw.theme === 'dark' || remoteRaw.theme === 'light');
+
+  if (remoteHasTheme) {
+    return normalized;
+  }
+
+  return {
+    ...normalized,
+    theme: localFallback?.theme ?? getStoredTheme(),
+  };
 }
 
 export function applyUserSettingsToDocument(settings: UserSettings): void {
@@ -66,6 +124,10 @@ export function applyUserSettingsToDocument(settings: UserSettings): void {
   }
 
   const root = document.documentElement;
+  const isDark = settings.theme === 'dark';
+
+  root.setAttribute('data-theme', settings.theme);
+  root.classList.toggle('dark', isDark);
 
   if (settings.highContrast) {
     root.setAttribute('data-high-contrast', 'true');
@@ -96,6 +158,7 @@ export function saveStoredUserSettings(next: UserSettings): UserSettings {
 
   if (typeof window !== 'undefined') {
     try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, normalized.theme);
       window.localStorage.setItem(USER_SETTINGS_STORAGE_KEY, JSON.stringify(normalized));
     } catch {
       // Abaikan kegagalan storage pada mode privasi ketat.
@@ -105,4 +168,12 @@ export function saveStoredUserSettings(next: UserSettings): UserSettings {
   }
 
   return normalized;
+}
+
+export function setStoredTheme(theme: ThemeMode): UserSettings {
+  const current = getStoredUserSettings() ?? DEFAULT_USER_SETTINGS;
+  return saveStoredUserSettings({
+    ...current,
+    theme,
+  });
 }

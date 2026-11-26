@@ -30,6 +30,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FocusEvent as ReactFocusEvent, MouseEvent as ReactMouseEvent, ReactElement } from 'react';
 import AuthNavigation from '@/components/vicitech/auth/AuthNavigation';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useCheckout } from '@/context/CheckoutContext';
 import { DmNotificationToast } from '@/components/chat/DmNotificationToast';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -810,7 +811,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
           >
             <BrandMark compact={isScrolled} />
             <span
-              className={`hidden font-sans font-bold tracking-tight text-primary transition-all duration-300 ease-smooth motion-reduce:transition-none min-[375px]:inline ${
+              className={`hidden font-sans font-bold tracking-tight text-primary transition-all duration-300 ease-smooth motion-reduce:transition-none min-[420px]:inline ${
                 isScrolled ? 'text-base' : 'text-lg'
               }`}
             >
@@ -975,8 +976,11 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             })}
           </nav>
 
-          {/* Right: Streamlined Utilities (Search, Cart, Notif & DM, Account) */}
+          {/* Right: Streamlined Utilities (Theme, Search, Cart, Notif & DM, Account) */}
           <div className="flex shrink-0 items-center justify-self-end gap-0.5 sm:gap-1.5">
+            {/* 0. Theme Switcher (Light / Pixel Obsidian Dark) */}
+            <ThemeToggle />
+
             {/* 1. Search (Ctrl+K) & Cart */}
             <button
               type="button"
@@ -1263,6 +1267,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   </div>
                 );
               })}
+
+              <div className="border-t border-default pt-3">
+                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
+                  Tema Tampilan
+                </p>
+                <ThemeToggle showLabel />
+              </div>
 
               <div className="border-t border-default pt-3">
                 <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">

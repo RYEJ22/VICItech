@@ -62,7 +62,7 @@ export function Hero({
       >
         <HeroSlider slides={slides} />
         <div
-          className="pointer-events-none absolute inset-0 z-[3] bg-[#FAF9F6]/85 md:bg-transparent md:bg-gradient-to-r md:from-[#FAF9F6]/95 md:via-[#FAF9F6]/75 md:to-transparent"
+          className="pointer-events-none absolute inset-0 z-[3] bg-[#FAF9F6]/85 dark:bg-[#09090B]/88 md:bg-transparent md:bg-gradient-to-r md:from-[#FAF9F6]/95 md:via-[#FAF9F6]/75 md:to-transparent dark:md:bg-transparent dark:md:from-[#09090B]/96 dark:md:via-[#09090B]/82 dark:md:to-transparent"
           aria-hidden="true"
         />
 

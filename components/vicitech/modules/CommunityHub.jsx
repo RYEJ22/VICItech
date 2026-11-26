@@ -835,7 +835,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 type="button"
                 disabled={reportSubmitting}
                 onClick={() => void handleReportPost(reason)}
-                className="rounded-full border border-rose-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
+                className="rounded-full border border-rose-300 bg-surface px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
               >
                 {reason}
               </button>
@@ -2116,7 +2116,7 @@ export default function CommunityHub() {
                 <button
                   type="button"
                   onClick={() => setAuthorFilter(null)}
-                  className={`inline-flex items-center gap-1 rounded-md border border-[#EA580C]/30 bg-white px-2.5 py-1 text-xs font-semibold text-[#EA580C] hover:bg-[#FAF9F6] ${focusRing}`}
+                  className={`inline-flex items-center gap-1 rounded-md border border-[#EA580C]/30 bg-surface px-2.5 py-1 text-xs font-semibold text-accent-primary hover:bg-canvas ${focusRing}`}
                 >
                   <X className="h-3.5 w-3.5" />
                   <span>Tampilkan Semua</span>

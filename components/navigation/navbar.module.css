@@ -190,3 +190,55 @@
 :global(html[data-reduced-motion='true']) .mobileNavLabel {
   transition: none;
 }
+
+:global(html[data-theme='dark']) .floatingPill {
+  background-color: #12151c;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+  border-bottom: 2px solid #2a303c;
+  box-shadow: 0 4px 0 #000000;
+}
+
+@media (min-width: 768px) {
+  :global(html[data-theme='dark']) .floatingPill {
+    border-radius: 2px;
+    border: 2px solid #2a303c;
+    box-shadow: 4px 4px 0 #000000;
+  }
+
+  :global(html[data-theme='dark']) .floatingPillScrolled {
+    border-color: #ea580c;
+    box-shadow: 4px 4px 0 #000000;
+  }
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .floatingPill {
+  background-color: #0b0e14;
+  border-color: #ffffff;
+}
+
+:global(html[data-theme='dark']) .dropdownPanel {
+  background-color: #12151c;
+  border-radius: 2px;
+  border: 2px solid #414b60;
+  box-shadow: 6px 6px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .bottomNav {
+  background-color: #12151c;
+  border-top: 2px solid #2a303c;
+}
+
+:global(html[data-theme='dark']) .bottomSheet {
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+  background-color: #12151c;
+  border-top: 2px solid #ea580c;
+  box-shadow: 0 -6px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .dragHandle {
+  border-radius: 0;
+  background-color: #ea580c;
+}

@@ -383,19 +383,19 @@ export default function CircularPortal() {
                     {idr(est.low)} – {idr(est.high)}
                   </p>
                   <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
-                    <div className="rounded-xl border border-emerald-200/80 bg-white p-3">
+                    <div className="rounded-xl border border-emerald-200/80 bg-surface p-3">
                       <p className="text-[11px] text-secondary">Nilai per unit</p>
                       <p className="mt-0.5 font-mono text-xs font-bold tabular-nums text-primary">
                         {idr(est.lowUnit)} – {idr(est.highUnit)}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-emerald-200/80 bg-white p-3">
+                    <div className="rounded-xl border border-emerald-200/80 bg-surface p-3">
                       <p className="text-[11px] text-secondary">Bonus jumlah besar</p>
                       <p className="mt-0.5 font-mono text-xs font-bold tabular-nums text-primary">
                         {est.bonus ? `+${est.bonus}% (${activeEntityMeta.segment})` : "Tidak ada"}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-emerald-200/80 bg-white p-3">
+                    <div className="rounded-xl border border-emerald-200/80 bg-surface p-3">
                       <p className="flex items-center gap-1 text-[11px] text-secondary">
                         <Leaf className="h-3 w-3 text-emerald-700" aria-hidden="true" />
                         E-waste tercegah

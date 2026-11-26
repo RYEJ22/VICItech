@@ -683,7 +683,7 @@ select,
 }
 
 .vt-nav-dropdown-open {
-  background-color: #fff;
+  background-color: var(--bg-surface);
   opacity: 1;
   animation: vt-nav-dropdown-in 120ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -1071,6 +1071,582 @@ html[data-reduced-motion='true'] *::after {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
+}
+
+/* ───────────────────────────── Dark Mode · Obsidian Pixel Hardware UI ─────────────────────────────
+   Strictly scoped to html[data-theme='dark'] so Light Mode remains untouched.
+   Preserves Plus Jakarta Sans & JetBrains Mono tabular-nums typography while transforming
+   surfaces, geometry, borders, shadows, grids, controls, and telemetry into Pixel Obsidian. */
+
+html[data-theme='dark'] {
+  --bg-canvas: #09090b;
+  --bg-canvas-rgb: 9 9 11;
+  --bg-surface: #12151c;
+  --bg-surface-rgb: 18 21 28;
+  --bg-subtle: #181c26;
+  --bg-glass: rgba(18, 21, 28, 0.94);
+  --bg-obsidian: #07090d;
+  --border-obsidian: #2a303c;
+  --text-on-obsidian: #f8fafc;
+  --text-on-obsidian-muted: #94a3b8;
+  --text-primary: #f8fafc;
+  --text-primary-rgb: 248 250 252;
+  --text-secondary: #94a3b8;
+  --text-secondary-rgb: 148 163 184;
+  --text-muted: #94a3b8;
+  --accent-primary: #ea580c;
+  --accent-cta: #ea580c;
+  --accent-cta-rgb: 234 88 12;
+  --accent-cta-hover: #c2410c;
+  --accent-cta-hover-rgb: 194 65 12;
+  --accent-hover: #c2410c;
+  --accent-subtle: rgba(234, 88, 12, 0.16);
+  --accent-glow: rgba(234, 88, 12, 0.28);
+  --accent-foreground: #ffffff;
+  --border-default: #2a303c;
+  --border-strong: #414b60;
+  --status-live: #10b981;
+  --status-simulated: #38bdf8;
+  --status-sample: #fbbf24;
+  --status-danger: #ef4444;
+  --vt-radius: 2px;
+  color-scheme: dark;
+}
+
+/* 16×16px Obsidian Dot-Matrix Canvas & Blueprint Grid */
+html[data-theme='dark'] body {
+  background-color: var(--bg-canvas);
+  background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+}
+
+html[data-theme='dark'] .vt-grid-bg {
+  background-color: rgba(12, 15, 22, 0.92);
+  background-image:
+    linear-gradient(to right, rgba(42, 48, 60, 0.42) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(42, 48, 60, 0.42) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* WCAG AA Dark-Surface Accent Text Readability */
+html[data-theme='dark'] .text-accent-primary,
+html[data-theme='dark'] .text-accent-hover,
+html[data-theme='dark'] .text-accent-cta,
+html[data-theme='dark'] .text-signal,
+html[data-theme='dark'] .text-signal-deep {
+  color: #fb923c;
+}
+
+html[data-theme='dark'] .text-status-live {
+  color: #34d399;
+}
+
+html[data-theme='dark'] .text-status-danger {
+  color: #f87171;
+}
+
+/* Sharp Pixel Geometry (Override soft rounded corners on structural UI, preserve avatar imgs & tiny dots) */
+html[data-theme='dark'] [class*='rounded-md'],
+html[data-theme='dark'] [class*='rounded-lg'],
+html[data-theme='dark'] [class*='rounded-xl'],
+html[data-theme='dark'] [class*='rounded-2xl'],
+html[data-theme='dark'] [class*='rounded-3xl'],
+html[data-theme='dark'] [class*='rounded-4xl'] {
+  border-radius: 2px;
+}
+
+html[data-theme='dark'] button[class*='rounded-full'],
+html[data-theme='dark'] a[class*='rounded-full'],
+html[data-theme='dark'] [role='tab'][class*='rounded-full'],
+html[data-theme='dark'] [role='switch'][class*='rounded-full'],
+html[data-theme='dark'] [class*='rounded-full'][class*='px-'],
+html[data-theme='dark'] header [class*='rounded-full']:not([class*='h-2']):not([class*='w-2']) {
+  border-radius: 2px;
+}
+
+html[data-theme='dark'] .vt-btn,
+html[data-theme='dark'] .vt-input,
+html[data-theme='dark'] .vt-select,
+html[data-theme='dark'] .vt-textarea,
+html[data-theme='dark'] .vt-tag,
+html[data-theme='dark'] .badge-certified,
+html[data-theme='dark'] .vt-nav-underline,
+html[data-theme='dark'] .skeleton-metallic {
+  border-radius: 2px;
+}
+
+html[data-theme='dark'] .vt-pixel-led {
+  border-radius: 0;
+}
+
+/* Crisp 2px Pixel Borders & Hard-Offset Pixel Shadows */
+html[data-theme='dark'] .bg-surface.border,
+html[data-theme='dark'] .bg-canvas.border,
+html[data-theme='dark'] .bg-subtle.border,
+html[data-theme='dark'] .vt-card,
+html[data-theme='dark'] .card-unibody,
+html[data-theme='dark'] .vt-metal,
+html[data-theme='dark'] .vt-glass,
+html[data-theme='dark'] .glass-floating,
+html[data-theme='dark'] .vt-well,
+html[data-theme='dark'] .vt-chip {
+  border-width: 2px;
+  border-color: var(--border-default);
+}
+
+html[data-theme='dark'] .vt-glass,
+html[data-theme='dark'] .glass-floating,
+html[data-theme='dark'] .vt-glass-bar {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background-color: var(--bg-surface);
+}
+
+html[data-theme='dark'] .shadow-card,
+html[data-theme='dark'] .shadow-sm,
+html[data-theme='dark'] .shadow-md,
+html[data-theme='dark'] .vt-card,
+html[data-theme='dark'] .card-unibody,
+html[data-theme='dark'] .vt-chip {
+  box-shadow: 4px 4px 0px #000000;
+}
+
+html[data-theme='dark'] .shadow-floating,
+html[data-theme='dark'] .shadow-xl,
+html[data-theme='dark'] .shadow-2xl,
+html[data-theme='dark'] .vt-metal,
+html[data-theme='dark'] .vt-glass,
+html[data-theme='dark'] .glass-floating,
+html[data-theme='dark'] [role='dialog'] {
+  border: 2px solid var(--border-strong);
+  box-shadow: 6px 6px 0px #000000;
+}
+
+/* 4×4px Signal Orange Pixel Corner Ticks on Featured Cards, Telemetry Panels & Dialogs */
+html[data-theme='dark'] .vt-obsidian-panel {
+  background-color: var(--bg-obsidian);
+  border: 2px solid var(--border-default);
+  box-shadow: 4px 4px 0px #000000;
+  background-image:
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    100% 100%;
+}
+
+html[data-theme='dark'] .vt-card-lift,
+html[data-theme='dark'] [role='dialog'] {
+  background-image:
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c),
+    linear-gradient(#ea580c, #ea580c);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    100% 100%;
+}
+
+/* Tactile Pixel Hover & Snap-Press Mechanics for Cards */
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='dark'] .vt-card-lift:hover,
+  html[data-theme='dark'] .vt-card-interactive:hover,
+  html[data-theme='dark'] .vt-card-hover:hover,
+  html[data-theme='dark'] .card-unibody-hover:hover {
+    transform: translate(-2px, -2px);
+    border-color: #ea580c;
+    box-shadow: 5px 5px 0px #ea580c;
+  }
+}
+
+html[data-theme='dark'] .vt-card-lift:active:not(:disabled),
+html[data-theme='dark'] .vt-card-interactive:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Primary & Secondary Pixel Buttons */
+html[data-theme='dark'] .vt-btn-primary,
+html[data-theme='dark'] .btn-signal,
+html[data-theme='dark'] button.bg-accent-primary,
+html[data-theme='dark'] a.bg-accent-primary,
+html[data-theme='dark'] button.bg-accent-cta,
+html[data-theme='dark'] a.bg-accent-cta {
+  border: 2px solid #fb923c;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='dark'] .vt-btn-primary:hover:not(:disabled),
+  html[data-theme='dark'] .btn-signal:hover:not(:disabled),
+  html[data-theme='dark'] button.bg-accent-primary:hover:not(:disabled),
+  html[data-theme='dark'] a.bg-accent-primary:hover:not(:disabled),
+  html[data-theme='dark'] button.bg-accent-cta:hover:not(:disabled),
+  html[data-theme='dark'] a.bg-accent-cta:hover:not(:disabled) {
+    background-color: #c2410c;
+    border-color: #fdba74;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #000000;
+  }
+}
+
+html[data-theme='dark'] .vt-btn-primary:active:not(:disabled),
+html[data-theme='dark'] .btn-signal:active:not(:disabled),
+html[data-theme='dark'] button.bg-accent-primary:active:not(:disabled),
+html[data-theme='dark'] a.bg-accent-primary:active:not(:disabled),
+html[data-theme='dark'] button.bg-accent-cta:active:not(:disabled),
+html[data-theme='dark'] a.bg-accent-cta:active:not(:disabled),
+html[data-theme='dark'] .vt-btn-tactile:active:not(:disabled),
+html[data-theme='dark'] .vt-motion-press:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+html[data-theme='dark'] .vt-btn-ghost,
+html[data-theme='dark'] button.border-default,
+html[data-theme='dark'] a.border-default {
+  border-width: 2px;
+  border-color: var(--border-default);
+  box-shadow: 3px 3px 0px #000000;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='dark'] .vt-btn-ghost:hover:not(:disabled),
+  html[data-theme='dark'] button.border-default:hover:not(:disabled),
+  html[data-theme='dark'] a.border-default:hover:not(:disabled) {
+    border-color: #ea580c;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #000000;
+  }
+}
+
+/* Chunky Pixel Form Controls */
+html[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea {
+  border-width: 2px;
+  border-color: var(--border-default);
+  background-color: var(--bg-obsidian);
+  color: var(--text-primary);
+  box-shadow: inset 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+html[data-theme='dark'] select:focus,
+html[data-theme='dark'] textarea:focus,
+html[data-theme='dark'] .vt-input:focus,
+html[data-theme='dark'] .vt-select:focus,
+html[data-theme='dark'] .vt-textarea:focus {
+  border-color: #ea580c;
+  background-color: var(--bg-surface);
+  box-shadow: inset 2px 2px 0px #000000, 0 0 0 2px rgba(234, 88, 12, 0.35);
+}
+
+html[data-theme='dark'] .vt-select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2394A3B8' stroke-width='1.8' stroke-linecap='square'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Chunky Segmented Pixel Progress Bars & Telemetry Meters */
+html[data-theme='dark'] [role='progressbar'],
+html[data-theme='dark'] .vt-pixel-bar {
+  position: relative;
+  border-radius: 0px;
+  border: 2px solid var(--border-default);
+  background-color: var(--bg-obsidian);
+  box-shadow: inset 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] [role='progressbar'] > *,
+html[data-theme='dark'] .vt-pixel-bar > * {
+  border-radius: 0px;
+}
+
+html[data-theme='dark'] [role='progressbar']::after,
+html[data-theme='dark'] .vt-pixel-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 8px,
+    rgba(9, 9, 11, 0.72) 8px 10px
+  );
+}
+
+/* Chunky Blocky Pixel Toggle Switches (Settings & Cookie panels) */
+html[data-theme='dark'] [role='switch'] {
+  border-radius: 2px;
+  border: 2px solid var(--border-strong);
+  box-shadow: inset 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] [role='switch'][aria-checked='true'] {
+  border-color: #fb923c;
+}
+
+html[data-theme='dark'] [role='switch'] > span {
+  border-radius: 1px;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Chunky Pixel Category Filter Tabs & Segmented Groups */
+html[data-theme='dark'] [role='tab'] {
+  border-width: 2px;
+  border-radius: 2px;
+}
+
+html[data-theme='dark'] [role='tab'][aria-selected='true'] {
+  border-color: #fb923c;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+html[data-theme='dark'] [role='group'] > button[aria-pressed='true'] {
+  border: 2px solid #fb923c;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+/* Glowing Obsidian Data-Source Badges (WCAG AA Contrast) */
+html[data-theme='dark'] .vt-badge-live {
+  background-color: #052e22;
+  color: #34d399;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #10b981, 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] .vt-badge-simulated {
+  background-color: #08273c;
+  color: #38bdf8;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #0284c7, 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] .vt-badge-sample {
+  background-color: #2b1d05;
+  color: #fbbf24;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 2px #f59e0b, 2px 2px 0px #000000;
+}
+
+html[data-theme='dark'] .vt-tag {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+html[data-theme='dark'] .vt-tag-signal,
+html[data-theme='dark'] .badge-certified {
+  background-color: rgba(234, 88, 12, 0.16);
+  color: #fb923c;
+  box-shadow: inset 0 0 0 2px rgba(234, 88, 12, 0.55);
+}
+
+html[data-theme='dark'] .vt-pixel-divider {
+  background-image:
+    linear-gradient(
+      90deg,
+      #ea580c 0 10px,
+      transparent 10px 14px,
+      #414b60 14px 18px,
+      transparent 18px 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #2a303c 0 4px,
+      transparent 4px 8px
+    );
+}
+
+/* Dark-Safe Semantic Status Tints (Prevent pale pastel glare in dark mode) */
+html[data-theme='dark'] [class*='bg-emerald-50'] {
+  background-color: rgba(16, 185, 129, 0.12);
+}
+html[data-theme='dark'] [class*='border-emerald-200'],
+html[data-theme='dark'] [class*='border-emerald-300'] {
+  border-color: rgba(16, 185, 129, 0.45);
+}
+html[data-theme='dark'] .text-emerald-700,
+html[data-theme='dark'] .text-emerald-800,
+html[data-theme='dark'] .text-emerald-900,
+html[data-theme='dark'] .text-emerald-950 {
+  color: #34d399;
+}
+
+html[data-theme='dark'] [class*='bg-amber-50'] {
+  background-color: rgba(245, 158, 11, 0.13);
+}
+html[data-theme='dark'] [class*='border-amber-200'],
+html[data-theme='dark'] [class*='border-amber-300'] {
+  border-color: rgba(245, 158, 11, 0.48);
+}
+html[data-theme='dark'] .text-amber-700,
+html[data-theme='dark'] .text-amber-800,
+html[data-theme='dark'] .text-amber-900,
+html[data-theme='dark'] .text-amber-950 {
+  color: #fbbf24;
+}
+
+html[data-theme='dark'] [class*='bg-red-50'],
+html[data-theme='dark'] [class*='bg-rose-50'] {
+  background-color: rgba(239, 68, 68, 0.14);
+}
+html[data-theme='dark'] [class*='border-red-200'],
+html[data-theme='dark'] [class*='border-red-300'],
+html[data-theme='dark'] [class*='border-rose-200'],
+html[data-theme='dark'] [class*='border-rose-300'] {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+html[data-theme='dark'] .text-red-700,
+html[data-theme='dark'] .text-red-800,
+html[data-theme='dark'] .text-red-900,
+html[data-theme='dark'] .text-rose-700,
+html[data-theme='dark'] .text-rose-800,
+html[data-theme='dark'] .text-rose-900 {
+  color: #f87171;
+}
+
+html[data-theme='dark'] [class*='bg-sky-50'],
+html[data-theme='dark'] [class*='bg-blue-50'] {
+  background-color: rgba(56, 189, 248, 0.12);
+}
+html[data-theme='dark'] [class*='border-sky-200'],
+html[data-theme='dark'] [class*='border-blue-200'] {
+  border-color: rgba(56, 189, 248, 0.45);
+}
+html[data-theme='dark'] .text-sky-700,
+html[data-theme='dark'] .text-sky-800,
+html[data-theme='dark'] .text-sky-900,
+html[data-theme='dark'] .text-blue-700,
+html[data-theme='dark'] .text-blue-800 {
+  color: #38bdf8;
+}
+
+html[data-theme='dark'] [class*='bg-orange-50'] {
+  background-color: rgba(234, 88, 12, 0.14);
+}
+html[data-theme='dark'] [class*='border-orange-200'] {
+  border-color: rgba(234, 88, 12, 0.48);
+}
+html[data-theme='dark'] .text-orange-700,
+html[data-theme='dark'] .text-orange-800,
+html[data-theme='dark'] .text-orange-900 {
+  color: #fb923c;
+}
+
+/* Dark Scrollbar & Skeleton Shimmer */
+html[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #09090b;
+}
+html[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #2a303c;
+  border-radius: 0px;
+}
+html[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #ea580c;
+}
+
+html[data-theme='dark'] .skeleton-metallic {
+  background: linear-gradient(90deg, #12151c 25%, #1f2533 50%, #12151c 75%);
+  background-size: 200% 100%;
+}
+
+/* Dark Mode + High Contrast Accessibility Synergy */
+html[data-theme='dark'][data-high-contrast='true'] {
+  --bg-canvas: #000000;
+  --bg-canvas-rgb: 0 0 0;
+  --bg-surface: #0b0e14;
+  --bg-surface-rgb: 11 14 20;
+  --bg-subtle: #141923;
+  --bg-glass: #0b0e14;
+  --bg-obsidian: #000000;
+  --text-primary: #ffffff;
+  --text-primary-rgb: 255 255 255;
+  --text-secondary: #e2e8f0;
+  --text-secondary-rgb: 226 232 240;
+  --border-default: #ffffff;
+  --border-strong: #ffffff;
+  --vt-line-strong: #ffffff;
+  --accent-primary: #ea580c;
+  --accent-cta: #ea580c;
+  --accent-hover: #c2410c;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-glass-bar,
+html[data-theme='dark'][data-high-contrast='true'] .vt-glass,
+html[data-theme='dark'][data-high-contrast='true'] .glass-floating {
+  background-color: #0b0e14;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] :focus-visible {
+  outline: 3px solid #fb923c;
+  outline-offset: 2px;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] [class*='text-[#52525B]'],
+html[data-theme='dark'][data-high-contrast='true'] [class*='text-[#71717A]'] {
+  color: #e2e8f0;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] [class*='border-[#E4E4E7]'],
+html[data-theme='dark'][data-high-contrast='true'] [class*='border-[#E5E2DC]'],
+html[data-theme='dark'][data-high-contrast='true'] [class*='border-[#E4E2DD]'],
+html[data-theme='dark'][data-high-contrast='true'] [class*='border-[#EEEAE5]'],
+html[data-theme='dark'][data-high-contrast='true'] [class*='border-[#E7E2DC]'] {
+  border-color: #ffffff;
+}
+
+/* Dark Mode + Reduced Motion Synergy (Disable Pixel Translate Jumps) */
+html[data-theme='dark'][data-reduced-motion='true'] .vt-card-lift:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-card-lift:active,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-card-interactive:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-card-interactive:active,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-card-hover:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .card-unibody-hover:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-primary:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-primary:active,
+html[data-theme='dark'][data-reduced-motion='true'] .btn-signal:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .btn-signal:active,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-ghost:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-ghost:active,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-tactile:hover,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-btn-tactile:active,
+html[data-theme='dark'][data-reduced-motion='true'] .vt-motion-press:active,
+html[data-theme='dark'][data-reduced-motion='true'] button:hover,
+html[data-theme='dark'][data-reduced-motion='true'] button:active,
+html[data-theme='dark'][data-reduced-motion='true'] a:hover,
+html[data-theme='dark'][data-reduced-motion='true'] a:active {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme='dark'] .vt-card-lift:hover,
+  html[data-theme='dark'] .vt-card-lift:active,
+  html[data-theme='dark'] .vt-card-interactive:hover,
+  html[data-theme='dark'] .vt-card-interactive:active,
+  html[data-theme='dark'] .vt-card-hover:hover,
+  html[data-theme='dark'] .card-unibody-hover:hover,
+  html[data-theme='dark'] .vt-btn-primary:hover,
+  html[data-theme='dark'] .vt-btn-primary:active,
+  html[data-theme='dark'] .btn-signal:hover,
+  html[data-theme='dark'] .btn-signal:active,
+  html[data-theme='dark'] .vt-btn-ghost:hover,
+  html[data-theme='dark'] .vt-btn-ghost:active,
+  html[data-theme='dark'] .vt-btn-tactile:hover,
+  html[data-theme='dark'] .vt-btn-tactile:active,
+  html[data-theme='dark'] .vt-motion-press:active {
+    transform: none !important;
+  }
 }
 
 /* ───────────────────────────── Utilities ───────────────────────────── */
