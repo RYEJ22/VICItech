@@ -144,11 +144,11 @@ export function TriPillarBento(): ReactElement {
               {b.p2Desc}
             </p>
 
-            {/* Contained Mini Obsidian Telemetry Widget */}
-            <div className="vt-obsidian-panel mt-5 space-y-2.5 rounded-xl p-4">
-              <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-2 font-mono text-xs font-bold tabular-nums text-[#FAFAFA]">
-                  <span className="vt-pixel-led vt-pixel-led-pulse bg-sky-400" aria-hidden="true" />
+            {/* Contained Telemetry Preview Card (Crisp White Box + Shadow in Light, Obsidian Ruby Pixel in Dark) */}
+            <div className="vt-qc-preview-card mt-5 space-y-2.5 rounded-xl border-[1.5px] border-strong bg-surface p-4 shadow-[0_6px_20px_-6px_rgba(24,24,27,0.12),0_2px_0_0_rgba(24,24,27,0.06)]">
+              <div className="flex items-center justify-between gap-2 border-b border-default pb-2.5">
+                <span className="inline-flex items-center gap-2 font-mono text-xs font-bold tabular-nums text-primary">
+                  <span className="vt-pixel-led vt-pixel-led-pulse bg-sky-600 dark:bg-sky-400" aria-hidden="true" />
                   <span>VICI-PC-2026-0104</span>
                 </span>
                 <span className="vt-badge-simulated !px-2 !py-0.5 !text-[10px]">
@@ -156,19 +156,19 @@ export function TriPillarBento(): ReactElement {
                 </span>
               </div>
               <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-[#D4D4D8]">
+                <div className="flex items-center justify-between text-secondary">
                   <span>{b.p2BurnInLabel}</span>
-                  <span className="font-mono font-semibold tabular-nums text-[#FAFAFA]">{b.p2BurnInValue}</span>
+                  <span className="font-mono font-semibold tabular-nums text-primary">{b.p2BurnInValue}</span>
                 </div>
-                <div className="vt-pixel-bar h-2 overflow-hidden rounded-[3px] bg-white/15">
+                <div className="vt-pixel-bar h-2.5 overflow-hidden rounded-[3px] border border-default bg-subtle">
                   <div className="h-full w-[88%] rounded-[2px] bg-accent-primary" />
                 </div>
-                <div className="flex items-center justify-between pt-1 text-[#D4D4D8]">
-                  <span className="inline-flex items-center gap-1 text-emerald-400">
+                <div className="flex items-center justify-between pt-1">
+                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     {b.p2SanitationLabel}
                   </span>
-                  <span className="font-mono font-semibold tabular-nums text-emerald-400">{b.p2SanitationValue}</span>
+                  <span className="font-mono font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">{b.p2SanitationValue}</span>
                 </div>
               </div>
             </div>

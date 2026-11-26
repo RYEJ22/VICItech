@@ -1018,6 +1018,11 @@ html[data-high-contrast='true'] .vt-obsidian-panel {
   border-color: rgba(255, 255, 255, 0.45);
 }
 
+html[data-high-contrast='true'] .vt-qc-preview-card {
+  border: 2px solid #141416;
+  box-shadow: 3px 3px 0px #141416;
+}
+
 html[data-high-contrast='true'] .vt-badge-live,
 html[data-high-contrast='true'] .vt-badge-simulated,
 html[data-high-contrast='true'] .vt-badge-sample {
@@ -1261,9 +1266,11 @@ html[data-theme='dark'] [role='dialog'] {
 }
 
 /* 4×4px Ruby Red Pixel Corner Ticks on Featured Cards, Telemetry Panels & Dialogs */
-html[data-theme='dark'] .vt-obsidian-panel {
+html[data-theme='dark'] .vt-obsidian-panel,
+html[data-theme='dark'] .vt-qc-preview-card {
   background-color: var(--bg-obsidian);
   border: 2px solid var(--border-default);
+  border-radius: 0px;
   box-shadow: 4px 4px 0px #000000;
   background-image:
     linear-gradient(#e11d48, #e11d48),
@@ -1628,6 +1635,11 @@ html[data-theme='dark'][data-high-contrast='true'] .glass-floating {
 html[data-theme='dark'][data-high-contrast='true'] :focus-visible {
   outline: 3px solid #fb7185;
   outline-offset: 2px;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-qc-preview-card {
+  border: 2px solid #ffffff;
+  box-shadow: 4px 4px 0px #e11d48;
 }
 
 html[data-theme='dark'][data-high-contrast='true'] [class*='text-[#52525B]'],
