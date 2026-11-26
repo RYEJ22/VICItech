@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function KonsultanAiPage() {
-  return <main className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pt-12">
+  return <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-12">
     <div className="max-w-3xl">
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">Toolkit ViciTech</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#18181B] sm:text-4xl">Konsultan Rakitan AI</h1>

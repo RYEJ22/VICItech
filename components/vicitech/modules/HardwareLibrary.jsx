@@ -645,7 +645,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const field = `vt-form-control w-full rounded-lg border border-default bg-canvas px-3.5 py-2.5 text-sm text-primary outline-none transition-colors focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/25`;
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className={`mx-auto max-w-7xl px-4 py-8 sm:px-6 ${barVisible ? "pb-36 md:pb-24" : "pb-16 md:pb-10"}`}>
+      <div className={`mx-auto max-w-7xl px-4 pt-8 sm:px-6 ${barVisible ? "pb-44 md:pb-32" : "pb-24 md:pb-24"}`}>
         <h2 className="font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">Hardware Library &amp; Periferal</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-secondary">Jelajahi ponsel, laptop, komponen PC, dan aksesori IT dengan spesifikasi inti lalu bandingkan berdampingan.</p>
         {inventoryError && <p role="status" className="mt-4 rounded-xl border border-default bg-surface p-4 text-sm text-accent-hover shadow-sm">{inventoryError} Menampilkan katalog terkurasi.</p>}
@@ -781,7 +781,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
 
       {barVisible && (
         <div className="fixed inset-x-0 bottom-14 z-30 border-t border-default bg-surface shadow-lg md:bottom-0">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 md:pr-56">
             <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
               {selected.length > 0 && <span className="shrink-0 text-xs font-medium text-secondary">Membandingkan {cfg.short}:</span>}
               {selected.map((p) => (

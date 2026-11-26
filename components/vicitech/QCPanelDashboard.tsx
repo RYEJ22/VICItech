@@ -75,7 +75,7 @@ export default function QCPanelDashboard() {
           };
 
   return (
-    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 py-8 text-primary transition-colors sm:px-6 sm:py-12">
+    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 pb-28 pt-8 text-primary transition-colors sm:px-6 sm:pb-28 sm:pt-12">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div className="flex items-start gap-4">

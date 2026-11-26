@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowUp, RotateCcw, Sparkles } from 'lucide-react';
+import {
+  AI_PROMPT_EVENT,
+  OPEN_AI_WIDGET_EVENT,
+  PENDING_AI_PROMPT_KEY,
+  consumePendingAiPrompt,
+} from '@/lib/ai/open-ai-consultation';
 
 const HISTORY_KEY = 'vicitech_ai_chat_history';
 const STARTERS = ['Rakit PC gaming sesuai budget', 'Cek upgrade RAM dan SSD laptop', 'Jelaskan IoT QC dan pembayaran DP'];
@@ -46,11 +52,26 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const latestInputRef = useRef('');
+  latestInputRef.current = input;
   const compact = variant === 'widget';
 
   useEffect(() => {
     setMessages(readHistory());
     setReady(true);
+
+    let initialPrompt = consumePendingAiPrompt();
+    if (!initialPrompt && typeof window !== 'undefined') {
+      const urlPrompt = new URLSearchParams(window.location.search).get('prompt');
+      if (urlPrompt) initialPrompt = urlPrompt.trim();
+    }
+    if (initialPrompt) {
+      setInput(initialPrompt);
+      window.requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -60,11 +81,37 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
 
   useEffect(() => {
     const receivePrompt = (event: Event) => {
-      if (event instanceof CustomEvent && typeof event.detail === 'string') setInput(event.detail);
+      if (event instanceof CustomEvent && typeof event.detail === 'string') {
+        const clean = event.detail.trim();
+        if (!clean) return;
+        consumePendingAiPrompt();
+        setInput(clean);
+        window.requestAnimationFrame(() => {
+          inputRef.current?.focus();
+        });
+      }
     };
-    window.addEventListener('vicitech:ai-prompt', receivePrompt);
-    return () => window.removeEventListener('vicitech:ai-prompt', receivePrompt);
+    window.addEventListener(AI_PROMPT_EVENT, receivePrompt);
+    window.addEventListener(OPEN_AI_WIDGET_EVENT, receivePrompt);
+    return () => {
+      window.removeEventListener(AI_PROMPT_EVENT, receivePrompt);
+      window.removeEventListener(OPEN_AI_WIDGET_EVENT, receivePrompt);
+    };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (variant !== 'widget' || typeof window === 'undefined') return;
+      const draftText = latestInputRef.current.trim();
+      if (draftText) {
+        try {
+          window.sessionStorage.setItem(PENDING_AI_PROMPT_KEY, draftText);
+        } catch {
+          // Abaikan kegagalan storage.
+        }
+      }
+    };
+  }, [variant]);
 
   async function sendMessage(event?: FormEvent<HTMLFormElement>, prompt?: string) {
     event?.preventDefault();
@@ -137,9 +184,24 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={(event) => void sendMessage(event)} className="flex gap-2 border-t border-[#EEEAE5] p-3 sm:p-4">
+      <form onSubmit={(event) => void sendMessage(event)} className="flex items-end gap-2 border-t border-[#EEEAE5] p-3 sm:p-4">
         <label className="sr-only" htmlFor={`vici-chat-input-${variant}`}>Pesan untuk ViciTech AI</label>
-        <input id={`vici-chat-input-${variant}`} value={input} onChange={(event) => setInput(event.target.value)} maxLength={4000} placeholder="Tulis pertanyaan hardware…" className="vt-form-control min-w-0 flex-1 rounded-xl border border-[#E7E2DC] bg-[#FAFAF9] px-3 py-2.5 text-sm text-[#18181B] placeholder:text-[#A1A1AA] focus-visible:outline-none" />
+        <textarea
+          ref={inputRef}
+          id={`vici-chat-input-${variant}`}
+          rows={input.length > 72 || input.includes('\n') ? 3 : 1}
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              void sendMessage();
+            }
+          }}
+          maxLength={4000}
+          placeholder="Tulis pertanyaan hardware…"
+          className="vt-form-control min-h-11 max-h-36 min-w-0 flex-1 resize-y rounded-xl border border-[#E7E2DC] bg-[#FAFAF9] px-3 py-2.5 text-sm leading-5 text-[#18181B] placeholder:text-[#A1A1AA] focus-visible:outline-none"
+        />
         <button type="submit" disabled={!input.trim() || loading} aria-label="Kirim pesan" className="vt-motion-press grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EA580C] text-white transition-colors hover:bg-[#C2410C] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/50"><ArrowUp size={19} aria-hidden="true" /></button>
       </form>
     </section>

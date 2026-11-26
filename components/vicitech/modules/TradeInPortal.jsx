@@ -101,7 +101,7 @@ export default function CircularPortal() {
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl px-3 pb-28 pt-5 sm:px-6 sm:pb-28 sm:pt-10">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Tarif Referensi</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Sliders, CheckCircle2, Zap, Building2, GraduationCap, Gamepad2, ShoppingCart, FileText, RefreshCw,
   Cpu, CircuitBoard, MemoryStick, HardDrive, Gauge, Monitor, ShieldCheck, Truck, Bookmark, Plus, Minus, X,
-  LoaderCircle,
+  LoaderCircle, Wind, Box, Copy, Check, Wrench, Sparkles, Video,
 } from "lucide-react";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { saveUserPreset } from "@/lib/supabase";
@@ -18,6 +19,7 @@ const BASE_CATALOG = {
   cpu: [
     part("i3-12100", "Intel Core i3-12100", "4C / 8T, LGA1700", 1900000, 60, 36, { sk: "LGA1700" }),
     part("i5-12400", "Intel Core i5-12400", "6C / 12T, LGA1700", 2700000, 65, 36, { sk: "LGA1700" }),
+    part("r5-5600", "AMD Ryzen 5 5600", "6C / 12T, AM4", 2200000, 65, 36, { sk: "AM4" }),
     part("i5-13600k", "Intel Core i5-13600K", "14C / 20T, LGA1700", 4600000, 125, 36, { sk: "LGA1700" }),
     part("r5-7600", "AMD Ryzen 5 7600", "6C / 12T, AM5", 3900000, 65, 36, { sk: "AM5" }),
     part("r7-7800x3d", "AMD Ryzen 7 7800X3D", "8C / 16T, AM5, 3D V-Cache", 7200000, 120, 36, { sk: "AM5" }),
@@ -26,6 +28,7 @@ const BASE_CATALOG = {
   mobo: [
     part("h610m", "ASUS Prime H610M-K D4", "Micro-ATX, LGA1700, DDR4", 1150000, 30, 36, { sk: "LGA1700", ddr: 4 }),
     part("b660m", "MSI PRO B660M-A D4", "Micro-ATX, LGA1700, DDR4", 1850000, 35, 36, { sk: "LGA1700", ddr: 4 }),
+    part("b550m", "MSI B550M PRO-VDH", "Micro-ATX, AM4, DDR4", 1650000, 35, 36, { sk: "AM4", ddr: 4 }),
     part("z790", "Gigabyte Z790 Aorus Elite", "ATX, LGA1700, DDR5", 3600000, 45, 36, { sk: "LGA1700", ddr: 5 }),
     part("a620m", "ASRock A620M-HDV", "Micro-ATX, AM5, DDR5", 1500000, 30, 36, { sk: "AM5", ddr: 5 }),
     part("b650m", "MSI MAG B650M Mortar", "Micro-ATX, AM5, DDR5", 2300000, 40, 36, { sk: "AM5", ddr: 5 }),
@@ -33,10 +36,11 @@ const BASE_CATALOG = {
   ],
   ram: [
     part("d4-8", "8 GB DDR4-3200", "1 × 8 GB", 400000, 4, 60, { ddr: 4, gb: 8 }),
-    part("d4-16", "16 GB DDR4-3200", "2 × 8 GB", 750000, 6, 60, { ddr: 4, gb: 16 }),
-    part("d5-16", "16 GB DDR5-5600", "2 × 8 GB", 950000, 6, 60, { ddr: 5, gb: 16 }),
-    part("d5-32", "32 GB DDR5-6000", "2 × 16 GB", 1900000, 8, 60, { ddr: 5, gb: 32 }),
-    part("d5-64", "64 GB DDR5-6000", "2 × 32 GB", 3800000, 10, 60, { ddr: 5, gb: 64 }),
+    part("d4-16", "16 GB DDR4-3200", "2 × 8 GB Dual-Channel", 750000, 6, 60, { ddr: 4, gb: 16 }),
+    part("d4-32", "32 GB DDR4-3200", "2 × 16 GB Dual-Channel", 1500000, 8, 60, { ddr: 4, gb: 32 }),
+    part("d5-16", "16 GB DDR5-5600", "2 × 8 GB Dual-Channel", 950000, 6, 60, { ddr: 5, gb: 16 }),
+    part("d5-32", "32 GB DDR5-6000", "2 × 16 GB Dual-Channel", 1900000, 8, 60, { ddr: 5, gb: 32 }),
+    part("d5-64", "64 GB DDR5-6000", "2 × 32 GB Dual-Channel", 3800000, 10, 60, { ddr: 5, gb: 64 }),
   ],
   storage: [
     part("sata-256", "256 GB SATA SSD", "Kecepatan baca 550 MB/s", 450000, 3, 36),
@@ -48,7 +52,9 @@ const BASE_CATALOG = {
   gpu: [
     part("igpu", "Grafis Terintegrasi (iGPU)", "Menggunakan grafis bawaan CPU", 0, 0, 36),
     part("rtx-3050", "NVIDIA RTX 3050 6GB", "6 GB GDDR6", 2500000, 70, 36),
-    part("rtx-4060", "NVIDIA RTX 4060 8GB", "8 GB GDDR6", 4800000, 115, 36),
+    part("rx-6600", "AMD Radeon RX 6600 8GB", "8 GB GDDR6 · Sweet-spot 1080p", 3000000, 132, 36),
+    part("rtx-3060", "NVIDIA RTX 3060 12GB", "12 GB GDDR6 · VRAM lega editing", 3600000, 170, 36),
+    part("rtx-4060", "NVIDIA RTX 4060 8GB", "8 GB GDDR6 · DLSS 3 & NVENC AV1", 4800000, 115, 36),
     part("rtx-4070s", "NVIDIA RTX 4070 Super", "12 GB GDDR6X", 10900000, 220, 36),
     part("rtx-4090", "NVIDIA RTX 4090", "24 GB GDDR6X", 32500000, 450, 36),
   ],
@@ -56,16 +62,29 @@ const BASE_CATALOG = {
     part("psu-350", "350 W 80+ White", "Kapasitas 350 W", 400000, 0, 36, { cap: 350 }),
     part("psu-450", "450 W 80+ Bronze", "Kapasitas 450 W", 650000, 0, 36, { cap: 450 }),
     part("psu-550", "550 W 80+ Bronze", "Kapasitas 550 W", 850000, 0, 36, { cap: 550 }),
+    part("psu-650", "650 W 80+ Gold", "Kapasitas 650 W", 1100000, 0, 60, { cap: 650 }),
     part("psu-750", "750 W 80+ Gold", "Kapasitas 750 W", 1500000, 0, 60, { cap: 750 }),
     part("psu-1000", "1000 W 80+ Gold", "Kapasitas 1.000 W", 2600000, 0, 60, { cap: 1000 }),
   ],
-  chassis: [
-    part("mt-lab", 'Casing Micro-ATX + Monitor 19,5"', "Paket lab tangguh", 1300000, 20, 36),
-    part("sff-case", "Casing SFF Ringkas", "Sasis tipis tanpa monitor", 700000, 0, 24),
-    part("sff-dual", 'SFF Ringkas + Dual Monitor 24" IPS', "Setup kerja multi-layar", 3400000, 40, 36),
-    part("atx-case", "Casing ATX Airflow Mid-Tower", "Lega untuk upgrade, tanpa monitor", 1050000, 0, 24),
-    part("atx-qhd", 'ATX Mid-Tower + Monitor 27" QHD 165 Hz', "Paket gaming", 4500000, 35, 36),
-    part("atx-4k", 'ATX Mid-Tower + Monitor 32" 4K Kreator', "Layar akurasi warna tinggi", 7900000, 45, 36),
+  cooler: [
+    part("cooler-stock", "Stock Cooler Bawaan CPU", "Pendingin standar bawaan boks CPU", 0, 5, 12),
+    part("cooler-tower", "Tower Air Cooler 120mm (4 Heatpipe)", "Pendingin senyap hingga 150 W TDP", 350000, 8, 24),
+    part("cooler-dual", "Dual-Tower Air Cooler 120mm", "Performa tinggi hingga 220 W TDP", 750000, 10, 36),
+    part("cooler-aio240", "Liquid Cooler AIO 240mm", "Radiator 240mm untuk CPU kelas atas", 1350000, 15, 36),
+  ],
+  case: [
+    part("case-mt", "Casing Micro-ATX Standar Lab", "Sasis baja ringkas & tangguh", 450000, 5, 24),
+    part("case-matx-mesh", "Casing Micro-ATX Mesh Airflow", "Panel depan mesh + 3 kipas airflow", 650000, 10, 24),
+    part("case-sff", "Casing SFF Ringkas Enterprise", "Hemat ruang meja kantor", 700000, 5, 24),
+    part("case-atx-mesh", "Casing ATX Airflow Mid-Tower", "Lega untuk GPU panjang & upgrade", 1050000, 12, 24),
+  ],
+  monitor: [
+    part("mon-none", "Tanpa Monitor (Unit PC Saja)", "Gunakan monitor yang sudah Anda miliki", 0, 0, 24),
+    part("mon-19", 'Monitor 19,5" HD Lab', "Panel hemat daya untuk lab CBT", 850000, 18, 36),
+    part("mon-24-ips", 'Monitor 24" FHD IPS 100 Hz', "Nyaman untuk kuliah, editing & esports", 1450000, 22, 36),
+    part("mon-24-dual", 'Dual Monitor 24" FHD IPS', "Setup produktivitas multi-layar", 2750000, 40, 36),
+    part("mon-27-qhd", 'Monitor 27" QHD 165 Hz IPS', "Tajam & mulus untuk gaming 1440p", 3450000, 35, 36),
+    part("mon-32-4k", 'Monitor 32" 4K Kreator (99% sRGB)', "Akurasi warna tinggi untuk editing 4K", 6850000, 45, 36),
   ],
 };
 
@@ -76,29 +95,57 @@ const SLOTS = [
   { key: "storage", label: "Storage (SSD / HDD)", icon: HardDrive },
   { key: "gpu", label: "GPU", icon: Gauge },
   { key: "psu", label: "Power Supply (PSU)", icon: Zap },
-  { key: "chassis", label: "Casing / Monitor", icon: Monitor },
+  { key: "cooler", label: "CPU Cooler", icon: Wind },
+  { key: "case", label: "Casing PC", icon: Box },
+  { key: "monitor", label: "Monitor", icon: Monitor },
 ];
 
 const PRESETS = {
+  b2c_budget: {
+    id: "b2c_budget", seg: "B2C", name: "Gaming 1080p Pelajar / Budget", icon: Gamepad2, qty: 1,
+    blurb: "Rakitan gaming 1080p & kuliah paling ramah kantong dengan GPU 8 GB dan RAM dual-channel.",
+    focus: ["1080p 100+ FPS", "Ramah budget", "Dual-channel 16 GB"],
+    parts: { cpu: "i3-12100", mobo: "h610m", ram: "d4-16", storage: "nvme-512", gpu: "rx-6600", psu: "psu-550", cooler: "cooler-stock", case: "case-matx-mesh", monitor: "mon-none" },
+  },
+  b2c_mid: {
+    id: "b2c_mid", seg: "B2C", name: "Editing & Kuliah Mid-Range", icon: Video, qty: 1,
+    blurb: "Seimbang untuk editing 1080p/4K, desain, coding, dan gaming lancar lengkap dengan monitor 24\" IPS.",
+    focus: ["RAM 32 GB", "RTX 4060 NVENC", "Sudah termasuk Monitor"],
+    parts: { cpu: "i5-12400", mobo: "b660m", ram: "d4-32", storage: "nvme-1t", gpu: "rtx-4060", psu: "psu-550", cooler: "cooler-tower", case: "case-matx-mesh", monitor: "mon-24-ips" },
+  },
+  b2c: {
+    id: "b2c", seg: "B2C", name: "Rig Kreator & Gaming Pro", icon: Sparkles, qty: 1,
+    blurb: "Performa 1440p FPS tinggi dan rendering cepat di platform AM5 DDR5 dengan headroom upgrade panjang.",
+    focus: ["AM5 DDR5", "RTX 4070 Super", "Monitor 27\" QHD 165 Hz"],
+    parts: { cpu: "r7-7800x3d", mobo: "b650m", ram: "d5-32", storage: "nvme-1t", gpu: "rtx-4070s", psu: "psu-750", cooler: "cooler-dual", case: "case-atx-mesh", monitor: "mon-27-qhd" },
+  },
   b2s: {
     id: "b2s", seg: "B2S", name: "Standar Labkom CBT", icon: GraduationCap, qty: 30,
-    blurb: "PC laboratorium siap ujian yang efisien biaya untuk pengadaan puluhan unit.",
+    blurb: "PC laboratorium siap ujian yang efisien biaya untuk pengadaan puluhan unit sekolah.",
     focus: ["Biaya hemat", "Daya tahan tinggi", "Siap pengadaan massal"],
-    parts: { cpu: "i3-12100", mobo: "h610m", ram: "d4-8", storage: "sata-256", gpu: "igpu", psu: "psu-350", chassis: "mt-lab" },
+    parts: { cpu: "i3-12100", mobo: "h610m", ram: "d4-8", storage: "sata-256", gpu: "igpu", psu: "psu-350", cooler: "cooler-stock", case: "case-mt", monitor: "mon-19" },
   },
   b2b: {
     id: "b2b", seg: "B2B", name: "Workstation Kantor Enterprise", icon: Building2, qty: 5,
-    blurb: "Mesin kerja senyap dan hemat listrik dengan dukungan dua monitor sekaligus.",
+    blurb: "Mesin kerja senyap dan hemat listrik dengan dukungan dua monitor IPS sekaligus.",
     focus: ["Hemat energi", "Bentuk ringkas", "Dukungan dual monitor"],
-    parts: { cpu: "i5-12400", mobo: "b660m", ram: "d4-16", storage: "nvme-512", gpu: "igpu", psu: "psu-350", chassis: "sff-dual" },
+    parts: { cpu: "i5-12400", mobo: "b660m", ram: "d4-16", storage: "nvme-512", gpu: "igpu", psu: "psu-350", cooler: "cooler-stock", case: "case-sff", monitor: "mon-24-dual" },
   },
-  b2c: {
-    id: "b2c", seg: "B2C", name: "Rig Kreator & Gaming", icon: Gamepad2, qty: 1,
-    blurb: "Performa FPS tinggi dan rendering cepat dengan headroom upgrade jangka panjang.",
-    focus: ["FPS tinggi", "Siap render", "Mudah di-upgrade"],
-    parts: { cpu: "r7-7800x3d", mobo: "b650m", ram: "d5-32", storage: "nvme-1t", gpu: "rtx-4070s", psu: "psu-750", chassis: "atx-qhd" },
+  custom: {
+    id: "custom", seg: "B2C", name: "Custom Build (Mulai dari Kosong)", icon: Wrench, qty: 1,
+    blurb: "Mulai dari konfigurasi dasar paling ringan lalu pilih sendiri tiap komponen sesuai selera & anggaran.",
+    focus: ["Bebas pilih part", "Cek kompatibilitas otomatis", "Tanpa monitor bawaan"],
+    parts: { cpu: "i3-12100", mobo: "h610m", ram: "d4-8", storage: "nvme-512", gpu: "igpu", psu: "psu-450", cooler: "cooler-stock", case: "case-matx-mesh", monitor: "mon-none" },
   },
 };
+
+const BUDGET_PRESET_CHIPS = [
+  { label: "Semua", value: 35000000 },
+  { label: "≤ Rp 10 jt", value: 10000000 },
+  { label: "≤ Rp 16 jt", value: 16000000 },
+  { label: "≤ Rp 25 jt", value: 25000000 },
+  { label: "≤ Rp 35 jt", value: 35000000 },
+];
 
 const TIERS = [{ min: 10, pct: 3 }, { min: 30, pct: 5 }, { min: 100, pct: 8 }];
 const MAX_QTY = 500;
@@ -120,7 +167,9 @@ function buildCatalog(remoteComponents) {
     storage: [...BASE_CATALOG.storage],
     gpu: [...BASE_CATALOG.gpu],
     psu: [...BASE_CATALOG.psu],
-    chassis: [...BASE_CATALOG.chassis],
+    cooler: [...BASE_CATALOG.cooler],
+    case: [...BASE_CATALOG.case],
+    monitor: [...BASE_CATALOG.monitor],
   };
 
   for (const component of remoteComponents || []) {
@@ -157,8 +206,12 @@ function buildCatalog(remoteComponents) {
     } else if (component.category === "psu") {
       const capacity = Number(specs.wattage) || 0;
       next.psu.push(part(id, component.name, `${capacity} W ${specs.efficiencyRating || ""}`.trim(), price, 0, 36, { inventoryId: component.id, cap: capacity }));
+    } else if (component.category === "cooler") {
+      next.cooler.push(part(id, component.name, `${specs.type || "CPU Cooler"}`, price, watts || 8, 24, { inventoryId: component.id }));
     } else if (component.category === "case") {
-      next.chassis.push(part(id, component.name, `${specs.formFactor || "Casing PC"}`, price, 0, 24, { inventoryId: component.id }));
+      next.case.push(part(id, component.name, `${specs.formFactor || "Casing PC"}`, price, watts || 8, 24, { inventoryId: component.id }));
+    } else if (component.category === "monitor") {
+      next.monitor.push(part(id, component.name, `${specs.resolution || "Monitor"}`, price, watts || 25, 36, { inventoryId: component.id }));
     }
   }
 
@@ -235,25 +288,29 @@ function findMatchingPart(catalog, slot, rawHint) {
 
 function mapSlotLabelToKey(rawSlot) {
   const s = String(rawSlot ?? "").toLowerCase();
+  if (s.includes("cooler") || s.includes("pendingin") || s.includes("aio") || s.includes("heatsink")) return "cooler";
   if (s.includes("cpu") || s.includes("prosesor")) return "cpu";
   if (s.includes("mobo") || s.includes("motherboard")) return "mobo";
   if (s.includes("ram") || s.includes("memori")) return "ram";
   if (s.includes("storage") || s.includes("ssd") || s.includes("nvme") || s.includes("hdd") || s.includes("penyimpanan")) return "storage";
   if (s.includes("gpu") || s.includes("grafis") || s.includes("vga")) return "gpu";
   if (s.includes("psu") || s.includes("power supply")) return "psu";
-  if (s.includes("case") || s.includes("casing") || s.includes("chassis") || s.includes("sasis") || s.includes("monitor")) return "chassis";
+  if (s.includes("monitor") || s.includes("layar")) return "monitor";
+  if (s.includes("case") || s.includes("casing") || s.includes("chassis") || s.includes("sasis")) return "case";
   return null;
 }
 
 function inferSlotFromItem(item) {
   const hint = `${item?.slot || ""} ${item?.category || ""} ${item?.type || ""} ${item?.name || ""} ${item?.title || ""}`.toLowerCase();
+  if (/\b(cooler|aio|heatsink|pendingin)\b/i.test(hint)) return "cooler";
   if (/\b(cpu|ryzen|core i\d|processor|prosesor)\b/i.test(hint)) return "cpu";
   if (/\b(gpu|rtx|radeon|rx\s?\d|geforce|vga|graphics)\b/i.test(hint)) return "gpu";
   if (/\b(ram|ddr[45]|memory|memori)\b/i.test(hint)) return "ram";
-  if (/\b(motherboard|mobo|b650|b660|h610|z790|a620|x670)\b/i.test(hint)) return "mobo";
+  if (/\b(motherboard|mobo|b650|b660|b550|h610|z790|a620|x670)\b/i.test(hint)) return "mobo";
   if (/\b(nvme|ssd|hdd|storage)\b/i.test(hint)) return "storage";
   if (/\b(psu|power supply|80\+)\b/i.test(hint)) return "psu";
-  if (/\b(casing|case|chassis|tower|sff)\b/i.test(hint)) return "chassis";
+  if (/\b(monitor|display|ips|qhd|165\s?hz)\b/i.test(hint)) return "monitor";
+  if (/\b(casing|case|chassis|tower|sff)\b/i.test(hint)) return "case";
   return null;
 }
 
@@ -522,27 +579,37 @@ function OrderDrawer({
 /* ───────────────────────── Page ───────────────────────── */
 
 export default function PresetBuilder({
-  role = "b2s",
+  role = "b2c",
   userId,
   importedConfig,
   initialProductId = "",
   marketProducts = [],
 }) {
+  const router = useRouter();
   const { triggerCheckout } = useCheckout();
+  const initialPresetKey = role === "b2c" ? "b2c_budget" : (role && PRESETS[role] ? role : "b2s");
   const [remoteComponents, setRemoteComponents] = useState([]);
-  const [presetId, setPresetId] = useState(role && PRESETS[role] ? role : "b2s");
-  const [sel, setSel] = useState(PRESETS[role && PRESETS[role] ? role : "b2s"].parts);
-  const [qty, setQty] = useState(PRESETS[role && PRESETS[role] ? role : "b2s"].qty);
+  const [presetId, setPresetId] = useState(initialPresetKey);
+  const [sel, setSel] = useState(PRESETS[initialPresetKey].parts);
+  const [qty, setQty] = useState(PRESETS[initialPresetKey].qty);
+  const [budgetLimit, setBudgetLimit] = useState(35000000);
   const [openSlot, setOpenSlot] = useState(null);
   const [autoNote, setAutoNote] = useState("");
   const [drawer, setDrawer] = useState(false);
   const [notice, setNotice] = useState("");
+  const [specCopyNotice, setSpecCopyNotice] = useState("");
   const [saved, setSaved] = useState([]);
   const [isSavingPreset, setIsSavingPreset] = useState(false);
   const [loadedProductId, setLoadedProductId] = useState("");
   const lastProductAppliedRef = useRef("");
 
   const catalog = useMemo(() => buildCatalog(remoteComponents), [remoteComponents]);
+
+  useEffect(() => {
+    if (!specCopyNotice) return undefined;
+    const t = window.setTimeout(() => setSpecCopyNotice(""), 2600);
+    return () => window.clearTimeout(t);
+  }, [specCopyNotice]);
 
   useEffect(() => {
     let active = true;
@@ -556,10 +623,11 @@ export default function PresetBuilder({
 
   // Sinkronisasi peran bila user belum mengimpor konfigurasi khusus
   useEffect(() => {
-    if (role && PRESETS[role] && !importedConfig && !initialProductId) {
-      setPresetId(role);
-      setSel(PRESETS[role].parts);
-      setQty(PRESETS[role].qty);
+    const resolvedKey = role === "b2c" ? "b2c_budget" : (role && PRESETS[role] ? role : null);
+    if (resolvedKey && !importedConfig && !initialProductId) {
+      setPresetId(resolvedKey);
+      setSel(PRESETS[resolvedKey].parts);
+      setQty(PRESETS[resolvedKey].qty);
     }
   }, [role, importedConfig, initialProductId]);
 
@@ -614,7 +682,9 @@ export default function PresetBuilder({
       applySlotHint("storage", importedConfig.storage);
       applySlotHint("gpu", importedConfig.gpu);
       applySlotHint("psu", importedConfig.psu);
-      applySlotHint("chassis", importedConfig.chassis || importedConfig.case);
+      applySlotHint("cooler", importedConfig.cooler);
+      applySlotHint("case", importedConfig.case || importedConfig.chassis);
+      applySlotHint("monitor", importedConfig.monitor);
 
       if (Array.isArray(importedConfig.items)) {
         for (const item of importedConfig.items) {
@@ -716,15 +786,76 @@ export default function PresetBuilder({
     return () => { active = false; };
   }, [catalog, initialProductId, marketProducts, remoteComponents.length]);
 
-  const preset = PRESETS[presetId] || PRESETS.b2s;
+  const preset = PRESETS[presetId] || PRESETS.b2c_budget;
   const calc = useMemo(() => summarize(catalog, sel, qty), [catalog, sel, qty]);
   const presetUnit = useMemo(() => Object.fromEntries(Object.values(PRESETS).map((p) => [p.id, unitTotal(catalog, p.parts)])), [catalog]);
-  const isCustom = Boolean(loadedProductId) || SLOTS.some((s) => sel[s.key] !== preset.parts[s.key]);
+  const curatedPresets = useMemo(
+    () => ["b2c_budget", "b2c_mid", "b2c", "b2s", "b2b"].map((key) => PRESETS[key]),
+    [],
+  );
+  const matchingBudgetCount = useMemo(
+    () => curatedPresets.filter((p) => presetUnit[p.id] <= budgetLimit).length,
+    [curatedPresets, presetUnit, budgetLimit],
+  );
+  const recommendedPsuWatts = Math.max(350, Math.ceil((calc.watts * 1.35) / 50) * 50);
+  const isCustom = presetId === "custom" || Boolean(loadedProductId) || SLOTS.some((s) => sel[s.key] !== preset.parts[s.key]);
   const psuOk = calc.load <= 1;
   const loadPct = Math.round(calc.load * 100);
   const meter = calc.load > 1 ? "bg-status-danger" : calc.load > 0.8 ? "bg-status-sample" : "bg-status-live";
   const nextTier = TIERS.find((t) => qty < t.min);
   const qtyLabel = `${qty} unit`;
+
+  const startCustomBuild = () => {
+    setPresetId("custom");
+    setSel(PRESETS.custom.parts);
+    setQty(1);
+    setOpenSlot("cpu");
+    setNotice("");
+    setLoadedProductId("");
+    setAutoNote("Mode Custom Build aktif. Pilih komponen mulai dari CPU hingga Monitor sesuai kebutuhan Anda.");
+  };
+
+  const applyBudgetPreset = () => {
+    const candidates = curatedPresets
+      .filter((p) => presetUnit[p.id] <= budgetLimit)
+      .sort((a, b) => presetUnit[b.id] - presetUnit[a.id]);
+    if (candidates.length > 0) {
+      choosePreset(candidates[0].id);
+      setAutoNote(`Preset "${candidates[0].name}" dipilih karena paling optimal untuk anggaran ≤ ${idr(budgetLimit)}.`);
+    } else {
+      startCustomBuild();
+      setAutoNote(`Belum ada preset lengkap di bawah ${idr(budgetLimit)}. Mulai dari Custom Build untuk merakit hemat.`);
+    }
+  };
+
+  const handleCheckBottleneck = () => {
+    const params = new URLSearchParams({
+      cpu: sel.cpu,
+      gpu: sel.gpu,
+      ram: sel.ram,
+      mobo: sel.mobo,
+      psu: sel.psu,
+    });
+    router.push(`/bottleneck?${params.toString()}`);
+  };
+
+  const handleCopySpecSheet = async () => {
+    const lines = [
+      `Spec Sheet Rakitan ViciTech — ${preset.name} (${preset.seg})`,
+      ...calc.rows.map((row) => `• ${row.label}: ${row.part.name} (${idr(row.part.price)})`),
+      `---`,
+      `Harga per Unit: ${idr(calc.unit)}`,
+      `Total Pesanan (${qtyLabel} + JIT 5%): ${idr(calc.total)}`,
+      `Estimasi Konsumsi Daya: ${calc.watts} W (PSU terpilih ${calc.cap} W · Disarankan ≥ ${recommendedPsuWatts} W)`,
+      `#ViciTechBuild`,
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setSpecCopyNotice("Spec Sheet berhasil disalin! Siap ditempel ke Komunitas atau WhatsApp.");
+    } catch {
+      setSpecCopyNotice("Browser memblokir akses papan klip. Salin rincian secara manual.");
+    }
+  };
 
   const timeline = useMemo(() => {
     const start = new Date();
@@ -817,7 +948,7 @@ export default function PresetBuilder({
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-10 lg:pb-12">
+      <div className="mx-auto max-w-7xl px-3 pb-28 pt-4 sm:px-6 sm:pb-32 sm:pt-10 lg:pb-28">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
@@ -832,11 +963,102 @@ export default function PresetBuilder({
           Mulai dari preset teruji sesuai segmen kebutuhan, ganti komponen apa saja, dan pantau harga, estimasi beban daya PSU, serta Buffer Pasar JIT 5% secara langsung.
         </p>
 
+        {/* Filter Anggaran Cepat + Tombol Custom Build */}
+        <section
+          aria-label="Filter anggaran dan mode rakit custom"
+          className="mt-5 rounded-xl border border-default bg-surface p-4 shadow-sm sm:mt-7 sm:p-5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent-cta">
+                Filter Anggaran Cepat
+              </p>
+              <p className="mt-0.5 text-sm text-secondary">
+                Geser batas anggaran per unit:{" "}
+                <strong className="font-mono font-semibold tabular-nums text-primary">
+                  {budgetLimit >= 35000000 ? "Semua Anggaran (hingga Rp 35 jt)" : `Maks. ${idr(budgetLimit)}`}
+                </strong>
+                {" "}· <span className="font-mono text-xs">{matchingBudgetCount} preset cocok</span>
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={applyBudgetPreset}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-accent-primary/35 bg-accent-subtle px-3.5 py-2 text-xs font-semibold text-accent-cta hover:bg-accent-primary/15 ${focusRing}`}
+              >
+                <Sparkles className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span>Pilihkan Preset Terbaik</span>
+              </button>
+              <button
+                type="button"
+                onClick={startCustomBuild}
+                aria-pressed={presetId === "custom"}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${focusRing} ${
+                  presetId === "custom"
+                    ? "border-primary bg-primary text-surface"
+                    : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
+                }`}
+              >
+                <Wrench className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span>Mulai dari Kosong (Custom Build)</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <label htmlFor="builder-budget-slider" className="sr-only">
+                Batas anggaran per unit dalam Rupiah
+              </label>
+              <input
+                id="builder-budget-slider"
+                type="range"
+                min={5000000}
+                max={35000000}
+                step={1000000}
+                value={budgetLimit}
+                onChange={(e) => setBudgetLimit(Number(e.target.value))}
+                className="h-2 w-full cursor-pointer accent-[#EA580C]"
+              />
+              <div className="mt-1 flex justify-between font-mono text-[11px] tabular-nums text-secondary">
+                <span>Rp 5 jt</span>
+                <span>Rp 15 jt</span>
+                <span>Rp 25 jt</span>
+                <span>Rp 35 jt</span>
+              </div>
+            </div>
+            <div className="no-scrollbar flex flex-nowrap gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
+              {BUDGET_PRESET_CHIPS.map((chip) => {
+                const active =
+                  (chip.label === "Semua" && budgetLimit >= 35000000) ||
+                  (chip.label !== "Semua" && budgetLimit === chip.value);
+                return (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => setBudgetLimit(chip.value)}
+                    className={`min-h-9 shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium transition-colors ${focusRing} ${
+                      active
+                        ? "border-accent-primary bg-accent-cta font-semibold text-white"
+                        : "border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* Pemilih Preset */}
-        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-5 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-3">
-          {Object.values(PRESETS).map((p) => {
+        <div role="radiogroup" aria-label="Pilih preset dasar" className="mt-5 grid gap-3 sm:mt-6 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {curatedPresets.map((p) => {
             const active = p.id === presetId;
             const Icon = p.icon;
+            const unitCost = presetUnit[p.id];
+            const withinBudget = unitCost <= budgetLimit;
             return (
               <button
                 key={p.id}
@@ -844,20 +1066,35 @@ export default function PresetBuilder({
                 role="radio"
                 aria-checked={active}
                 onClick={() => choosePreset(p.id)}
-                className={`vt-card-lift flex flex-col rounded-xl border p-3 text-left sm:p-5 ${focusRing} ${
+                className={`vt-card-lift flex flex-col rounded-xl border p-3.5 text-left transition-opacity sm:p-5 ${focusRing} ${
                   active
                     ? "border-accent-primary bg-accent-subtle shadow-sm"
-                    : "border-default bg-surface hover:bg-subtle"
+                    : withinBudget
+                      ? "border-default bg-surface hover:bg-subtle"
+                      : "border-default bg-surface/75 opacity-60 hover:opacity-100"
                 }`}
               >
-                <span className="flex items-center gap-3">
-                  <span className={`grid h-10 w-10 place-items-center rounded-lg ${active ? "bg-accent-primary text-white" : "bg-subtle text-secondary"}`}>
-                    <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                <span className="flex w-full items-start justify-between gap-2">
+                  <span className="flex items-center gap-3">
+                    <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${active ? "bg-accent-primary text-white" : "bg-subtle text-secondary"}`}>
+                      <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    <span>
+                      <span className="block font-mono text-xs font-semibold text-accent-cta">{p.seg}</span>
+                      <span className="block font-sans text-base font-semibold text-primary">{p.name}</span>
+                    </span>
                   </span>
-                  <span>
-                    <span className="block font-mono text-xs font-semibold text-accent-cta">{p.seg}</span>
-                    <span className="block font-sans text-base font-semibold text-primary">{p.name}</span>
-                  </span>
+                  {budgetLimit < 35000000 && (
+                    <span
+                      className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold ${
+                        withinBudget
+                          ? "bg-emerald-50 text-emerald-800"
+                          : "bg-subtle text-secondary"
+                      }`}
+                    >
+                      {withinBudget ? "Masuk Budget" : "Di Atas Budget"}
+                    </span>
+                  )}
                 </span>
                 <span className="mt-3 text-sm text-secondary">{p.blurb}</span>
                 <span className="mt-3 flex flex-wrap gap-1.5">
@@ -868,7 +1105,7 @@ export default function PresetBuilder({
                   ))}
                 </span>
                 <span className="mt-4 text-sm text-secondary">
-                  Mulai <span className="font-mono font-semibold tabular-nums text-primary">{idr(presetUnit[p.id])}</span> per unit
+                  Mulai <span className="font-mono font-semibold tabular-nums text-primary">{idr(unitCost)}</span> per unit
                 </span>
               </button>
             );
@@ -1010,6 +1247,38 @@ export default function PresetBuilder({
               <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Tinjau Pre-Order Cepat</span>
             </button>
+
+            {/* Aksi Lintas Modul: Cek Bottleneck & Salin Spec Sheet */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+              <button
+                type="button"
+                onClick={handleCheckBottleneck}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-xs font-semibold text-primary transition-colors hover:border-accent-primary/40 hover:bg-accent-subtle sm:text-sm ${focusRing}`}
+              >
+                <Gauge className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                <span>Cek Bottleneck Rakitan Ini</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleCopySpecSheet()}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 py-2.5 text-xs font-semibold text-primary transition-colors hover:border-accent-primary/40 hover:bg-subtle sm:text-sm ${focusRing}`}
+              >
+                {specCopyNotice ? (
+                  <Check className="h-4 w-4 text-status-live" strokeWidth={2} aria-hidden="true" />
+                ) : (
+                  <Copy className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                )}
+                <span>{specCopyNotice ? "Spec Sheet Tersalin" : "Salin Spec Sheet"}</span>
+              </button>
+            </div>
+
+            {specCopyNotice && (
+              <p role="status" aria-live="polite" className="flex items-center gap-2 rounded-lg border border-status-live/30 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-status-live" aria-hidden="true" />
+                <span>{specCopyNotice}</span>
+              </p>
+            )}
 
             {saved.length > 0 && (
               <div className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-4">

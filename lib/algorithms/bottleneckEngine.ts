@@ -120,6 +120,15 @@ export interface UpgradeSuggestion {
   readonly reason: string;
 }
 
+export interface ScenarioBenchmarkItem {
+  readonly id: string;
+  readonly title: string;
+  readonly preset: string;
+  readonly metricDisplay: string;
+  readonly tierLabel: 'Sangat Lancar' | 'Lancar' | 'Cukup' | 'Terbatas';
+  readonly barPct: number;
+}
+
 export interface BottleneckAnalysisResult {
   readonly scenario: BottleneckScenarioMeta;
   readonly cpuEffectiveScore: number;
@@ -135,6 +144,7 @@ export interface BottleneckAnalysisResult {
   readonly projectedMetricLabel: string;
   readonly projectedMetricValue: number;
   readonly projectedMetricUnit: string;
+  readonly scenarioBenchmarks: readonly ScenarioBenchmarkItem[];
   readonly psuHeadroom: PsuHeadroomResult;
   readonly compatibilityChecks: readonly CompatibilityCheckItem[];
   readonly upgradeSuggestions: readonly UpgradeSuggestion[];
@@ -547,6 +557,201 @@ function formatSuggestionDelta(delta: number): string {
   return delta > 0 ? `+${absFormatted}` : `-${absFormatted}`;
 }
 
+function tierFromFps(avgFps: number, highThreshold: number, midThreshold: number): ScenarioBenchmarkItem['tierLabel'] {
+  if (avgFps >= highThreshold) return 'Sangat Lancar';
+  if (avgFps >= midThreshold) return 'Lancar';
+  if (avgFps >= Math.round(midThreshold * 0.6)) return 'Cukup';
+  return 'Terbatas';
+}
+
+function formatFpsRange(baseFps: number): string {
+  const low = Math.max(15, Math.round((baseFps * 0.88) / 5) * 5);
+  const high = Math.max(low + 10, Math.round((baseFps * 1.12) / 5) * 5);
+  return `${low} – ${high} FPS`;
+}
+
+function buildScenarioBenchmarks(
+  input: BottleneckInput,
+  cpuEffectiveScore: number,
+  gpuEffectiveScore: number,
+  baseCapability: number,
+): readonly ScenarioBenchmarkItem[] {
+  const ramGb = input.ram?.capacityGb ?? 16;
+
+  if (input.scenario === '1080p_esports') {
+    const valFps = Math.round(baseCapability * 4.2);
+    const cs2Fps = Math.round(baseCapability * 2.9);
+    const dotaFps = Math.round(baseCapability * 2.45);
+    const apexFps = Math.round(baseCapability * 2.1);
+
+    return [
+      {
+        id: 'valorant',
+        title: 'Valorant',
+        preset: '1080p Low/Med · Kompetitif',
+        metricDisplay: formatFpsRange(valFps),
+        tierLabel: tierFromFps(valFps, 200, 120),
+        barPct: Math.round(clamp((valFps / 360) * 100, 12, 100)),
+      },
+      {
+        id: 'cs2',
+        title: 'Counter-Strike 2 (CS2)',
+        preset: '1080p Medium · Esports',
+        metricDisplay: formatFpsRange(cs2Fps),
+        tierLabel: tierFromFps(cs2Fps, 165, 100),
+        barPct: Math.round(clamp((cs2Fps / 260) * 100, 12, 100)),
+      },
+      {
+        id: 'dota2',
+        title: 'Dota 2',
+        preset: '1080p High · Teamfight',
+        metricDisplay: formatFpsRange(dotaFps),
+        tierLabel: tierFromFps(dotaFps, 144, 90),
+        barPct: Math.round(clamp((dotaFps / 220) * 100, 12, 100)),
+      },
+      {
+        id: 'apex',
+        title: 'Apex Legends',
+        preset: '1080p Competitive',
+        metricDisplay: formatFpsRange(apexFps),
+        tierLabel: tierFromFps(apexFps, 144, 85),
+        barPct: Math.round(clamp((apexFps / 200) * 100, 12, 100)),
+      },
+    ];
+  }
+
+  if (input.scenario === '1440p_aaa') {
+    const cpFps = Math.round(baseCapability * 1.18);
+    const wukongFps = Math.round(baseCapability * 1.05);
+    const rdr2Fps = Math.round(baseCapability * 1.32);
+    const gtavFps = Math.round(baseCapability * 1.85);
+
+    return [
+      {
+        id: 'cyberpunk',
+        title: 'Cyberpunk 2077',
+        preset: '1440p High · Upscaling',
+        metricDisplay: formatFpsRange(cpFps),
+        tierLabel: tierFromFps(cpFps, 85, 60),
+        barPct: Math.round(clamp((cpFps / 120) * 100, 12, 100)),
+      },
+      {
+        id: 'wukong',
+        title: 'Black Myth: Wukong',
+        preset: '1440p High · TSR/DLSS',
+        metricDisplay: formatFpsRange(wukongFps),
+        tierLabel: tierFromFps(wukongFps, 80, 55),
+        barPct: Math.round(clamp((wukongFps / 110) * 100, 12, 100)),
+      },
+      {
+        id: 'rdr2',
+        title: 'Red Dead Redemption 2',
+        preset: '1440p High–Ultra',
+        metricDisplay: formatFpsRange(rdr2Fps),
+        tierLabel: tierFromFps(rdr2Fps, 90, 60),
+        barPct: Math.round(clamp((rdr2Fps / 125) * 100, 12, 100)),
+      },
+      {
+        id: 'gtav',
+        title: 'GTA V Enhanced',
+        preset: '1440p Very High',
+        metricDisplay: formatFpsRange(gtavFps),
+        tierLabel: tierFromFps(gtavFps, 110, 75),
+        barPct: Math.round(clamp((gtavFps / 150) * 100, 12, 100)),
+      },
+    ];
+  }
+
+  if (input.scenario === '4k_ultra') {
+    const cp4k = Math.round(baseCapability * 0.72);
+    const wukong4k = Math.round(baseCapability * 0.65);
+    const rdr4k = Math.round(baseCapability * 0.85);
+    const fh4k = Math.round(baseCapability * 1.15);
+
+    return [
+      {
+        id: 'cyberpunk-4k',
+        title: 'Cyberpunk 2077',
+        preset: '4K High · DLSS/FSR Performance',
+        metricDisplay: formatFpsRange(cp4k),
+        tierLabel: tierFromFps(cp4k, 70, 50),
+        barPct: Math.round(clamp((cp4k / 95) * 100, 10, 100)),
+      },
+      {
+        id: 'wukong-4k',
+        title: 'Black Myth: Wukong',
+        preset: '4K High · Upscaling',
+        metricDisplay: formatFpsRange(wukong4k),
+        tierLabel: tierFromFps(wukong4k, 65, 45),
+        barPct: Math.round(clamp((wukong4k / 90) * 100, 10, 100)),
+      },
+      {
+        id: 'rdr2-4k',
+        title: 'Red Dead Redemption 2',
+        preset: '4K Ultra',
+        metricDisplay: formatFpsRange(rdr4k),
+        tierLabel: tierFromFps(rdr4k, 75, 55),
+        barPct: Math.round(clamp((rdr4k / 100) * 100, 10, 100)),
+      },
+      {
+        id: 'fh5-4k',
+        title: 'Forza Horizon 5',
+        preset: '4K Extreme',
+        metricDisplay: formatFpsRange(fh4k),
+        tierLabel: tierFromFps(fh4k, 90, 60),
+        barPct: Math.round(clamp((fh4k / 120) * 100, 10, 100)),
+      },
+    ];
+  }
+
+  // Skenario: Editing & Render
+  const renderIndex = Math.round(
+    clamp((2 * cpuEffectiveScore * gpuEffectiveScore) / (cpuEffectiveScore + gpuEffectiveScore), 10, 100),
+  );
+  const premiereScore = Math.round(clamp(renderIndex * (ramGb >= 32 ? 1.08 : ramGb >= 16 ? 0.94 : 0.7), 15, 100));
+  const blenderScore = Math.round(clamp(gpuEffectiveScore * 0.72 + cpuEffectiveScore * 0.35, 15, 100));
+  const aeScore = Math.round(clamp(cpuEffectiveScore * 0.65 + (ramGb >= 32 ? 32 : ramGb >= 16 ? 18 : 6), 15, 100));
+  const resolveScore = Math.round(clamp(gpuEffectiveScore * 0.68 + (input.gpu.vramGb >= 12 ? 28 : input.gpu.vramGb >= 8 ? 18 : 6), 15, 100));
+
+  const tierOf = (score: number): ScenarioBenchmarkItem['tierLabel'] =>
+    score >= 80 ? 'Sangat Lancar' : score >= 60 ? 'Lancar' : score >= 40 ? 'Cukup' : 'Terbatas';
+
+  return [
+    {
+      id: 'premiere-4k',
+      title: 'Premiere Pro 4K Timeline',
+      preset: 'Playback 4K H.264 / Color',
+      metricDisplay: premiereScore >= 78 ? 'Full 1/1 Real-time' : premiereScore >= 58 ? 'Lancar 1/2 Res' : 'Disarankan Proxy',
+      tierLabel: tierOf(premiereScore),
+      barPct: premiereScore,
+    },
+    {
+      id: 'blender',
+      title: 'Blender Cycles / Eevee',
+      preset: 'Render Scene 3D & Viewport',
+      metricDisplay: `Skor ${blenderScore} / 100`,
+      tierLabel: tierOf(blenderScore),
+      barPct: blenderScore,
+    },
+    {
+      id: 'after-effects',
+      title: 'After Effects Preview',
+      preset: `Komposisi VFX · RAM ${ramGb} GB`,
+      metricDisplay: aeScore >= 78 ? 'RAM Preview Cepat' : aeScore >= 56 ? 'Preview Stabil' : 'Terbatas RAM/CPU',
+      tierLabel: tierOf(aeScore),
+      barPct: aeScore,
+    },
+    {
+      id: 'davinci',
+      title: 'DaVinci Resolve 4K Export',
+      preset: `Grade & Encode · ${input.gpu.vramGb || 0} GB VRAM`,
+      metricDisplay: resolveScore >= 78 ? 'Ekspor Sangat Cepat' : resolveScore >= 58 ? 'Ekspor Stabil' : 'Render Ringan',
+      tierLabel: tierOf(resolveScore),
+      barPct: resolveScore,
+    },
+  ];
+}
+
 function buildCoreAnalysis(
   input: BottleneckInput,
   skipRecommendations: boolean,
@@ -622,6 +827,13 @@ function buildCoreAnalysis(
     projectedMetricValue = Math.round(clamp((2 * cpuEffectiveScore * gpuEffectiveScore) / (cpuEffectiveScore + gpuEffectiveScore), 5, 100));
     projectedMetricUnit = 'indeks / 100';
   }
+
+  const scenarioBenchmarks = buildScenarioBenchmarks(
+    input,
+    cpuEffectiveScore,
+    gpuEffectiveScore,
+    baseCapability,
+  );
 
   const psuHeadroom = calculatePsuHeadroom(input.cpu.tdpWatts, input.gpu.tdpWatts, input.psu);
   const compatibilityChecks = buildCompatibilityChecks(input, psuHeadroom, meta);
@@ -721,6 +933,7 @@ function buildCoreAnalysis(
     projectedMetricLabel,
     projectedMetricValue,
     projectedMetricUnit,
+    scenarioBenchmarks,
     psuHeadroom,
     compatibilityChecks,
     upgradeSuggestions,
