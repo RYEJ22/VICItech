@@ -24,7 +24,7 @@ import {
 import AuthModal from "./AuthModal";
 
 const focusRing =
-  "vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60";
+  "vt-motion-press focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50";
 
 /**
  * @param {{
@@ -280,7 +280,7 @@ export default function AuthNavigation({
   if (isLoading) {
     return (
       <span
-        className={`grid shrink-0 place-items-center rounded-full border border-[#E4E4E7] bg-[#FFFFFF] text-[#71717A] ${
+        className={`grid shrink-0 place-items-center rounded-full border border-default bg-surface text-secondary ${
           isMobile ? "h-10 w-10" : "h-10 w-10"
         }`}
         aria-label="Memeriksa sesi masuk"
@@ -306,13 +306,13 @@ export default function AuthNavigation({
             aria-expanded={menuOpen}
             aria-label={`Menu akun ${resolvedName}`}
             title={resolvedName}
-            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border bg-[#FFFFFF] p-0.5 transition-colors duration-150 ${focusRing} ${
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-full border bg-surface p-0.5 transition-colors duration-200 ${focusRing} ${
               menuOpen
-                ? "border-[#EA580C] ring-2 ring-[#EA580C]/20"
-                : "border-[#E4E4E7] hover:border-[#EA580C]/60"
+                ? "border-accent-primary ring-2 ring-accent-primary/20"
+                : "border-default hover:border-accent-primary/60"
             }`}
           >
-            <span className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-[#F3F1ED] font-sans text-xs font-semibold text-[#EA580C]">
+            <span className="grid h-full w-full place-items-center overflow-hidden rounded-full bg-subtle font-sans text-xs font-semibold text-accent-primary">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
@@ -332,11 +332,11 @@ export default function AuthNavigation({
             <div
               role="menu"
               aria-label="Menu akun"
-              className="absolute right-0 top-full z-[60] mt-2 grid w-64 max-w-[calc(100vw-1.5rem)] gap-1 rounded-2xl border border-[#E4E4E7] bg-[#FFFFFF] p-2 shadow-[0_12px_32px_-8px_rgba(24,24,27,0.08),0_2px_6px_-2px_rgba(24,24,27,0.04)]"
+              className="absolute right-0 top-full z-[60] mt-2 grid w-64 max-w-[calc(100vw-1.5rem)] gap-1 rounded-xl border border-default bg-surface p-2 shadow-floating"
             >
-              <div className="border-b border-[#E4E4E7] px-3 py-2.5">
-                <p className="truncate text-sm font-semibold text-[#18181B]">{resolvedName}</p>
-                <p className="truncate text-xs text-[#71717A]">
+              <div className="border-b border-default px-3 py-2.5">
+                <p className="truncate text-sm font-semibold text-primary">{resolvedName}</p>
+                <p className="truncate text-xs text-secondary">
                   {isAdmin ? "Administrator ViciTech" : user?.email || "Anggota ViciTech"}
                 </p>
               </div>
@@ -345,10 +345,10 @@ export default function AuthNavigation({
                 role="menuitem"
                 href="/profile"
                 onClick={closeMenu}
-                className={`group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
+                className={`group flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-subtle hover:text-accent-primary ${focusRing}`}
               >
                 <UserRound
-                  className="h-4 w-4 shrink-0 text-[#52525B] transition-colors group-hover:text-[#EA580C]"
+                  className="h-4 w-4 shrink-0 text-secondary transition-colors group-hover:text-accent-primary"
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
@@ -359,10 +359,10 @@ export default function AuthNavigation({
                 role="menuitem"
                 href="/settings"
                 onClick={closeMenu}
-                className={`group flex min-h-11 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
+                className={`group flex min-h-11 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-subtle hover:text-accent-primary ${focusRing}`}
               >
                 <Settings
-                  className="h-4 w-4 shrink-0 text-[#52525B] transition-colors group-hover:text-[#EA580C]"
+                  className="h-4 w-4 shrink-0 text-secondary transition-colors group-hover:text-accent-primary"
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
@@ -374,29 +374,29 @@ export default function AuthNavigation({
                   role="menuitem"
                   href="/admin"
                   onClick={closeMenu}
-                  className={`group flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-[#18181B] transition-colors hover:bg-[#F3F1ED] hover:text-[#EA580C] ${focusRing}`}
+                  className={`group flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-subtle hover:text-accent-primary ${focusRing}`}
                 >
                   <span className="flex items-center gap-2.5">
                     <ShieldCheck
-                      className="h-4 w-4 shrink-0 text-[#EA580C]"
+                      className="h-4 w-4 shrink-0 text-accent-primary"
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
                     <span>Konsol Admin</span>
                   </span>
-                  <span className="rounded-md bg-[#F3F1ED] px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wider text-[#EA580C]">
+                  <span className="rounded-md bg-subtle px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-accent-primary">
                     Admin
                   </span>
                 </Link>
               )}
 
-              <div className="mt-1 border-t border-[#E4E4E7] pt-1">
+              <div className="mt-1 border-t border-default pt-1">
                 <button
                   type="button"
                   role="menuitem"
                   onClick={signOut}
                   disabled={isSigningOut}
-                  className={`flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-[#71717A] transition-colors hover:bg-status-danger/10 hover:text-status-danger disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
+                  className={`flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-secondary transition-colors hover:bg-status-danger/10 hover:text-status-danger disabled:cursor-wait disabled:opacity-50 ${focusRing}`}
                 >
                   {isSigningOut ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -413,7 +413,7 @@ export default function AuthNavigation({
         <button
           type="button"
           onClick={() => setIsAuthOpen(true)}
-          className={`inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-accent-cta text-sm font-medium text-white transition-colors duration-150 hover:bg-accent-cta-hover ${focusRing} ${
+          className={`inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-accent-primary text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing} ${
             isMobile ? "px-3.5" : "px-4"
           }`}
         >

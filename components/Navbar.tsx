@@ -72,9 +72,9 @@ type OpenMenu = DesktopNavUmbrellaId | 'notifications' | 'account' | null;
 const SHELL_ROUTES = ['/market', '/community'];
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60';
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50';
 const iconBtnBase =
-  `vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
+  `vt-motion-press relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-smooth active:scale-[0.98] sm:h-9 sm:w-9 md:h-10 md:w-10 ${focusRing}`;
 
 function NavIcon({
   iconKey,
@@ -107,7 +107,7 @@ function SubNavIcon({
   readonly active?: boolean;
 }): ReactElement {
   const cls = `mt-0.5 h-4 w-4 shrink-0 transition-colors ${
-    active ? 'text-[#C2410C]' : 'text-[#52525B] group-hover:text-[#C2410C]'
+    active ? 'text-accent-primary' : 'text-secondary group-hover:text-accent-primary'
   }`;
   switch (iconKey) {
     case 'home':
@@ -144,12 +144,12 @@ function SubNavIcon({
 function BrandMark({ compact = false }: { readonly compact?: boolean }): ReactElement {
   return (
     <span
-      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#EA580C] text-white transition-all duration-300 ease-out motion-reduce:transition-none ${
+      className={`grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-primary text-white transition-all duration-300 ease-smooth motion-reduce:transition-none ${
         compact ? 'md:h-8 md:w-8' : 'md:h-9 md:w-9'
       }`}
     >
       <Cpu
-        className={`h-4 w-4 transition-all duration-300 ease-out motion-reduce:transition-none ${
+        className={`h-4 w-4 transition-all duration-300 ease-smooth motion-reduce:transition-none ${
           compact ? 'md:h-4 md:w-4' : 'md:h-[18px] md:w-[18px]'
         }`}
         strokeWidth={1.75}
@@ -179,16 +179,16 @@ function NotificationsPanel({
     <div
       role="dialog"
       aria-label="Notifikasi"
-      className={`absolute right-0 top-full z-[60] mt-3.5 w-[min(22rem,calc(100vw-1.5rem))] rounded-2xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
+      className={`absolute right-0 top-full z-[60] mt-3.5 w-[min(22rem,calc(100vw-1.5rem))] rounded-xl p-2 ${styles.dropdownPanel ?? ''} ${styles.menuPop ?? ''}`}
     >
-      <div className="flex items-center justify-between gap-2 border-b border-[#E4E4E7] px-2.5 pb-2 pt-1">
-        <p className="text-sm font-semibold text-[#18181B]">Notifikasi</p>
+      <div className="flex items-center justify-between gap-2 border-b border-default px-2.5 pb-2 pt-1">
+        <p className="text-sm font-semibold text-primary">Notifikasi</p>
         {isAuthenticated && (
           <button
             type="button"
             onClick={onMarkAllRead}
             disabled={unread === 0}
-            className={`min-h-8 rounded-full px-2.5 text-xs font-medium text-[#71717A] transition-colors hover:bg-[#F3F1ED] hover:text-[#18181B] disabled:cursor-default disabled:opacity-50 ${focusRing}`}
+            className={`min-h-8 rounded-full px-2.5 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-primary disabled:cursor-default disabled:opacity-50 ${focusRing}`}
           >
             Tandai dibaca
           </button>
@@ -196,25 +196,25 @@ function NotificationsPanel({
       </div>
 
       {!isAuthenticated ? (
-        <div className="mt-2 space-y-2.5 rounded-xl bg-[#FAF9F6] px-3 py-4 text-center">
-          <p className="text-xs leading-relaxed text-[#71717A]">
+        <div className="mt-2 space-y-2.5 rounded-xl bg-canvas px-3 py-4 text-center">
+          <p className="text-xs leading-relaxed text-secondary">
             Masuk untuk melihat notifikasi pesanan, komentar, dan pesan langsung Anda.
           </p>
           <Link
             href="/login"
             onClick={onLoginClick}
-            className={`inline-flex min-h-9 items-center justify-center rounded-full bg-accent-cta px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-accent-cta-hover ${focusRing}`}
+            className={`inline-flex min-h-9 items-center justify-center rounded-lg bg-accent-primary px-4 py-1.5 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing}`}
           >
             Masuk ke Akun
           </Link>
         </div>
       ) : isLoading ? (
         <div className="mt-2 space-y-2 p-1" aria-hidden="true">
-          <div className="h-12 animate-pulse rounded-xl bg-[#F3F1ED]" />
-          <div className="h-12 animate-pulse rounded-xl bg-[#F3F1ED]" />
+          <div className="h-12 animate-pulse rounded-lg bg-subtle" />
+          <div className="h-12 animate-pulse rounded-lg bg-subtle" />
         </div>
       ) : items.length === 0 ? (
-        <p className="mt-2 rounded-xl bg-[#FAF9F6] px-3 py-5 text-center text-xs text-[#71717A]">
+        <p className="mt-2 rounded-xl bg-canvas px-3 py-5 text-center text-xs text-secondary">
           Belum ada notifikasi baru.
         </p>
       ) : (
@@ -224,28 +224,28 @@ function NotificationsPanel({
               <button
                 type="button"
                 onClick={() => onSelect(item)}
-                className={`flex min-h-11 w-full items-start gap-2.5 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
+                className={`flex min-h-11 w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-subtle ${focusRing}`}
               >
                 <span
                   aria-hidden="true"
                   className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                    item.unread ? 'bg-[#EA580C]' : 'bg-[#E4E4E7]'
+                    item.unread ? 'bg-accent-primary' : 'bg-border-strong'
                   }`}
                 />
                 <span className="min-w-0 flex-1">
                   <span
                     className={`block text-sm leading-snug ${
-                      item.unread ? 'font-semibold text-[#18181B]' : 'text-[#52525B]'
+                      item.unread ? 'font-semibold text-primary' : 'text-secondary'
                     }`}
                   >
                     {item.title}
                   </span>
                   {item.body && (
-                    <span className="mt-0.5 line-clamp-2 block text-xs text-[#71717A]">
+                    <span className="mt-0.5 line-clamp-2 block text-xs text-secondary">
                       {item.body}
                     </span>
                   )}
-                  <span className="mt-0.5 block text-[11px] text-[#71717A]">
+                  <span className="mt-0.5 block text-[11px] text-secondary">
                     {formatNotificationRelativeTime(item.createdAt)}
                   </span>
                 </span>
@@ -797,13 +797,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
             href="/"
             onClick={(event) => handleHrefClick(event, '/')}
             aria-label="ViciTech Beranda"
-            className={`inline-flex w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-out hover:opacity-85 motion-reduce:transition-none ${
+            className={`inline-flex w-fit shrink-0 items-center justify-self-start rounded-full pr-1 transition-all duration-300 ease-smooth hover:opacity-85 motion-reduce:transition-none ${
               isScrolled ? 'gap-2' : 'gap-2.5'
             } ${focusRing}`}
           >
             <BrandMark compact={isScrolled} />
             <span
-              className={`hidden font-sans font-semibold tracking-tight text-[#18181B] transition-all duration-300 ease-out motion-reduce:transition-none min-[375px]:inline ${
+              className={`hidden font-sans font-bold tracking-tight text-primary transition-all duration-300 ease-smooth motion-reduce:transition-none min-[375px]:inline ${
                 isScrolled ? 'text-base' : 'text-lg'
               }`}
             >
@@ -821,7 +821,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 hoverCloseTimerRef.current = null;
               }, 120);
             }}
-            className={`hidden items-center justify-self-center transition-all duration-300 ease-out motion-reduce:transition-none md:flex ${
+            className={`hidden items-center justify-self-center transition-all duration-300 ease-smooth motion-reduce:transition-none md:flex ${
               isScrolled ? 'gap-5 lg:gap-6' : 'gap-7 lg:gap-8'
             }`}
           >
@@ -837,7 +837,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
                     aria-current={isActive ? 'page' : undefined}
                     className={`vt-motion-press vt-nav-link relative inline-flex items-center whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
-                      isActive ? 'text-[#C2410C]' : 'text-[#18181B]/80 hover:text-[#C2410C]'
+                      isActive ? 'text-accent-primary' : 'text-primary/80 hover:text-accent-primary'
                     }`}
                   >
                     <span>{group.label}</span>
@@ -862,14 +862,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     aria-controls={`nav-panel-${group.id}`}
                     className={`vt-nav-link vt-motion-press relative inline-flex items-center gap-1.5 whitespace-nowrap py-2.5 text-sm font-medium transition-colors ${focusRing} ${
                       isActive || isOpen
-                        ? 'text-[#C2410C]'
-                        : 'text-[#18181B]/80 hover:text-[#C2410C]'
+                        ? 'text-accent-primary'
+                        : 'text-primary/80 hover:text-accent-primary'
                     }`}
                   >
                     <span>{group.label}</span>
                     <ChevronDown
                       className={`vt-chevron h-3.5 w-3.5 shrink-0 ${
-                        isOpen ? 'rotate-180 text-[#C2410C]' : 'text-[#52525B]'
+                        isOpen ? 'rotate-180 text-accent-primary' : 'text-secondary'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
@@ -881,7 +881,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-2">
                       <div
                         id={`nav-panel-${group.id}`}
-                        className={`vt-nav-dropdown-open w-[340px] max-w-[calc(100vw-2rem)] rounded-2xl bg-white p-2 opacity-100 shadow-xl ring-1 ring-black/5 ${styles.dropdownPanel ?? ''}`}
+                        className={`vt-nav-dropdown-open w-[340px] max-w-[calc(100vw-2rem)] rounded-xl bg-surface p-2 opacity-100 shadow-floating ${styles.dropdownPanel ?? ''}`}
                       >
                         <ul className="grid gap-0.5">
                           {group.items.map((subItem) => {
@@ -892,8 +892,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                   href={subItem.href}
                                   onClick={(event) => handleSubItemClick(event, subItem)}
                                   aria-current={subActive ? 'page' : undefined}
-                                  className={`vt-motion-press group flex items-start gap-3 rounded-xl px-3.5 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                                    subActive ? 'bg-[#F3F1ED]/70' : ''
+                                  className={`vt-motion-press group flex items-start gap-3 rounded-lg px-3.5 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                                    subActive ? 'bg-accent-subtle' : ''
                                   }`}
                                 >
                                   <SubNavIcon iconKey={subItem.iconKey} active={subActive} />
@@ -901,13 +901,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                                     <span
                                       className={`block text-sm font-semibold transition-colors ${
                                         subActive
-                                          ? 'text-[#C2410C]'
-                                          : 'text-[#18181B] group-hover:text-[#C2410C]'
+                                          ? 'text-accent-hover'
+                                          : 'text-primary group-hover:text-accent-hover'
                                       }`}
                                     >
                                       {subItem.label}
                                     </span>
-                                    <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                                    <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                                       {subItem.description}
                                     </span>
                                   </span>
@@ -933,7 +933,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               title="Cari cepat (Ctrl+K)"
               aria-label="Cari di ViciTech (Ctrl+K)"
               aria-keyshortcuts="Control+K Meta+K"
-              className={`${iconBtnBase} text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]`}
+              className={`${iconBtnBase} text-secondary hover:bg-subtle hover:text-primary`}
             >
               <Search className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
             </button>
@@ -950,14 +950,14 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   ? `Keranjang Belanja (${totalCartItems} item)`
                   : 'Keranjang Belanja'
               }
-              className={`${iconBtnBase} text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]`}
+              className={`${iconBtnBase} text-secondary hover:bg-subtle hover:text-primary`}
             >
               <ShoppingCart className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
               {totalCartItems > 0 && (
                 <span
                   aria-hidden="true"
                   key={`cart-count-${totalCartItems}`}
-                  className="vt-motion-pop absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#EA580C] px-1 font-mono text-[10px] font-bold leading-none text-white ring-2 ring-white"
+                  className="vt-motion-pop absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-primary px-1 font-mono text-[10px] font-bold leading-none text-white ring-2 ring-surface"
                 >
                   {totalCartItems > 99 ? '99+' : totalCartItems}
                 </span>
@@ -973,15 +973,15 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 aria-label={unreadCount > 0 ? `Pesan Langsung (${unreadCount} belum dibaca)` : 'Pesan Langsung'}
                 className={`${iconBtnBase} ${
                   isMessagesRoute
-                    ? 'bg-[#F3F1ED] text-[#C2410C]'
-                    : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
+                    ? 'bg-accent-subtle text-accent-hover'
+                    : 'text-secondary hover:bg-subtle hover:text-primary'
                 }`}
               >
                 <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
                 {unreadCount > 0 && (
                   <span
                     aria-hidden="true"
-                    className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#EA580C] ring-2 ring-white"
+                    className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-primary ring-2 ring-surface"
                   />
                 )}
               </Link>
@@ -999,15 +999,15 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   }
                   className={`${iconBtnBase} ${
                     openMenu === 'notifications'
-                      ? 'bg-[#F3F1ED] text-[#C2410C]'
-                      : 'text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
+                      ? 'bg-accent-subtle text-accent-hover'
+                      : 'text-secondary hover:bg-subtle hover:text-primary'
                   }`}
                 >
                   <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden="true" />
                   {unreadNotifications > 0 && (
                     <span
                       aria-hidden="true"
-                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#EA580C] ring-2 ring-white"
+                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent-primary ring-2 ring-surface"
                     />
                   )}
                 </button>
@@ -1024,7 +1024,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               </div>
             </div>
 
-            <span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-[#E4E4E7] sm:block" />
+            <span aria-hidden="true" className="mx-1 hidden h-5 w-px bg-default sm:block" />
 
             {/* 3. Akun */}
             <div className="hidden md:flex md:items-center">
@@ -1051,7 +1051,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 aria-label="Buka menu navigasi ViciTech"
                 aria-expanded={sheetOpen}
                 aria-controls="mobile-nav-bottom-sheet"
-                className={`${iconBtnBase} text-[#18181B] hover:bg-[#F3F1ED]`}
+                className={`${iconBtnBase} text-primary hover:bg-subtle`}
               >
                 <Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </button>
@@ -1076,13 +1076,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   aria-current={active ? 'page' : undefined}
                   className={`vt-motion-press flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] leading-none transition-colors ${focusRing} ${
                     active
-                      ? 'bg-[#EA580C]/10 font-semibold text-[#C2410C]'
-                      : 'font-medium text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B]'
+                      ? 'bg-accent-subtle font-semibold text-accent-hover'
+                      : 'font-medium text-secondary hover:bg-subtle hover:text-primary'
                   }`}
                 >
                   <NavIcon
                     iconKey={item.iconKey}
-                    className={`h-[18px] w-[18px] ${active ? 'text-[#C2410C]' : 'text-[#52525B]'}`}
+                    className={`h-[18px] w-[18px] ${active ? 'text-accent-primary' : 'text-secondary'}`}
                   />
                   <span className="truncate">{item.shortLabel}</span>
                 </Link>
@@ -1107,17 +1107,17 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
               <span className={styles.dragHandle} />
             </div>
 
-            <div className="flex items-center justify-between border-b border-[#E4E4E7] px-4 pb-3 pt-1">
+            <div className="flex items-center justify-between border-b border-default px-4 pb-3 pt-1">
               <div>
-                <p className="font-sans text-base font-semibold text-[#18181B]">ViciTech</p>
-                <p className="text-xs text-[#52525B]">Ekosistem Circular IT &amp; Hardware QC</p>
+                <p className="font-sans text-base font-bold text-primary">ViciTech</p>
+                <p className="text-xs text-secondary">Ekosistem Circular IT &amp; Hardware QC</p>
               </div>
               <button
                 ref={closeButtonRef}
                 type="button"
                 onClick={closeSheet}
                 aria-label="Tutup menu navigasi"
-                className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] text-[#18181B] transition-colors hover:bg-[#F3F1ED] ${focusRing}`}
+                className={`inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </button>
@@ -1129,28 +1129,28 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   const active = activeUmbrella === group.id;
                   return (
                     <div key={group.id}>
-                      <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
+                      <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
                         Sosial &amp; Panduan
                       </p>
                       <Link
                         href={group.href}
                         onClick={(event) => handleHrefClick(event, group.href ?? '/community')}
                         aria-current={active ? 'page' : undefined}
-                        className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                          active ? 'bg-[#F3F1ED]' : ''
+                        className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                          active ? 'bg-accent-subtle' : ''
                         }`}
                       >
                         <SubNavIcon iconKey="community" active={active} />
                         <span className="min-w-0 flex-1">
                           <span
                             className={`block text-sm font-semibold ${
-                              active ? 'text-[#C2410C]' : 'text-[#18181B] group-hover:text-[#C2410C]'
+                              active ? 'text-accent-hover' : 'text-primary group-hover:text-accent-hover'
                             }`}
                           >
                             {group.label}
                           </span>
                           {group.description && (
-                            <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                            <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                               {group.description}
                             </span>
                           )}
@@ -1162,7 +1162,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
 
                 return (
                   <div key={group.id}>
-                    <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
+                    <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
                       {group.label}
                     </p>
                     <div className="grid gap-1">
@@ -1174,8 +1174,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                             href={subItem.href}
                             onClick={(event) => handleSubItemClick(event, subItem)}
                             aria-current={subActive ? 'page' : undefined}
-                            className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                              subActive ? 'bg-[#F3F1ED]' : ''
+                            className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                              subActive ? 'bg-accent-subtle' : ''
                             }`}
                           >
                             <SubNavIcon iconKey={subItem.iconKey} active={subActive} />
@@ -1183,13 +1183,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                               <span
                                 className={`block text-sm font-semibold ${
                                   subActive
-                                    ? 'text-[#C2410C]'
-                                    : 'text-[#18181B] group-hover:text-[#C2410C]'
+                                    ? 'text-accent-hover'
+                                    : 'text-primary group-hover:text-accent-hover'
                                 }`}
                               >
                                 {subItem.label}
                               </span>
-                              <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                              <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                                 {subItem.description}
                               </span>
                             </span>
@@ -1201,16 +1201,16 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                 );
               })}
 
-              <div className="border-t border-[#E4E4E7] pt-3">
-                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-[#52525B]">
+              <div className="border-t border-default pt-3">
+                <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-secondary">
                   Workspace &amp; Akun
                 </p>
                 <div className="grid gap-1">
                   <Link
                     href="/"
                     onClick={(event) => handleHrefClick(event, '/')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      pathname === '/' ? 'bg-[#F3F1ED]' : ''
+                    className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                      pathname === '/' ? 'bg-accent-subtle' : ''
                     }`}
                   >
                     <SubNavIcon iconKey="home" active={pathname === '/'} />
@@ -1218,13 +1218,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       <span
                         className={`block text-sm font-semibold ${
                           pathname === '/'
-                            ? 'text-[#C2410C]'
-                            : 'text-[#18181B] group-hover:text-[#C2410C]'
+                            ? 'text-accent-hover'
+                            : 'text-primary group-hover:text-accent-hover'
                         }`}
                       >
                         Beranda
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                         Halaman utama ekosistem Circular IT &amp; Hardware QC ViciTech.
                       </span>
                     </span>
@@ -1233,19 +1233,19 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   <Link
                     href="/messages"
                     onClick={(event) => handleHrefClick(event, '/messages')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      isMessagesRoute ? 'bg-[#F3F1ED]' : ''
+                    className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                      isMessagesRoute ? 'bg-accent-subtle' : ''
                     }`}
                   >
                     <SubNavIcon iconKey="messages" active={isMessagesRoute} />
                     <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2 text-sm font-semibold text-[#18181B] group-hover:text-[#C2410C]">
+                      <span className="flex items-center gap-2 text-sm font-semibold text-primary group-hover:text-accent-hover">
                         <span>Pesan Langsung</span>
                         {hasUnreadAlerts && (
-                          <span className="inline-flex h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
+                          <span className="inline-flex h-2 w-2 rounded-full bg-accent-primary" aria-hidden="true" />
                         )}
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                         {unreadCount > 0
                           ? `${unreadCount} pesan belum dibaca`
                           : 'Obrolan langsung dengan teknisi & builder.'}
@@ -1256,16 +1256,16 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                   <Link
                     href="/profile"
                     onClick={(event) => handleHrefClick(event, '/profile')}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      isProfileRoute ? 'bg-[#F3F1ED]' : ''
+                    className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                      isProfileRoute ? 'bg-accent-subtle' : ''
                     }`}
                   >
                     <SubNavIcon iconKey="account" active={isProfileRoute} />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-[#18181B] group-hover:text-[#C2410C]">
+                      <span className="block text-sm font-semibold text-primary group-hover:text-accent-hover">
                         Profil &amp; Akun
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                         Pesanan, preset tersimpan &amp; preferensi akun.
                       </span>
                     </span>
@@ -1275,8 +1275,8 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     href="/settings"
                     onClick={(event) => handleHrefClick(event, '/settings')}
                     aria-current={isSettingsRoute ? 'page' : undefined}
-                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
-                      isSettingsRoute ? 'bg-[#F3F1ED]' : ''
+                    className={`group flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-subtle ${focusRing} ${
+                      isSettingsRoute ? 'bg-accent-subtle' : ''
                     }`}
                   >
                     <SubNavIcon iconKey="settings" active={isSettingsRoute} />
@@ -1284,13 +1284,13 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       <span
                         className={`block text-sm font-semibold ${
                           isSettingsRoute
-                            ? 'text-[#C2410C]'
-                            : 'text-[#18181B] group-hover:text-[#C2410C]'
+                            ? 'text-accent-hover'
+                            : 'text-primary group-hover:text-accent-hover'
                         }`}
                       >
                         Pengaturan &amp; Privasi
                       </span>
-                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                      <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                         Aksesibilitas tampilan, ekspor data &amp; kontrol UU PDP.
                       </span>
                     </span>

@@ -661,7 +661,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-shell px-4 pb-28 pt-8 sm:px-6 sm:pb-28 sm:pt-10">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <header className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="vt-badge-simulated">Simulasi Keseimbangan &amp; Daya</span>

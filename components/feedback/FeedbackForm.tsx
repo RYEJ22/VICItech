@@ -198,32 +198,32 @@ export function FeedbackForm() {
     return (
       <section
         aria-live="polite"
-        className="rounded-2xl border border-[#E4E4E7] bg-white p-6 shadow-sm sm:p-8"
+        className="rounded-xl border border-default bg-surface p-6 shadow-card sm:p-8"
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7ED] text-[#EA580C]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-subtle text-accent-primary">
           <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-xl font-bold tracking-tight text-[#18181B]">
+        <h2 className="mt-4 text-xl font-bold tracking-tight text-primary">
           Terima kasih atas masukan Anda!
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-[#52525B]">
+        <p className="mt-2 text-sm leading-relaxed text-secondary">
           Laporan Anda telah tersimpan di basis data validasi ViciTech OS dan akan ditinjau langsung oleh tim pengembang.
         </p>
 
-        <dl className="mt-5 grid gap-3 rounded-xl border border-[#EEEAE5] bg-[#FAF9F6] p-4 text-xs sm:grid-cols-3">
+        <dl className="mt-5 grid gap-3 rounded-xl border border-default bg-canvas p-4 text-xs sm:grid-cols-3">
           <div>
-            <dt className="font-medium text-[#52525B]">Kategori</dt>
-            <dd className="mt-1 font-semibold text-[#18181B]">{submitted.category}</dd>
+            <dt className="font-medium text-secondary">Kategori</dt>
+            <dd className="mt-1 font-semibold text-primary">{submitted.category}</dd>
           </div>
           <div>
-            <dt className="font-medium text-[#52525B]">Rating</dt>
-            <dd className="mt-1 font-semibold text-[#18181B]">
+            <dt className="font-medium text-secondary">Rating</dt>
+            <dd className="mt-1 font-mono font-semibold tabular-nums text-primary">
               {submitted.rating} / 5 ({RATING_LABELS[submitted.rating]})
             </dd>
           </div>
           <div>
-            <dt className="font-medium text-[#52525B]">Halaman / Modul</dt>
-            <dd className="mt-1 font-semibold text-[#18181B]">
+            <dt className="font-medium text-secondary">Halaman / Modul</dt>
+            <dd className="mt-1 font-semibold text-primary">
               {submitted.pageModule ?? 'Umum'}
             </dd>
           </div>
@@ -233,7 +233,7 @@ export function FeedbackForm() {
           <button
             type="button"
             onClick={() => setSubmitted(null)}
-            className="vt-motion-press inline-flex min-h-11 items-center justify-center rounded-xl bg-[#EA580C] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2"
+            className="vt-motion-press inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-primary px-5 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
           >
             Kirim Masukan Lain
           </button>
@@ -245,13 +245,13 @@ export function FeedbackForm() {
   return (
     <form
       onSubmit={(event) => void handleSubmit(event)}
-      className="space-y-6 rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-sm sm:p-7"
+      className="space-y-6 rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
       noValidate
     >
       {/* ── Kategori ── */}
       <fieldset>
-        <legend className="text-sm font-semibold text-[#18181B]">
-          Kategori Masukan <span className="text-[#EA580C]">*</span>
+        <legend className="text-sm font-semibold text-primary">
+          Kategori Masukan <span className="text-accent-primary">*</span>
         </legend>
         <div className="mt-2.5 grid gap-2.5 sm:grid-cols-2">
           {CATEGORY_OPTIONS.map((option) => {
@@ -263,24 +263,24 @@ export function FeedbackForm() {
                 type="button"
                 onClick={() => setCategory(option.value)}
                 aria-pressed={selected}
-                className={`vt-motion-press flex items-start gap-3 rounded-xl border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 ${
+                className={`vt-motion-press flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                   selected
-                    ? 'border-[#EA580C] bg-[#FFF7ED]'
-                    : 'border-[#E4E4E7] bg-[#FAF9F6] hover:border-[#D4D4D8] hover:bg-white'
+                    ? 'border-accent-primary bg-accent-subtle'
+                    : 'border-default bg-canvas hover:border-strong hover:bg-surface'
                 }`}
               >
                 <span
                   className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
                     selected
-                      ? 'bg-[#EA580C] text-white'
-                      : 'bg-white text-[#52525B] border border-[#E4E4E7]'
+                      ? 'bg-accent-primary text-white'
+                      : 'border border-default bg-surface text-secondary'
                   }`}
                 >
                   <Icon className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-[#18181B]">{option.label}</span>
-                  <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                  <span className="block text-sm font-semibold text-primary">{option.label}</span>
+                  <span className="mt-0.5 block text-xs leading-relaxed text-secondary">
                     {option.description}
                   </span>
                 </span>
@@ -292,8 +292,8 @@ export function FeedbackForm() {
 
       {/* ── Rating 1–5 ── */}
       <fieldset>
-        <legend className="text-sm font-semibold text-[#18181B]">
-          Penilaian Pengalaman (1–5) <span className="text-[#EA580C]">*</span>
+        <legend className="text-sm font-semibold text-primary">
+          Penilaian Pengalaman (1–5) <span className="text-accent-primary">*</span>
         </legend>
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
           {[1, 2, 3, 4, 5].map((value) => {
@@ -306,21 +306,21 @@ export function FeedbackForm() {
                 onClick={() => setRating(value)}
                 aria-label={`Beri rating ${value} dari 5: ${RATING_LABELS[value]}`}
                 aria-pressed={isExact}
-                className={`vt-motion-press inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 ${
+                className={`vt-motion-press inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg border px-3 font-mono text-sm font-semibold tabular-nums transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                   isExact
-                    ? 'border-[#EA580C] bg-[#FFF7ED] text-[#C2410C]'
-                    : 'border-[#E4E4E7] bg-[#FAF9F6] text-[#52525B] hover:border-[#D4D4D8] hover:bg-white'
+                    ? 'border-accent-primary bg-accent-subtle text-accent-hover'
+                    : 'border-default bg-canvas text-secondary hover:border-strong hover:bg-surface'
                 }`}
               >
                 <Star
-                  className={`h-4 w-4 ${active ? 'fill-[#EA580C] text-[#EA580C]' : 'text-[#A1A1AA]'}`}
+                  className={`h-4 w-4 ${active ? 'fill-accent-primary text-accent-primary' : 'text-secondary/50'}`}
                   aria-hidden="true"
                 />
                 <span>{value}</span>
               </button>
             );
           })}
-          <span className="ml-1 text-xs font-medium text-[#52525B]">
+          <span className="ml-1 text-xs font-medium text-secondary">
             {RATING_LABELS[rating]}
           </span>
         </div>
@@ -329,10 +329,10 @@ export function FeedbackForm() {
       {/* ── Pesan ── */}
       <div>
         <div className="flex items-baseline justify-between gap-2">
-          <label htmlFor="feedback-message" className="text-sm font-semibold text-[#18181B]">
-            Detail Masukan <span className="text-[#EA580C]">*</span>
+          <label htmlFor="feedback-message" className="text-sm font-semibold text-primary">
+            Detail Masukan <span className="text-accent-primary">*</span>
           </label>
-          <span className="text-xs text-[#52525B]">{message.length}/2000</span>
+          <span className="font-mono text-xs tabular-nums text-secondary">{message.length}/2000</span>
         </div>
         <textarea
           id="feedback-message"
@@ -342,21 +342,21 @@ export function FeedbackForm() {
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           placeholder="Jelaskan fitur yang Anda harapkan, langkah reproduksi bug, atau kesan Anda saat menggunakan ViciTech…"
-          className="mt-2 w-full resize-y rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-3.5 py-3 text-sm leading-relaxed text-[#18181B] placeholder:text-[#71717A] focus-visible:border-[#EA580C] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+          className="mt-2 w-full resize-y rounded-lg border border-default bg-subtle px-3.5 py-3 text-sm leading-relaxed text-primary placeholder:text-secondary focus-visible:border-accent-primary focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
         />
       </div>
 
       {/* ── Modul & Kontak Opsional ── */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="feedback-module" className="block text-sm font-semibold text-[#18181B]">
-            Halaman / Modul <span className="text-xs font-normal text-[#52525B]">(Opsional)</span>
+          <label htmlFor="feedback-module" className="block text-sm font-semibold text-primary">
+            Halaman / Modul <span className="text-xs font-normal text-secondary">(Opsional)</span>
           </label>
           <select
             id="feedback-module"
             value={pageModule}
             onChange={(event) => setPageModule(event.target.value)}
-            className="mt-2 min-h-11 w-full rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-3.5 text-sm text-[#18181B] focus-visible:border-[#EA580C] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+            className="mt-2 min-h-11 w-full rounded-lg border border-default bg-subtle px-3.5 text-sm text-primary focus-visible:border-accent-primary focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             {MODULE_OPTIONS.map((item) => (
               <option key={item} value={item}>
@@ -367,8 +367,8 @@ export function FeedbackForm() {
         </div>
 
         <div>
-          <label htmlFor="feedback-contact" className="block text-sm font-semibold text-[#18181B]">
-            Nama / Kontak <span className="text-xs font-normal text-[#52525B]">(Opsional)</span>
+          <label htmlFor="feedback-contact" className="block text-sm font-semibold text-primary">
+            Nama / Kontak <span className="text-xs font-normal text-secondary">(Opsional)</span>
           </label>
           <input
             id="feedback-contact"
@@ -377,10 +377,10 @@ export function FeedbackForm() {
             value={contactName}
             onChange={(event) => setContactName(event.target.value)}
             placeholder="Nama, @username, atau email"
-            className="mt-2 min-h-11 w-full rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-3.5 text-sm text-[#18181B] placeholder:text-[#71717A] focus-visible:border-[#EA580C] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+            className="mt-2 min-h-11 w-full rounded-lg border border-default bg-subtle px-3.5 text-sm text-primary placeholder:text-secondary focus-visible:border-accent-primary focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           />
           {isAutoFilled ? (
-            <p className="mt-1 text-xs text-[#52525B]">
+            <p className="mt-1 text-xs text-secondary">
               Diisi otomatis dari akun Anda yang sedang masuk. Anda bebas mengubah atau mengosongkannya.
             </p>
           ) : null}
@@ -392,19 +392,19 @@ export function FeedbackForm() {
           role="alert"
           className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs leading-relaxed text-red-800"
         >
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-hidden="true" />
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-status-danger" aria-hidden="true" />
           <span>{errorMessage}</span>
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EEEAE5] pt-4">
-        <p className="text-xs leading-relaxed text-[#52525B]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default pt-4">
+        <p className="text-xs leading-relaxed text-secondary">
           Dapat dikirim tanpa login. Masukan hanya dapat dibaca oleh admin ViciTech.
         </p>
         <button
           type="submit"
           disabled={submitting}
-          className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#C2410C] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2"
+          className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-accent-primary px-6 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
         >
           <Send className="h-4 w-4" aria-hidden="true" />
           <span>{submitting ? 'Mengirim…' : 'Kirim Masukan'}</span>

@@ -140,7 +140,7 @@ export function MarketStorefront({
   };
 
   return (
-    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-clip px-3 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8">
+    <div className="mx-auto min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8 lg:px-8">
       {(onOpenLibrary || onOpenBuilder) && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-4 sm:p-5">
           <p className="line-clamp-2 max-w-[68ch] text-xs leading-relaxed text-secondary sm:text-sm">
@@ -229,7 +229,7 @@ export function MarketStorefront({
       )}
 
       {/* Sticky Frosted-Glass Search, Filter Controls & Category Pills */}
-      <div className="vt-glass-bar sticky top-14 z-20 space-y-2.5 rounded-2xl border border-default p-3 shadow-card sm:space-y-3 sm:p-4 md:top-[76px]">
+      <div className="vt-glass-bar sticky top-14 z-20 space-y-2.5 rounded-xl border border-default p-3 shadow-card sm:space-y-3 sm:p-4 md:top-[76px]">
         <div className="flex flex-col gap-2 sm:gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="relative flex-1">
             <label htmlFor={searchInputId} className="sr-only">
@@ -246,7 +246,7 @@ export function MarketStorefront({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cari PC build, ThinkPad, PS5, Steam Deck, GPU, atau komponen…"
-              className="vt-form-control min-h-10 w-full rounded-xl border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
+              className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-subtle py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:bg-surface focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
             />
           </div>
 
@@ -254,7 +254,7 @@ export function MarketStorefront({
             <div
               role="group"
               aria-label="Filter ketersediaan stok"
-              className="no-scrollbar inline-flex max-w-full flex-nowrap gap-0.5 overflow-x-auto rounded-xl border border-default bg-subtle p-0.5 sm:gap-1 sm:p-1"
+              className="no-scrollbar inline-flex max-w-full flex-nowrap gap-0.5 overflow-x-auto rounded-lg border border-default bg-subtle p-0.5 sm:gap-1 sm:p-1"
             >
               {STOCK_FILTER_OPTIONS.map((option) => {
                 const active = stockFilter === option.id;
@@ -264,9 +264,9 @@ export function MarketStorefront({
                     type="button"
                     aria-pressed={active}
                     onClick={() => setStockFilter(option.id)}
-                    className={`vt-motion-press vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:px-3 sm:py-1.5 sm:text-xs ${
+                    className={`vt-motion-press vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:min-h-9 sm:px-3 sm:py-1.5 sm:text-xs ${
                       active
-                        ? 'bg-accent-cta font-semibold text-accent-foreground'
+                        ? 'bg-accent-primary font-semibold text-white'
                         : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
@@ -300,7 +300,7 @@ export function MarketStorefront({
                     setSortBy(value);
                   }
                 }}
-                className="vt-form-control min-h-10 rounded-xl border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
+                className="vt-form-control min-h-10 rounded-lg border border-default bg-subtle px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:bg-surface focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
               >
                 <option value="newest">Terbaru</option>
                 <option value="price_asc">Harga Terendah</option>
@@ -430,9 +430,9 @@ export function MarketStorefront({
       ) : filteredProducts.length === 0 ? (
         <section
           aria-live="polite"
-          className="rounded-2xl border border-default bg-surface p-6 text-center shadow-sm sm:p-12"
+          className="rounded-xl border border-default bg-surface p-6 text-center shadow-card sm:p-12"
         >
-          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-default bg-canvas text-accent-primary">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl border border-default bg-canvas text-accent-primary">
             <Search className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </div>
           <h2 className="mt-4 font-sans text-xl font-bold tracking-tight text-primary sm:text-2xl">
@@ -448,7 +448,7 @@ export function MarketStorefront({
             <button
               type="button"
               onClick={resetFilters}
-              className="vt-motion-press vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <RotateCcw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Reset Filter</span>

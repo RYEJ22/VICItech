@@ -174,9 +174,9 @@ export function AdminShell({
                 href={item.href}
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
-                className={`group flex min-h-11 items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
+                className={`group flex min-h-11 items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ease-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                   active
-                    ? 'bg-ink text-white shadow-sm'
+                    ? 'border border-accent-primary/25 bg-accent-subtle font-semibold text-accent-hover shadow-card'
                     : 'text-secondary hover:bg-subtle hover:text-primary'
                 }`}
               >
@@ -220,14 +220,14 @@ export function AdminShell({
   );
 
   return (
-    <div className="flex min-h-screen bg-paper text-primary">
+    <div className="flex min-h-screen bg-canvas text-primary">
       <aside className="hidden md:sticky md:top-0 md:flex md:h-screen md:w-64 md:shrink-0 md:flex-col md:border-r md:border-default md:bg-surface">
         {renderSidebarNavigation()}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-default bg-surface/95 backdrop-blur-sm">
-          <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <header className="vt-glass-bar sticky top-0 z-30 border-b border-default">
+          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 ref={menuButtonRef}
@@ -236,7 +236,7 @@ export function AdminShell({
                 aria-label="Buka menu navigasi admin"
                 aria-expanded={mobileMenuOpen}
                 aria-controls={mobileMenuId}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-canvas text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-canvas text-primary transition hover:border-accent-primary/45 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 md:hidden"
               >
                 <Menu className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </button>
@@ -254,7 +254,7 @@ export function AdminShell({
         </header>
 
         <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[1440px] min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl min-w-0 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
             {children}
           </div>
         </main>

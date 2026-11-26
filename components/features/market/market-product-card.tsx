@@ -77,7 +77,7 @@ export function MarketProductCard({
   return (
     <RevealOnScroll
       as="article"
-      className={`vt-card-lift group flex h-full flex-col overflow-hidden rounded-2xl border border-default bg-surface shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-primary/40 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:transform-none ${className}`}
+      className={`vt-card-lift group flex h-full flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-card transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:border-strong hover:shadow-card-hover motion-reduce:transition-none motion-reduce:hover:transform-none ${className}`}
     >
       <Link
         href={href}
@@ -155,7 +155,7 @@ export function MarketProductCard({
                   ? `Tambah ${product.title} ke keranjang`
                   : `${product.title} sedang habis`
               }
-              className="vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center justify-center gap-1 rounded-xl border border-default bg-canvas px-2 py-1.5 text-xs font-semibold text-primary hover:border-accent-primary/40 hover:bg-subtle disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-default bg-canvas px-2 py-1.5 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               {justAdded ? (
                 <Check className="h-3.5 w-3.5 shrink-0 text-status-live" strokeWidth={2} aria-hidden="true" />
@@ -176,7 +176,7 @@ export function MarketProductCard({
                   ? `Beli sekarang ${product.title}`
                   : `${product.title} sedang habis`
               }
-              className="vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center justify-center rounded-xl bg-accent-cta px-2 py-1.5 text-xs font-semibold text-accent-foreground hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center justify-center rounded-lg bg-accent-primary px-2 py-1.5 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-subtle disabled:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <span>{!stockMeta.isAvailable ? 'Stok Habis' : 'Beli Sekarang'}</span>
             </button>

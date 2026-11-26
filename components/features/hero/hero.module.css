@@ -1,39 +1,11 @@
-/*
- * Visual identity aligned with DESIGN.md canonical semantic CSS custom properties.
- * Alpha overlays consume the matching -rgb channel tokens from app/globals.css.
- */
 .hero {
   position: relative;
   isolation: isolate;
   display: flex;
   align-items: center;
   overflow: hidden;
-  min-height: 30rem;
-  min-height: clamp(30rem, 84svh, 52rem);
-}
-
-/*
- * Light editorial overlay. Below 64rem the copy spans the full width, so the
- * wash is uniform. From 64rem the copy sits on the left and the photo opens up
- * on the right. High contrast opacity stops keep body copy sharp over photography.
- */
-.overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  background: rgb(var(--bg-canvas-rgb) / 0.9);
-}
-
-@media (min-width: 64rem) {
-  .overlay {
-    background: linear-gradient(
-      to right,
-      rgb(var(--bg-canvas-rgb) / 0.97) 0%,
-      rgb(var(--bg-canvas-rgb) / 0.92) 56%,
-      rgb(var(--bg-canvas-rgb) / 0.42) 100%
-    );
-  }
+  min-height: 28rem;
+  min-height: clamp(28rem, 78svh, 46rem);
 }
 
 .content {
@@ -57,7 +29,7 @@
   color: var(--accent-foreground);
   font-weight: 600;
   box-shadow: 0 10px 24px -8px rgb(var(--accent-cta-rgb) / 0.5);
-  transition: background-color 150ms ease-out, transform 150ms ease-out, box-shadow 150ms ease-out;
+  transition: background-color 180ms var(--ease-snappy), transform 180ms var(--ease-snappy), box-shadow 180ms var(--ease-snappy);
 }
 
 .ctaPrimary:hover {
@@ -67,13 +39,13 @@
   box-shadow: 0 12px 28px -8px rgb(var(--accent-cta-hover-rgb) / 0.6);
 }
 
-/* Crisp solid editorial secondary CTA without backdrop-filter blur */
+/* Crisp solid editorial secondary CTA */
 .ctaSecondary {
   background: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid rgb(var(--text-primary-rgb) / 0.16);
-  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.05);
-  transition: background-color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+  box-shadow: 0 1px 2px rgba(20, 20, 22, 0.05);
+  transition: background-color 180ms var(--ease-snappy), border-color 180ms var(--ease-snappy), transform 180ms var(--ease-snappy);
 }
 
 .ctaSecondary:hover {
@@ -101,23 +73,19 @@
 }
 
 .stagger1 {
-  animation: heroFadeUp 420ms var(--vt-motion-ease) 40ms both;
+  animation: heroFadeUp 420ms var(--ease-smooth) 40ms both;
 }
 
 .stagger2 {
-  animation: heroFadeUp 460ms var(--vt-motion-ease) 100ms both;
+  animation: heroFadeUp 460ms var(--ease-smooth) 100ms both;
 }
 
 .stagger3 {
-  animation: heroFadeUp 460ms var(--vt-motion-ease) 170ms both;
+  animation: heroFadeUp 480ms var(--ease-smooth) 160ms both;
 }
 
 .stagger4 {
-  animation: heroFadeUp 480ms var(--vt-motion-ease) 230ms both;
-}
-
-.previewReveal {
-  animation: heroFadeUp 520ms var(--vt-motion-ease) 260ms both;
+  animation: heroFadeUp 480ms var(--ease-smooth) 220ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -132,8 +100,7 @@
   .stagger1,
   .stagger2,
   .stagger3,
-  .stagger4,
-  .previewReveal {
+  .stagger4 {
     animation: none;
   }
 }
@@ -141,7 +108,6 @@
 :global(html[data-reduced-motion='true']) .stagger1,
 :global(html[data-reduced-motion='true']) .stagger2,
 :global(html[data-reduced-motion='true']) .stagger3,
-:global(html[data-reduced-motion='true']) .stagger4,
-:global(html[data-reduced-motion='true']) .previewReveal {
+:global(html[data-reduced-motion='true']) .stagger4 {
   animation: none;
 }

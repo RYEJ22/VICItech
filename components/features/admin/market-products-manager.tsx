@@ -221,23 +221,23 @@ export function MarketProductsManager({
 
       {/* Bento KPI Strip */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-default bg-ink p-4 text-white shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/70">Total Produk</p>
-          <p className="mt-2 text-3xl font-semibold">
+        <article className="rounded-xl border border-default bg-surface p-4 shadow-card">
+          <p className="text-xs font-medium uppercase tracking-wider text-secondary">Total Produk</p>
+          <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-primary">
             <AnimatedNumber value={counts.total} format="number" />
           </p>
-          <p className="mt-1 text-xs text-white/70">Terdaftar di `public.products`</p>
+          <p className="mt-1 text-xs text-secondary">Terdaftar di `public.products`</p>
         </article>
-        <article className="rounded-xl border border-default bg-surface p-4 shadow-sm">
+        <article className="rounded-xl border border-default bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wider text-secondary">Stok Siap</p>
-          <p className="mt-2 text-3xl font-semibold text-primary">
+          <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-primary">
             <AnimatedNumber value={counts.ready} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Siap checkout langsung</p>
         </article>
-        <article className="rounded-xl border border-default bg-surface p-4 shadow-sm">
+        <article className="rounded-xl border border-default bg-surface p-4 shadow-card">
           <p className="text-xs font-medium uppercase tracking-wider text-secondary">Pre-Order / Habis</p>
-          <p className="mt-2 text-3xl font-semibold text-primary">
+          <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-primary">
             <AnimatedNumber value={counts.preorderOrOut} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Butuh restok atau perakitan</p>

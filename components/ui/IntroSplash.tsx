@@ -79,7 +79,7 @@ export function IntroSplash(): ReactElement | null {
     <div
       role="presentation"
       aria-hidden="true"
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FAF9F6] transition-all duration-[400ms] ease-out ${
+      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-canvas transition-all duration-[400ms] ease-smooth ${
         isExiting
           ? 'pointer-events-none -translate-y-4 opacity-0'
           : 'translate-y-0 opacity-100'
@@ -87,12 +87,12 @@ export function IntroSplash(): ReactElement | null {
     >
       <div className="flex flex-col items-center">
         <span
-          className={`${styles.wordmark ?? ''} select-none text-2xl font-semibold tracking-tight text-[#18181B] md:text-3xl`}
+          className={`${styles.wordmark ?? ''} select-none text-2xl font-bold tracking-tight text-primary md:text-3xl`}
         >
           ViciTech
         </span>
-        <div className="mt-4 h-[2px] w-32 overflow-hidden rounded-full bg-[#E4E4E7]">
-          <div className={`${styles.progressFill ?? ''} h-full w-full bg-[#EA580C]`} />
+        <div className="mt-4 h-[2px] w-32 overflow-hidden rounded-full bg-subtle">
+          <div className={`${styles.progressFill ?? ''} h-full w-full bg-accent-primary`} />
         </div>
       </div>
     </div>

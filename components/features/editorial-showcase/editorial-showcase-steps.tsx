@@ -248,7 +248,7 @@ export function EditorialShowcaseSteps({
           </div>
           <Link
             href="/market"
-            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-surface transition hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             <span>Lihat Etalase Market</span>
             <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />

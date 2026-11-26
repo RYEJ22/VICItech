@@ -436,7 +436,7 @@ export function ChatMediaPicker({
           tabIndex={-1}
           aria-label="Tutup panel media"
           onClick={handleClose}
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+          className="fixed inset-0 z-40 bg-black/35"
         />
         {panelBody}
       </>

@@ -938,9 +938,9 @@ export function ProfileAccountHub({
                         <p className="font-semibold text-primary">
                           Pemeriksaan QC ({report.overallStatus.toUpperCase()})
                         </p>
-                        <p className="font-mono text-secondary">
-                          {report.environment === 'device' ? 'Live ESP32' : 'Simulasi IoT QC'}
-                        </p>
+                        <span className={`mt-1 inline-flex ${report.environment === 'device' ? 'vt-badge-live' : 'vt-badge-simulated'}`}>
+                          {report.environment === 'device' ? 'Live ESP32' : 'Simulated / Demo'}
+                        </span>
                       </div>
                       <span className="font-mono text-secondary">
                         {formatProfileFullDate(report.createdAt)}

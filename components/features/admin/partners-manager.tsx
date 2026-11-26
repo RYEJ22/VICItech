@@ -213,12 +213,12 @@ export function PartnersManager({
 
       {/* KPI Strip */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-xl border border-default bg-ink p-4 text-white shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/70">Total Mitra</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums">
+        <article className="rounded-xl border border-default bg-surface p-4 shadow-card">
+          <p className="text-xs font-medium uppercase tracking-wider text-secondary">Total Mitra</p>
+          <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-primary">
             {counts.total.toLocaleString('id-ID')}
           </p>
-          <p className="mt-1 text-xs text-white/70">Terdaftar di `public.partners`</p>
+          <p className="mt-1 text-xs text-secondary">Terdaftar di `public.partners`</p>
         </article>
         <article className="rounded-xl border border-default bg-surface p-4 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-secondary">Terverifikasi</p>

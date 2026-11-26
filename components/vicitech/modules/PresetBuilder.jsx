@@ -984,7 +984,7 @@ export default function PresetBuilder({
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 pb-28 pt-4 sm:px-6 sm:pb-32 sm:pt-10 lg:pb-28">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Data Referensi &amp; Inventori</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
@@ -1030,10 +1030,10 @@ export default function PresetBuilder({
                 type="button"
                 onClick={startCustomBuild}
                 aria-pressed={presetId === "custom"}
-                className={`vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${focusRing} ${
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] ${focusRing} ${
                   presetId === "custom"
-                    ? "border-primary bg-primary text-surface"
-                    : "border-default bg-canvas text-primary hover:border-accent-primary/40 hover:bg-subtle"
+                    ? "border-accent-primary bg-accent-primary text-white"
+                    : "border-default bg-canvas text-primary hover:border-strong hover:bg-subtle"
                 }`}
               >
                 <Wrench className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />

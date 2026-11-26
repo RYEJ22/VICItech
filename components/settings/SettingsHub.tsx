@@ -64,16 +64,16 @@ function SettingsSwitch({
       aria-checked={checked}
       aria-label={label}
       onClick={onChange}
-      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2 ${
-        checked ? 'bg-[#EA580C]' : 'bg-[#E4E4E7]'
+      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2 ${
+        checked ? 'bg-accent-primary' : 'bg-border-strong'
       }`}
     >
       <span
-        className={`inline-flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform ${
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full bg-surface shadow-sm transition-transform ${
           checked ? 'translate-x-6' : 'translate-x-1'
         }`}
       >
-        {checked ? <Check className="h-3 w-3 text-[#EA580C]" aria-hidden="true" /> : null}
+        {checked ? <Check className="h-3 w-3 text-accent-primary" aria-hidden="true" /> : null}
       </span>
     </button>
   );
@@ -349,21 +349,21 @@ export function SettingsHub() {
       {/* ── Section 1: Tampilan & Aksesibilitas ── */}
       <section
         aria-labelledby="settings-display-heading"
-        className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-sm sm:p-7"
+        className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#EEEAE5] pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-default pb-4">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FFF7ED] text-[#EA580C]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
               <Eye className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
               <h2
                 id="settings-display-heading"
-                className="text-lg font-bold tracking-tight text-[#18181B]"
+                className="text-lg font-bold tracking-tight text-primary"
               >
                 Tampilan &amp; Aksesibilitas
               </h2>
-              <p className="mt-0.5 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-0.5 text-xs leading-relaxed text-secondary">
                 Preferensi diterapkan langsung pada perangkat ini dan otomatis tersinkron ke profil
                 jika Anda masuk.
               </p>
@@ -373,16 +373,16 @@ export function SettingsHub() {
           <div className="flex items-center gap-2">
             <span
               aria-live="polite"
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-1 text-xs font-medium text-[#52525B]"
+              className="inline-flex items-center gap-1.5 rounded-md border border-default bg-canvas px-3 py-1 text-xs font-medium text-secondary"
             >
               {syncStatus === 'saving' ? (
                 <>
-                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-[#EA580C]" aria-hidden="true" />
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-accent-primary" aria-hidden="true" />
                   Menyimpan…
                 </>
               ) : syncStatus === 'saved' ? (
                 <>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-status-live" aria-hidden="true" />
                   Tersinkron ke akun
                 </>
               ) : authUser ? (
@@ -395,7 +395,7 @@ export function SettingsHub() {
             <button
               type="button"
               onClick={() => void updateSettings(DEFAULT_USER_SETTINGS)}
-              className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[#E4E4E7] px-3 text-xs font-medium text-[#52525B] transition-colors hover:bg-[#F3F1ED] hover:text-[#18181B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+              className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               Reset
@@ -403,15 +403,15 @@ export function SettingsHub() {
           </div>
         </div>
 
-        <div className="divide-y divide-[#EEEAE5]">
+        <div className="divide-y divide-default">
           {/* Bahasa */}
           <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
-                <p className="text-sm font-semibold text-[#18181B]">Bahasa Antarmuka</p>
+                <Globe className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">Bahasa Antarmuka</p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
                 Simpan preferensi bahasa pilihan Anda (ID / EN). Salinan utama ViciTech tetap
                 menjaga konsistensi Bahasa Indonesia hingga lokalisasi penuh tersedia.
               </p>
@@ -419,7 +419,7 @@ export function SettingsHub() {
             <div
               role="group"
               aria-label="Pilihan bahasa"
-              className="inline-flex rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-1"
+              className="inline-flex rounded-lg border border-default bg-subtle p-1"
             >
               {LANGUAGE_OPTIONS.map((opt) => {
                 const selected = settings.language === opt.value;
@@ -429,10 +429,10 @@ export function SettingsHub() {
                     type="button"
                     onClick={() => void updateSettings({ language: opt.value })}
                     aria-pressed={selected}
-                    className={`vt-motion-press min-h-9 rounded-lg px-3.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 ${
+                    className={`vt-motion-press min-h-9 rounded-md px-3.5 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                       selected
-                        ? 'bg-[#EA580C] text-white shadow-sm'
-                        : 'text-[#52525B] hover:text-[#18181B]'
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:text-primary'
                     }`}
                   >
                     {opt.sub}
@@ -445,8 +445,8 @@ export function SettingsHub() {
           {/* High Contrast */}
           <div className="flex items-center justify-between gap-4 py-5">
             <div className="max-w-lg">
-              <p className="text-sm font-semibold text-[#18181B]">Mode Kontras Tinggi</p>
-              <p className="mt-1 text-xs leading-relaxed text-[#52525B]">
+              <p className="text-sm font-semibold text-primary">Mode Kontras Tinggi</p>
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
                 Mempertegas batas kartu, kontras teks, dan indikator fokus papan ketik untuk
                 keterbacaan maksimal di tema terang.
               </p>
@@ -462,10 +462,10 @@ export function SettingsHub() {
           <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
-                <Type className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
-                <p className="text-sm font-semibold text-[#18181B]">Skala Ukuran Teks</p>
+                <Type className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">Skala Ukuran Teks</p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
                 Sesuaikan ukuran dasar tipografi agar lebih nyaman dibaca tanpa merusak tata letak
                 halaman.
               </p>
@@ -473,7 +473,7 @@ export function SettingsHub() {
             <div
               role="group"
               aria-label="Skala ukuran teks"
-              className="grid grid-cols-3 gap-1.5 rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-1"
+              className="grid grid-cols-3 gap-1.5 rounded-lg border border-default bg-subtle p-1"
             >
               {TEXT_SCALE_OPTIONS.map((option) => {
                 const selected = settings.textScale === option.value;
@@ -483,16 +483,16 @@ export function SettingsHub() {
                     type="button"
                     onClick={() => void updateSettings({ textScale: option.value })}
                     aria-pressed={selected}
-                    className={`vt-motion-press min-h-10 rounded-lg px-3 py-1.5 text-center text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 ${
+                    className={`vt-motion-press min-h-10 rounded-md px-3 py-1.5 text-center text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
                       selected
-                        ? 'bg-[#EA580C] text-white shadow-sm'
-                        : 'text-[#52525B] hover:bg-white hover:text-[#18181B]'
+                        ? 'bg-accent-primary text-white shadow-card'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
                     <span className="block">{option.label}</span>
                     <span
-                      className={`block text-[10px] font-normal ${
-                        selected ? 'text-white/90' : 'text-[#52525B]'
+                      className={`block font-mono text-[10px] font-normal tabular-nums ${
+                        selected ? 'text-white/90' : 'text-secondary'
                       }`}
                     >
                       {option.sample}
@@ -507,13 +507,13 @@ export function SettingsHub() {
           <div className="flex items-center justify-between gap-4 py-5">
             <div className="max-w-lg">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
-                <p className="text-sm font-semibold text-[#18181B]">Kurangi Gerakan (Reduced Motion)</p>
+                <Sparkles className="h-4 w-4 text-accent-primary" aria-hidden="true" />
+                <p className="text-sm font-semibold text-primary">Kurangi Gerakan (Reduced Motion)</p>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1 text-xs leading-relaxed text-secondary">
                 Menonaktifkan animasi transisi dan efek gerak antarmuka. Status sistem perangkat
                 Anda saat ini:{' '}
-                <strong className="font-semibold text-[#18181B]">
+                <strong className="font-semibold text-primary">
                   {osPrefersReducedMotion ? 'Aktif (Reduced)' : 'Standar'}
                 </strong>
                 .
@@ -531,20 +531,20 @@ export function SettingsHub() {
       {/* ── Section 2: Privasi & Data Akun (UU PDP) ── */}
       <section
         aria-labelledby="settings-privacy-heading"
-        className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-sm sm:p-7"
+        className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-7"
       >
-        <div className="flex items-start gap-3 border-b border-[#EEEAE5] pb-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FFF7ED] text-[#EA580C]">
+        <div className="flex items-start gap-3 border-b border-default pb-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
             <ShieldCheck className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
             <h2
               id="settings-privacy-heading"
-              className="text-lg font-bold tracking-tight text-[#18181B]"
+              className="text-lg font-bold tracking-tight text-primary"
             >
               Privasi &amp; Data Akun (UU PDP)
             </h2>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#52525B]">
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
               Kelola preferensi cookie, unduh salinan data pribadi Anda, atau ajukan permintaan
               penghapusan akun sesuai UU No. 27 Tahun 2022.
             </p>
@@ -553,33 +553,33 @@ export function SettingsHub() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {/* Card 1: Pengaturan Cookie */}
-          <div className="flex flex-col justify-between rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-4">
+          <div className="flex flex-col justify-between rounded-xl border border-default bg-canvas p-4">
             <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-[#18181B]">
-                <Cookie className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-sm font-bold text-primary">
+                <Cookie className="h-4 w-4 text-accent-primary" aria-hidden="true" />
                 <span>Pengaturan Cookie</span>
               </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1.5 text-xs leading-relaxed text-secondary">
                 Tinjau kategori cookie Esensial &amp; Preferensi serta kebijakan pelindungan data
                 pribadi ViciTech.
               </p>
             </div>
             <Link
               href="/cookies"
-              className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-xl border border-[#E4E4E7] bg-white px-4 text-xs font-semibold text-[#18181B] transition-colors hover:border-[#EA580C]/40 hover:text-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+              className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               Buka Pengaturan Cookie
             </Link>
           </div>
 
           {/* Card 2: Ekspor Data Saya */}
-          <div className="flex flex-col justify-between rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-4">
+          <div className="flex flex-col justify-between rounded-xl border border-default bg-canvas p-4">
             <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-[#18181B]">
-                <Download className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-sm font-bold text-primary">
+                <Download className="h-4 w-4 text-accent-primary" aria-hidden="true" />
                 <span>Ekspor Data Saya</span>
               </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1.5 text-xs leading-relaxed text-secondary">
                 Unduh file JSON berisi ringkasan profil, riwayat pesanan, dan postingan komunitas
                 milik akun Anda.
               </p>
@@ -589,7 +589,7 @@ export function SettingsHub() {
                 type="button"
                 onClick={() => void handleExportMyData()}
                 disabled={exporting}
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 text-xs font-semibold text-white transition-colors hover:bg-[#C2410C] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2"
+                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-accent-primary px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
               >
                 {exporting ? (
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
@@ -601,7 +601,7 @@ export function SettingsHub() {
             ) : (
               <Link
                 href="/login"
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-xl border border-[#E4E4E7] bg-white px-4 text-xs font-semibold text-[#18181B] transition-colors hover:bg-[#F3F1ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-surface px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 Masuk untuk Ekspor Data
               </Link>
@@ -611,11 +611,11 @@ export function SettingsHub() {
           {/* Card 3: Ajukan Penghapusan Akun / Data */}
           <div className="flex flex-col justify-between rounded-xl border border-red-200 bg-red-50/40 p-4">
             <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-[#18181B]">
-                <Trash2 className="h-4 w-4 text-red-600" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-sm font-bold text-primary">
+                <Trash2 className="h-4 w-4 text-status-danger" aria-hidden="true" />
                 <span>Hapus Akun / Data</span>
               </div>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#52525B]">
+              <p className="mt-1.5 text-xs leading-relaxed text-secondary">
                 Ajukan penghapusan akun &amp; data pribadi secara permanen. Permintaan akan
                 diverifikasi admin demi keamanan.
               </p>
@@ -627,7 +627,7 @@ export function SettingsHub() {
                   setDeleteError(null);
                   setDeleteModalOpen(true);
                 }}
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-red-300 bg-white px-4 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-red-300 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
                 <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>Ajukan Penghapusan Akun / Data</span>
@@ -635,7 +635,7 @@ export function SettingsHub() {
             ) : (
               <Link
                 href="/login"
-                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-xl border border-red-200 bg-white px-4 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                className="vt-motion-press mt-4 inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-surface px-4 text-xs font-semibold text-red-700 transition-all duration-200 ease-smooth hover:bg-red-50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
               >
                 Masuk untuk Mengajukan
               </Link>
@@ -646,7 +646,7 @@ export function SettingsHub() {
         {exportNotice ? (
           <p
             aria-live="polite"
-            className="mt-4 rounded-xl border border-[#EEEAE5] bg-[#FAF9F6] px-4 py-3 text-xs font-medium text-[#18181B]"
+            className="mt-4 rounded-xl border border-default bg-canvas px-4 py-3 text-xs font-medium text-primary"
           >
             {exportNotice}
           </p>
@@ -670,7 +670,7 @@ export function SettingsHub() {
       {/* ── Modal Konfirmasi Penghapusan Akun / Data ── */}
       {deleteModalOpen ? (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-[#18181B]/60 p-4"
+          className="vt-backdrop-enter fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4"
           onClick={() => {
             if (!submittingDelete) setDeleteModalOpen(false);
           }}
@@ -680,21 +680,21 @@ export function SettingsHub() {
             aria-modal="true"
             aria-labelledby="delete-account-modal-title"
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-md rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-2xl sm:p-6"
+            className="vt-dialog-enter w-full max-w-md rounded-xl border border-default bg-surface p-5 shadow-floating sm:p-6"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-50 text-red-600">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-red-50 text-status-danger">
                   <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div>
                   <h3
                     id="delete-account-modal-title"
-                    className="text-base font-bold text-[#18181B]"
+                    className="text-base font-bold text-primary"
                   >
                     Konfirmasi Penghapusan Data
                   </h3>
-                  <p className="text-xs text-[#52525B]">Hak Penghapusan Data Pribadi (UU PDP)</p>
+                  <p className="text-xs text-secondary">Hak Penghapusan Data Pribadi (UU PDP)</p>
                 </div>
               </div>
               <button
@@ -702,15 +702,15 @@ export function SettingsHub() {
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={submittingDelete}
                 aria-label="Tutup dialog konfirmasi"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-[#52525B] hover:bg-[#F3F1ED] hover:text-[#18181B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
 
-            <p className="mt-4 text-xs leading-relaxed text-[#52525B]">
+            <p className="mt-4 text-xs leading-relaxed text-secondary">
               Tindakan ini akan mencatat permintaan penghapusan akun{' '}
-              <strong className="font-semibold text-[#18181B]">
+              <strong className="font-semibold text-primary">
                 {authUser?.email || authUser?.displayName}
               </strong>{' '}
               untuk diverifikasi oleh admin ViciTech. Data transaksi yang masih terikat garansi
@@ -721,7 +721,7 @@ export function SettingsHub() {
               <div>
                 <label
                   htmlFor="delete-reason-input"
-                  className="block text-xs font-semibold text-[#18181B]"
+                  className="block text-xs font-semibold text-primary"
                 >
                   Alasan (Opsional)
                 </label>
@@ -732,14 +732,14 @@ export function SettingsHub() {
                   value={deleteReason}
                   onChange={(event) => setDeleteReason(event.target.value)}
                   placeholder="Contoh: Tidak lagi menggunakan layanan ini"
-                  className="mt-1.5 w-full resize-none rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-xs text-[#18181B] placeholder:text-[#71717A] focus-visible:border-[#EA580C] focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                  className="mt-1.5 w-full resize-none rounded-lg border border-default bg-subtle px-3 py-2 text-xs text-primary placeholder:text-secondary focus-visible:border-accent-primary focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="delete-confirm-input"
-                  className="block text-xs font-semibold text-[#18181B]"
+                  className="block text-xs font-semibold text-primary"
                 >
                   Ketik <span className="font-mono text-red-700">HAPUS</span> untuk mengonfirmasi
                 </label>
@@ -750,7 +750,7 @@ export function SettingsHub() {
                   onChange={(event) => setDeleteConfirmText(event.target.value)}
                   placeholder="HAPUS"
                   autoComplete="off"
-                  className="mt-1.5 min-h-10 w-full rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-3 text-sm font-mono text-[#18181B] placeholder:text-[#71717A] focus-visible:border-red-500 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
+                  className="mt-1.5 min-h-10 w-full rounded-lg border border-default bg-subtle px-3 font-mono text-sm text-primary placeholder:text-secondary focus-visible:border-status-danger focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60"
                 />
               </div>
             </div>
@@ -766,7 +766,7 @@ export function SettingsHub() {
                 type="button"
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={submittingDelete}
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-4 text-xs font-semibold text-[#18181B] hover:bg-[#F3F1ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                className="inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 Batal
               </button>
@@ -774,7 +774,7 @@ export function SettingsHub() {
                 type="button"
                 onClick={() => void handleSubmitDeletionRequest()}
                 disabled={submittingDelete || deleteConfirmText.trim().toUpperCase() !== 'HAPUS'}
-                className="vt-motion-press inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-red-600 px-4 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2"
+                className="vt-motion-press inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-status-danger px-4 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-red-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2"
               >
                 {submittingDelete ? (
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />

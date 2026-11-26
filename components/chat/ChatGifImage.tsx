@@ -53,7 +53,7 @@ export function ChatGifImage({
         className="block h-full w-full object-cover"
       />
       {showBadge ? (
-        <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wider text-white uppercase backdrop-blur-xs">
+        <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-md bg-primary/80 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wider text-white uppercase">
           GIF
         </span>
       ) : null}

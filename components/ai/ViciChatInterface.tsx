@@ -39,24 +39,24 @@ function readHistory(): ChatItem[] {
 
 const MARKDOWN_COMPONENTS: Components = {
   p: ({ children }) => <p className="mb-2 leading-6 last:mb-0">{children}</p>,
-  strong: ({ children }) => <strong className="font-semibold text-[#18181B]">{children}</strong>,
+  strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
   ul: ({ children }) => <ul className="my-1.5 list-disc space-y-1 pl-5">{children}</ul>,
   ol: ({ children }) => <ol className="my-1.5 list-decimal space-y-1 pl-5">{children}</ol>,
   li: ({ children }) => <li className="leading-6">{children}</li>,
-  h1: ({ children }) => <h3 className="mb-1.5 mt-3 text-sm font-bold text-[#18181B] first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h3 className="mb-1.5 mt-3 text-sm font-bold text-[#18181B] first:mt-0">{children}</h3>,
-  h3: ({ children }) => <h4 className="mb-1 mt-2.5 text-sm font-semibold text-[#18181B] first:mt-0">{children}</h4>,
-  h4: ({ children }) => <h4 className="mb-1 mt-2 text-sm font-semibold text-[#18181B] first:mt-0">{children}</h4>,
-  blockquote: ({ children }) => <blockquote className="my-2 border-l-2 border-[#EA580C]/50 pl-3 text-[#52525B]">{children}</blockquote>,
-  hr: () => <hr className="my-2.5 border-[#EEEAE5]" />,
+  h1: ({ children }) => <h3 className="mb-1.5 mt-3 text-sm font-bold text-primary first:mt-0">{children}</h3>,
+  h2: ({ children }) => <h3 className="mb-1.5 mt-3 text-sm font-bold text-primary first:mt-0">{children}</h3>,
+  h3: ({ children }) => <h4 className="mb-1 mt-2.5 text-sm font-semibold text-primary first:mt-0">{children}</h4>,
+  h4: ({ children }) => <h4 className="mb-1 mt-2 text-sm font-semibold text-primary first:mt-0">{children}</h4>,
+  blockquote: ({ children }) => <blockquote className="my-2 border-l-2 border-accent-primary/50 pl-3 text-secondary">{children}</blockquote>,
+  hr: () => <hr className="my-2.5 border-default" />,
   pre: ({ children }) => (
-    <pre className="my-2 overflow-x-auto rounded-lg border border-[#E7E2DC] bg-[#FAF9F6] p-3 font-mono text-xs leading-5 text-[#18181B]">
+    <pre className="my-2 overflow-x-auto rounded-lg border border-default bg-canvas p-3 font-mono text-xs leading-5 text-primary">
       {children}
     </pre>
   ),
   code: ({ children }) => (
-    <code className="rounded bg-[#F3F1ED] px-1.5 py-0.5 font-mono text-[12px] text-[#18181B]">
+    <code className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[12px] text-primary">
       {children}
     </code>
   ),
@@ -69,7 +69,7 @@ const MARKDOWN_COMPONENTS: Components = {
         href={safeHref}
         target={isExternal ? '_blank' : undefined}
         rel={isExternal ? 'noopener noreferrer' : undefined}
-        className="rounded-sm font-medium text-[#C2410C] underline underline-offset-2 hover:text-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+        className="rounded-sm font-medium text-accent-hover underline underline-offset-2 hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
       >
         {children}
       </a>
@@ -79,7 +79,7 @@ const MARKDOWN_COMPONENTS: Components = {
 
 function AssistantMarkdown({ content }: { readonly content: string }) {
   return (
-    <div className="text-sm text-[#27272A] [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-xs">
+    <div className="text-sm text-primary [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-xs">
       <ReactMarkdown components={MARKDOWN_COMPONENTS}>{content}</ReactMarkdown>
     </div>
   );
@@ -199,37 +199,37 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
   }
 
   return (
-    <section className={`flex min-h-0 flex-col bg-white ${compact ? 'h-full' : 'min-h-[560px] rounded-2xl border border-[#E7E2DC] shadow-sm'}`} aria-label="Konsultan Rakitan AI">
-      <header className="flex items-center justify-between gap-3 border-b border-[#EEEAE5] px-4 py-3">
+    <section className={`flex min-h-0 flex-col bg-surface ${compact ? 'h-full' : 'min-h-[560px] rounded-xl border border-default shadow-card'}`} aria-label="Konsultan Rakitan AI">
+      <header className="flex items-center justify-between gap-3 border-b border-default px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#EA580C]/10 text-[#C2410C]"><Sparkles size={18} aria-hidden="true" /></span>
-          <div><h2 className="text-sm font-bold text-[#18181B]">ViciTech AI</h2><p className="text-xs text-[#52525B]">Konsultan Rakitan & Hardware</p></div>
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent-subtle text-accent-primary"><Sparkles size={18} aria-hidden="true" /></span>
+          <div><h2 className="text-sm font-bold text-primary">ViciTech AI</h2><p className="text-xs text-secondary">Konsultan Rakitan &amp; Hardware</p></div>
         </div>
-        <button type="button" onClick={resetChat} className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-[#52525B] transition-colors hover:bg-[#F7F5F2] hover:text-[#18181B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"><RotateCcw size={14} aria-hidden="true" />Reset Obrolan</button>
+        <button type="button" onClick={resetChat} className="vt-motion-press inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><RotateCcw size={14} aria-hidden="true" />Reset Obrolan</button>
       </header>
 
       <div className={`min-h-0 flex-1 space-y-4 overflow-y-auto p-4 ${compact ? 'max-h-[360px]' : 'max-h-[min(68vh,760px)] sm:p-6'}`} aria-live="polite">
         {messages.length === 0 ? <div className="mx-auto max-w-lg py-5 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#EA580C]/10 text-[#C2410C]"><Sparkles aria-hidden="true" /></span>
-          <h3 className="mt-3 font-bold tracking-tight text-[#18181B]">Ada yang ingin dirakit?</h3>
-          <p className="mt-1 text-sm text-[#52525B]">Ceritakan kebutuhan atau anggaranmu, kami bantu cari opsi yang pas.</p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">{STARTERS.map((starter) => <button key={starter} type="button" onClick={() => void sendMessage(undefined, starter)} className="vt-motion-press rounded-full border border-[#E7E2DC] px-3 py-2 text-xs font-medium text-[#52525B] transition-colors hover:border-[#EA580C]/40 hover:bg-[#FFF7ED] hover:text-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60">{starter}</button>)}</div>
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-accent-subtle text-accent-primary"><Sparkles aria-hidden="true" /></span>
+          <h3 className="mt-3 font-bold tracking-tight text-primary">Ada yang ingin dirakit?</h3>
+          <p className="mt-1 text-sm text-secondary">Ceritakan kebutuhan atau anggaranmu, kami bantu cari opsi yang pas.</p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">{STARTERS.map((starter) => <button key={starter} type="button" onClick={() => void sendMessage(undefined, starter)} className="vt-motion-press rounded-full border border-default bg-canvas px-3 py-2 text-xs font-medium text-secondary transition-all duration-200 ease-smooth hover:border-accent-primary/40 hover:bg-accent-subtle hover:text-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50">{starter}</button>)}</div>
         </div> : messages.map((message, index) => <div key={`${index}-${message.role}`} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-          <div className={`max-w-[90%] rounded-2xl px-4 py-3 ${message.role === 'user' ? 'bg-[#EA580C] text-white' : 'border border-[#EEEAE5] bg-white text-[#27272A] shadow-sm'}`}>
+          <div className={`max-w-[90%] rounded-xl px-4 py-3 ${message.role === 'user' ? 'bg-accent-primary text-white' : 'border border-default bg-canvas text-primary shadow-card'}`}>
             {message.content ? (
               message.role === 'user' ? (
                 <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
               ) : (
                 <AssistantMarkdown content={message.content} />
               )
-            ) : <span className="inline-flex gap-1 py-1" aria-label="AI sedang mengetik"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#EA580C]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#EA580C] [animation-delay:120ms]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#EA580C] [animation-delay:240ms]" /></span>}
+            ) : <span className="inline-flex gap-1 py-1" aria-label="AI sedang mengetik"><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-primary" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-primary [animation-delay:120ms]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-accent-primary [animation-delay:240ms]" /></span>}
           </div>
         </div>)}
-        {loading && messages.at(-1)?.role !== 'assistant' && <p className="text-xs text-[#52525B]">ViciTech AI sedang menyiapkan jawaban…</p>}
+        {loading && messages.at(-1)?.role !== 'assistant' && <p className="text-xs text-secondary">ViciTech AI sedang menyiapkan jawaban…</p>}
         <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={(event) => void sendMessage(event)} className="flex items-end gap-2 border-t border-[#EEEAE5] p-3 sm:p-4">
+      <form onSubmit={(event) => void sendMessage(event)} className="flex items-end gap-2 border-t border-default p-3 sm:p-4">
         <label className="sr-only" htmlFor={`vici-chat-input-${variant}`}>Pesan untuk ViciTech AI</label>
         <textarea
           ref={inputRef}
@@ -245,9 +245,9 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
           }}
           maxLength={4000}
           placeholder="Tulis pertanyaan hardware…"
-          className="vt-form-control min-h-11 max-h-36 min-w-0 flex-1 resize-y rounded-xl border border-[#E7E2DC] bg-[#FAFAF9] px-3 py-2.5 text-sm leading-5 text-[#18181B] placeholder:text-[#71717A] focus-visible:border-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+          className="vt-form-control min-h-11 max-h-36 min-w-0 flex-1 resize-y rounded-lg border border-default bg-subtle px-3 py-2.5 text-sm leading-5 text-primary placeholder:text-secondary focus-visible:border-accent-primary focus-visible:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
         />
-        <button type="submit" disabled={!input.trim() || loading} aria-label="Kirim pesan" className="vt-motion-press grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#EA580C] text-white transition-colors hover:bg-[#C2410C] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-1"><ArrowUp size={19} aria-hidden="true" /></button>
+        <button type="submit" disabled={!input.trim() || loading} aria-label="Kirim pesan" className="vt-motion-press grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-accent-primary text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-1"><ArrowUp size={19} aria-hidden="true" /></button>
       </form>
     </section>
   );

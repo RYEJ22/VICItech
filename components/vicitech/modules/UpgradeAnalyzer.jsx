@@ -934,7 +934,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
 
   return (
     <div className="bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 pb-28 pt-8 sm:px-6 sm:pb-28 sm:pt-10">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
           <span className="vt-badge-sample">Data Referensi</span>
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-cta">
@@ -1005,7 +1005,7 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari merek atau model (cth. ThinkPad, Vivobook, Nitro, OptiPlex)…"
-                    className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-10 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+                    className={`vt-form-control min-h-11 w-full rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-10 text-sm text-primary placeholder:text-secondary focus:bg-surface ${focusRing}`}
                   />
                   {searchQuery && (
                     <button
@@ -1029,9 +1029,9 @@ export default function UpgradeAnalyzer({ deviceId, onDeviceChange, onNavigate }
                         type="button"
                         aria-pressed={active}
                         onClick={() => setCategoryFilter(cat)}
-                        className={`vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors sm:text-sm ${focusRing} ${
+                        className={`vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] sm:text-sm ${focusRing} ${
                           active
-                            ? "border-primary bg-primary text-surface"
+                            ? "border-accent-primary bg-accent-primary text-white"
                             : "border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
                         }`}
                       >

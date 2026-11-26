@@ -57,7 +57,7 @@ export default function WorkspaceCommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-start justify-center bg-black/45 p-4 pt-[12vh] backdrop-blur-sm"
+      className="vt-backdrop-enter fixed inset-0 z-[70] flex items-start justify-center bg-black/45 p-4 pt-[12vh]"
       onMouseDown={onClose}
     >
       <div
@@ -65,10 +65,10 @@ export default function WorkspaceCommandPalette({
         aria-modal="true"
         aria-label="Command palette"
         onMouseDown={(e) => e.stopPropagation()}
-        className="vt-metal w-full max-w-xl overflow-hidden rounded-2xl"
+        className="vt-dialog-enter w-full max-w-xl overflow-hidden rounded-xl border border-default bg-surface shadow-floating"
       >
-        <div className="flex items-center gap-3 border-b border-black/[0.06] px-4">
-          <Search className="h-4 w-4 shrink-0 text-pewter" aria-hidden="true" />
+        <div className="flex items-center gap-3 border-b border-default px-4">
+          <Search className="h-4 w-4 shrink-0 text-secondary" aria-hidden="true" />
           <input
             ref={inputRef}
             value={q}
@@ -77,20 +77,20 @@ export default function WorkspaceCommandPalette({
               setIdx(0);
             }}
             onKeyDown={onKeyDown}
-            placeholder="Search modules, actions or a serial number"
-            aria-label="Search"
+            placeholder="Cari modul, aksi, atau nomor seri..."
+            aria-label="Cari modul"
             autoComplete="off"
             spellCheck={false}
-            className="vt-form-control h-12 flex-1 bg-transparent text-sm text-ink placeholder:text-faint focus:outline-none"
+            className="h-12 flex-1 bg-transparent text-sm text-primary placeholder:text-secondary focus:outline-none"
           />
-          <kbd className="rounded border border-black/10 bg-black/5 px-1.5 py-0.5 text-[11px] text-pewter">
+          <kbd className="rounded-md border border-default bg-subtle px-1.5 py-0.5 font-mono text-[11px] text-secondary">
             Esc
           </kbd>
         </div>
         <ul role="listbox" aria-label="Results" className="max-h-80 overflow-y-auto p-2">
           {items.length === 0 && (
-            <li className="px-3 py-6 text-center text-sm text-pewter">
-              No matches. Try “gpu”, “upgrade” or a serial like VICI-SRV-2026-9042.
+            <li className="px-3 py-6 text-center text-sm text-secondary">
+              Tidak ada hasil. Coba “gpu”, “upgrade”, atau nomor seri seperti VICI-SRV-2026-9042.
             </li>
           )}
           {items.map((it, i) => {
@@ -101,23 +101,23 @@ export default function WorkspaceCommandPalette({
                   type="button"
                   onMouseEnter={() => setIdx(i)}
                   onClick={() => onSelect(it)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
-                    i === idx ? "bg-signal-wash text-signal-deep" : "text-ink hover:bg-black/[0.04]"
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                    i === idx ? "bg-accent-subtle text-accent-hover" : "text-primary hover:bg-subtle"
                   }`}
                 >
                   <Icon
-                    className={`h-4 w-4 shrink-0 ${i === idx ? "text-signal" : "text-pewter"}`}
+                    className={`h-4 w-4 shrink-0 ${i === idx ? "text-accent-primary" : "text-secondary"}`}
                     aria-hidden="true"
                   />
                   <span className="flex-1 truncate text-sm font-medium">{it.label}</span>
-                  <span className="hidden shrink-0 text-xs text-pewter sm:block">{it.hint}</span>
+                  <span className="hidden shrink-0 text-xs text-secondary sm:block">{it.hint}</span>
                 </button>
               </li>
             );
           })}
         </ul>
-        <p className="border-t border-black/[0.06] px-4 py-2.5 text-xs text-pewter">
-          Arrow keys to move, Enter to open, Esc to close.
+        <p className="border-t border-default px-4 py-2.5 text-xs text-secondary">
+          Gunakan panah untuk navigasi, Enter untuk buka, Esc untuk tutup.
         </p>
       </div>
     </div>

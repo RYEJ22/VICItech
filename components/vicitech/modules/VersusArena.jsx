@@ -501,9 +501,9 @@ export default function VersusArena({ onDeployToPreset, marketProducts = [] }) {
                   role="radio"
                   aria-checked={isActive}
                   onClick={() => setProfile(profKey)}
-                  className={`vt-btn-tactile min-h-11 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm ${focusRing} ${
+                  className={`vt-btn-tactile min-h-11 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] sm:text-sm ${focusRing} ${
                     isActive
-                      ? "bg-primary text-surface"
+                      ? "bg-accent-primary text-white"
                       : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
                   }`}
                 >

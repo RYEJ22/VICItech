@@ -202,12 +202,12 @@ export default function HardwareInventoryPage(): ReactElement {
 
       {/* Bento KPI Strip */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <article className="rounded-xl border border-ink bg-ink p-4 text-white shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wider text-white/70">Total Komponen</p>
-          <p className="mt-2 font-mono text-3xl font-semibold tabular-nums">
+        <article className="rounded-xl border border-default bg-surface p-4 shadow-card">
+          <p className="text-xs font-medium uppercase tracking-wider text-secondary">Total Komponen</p>
+          <p className="mt-2 font-mono text-3xl font-bold tabular-nums text-primary">
             {components.length.toLocaleString('id-ID')}
           </p>
-          <p className="mt-1 text-xs text-white/70">Terdaftar di `hardware_components`</p>
+          <p className="mt-1 text-xs text-secondary">Terdaftar di `hardware_components`</p>
         </article>
         <article className="rounded-xl border border-default bg-accent-subtle p-4 shadow-sm">
           <p className="text-xs font-medium uppercase tracking-wider text-accent-hover">

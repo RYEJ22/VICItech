@@ -134,9 +134,9 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
   return (
     <section
       aria-label="Ringkasan arsitektur Circular IT ViciTech"
-      className="bg-surface pb-24 pt-12 sm:pb-24 sm:pt-16"
+      className="bg-canvas pb-24 pt-12 sm:pb-24 sm:pt-16"
     >
-      <div className="mx-auto max-w-shell space-y-14 px-4 sm:space-y-16 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-14 px-4 sm:space-y-16 sm:px-6 lg:px-8">
         {/* Tri-Pillar Moat Asymmetric Bento Grid */}
         <RevealOnScroll>
           <TriPillarBento />
@@ -144,8 +144,8 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
 
         {/* Editorial Manifesto Band */}
         <RevealOnScroll>
-        <div className={`rounded-2xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
-          <span className="inline-flex items-center rounded-full border border-[#EA580C]/25 bg-white px-3.5 py-1 text-xs font-semibold text-[#C2410C] shadow-sm">
+        <div className={`rounded-xl px-6 py-10 text-center sm:px-10 sm:py-14 ${styles.manifestoBand ?? ''}`}>
+          <span className="inline-flex items-center rounded-full border border-accent-primary/25 bg-surface px-3.5 py-1 text-xs font-semibold text-accent-hover shadow-card">
             {SHOWCASE_MANIFESTO.badgeLabel}
           </span>
           <h2 className="mx-auto mt-5 max-w-3xl font-sans text-3xl font-extrabold leading-tight tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
@@ -156,7 +156,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
               <button
                 type="button"
                 onClick={() => onNavigate(SHOWCASE_MANIFESTO.ctaModule)}
-                className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#EA580C] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-6 py-2.5 text-sm font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -164,7 +164,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             ) : (
               <Link
                 href={resolveShowcaseHref(SHOWCASE_MANIFESTO.ctaModule)}
-                className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#EA580C] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+                className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-primary px-6 py-2.5 text-sm font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
               >
                 <span>{SHOWCASE_MANIFESTO.ctaLabel}</span>
                 <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -172,7 +172,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
             )}
             <Link
               href={SHOWCASE_MANIFESTO.secondaryHref}
-              className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+              className="vt-motion-press inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
             >
               <span>{SHOWCASE_MANIFESTO.secondaryLabel}</span>
             </Link>
@@ -182,7 +182,7 @@ export function EditorialShowcase({ onNavigate }: EditorialShowcaseProps): React
 
         {/* Reference 00:09–00:13: 4-Corner Hardware Diagram with Technical Callouts */}
         <RevealOnScroll>
-        <div className={`rounded-2xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
+        <div className={`rounded-xl p-5 sm:p-8 ${styles.diagramFrame ?? ''}`}>
           <div className="mb-6 max-w-2xl">
             <span className="vt-badge-simulated">Protokol Verifikasi Multi-Perangkat · Demo QC</span>
             <h2 className="tracking-tight mt-3 font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">

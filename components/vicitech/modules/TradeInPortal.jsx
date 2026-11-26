@@ -535,7 +535,7 @@ export default function CircularPortal() {
 
         {/* Banner CTA tunggal ke Etalase Market */}
         <section className="mt-8 sm:mt-12" aria-labelledby="market-refurb-cta-title">
-          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-default bg-surface p-5 shadow-sm sm:gap-6 sm:p-8 lg:flex-row lg:items-center">
+          <div className="flex flex-col justify-between gap-4 rounded-xl border border-default bg-surface p-5 shadow-card sm:gap-6 sm:p-8 lg:flex-row lg:items-center">
             <div className="max-w-2xl space-y-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="vt-badge-simulated">
@@ -548,7 +548,7 @@ export default function CircularPortal() {
               </div>
               <h2
                 id="market-refurb-cta-title"
-                className="font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl"
+                className="font-sans text-2xl font-bold tracking-tight text-primary [text-wrap:balance] sm:text-3xl"
               >
                 Cari unit refurbished &amp; rakitan terkurasi?
               </h2>
@@ -560,7 +560,7 @@ export default function CircularPortal() {
             <div className="shrink-0">
               <Link
                 href="/market"
-                className={`vt-motion-press vt-btn-tactile inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-accent-cta px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover ${focusRing}`}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent-primary px-6 py-3 text-sm font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing}`}
               >
                 <ShoppingBag className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                 <span>Lihat di Etalase Market →</span>

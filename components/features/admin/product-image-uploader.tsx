@@ -464,13 +464,13 @@ export function ProductImageUploader({
             disabled={isUploading || isAtLimit}
             onChange={(event) => setImageUrlInput(event.target.value)}
             placeholder="/images/hero/pc-rig.jpg atau https://..."
-            className="min-h-11 flex-1 rounded-lg border border-default bg-canvas px-3 py-2 font-mono text-xs text-primary outline-none transition placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-55"
+            className="min-h-11 flex-1 rounded-lg border border-default bg-subtle px-3 py-2 font-mono text-xs text-primary outline-none transition placeholder:text-secondary/65 focus:border-accent-primary focus:bg-surface focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-55"
           />
           <button
             type="button"
             disabled={isUploading || isAtLimit || !imageUrlInput.trim()}
             onClick={handleAddExternalUrl}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-default bg-ink px-4 py-2 text-xs font-semibold text-accent-foreground transition hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-4 py-2 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             <Plus className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
             <span>Tambah URL</span>

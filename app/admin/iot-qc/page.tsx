@@ -666,7 +666,7 @@ export default function AdminIotQcPage(): ReactElement {
                     ['Dikirim', 'Shipped'].includes(selectedUnit.shipping_status || '')
                   }
                   onClick={() => void runAction('mark_shipped', 'Tandai Unit Dikirim')}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-ink bg-ink px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-primary px-4 py-3 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {activeAction === 'mark_shipped' ? 'Memperbarui…' : 'Tandai Unit Dikirim'}
                 </button>
@@ -680,7 +680,7 @@ export default function AdminIotQcPage(): ReactElement {
         </div>
 
         {/* Technical Console Terminal (Intentional High-Contrast Dark Instrument Surface) */}
-        <section className="min-h-80 overflow-hidden rounded-xl border border-ink bg-ink text-white shadow-sm">
+        <section className="vt-obsidian-panel min-h-80 overflow-hidden rounded-xl text-white">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
             <h2 className="tracking-tight flex items-center gap-2 text-sm font-bold text-white">
               <Terminal className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />

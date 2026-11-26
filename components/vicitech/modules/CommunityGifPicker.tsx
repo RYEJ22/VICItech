@@ -140,15 +140,15 @@ export function CommentGifDisplay({
   if (hasFailed) {
     return (
       <div
-        className={`mt-1.5 flex max-w-[240px] flex-col gap-1 rounded-xl border border-[#E4E4E7] bg-[#F3F1ED] p-3 text-left ${className}`}
+        className={`mt-1.5 flex max-w-[240px] flex-col gap-1 rounded-xl border border-default bg-subtle p-3 text-left ${className}`}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="rounded bg-[#EA580C] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-white">
+          <span className="rounded-md bg-accent-primary px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-white">
             GIF
           </span>
-          <span className="text-[11px] text-[#71717A]">GIF tidak dapat dimuat</span>
+          <span className="text-[11px] text-secondary">GIF tidak dapat dimuat</span>
         </div>
-        <p className="line-clamp-2 text-xs font-medium text-[#18181B]">
+        <p className="line-clamp-2 text-xs font-medium text-primary">
           {alt?.trim() || 'GIF komentar'}
         </p>
       </div>
@@ -157,7 +157,7 @@ export function CommentGifDisplay({
 
   return (
     <div
-      className={`relative mt-1.5 inline-block max-w-[240px] overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#F3F1ED] ${className}`}
+      className={`relative mt-1.5 inline-block max-w-[240px] overflow-hidden rounded-xl border border-default bg-subtle ${className}`}
     >
       <img
         src={safeUrl}
@@ -168,7 +168,7 @@ export function CommentGifDisplay({
         onError={() => setHasFailed(true)}
         className="block max-h-52 w-full object-contain"
       />
-      <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded bg-[#18181B]/80 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-white">
+      <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-md bg-primary/80 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-white">
         GIF
       </span>
     </div>
@@ -192,17 +192,17 @@ function GifThumbOption({
       disabled={disabled}
       onClick={() => onPick(gif)}
       aria-label={`Pilih GIF ${gif.title}`}
-      className="group relative overflow-hidden rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] text-left transition hover:border-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 disabled:cursor-not-allowed disabled:opacity-50"
+      className="group relative overflow-hidden rounded-xl border border-default bg-canvas text-left transition-all duration-200 ease-smooth hover:border-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {failed ? (
-        <div className="flex h-20 w-full flex-col justify-between bg-[#F3F1ED] p-2">
-          <span className="w-fit rounded bg-[#EA580C] px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-white">
+        <div className="flex h-20 w-full flex-col justify-between bg-subtle p-2">
+          <span className="w-fit rounded-md bg-accent-primary px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase text-white">
             GIF
           </span>
-          <span className="line-clamp-2 text-[11px] font-medium text-[#18181B]">{gif.title}</span>
+          <span className="line-clamp-2 text-[11px] font-medium text-primary">{gif.title}</span>
         </div>
       ) : (
-        <div className="relative h-20 w-full bg-[#F3F1ED]">
+        <div className="relative h-20 w-full bg-subtle">
           <img
             src={gif.previewUrl}
             alt={gif.title}
@@ -214,7 +214,7 @@ function GifThumbOption({
           />
         </div>
       )}
-      <span className="block truncate bg-white px-2 py-1 text-[11px] font-medium text-[#18181B]">
+      <span className="block truncate bg-surface px-2 py-1 text-[11px] font-medium text-primary">
         {gif.title}
       </span>
     </button>
@@ -370,15 +370,15 @@ export function CommunityGifPicker({
       ref={panelRef}
       role="dialog"
       aria-label="Pilih GIF untuk komentar"
-      className="fixed z-50 flex max-h-[calc(100dvh-1.5rem)] w-[336px] max-w-[calc(100vw-2rem)] flex-col overflow-y-auto rounded-2xl border border-[#E4E4E7] bg-white shadow-lg"
+      className="fixed z-50 flex max-h-[calc(100dvh-1.5rem)] w-[336px] max-w-[calc(100vw-2rem)] flex-col overflow-y-auto rounded-xl border border-default bg-surface shadow-floating"
       style={{ top: panelPosition.top, left: panelPosition.left }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-[#E4E4E7] px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2 border-b border-default px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <Film className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
-          <span className="text-xs font-semibold text-[#18181B]">Pilih GIF Komentar</span>
-          <span className="rounded-full bg-[#FAF9F6] px-2 py-0.5 font-mono text-[10px] font-medium text-[#71717A] border border-[#E4E4E7]">
+          <Film className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          <span className="text-xs font-semibold text-primary">Pilih GIF Komentar</span>
+          <span className="rounded-md border border-default bg-canvas px-2 py-0.5 font-mono text-[10px] font-medium text-secondary">
             {isLoadingGifs ? 'Memuat GIF' : gifSource === 'giphy' ? 'Trending GIPHY' : 'Koleksi Kurasi'}
           </span>
         </div>
@@ -386,17 +386,17 @@ export function CommunityGifPicker({
           type="button"
           onClick={handleClose}
           aria-label="Tutup pemilih GIF"
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[#71717A] transition hover:bg-[#F3F1ED] hover:text-[#18181B] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {/* Filter Search */}
-      <div className="border-b border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2">
+      <div className="border-b border-default bg-canvas px-3 py-2">
         <div className="relative">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#71717A]"
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-secondary"
             strokeWidth={1.75}
             aria-hidden="true"
           />
@@ -406,7 +406,7 @@ export function CommunityGifPicker({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Cari GIF (mantap, coding, gaming, thermal)…"
             aria-label="Cari GIF"
-            className="h-9 w-full rounded-lg border border-[#E4E4E7] bg-white pl-8 pr-3 text-xs text-[#18181B] placeholder:text-[#71717A] focus:border-[#EA580C] focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20"
+            className="h-9 w-full rounded-lg border border-default bg-subtle pl-8 pr-3 text-xs text-primary placeholder:text-secondary focus:border-accent-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
           />
         </div>
       </div>
@@ -415,7 +415,7 @@ export function CommunityGifPicker({
       <div className={`max-h-[210px] overflow-y-auto p-2.5 ${communityStyles.feedScroll ?? ''}`}>
         {isLoadingGifs && gifs.length === 0 ? (
           <div className="grid grid-cols-2 gap-2" aria-label="Memuat GIF">
-            {[0, 1, 2, 3].map((slot) => <div key={slot} className="h-24 animate-pulse rounded-xl border border-[#E4E4E7] bg-[#F3F1ED]" />)}
+            {[0, 1, 2, 3].map((slot) => <div key={slot} className="h-24 animate-pulse rounded-xl border border-default bg-subtle" />)}
           </div>
         ) : gifs.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
@@ -429,22 +429,22 @@ export function CommunityGifPicker({
             ))}
           </div>
         ) : (
-          <p className="py-6 text-center text-xs text-[#71717A]">
+          <p className="py-6 text-center text-xs text-secondary">
             {query.trim()
               ? `Tidak ada GIF yang cocok dengan “${debouncedQuery.trim()}”.`
               : 'GIF belum tersedia. Coba lagi atau tempel tautan GIF langsung.'}
           </p>
         )}
-        {isLoadingGifs && gifs.length > 0 ? <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-[#71717A]"><LoaderCircle className="h-3 w-3 animate-spin" />Memperbarui hasil…</p> : null}
-        {gifSource === 'fallback' && gifs.length > 0 && !isLoadingGifs ? <p className="mt-2 text-center text-[10px] text-[#71717A]">Pencarian GIF live sedang tidak tersedia; menampilkan koleksi kurasi.</p> : null}
+        {isLoadingGifs && gifs.length > 0 ? <p className="mt-2 flex items-center justify-center gap-1 text-[10px] text-secondary"><LoaderCircle className="h-3 w-3 animate-spin" />Memperbarui hasil…</p> : null}
+        {gifSource === 'fallback' && gifs.length > 0 && !isLoadingGifs ? <p className="mt-2 text-center text-[10px] text-secondary">Pencarian GIF live sedang tidak tersedia; menampilkan koleksi kurasi.</p> : null}
       </div>
 
       {/* Direct .gif URL Input (div instead of form to avoid nested forms) */}
-      <div className="rounded-b-2xl border-t border-[#E4E4E7] bg-[#FAF9F6] p-2.5">
+      <div className="rounded-b-xl border-t border-default bg-canvas p-2.5">
         <div className="flex items-center gap-1.5">
           <div className="relative min-w-0 flex-1">
             <Link2
-              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#71717A]"
+              className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-secondary"
               strokeWidth={1.75}
               aria-hidden="true"
             />
@@ -459,20 +459,20 @@ export function CommunityGifPicker({
               disabled={disabled}
               placeholder="Atau tempel link langsung .gif (https://...)"
               aria-label="Tempel URL GIF langsung"
-              className="h-9 w-full rounded-lg border border-[#E4E4E7] bg-white pl-8 pr-2.5 text-xs text-[#18181B] placeholder:text-[#71717A] focus:border-[#EA580C] focus:outline-none focus:ring-2 focus:ring-[#EA580C]/20"
+              className="h-9 w-full rounded-lg border border-default bg-subtle pl-8 pr-2.5 text-xs text-primary placeholder:text-secondary focus:border-accent-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             />
           </div>
           <button
             type="button"
             disabled={disabled || !customUrl.trim()}
             onClick={handleApplyCustomUrl}
-            className="h-9 shrink-0 rounded-lg bg-[#EA580C] px-3 text-xs font-semibold text-white transition hover:bg-[#C2410C] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+            className="h-9 shrink-0 rounded-lg bg-accent-primary px-3 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             Pakai
           </button>
         </div>
         {urlError ? (
-          <p role="alert" className="mt-1.5 text-[11px] leading-snug text-red-600">
+          <p role="alert" className="mt-1.5 text-[11px] leading-snug text-status-danger">
             {urlError}
           </p>
         ) : null}

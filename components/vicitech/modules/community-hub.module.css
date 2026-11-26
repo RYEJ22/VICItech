@@ -1,6 +1,6 @@
 .feedScroll {
   scrollbar-width: thin;
-  scrollbar-color: #d4d4d8 #faf9f6;
+  scrollbar-color: var(--border-strong, #d4d0c8) var(--bg-canvas, #faf9f6);
 }
 
 .feedScroll::-webkit-scrollbar {
@@ -8,15 +8,15 @@
 }
 
 .feedScroll::-webkit-scrollbar-track {
-  background: #faf9f6;
+  background: var(--bg-canvas, #faf9f6);
   border-radius: 9999px;
 }
 
 .feedScroll::-webkit-scrollbar-thumb {
-  background-color: #e4e4e7;
+  background-color: var(--border-default, #e4e2dd);
   border-radius: 9999px;
 }
 
 .feedScroll::-webkit-scrollbar-thumb:hover {
-  background-color: #a1a1aa;
+  background-color: var(--border-strong, #d4d0c8);
 }

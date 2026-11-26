@@ -283,23 +283,23 @@ export default function AdminDashboardPage(): ReactElement {
 
       {/* Bento KPI Strip */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <article className="rounded-xl border border-ink bg-ink p-5 text-white shadow-sm">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/70">
+        <article className="rounded-xl border border-default bg-surface p-5 shadow-card">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-secondary">
             <ShoppingBag className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Total Pendapatan</span>
           </p>
-          <p className="mt-2.5 text-2xl font-semibold sm:text-3xl">
+          <p className="mt-2.5 font-mono text-2xl font-bold tabular-nums text-primary sm:text-3xl">
             <AnimatedNumber value={stats.totalRevenue} format="currency" />
           </p>
-          <p className="mt-1 text-xs text-white/70">Tidak termasuk order yang dibatalkan</p>
+          <p className="mt-1 text-xs text-secondary">Tidak termasuk order yang dibatalkan</p>
         </article>
 
-        <article className="rounded-xl border border-default bg-surface p-5 shadow-sm">
+        <article className="rounded-xl border border-default bg-surface p-5 shadow-card">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-secondary">
             <ClipboardList className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             <span>Total Pesanan</span>
           </p>
-          <p className="mt-2.5 text-2xl font-semibold text-primary sm:text-3xl">
+          <p className="mt-2.5 font-mono text-2xl font-bold tabular-nums text-primary sm:text-3xl">
             <AnimatedNumber value={stats.totalOrders} format="number" />
           </p>
           <p className="mt-1 text-xs text-secondary">Seluruh status transaksi</p>

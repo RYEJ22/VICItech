@@ -83,27 +83,27 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
 
       {/* Top Primary KPI Bento Row (Asymmetric Hierarchy) */}
       <section aria-label="Ringkasan KPI Order" className="grid gap-4 lg:grid-cols-12">
-        <article className="flex flex-col justify-between rounded-2xl border border-ink bg-ink p-6 text-white shadow-unibody lg:col-span-6">
+        <article className="flex flex-col justify-between rounded-xl border border-default bg-surface p-6 text-primary shadow-card lg:col-span-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
                 Total Pendapatan Order
               </p>
-              <p className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+              <p className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-primary sm:text-4xl">
                 <AnimatedNumber value={overview.orderStats.totalRevenue} format="currency" />
               </p>
             </div>
-            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-accent-primary">
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-subtle text-accent-primary">
               <ShoppingBag className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
             </span>
           </div>
 
-          <RevenueLineChart data={overview.revenueTrend} />
+          <RevenueLineChart data={overview.revenueTrend} variant="light" />
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/15 pt-4 text-xs text-white/75">
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-4 text-xs text-secondary">
             <span>
               Dihitung dari{' '}
-              <strong className="text-white">
+              <strong className="font-mono tabular-nums text-primary">
                 <AnimatedNumber value={overview.orderStats.totalOrders} format="number" />
               </strong>{' '}
               transaksi terekam

@@ -170,8 +170,8 @@ function ToastHost({ toast, onDone }) {
   }, [toast, onDone]);
   if (!toast) return null;
   return (
-    <div role="status" className="vt-in vt-metal fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-2xl p-4 text-sm text-ink">
-      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden="true" />
+    <div role="status" className="vt-in fixed bottom-4 right-4 z-[80] flex max-w-sm items-start gap-2.5 rounded-xl border border-default bg-surface p-4 text-sm text-primary shadow-floating">
+      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
       <span className="font-medium leading-snug">{toast.msg}</span>
     </div>
   );
@@ -490,9 +490,9 @@ function HomeDashboard({ role, onRoleChange, onNavigate, user, isAuthLoading }) 
                     role="radio"
                     aria-checked={selected}
                     onClick={() => onRoleChange?.(roleKey)}
-                    className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition sm:min-h-11 sm:px-3.5 sm:py-2 sm:text-xs ${focusRing} ${
+                    className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all duration-200 ease-smooth active:scale-[0.98] sm:min-h-11 sm:px-3.5 sm:py-2 sm:text-xs ${focusRing} ${
                       selected
-                        ? "bg-primary font-semibold text-surface"
+                        ? "bg-accent-primary font-semibold text-white"
                         : "border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"
                     }`}
                   >
@@ -770,9 +770,9 @@ const MarketModule = memo(function MarketModule({
                 role="tab"
                 aria-selected={view === "catalog"}
                 onClick={() => onView("catalog")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] ${focusRing} ${
                   view === "catalog"
-                    ? "bg-primary text-surface"
+                    ? "bg-accent-primary text-white"
                     : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
                 }`}
               >
@@ -784,9 +784,9 @@ const MarketModule = memo(function MarketModule({
                 role="tab"
                 aria-selected={view === "upgrade"}
                 onClick={() => onView("upgrade")}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition ${focusRing} ${
+                className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ease-smooth active:scale-[0.98] ${focusRing} ${
                   view === "upgrade"
-                    ? "bg-primary text-surface"
+                    ? "bg-accent-primary text-white"
                     : "border border-default bg-canvas text-secondary hover:bg-subtle hover:text-primary"
                 }`}
               >

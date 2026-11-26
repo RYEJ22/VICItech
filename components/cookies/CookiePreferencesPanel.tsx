@@ -35,16 +35,16 @@ function PreferenceSwitch({
       aria-label={label}
       disabled={disabled}
       onClick={onChange}
-      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 ${
-        checked ? 'bg-[#EA580C]' : 'bg-[#E4E4E7]'
+      className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 ${
+        checked ? 'bg-accent-primary' : 'bg-border-strong'
       }`}
     >
       <span
-        className={`inline-flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform ${
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full bg-surface shadow-sm transition-transform ${
           checked ? 'translate-x-6' : 'translate-x-1'
         }`}
       >
-        {checked ? <Check className="h-3 w-3 text-[#EA580C]" aria-hidden="true" /> : null}
+        {checked ? <Check className="h-3 w-3 text-accent-primary" aria-hidden="true" /> : null}
       </span>
     </button>
   );
@@ -90,43 +90,43 @@ export function CookiePreferencesPanel() {
   return (
     <section
       aria-label="Panel pengaturan preferensi cookie"
-      className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-sm sm:p-6"
+      className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#FFF7ED] text-[#EA580C]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
             <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-[#18181B]">
+            <h2 className="text-lg font-bold tracking-tight text-primary">
               Pengaturan Preferensi Cookie Anda
             </h2>
-            <p className="mt-1 text-xs leading-relaxed text-[#52525B]">
+            <p className="mt-1 text-xs leading-relaxed text-secondary">
               Preferensi disimpan di peramban Anda pada kunci{' '}
-              <code className="rounded bg-[#F3F1ED] px-1.5 py-0.5 font-mono text-[11px] text-[#18181B]">
+              <code className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[11px] text-primary">
                 {COOKIE_CONSENT_STORAGE_KEY}
               </code>
               .
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center rounded-full border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-1 text-xs font-medium text-[#52525B]">
+        <span className="inline-flex items-center rounded-md border border-default bg-canvas px-3 py-1 text-xs font-medium text-secondary">
           {formattedUpdatedAt ? `Tersimpan: ${formattedUpdatedAt}` : 'Belum dikonfigurasi'}
         </span>
       </div>
 
-      <div className="mt-5 divide-y divide-[#EEEAE5]">
+      <div className="mt-5 divide-y divide-default">
         <div className="flex items-center justify-between gap-4 py-3.5">
           <div>
-            <p className="text-sm font-semibold text-[#18181B]">Cookie Esensial</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#52525B]">
+            <p className="text-sm font-semibold text-primary">Cookie Esensial</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
               Diperlukan untuk sesi login Supabase, keamanan CSRF, isi keranjang belanja, dan alur
               pembayaran. Tidak dapat dinonaktifkan.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <PreferenceSwitch checked disabled label="Cookie Esensial selalu aktif" />
-            <span className="inline-flex min-h-7 items-center rounded-full bg-[#F3F1ED] px-2.5 text-[11px] font-semibold text-[#52525B]">
+            <span className="inline-flex min-h-7 items-center rounded-md bg-subtle px-2.5 text-[11px] font-semibold text-secondary">
               Wajib
             </span>
           </div>
@@ -134,8 +134,8 @@ export function CookiePreferencesPanel() {
 
         <div className="flex items-center justify-between gap-4 py-3.5">
           <div>
-            <p className="text-sm font-semibold text-[#18181B]">Cookie Preferensi &amp; Rakitan</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#52525B]">
+            <p className="text-sm font-semibold text-primary">Cookie Preferensi &amp; Rakitan</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
               Menyimpan draft Smart Preset Builder, riwayat sesi Konsultan AI, serta filter pencarian
               perangkat agar tidak hilang saat berpindah halaman.
             </p>
@@ -151,8 +151,8 @@ export function CookiePreferencesPanel() {
 
         <div className="flex items-center justify-between gap-4 py-3.5">
           <div>
-            <p className="text-sm font-semibold text-[#18181B]">Analitik &amp; Performa</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-[#52525B]">
+            <p className="text-sm font-semibold text-primary">Analitik &amp; Performa</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-secondary">
               Membantu kami memantau kecepatan muat dan stabilitas modul secara agregat tanpa
               menjual data pribadi ke pihak ketiga.
             </p>
@@ -167,10 +167,10 @@ export function CookiePreferencesPanel() {
         </div>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#EEEAE5] pt-4">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-default pt-4">
         <div aria-live="polite" className="min-h-5">
           {justSaved ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#15803D]">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               Preferensi cookie berhasil disimpan.
             </span>
@@ -180,21 +180,21 @@ export function CookiePreferencesPanel() {
           <button
             type="button"
             onClick={() => persist({ analytics: false, preferences: false })}
-            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] px-4 text-xs font-semibold text-[#18181B] transition-colors hover:bg-[#F3F1ED] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary transition-all duration-200 ease-smooth hover:bg-subtle active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             Esensial Saja
           </button>
           <button
             type="button"
             onClick={() => persist({ analytics: true, preferences: true })}
-            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-xl border border-[#EA580C]/30 bg-[#FFF7ED] px-4 text-xs font-semibold text-[#C2410C] transition-colors hover:bg-[#FFEDD5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60"
+            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-lg border border-accent-primary/30 bg-accent-subtle px-4 text-xs font-semibold text-accent-hover transition-all duration-200 ease-smooth hover:bg-accent-primary/15 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
           >
             Terima Semua
           </button>
           <button
             type="button"
             onClick={() => persist(draft)}
-            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-xl bg-[#EA580C] px-5 text-xs font-semibold text-white transition-colors hover:bg-[#C2410C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]/60 focus-visible:ring-offset-2"
+            className="vt-motion-press inline-flex min-h-10 items-center justify-center rounded-lg bg-accent-primary px-5 text-xs font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 focus-visible:ring-offset-2"
           >
             Simpan Pilihan
           </button>

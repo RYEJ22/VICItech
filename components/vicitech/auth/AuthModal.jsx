@@ -342,7 +342,7 @@ export default function AuthModal({ open, user, onClose, onNotify, onNavigate })
 
   return createPortal(
     <div
-      className="vt-backdrop-enter pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="vt-backdrop-enter pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !isSubmitting && !isResetting) onClose();
       }}

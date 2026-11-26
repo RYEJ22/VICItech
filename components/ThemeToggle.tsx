@@ -24,7 +24,7 @@ export default function ThemeToggle({ className = "" }: ThemeToggleProps) {
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-700 shadow-sm transition-colors duration-300 hover:border-emerald-400/50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:text-emerald-300 ${className}`}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-default bg-surface text-secondary shadow-card transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle hover:text-primary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${className}`}
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span

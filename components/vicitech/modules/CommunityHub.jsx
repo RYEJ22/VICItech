@@ -40,10 +40,10 @@ const CATEGORIES = {
   gaming: { label: "Gaming & Mabar", icon: Gamepad2, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
   dev: { label: "Dev & Coding", icon: Code2, cls: "border-default bg-subtle text-primary" },
   creative: { label: "Desain & Kreatif", icon: Palette, cls: "border-accent-primary/25 bg-accent-subtle text-primary" },
-  qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
+  qa: { label: "Tanya Jawab Teknis", icon: HelpCircle, cls: "border-sky-600/20 bg-sky-50 text-sky-800" },
   guide: { label: "Panduan & Diskusi", icon: BookOpen, cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800" },
   meme: { label: "Meme Tech", icon: Laugh, cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
-  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-[#EA580C] bg-[#EA580C] font-semibold text-white shadow-sm" },
+  news: { label: "Pengumuman Resmi", icon: Megaphone, cls: "border-accent-primary bg-accent-primary font-semibold text-white shadow-card" },
 };
 
 const CAT_ORDER = ["all", "hardware", "gaming", "dev", "creative", "qa", "guide", "meme", "news"];
@@ -116,8 +116,8 @@ const ROLES = {
   tech: { label: "Teknisi Tersertifikasi", cls: "border-emerald-600/20 bg-emerald-50 text-emerald-800", verified: true },
   lab: { label: "Admin Lab CBT", cls: "border-accent-primary/30 bg-accent-subtle text-accent-hover" },
   fan: { label: "Penggemar Hardware", cls: "border-default bg-subtle text-secondary" },
-  buyer: { label: "Tim Pengadaan IT", cls: "border-violet-600/20 bg-violet-50 text-violet-800" },
-  team: { label: "Tim ViciTech", cls: "border-accent-cta bg-accent-cta text-white", verified: true },
+  buyer: { label: "Tim Pengadaan IT", cls: "border-amber-600/20 bg-amber-50 text-amber-800" },
+  team: { label: "Tim ViciTech", cls: "border-accent-primary bg-accent-primary text-white", verified: true },
 };
 
 const AUTHORS = {
@@ -178,7 +178,7 @@ const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency:
 const num = (n) => new Intl.NumberFormat("id-ID").format(n);
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 const TAG_RE = /#[A-Za-z0-9_]+/g;
-const AVATAR_TONES = ["bg-accent-subtle text-accent-hover", "bg-emerald-50 text-emerald-800", "bg-violet-50 text-violet-800", "bg-amber-50 text-amber-800"];
+const AVATAR_TONES = ["bg-accent-subtle text-accent-hover", "bg-emerald-50 text-emerald-800", "bg-sky-50 text-sky-800", "bg-amber-50 text-amber-800"];
 
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - ts) / 60000);
@@ -878,24 +878,24 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
             );
           })}
           {selectedGif && (
-            <div className="flex items-center gap-3 rounded-xl border border-[#E4E4E7] bg-white p-2">
+            <div className="flex items-center gap-3 rounded-xl border border-default bg-surface p-2">
               <img
                 src={selectedGif.url}
                 alt={selectedGif.title}
                 loading="lazy"
                 decoding="async"
                 referrerPolicy="no-referrer"
-                className="h-14 w-20 shrink-0 rounded-lg border border-[#E4E4E7] bg-[#F3F1ED] object-cover"
+                className="h-14 w-20 shrink-0 rounded-lg border border-default bg-subtle object-cover"
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-[#18181B]">{selectedGif.title}</p>
-                <p className="text-[11px] text-[#71717A]">GIF siap dikirim bersama komentar</p>
+                <p className="truncate text-xs font-semibold text-primary">{selectedGif.title}</p>
+                <p className="text-[11px] text-secondary">GIF siap dikirim bersama komentar</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedGif(null)}
                 aria-label="Hapus GIF terpilih"
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#E4E4E7] text-[#71717A] transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 ${focusRing}`}
+                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-default text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-status-danger ${focusRing}`}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1042,7 +1042,7 @@ const SAMPLE_DIRECTORY_MEMBERS = Object.entries(AUTHORS)
 
 function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
   return (
-    <article className="vt-card-lift flex flex-col justify-between gap-3.5 rounded-xl border border-[#E4E4E7] bg-white p-3.5 shadow-sm sm:flex-row sm:items-center sm:p-4">
+    <article className="vt-card-lift flex flex-col justify-between gap-3.5 rounded-xl border border-default bg-surface p-3.5 shadow-card sm:flex-row sm:items-center sm:p-4">
       <div className="flex min-w-0 items-start gap-3">
         <Avatar
           author={{
@@ -1058,23 +1058,23 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
             {member.href ? (
               <Link
                 href={member.href}
-                className="truncate font-semibold text-[#18181B] hover:text-[#EA580C]"
+                className="truncate font-semibold text-primary hover:text-accent-primary"
               >
                 {member.name}
               </Link>
             ) : (
-              <span className="truncate font-semibold text-[#18181B]">{member.name}</span>
+              <span className="truncate font-semibold text-primary">{member.name}</span>
             )}
             <RoleBadge role={member.role} />
             {member.isSelf && (
-              <span className="rounded-md border border-[#E4E4E7] bg-[#FAF9F6] px-2 py-0.5 text-[11px] font-medium text-[#71717A]">
+              <span className="rounded-md border border-default bg-canvas px-2 py-0.5 text-[11px] font-medium text-secondary">
                 Anda
               </span>
             )}
           </div>
-          <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs text-[#71717A]">
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs text-secondary">
             {member.username && (
-              <span className="font-mono text-[#52525B]">@{member.username}</span>
+              <span className="font-mono text-secondary">@{member.username}</span>
             )}
             {postCount > 0 && (
               <span>· {postCount} postingan di feed</span>
@@ -1084,7 +1084,7 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
             )}
           </div>
           {member.bio && (
-            <p className="mt-1 line-clamp-1 text-xs text-[#71717A]">{member.bio}</p>
+            <p className="mt-1 line-clamp-1 text-xs text-secondary">{member.bio}</p>
           )}
         </div>
       </div>
@@ -1093,18 +1093,18 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
         <button
           type="button"
           onClick={() => onViewPosts(member)}
-          className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] px-3 py-2 text-xs font-medium text-[#18181B] transition hover:border-[#EA580C]/40 hover:bg-[#F3F1ED] sm:flex-initial ${focusRing}`}
+          className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:flex-initial ${focusRing}`}
         >
-          <MessageSquare className="h-3.5 w-3.5 text-[#71717A]" aria-hidden="true" />
+          <MessageSquare className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
           <span>Lihat Postingan</span>
         </button>
 
         {member.href && (
           <Link
             href={member.href}
-            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-medium text-[#18181B] transition hover:border-[#EA580C]/40 hover:bg-[#FAF9F6] sm:flex-initial ${focusRing}`}
+            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:flex-initial ${focusRing}`}
           >
-            <User className="h-3.5 w-3.5 text-[#71717A]" aria-hidden="true" />
+            <User className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
             <span>Profil</span>
           </Link>
         )}
@@ -1112,7 +1112,7 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
         {!member.isSelf && (
           <Link
             href={member.messageHref}
-            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#EA580C] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#C2410C] sm:flex-initial ${focusRing}`}
+            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-3.5 py-2 text-xs font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] sm:flex-initial ${focusRing}`}
           >
             <Send className="h-3.5 w-3.5" aria-hidden="true" />
             <span>Kirim Pesan</span>
@@ -1935,7 +1935,7 @@ export default function CommunityHub() {
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 pb-24 pt-4 sm:px-6 sm:pb-24 sm:pt-10">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <header>
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
@@ -1971,22 +1971,22 @@ export default function CommunityHub() {
             />
             {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
 
-            <div className="space-y-3 rounded-xl border border-[#E4E4E7] bg-white p-3 shadow-sm sm:p-4">
+            <div className="space-y-3 rounded-xl border border-default bg-surface p-3 shadow-card sm:p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div
                   role="tablist"
                   aria-label="Mode pencarian komunitas"
-                  className="inline-flex rounded-lg border border-[#E4E4E7] bg-[#FAF9F6] p-1"
+                  className="inline-flex rounded-lg border border-default bg-subtle p-1"
                 >
                   <button
                     type="button"
                     role="tab"
                     aria-selected={searchMode === "posts"}
                     onClick={() => setSearchMode("posts")}
-                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${focusRing} ${
+                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:text-sm ${focusRing} ${
                       searchMode === "posts"
-                        ? "bg-[#18181B] text-white shadow-sm"
-                        : "text-[#71717A] hover:text-[#18181B]"
+                        ? "bg-accent-primary text-white shadow-card"
+                        : "text-secondary hover:text-primary"
                     }`}
                   >
                     <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1997,10 +1997,10 @@ export default function CommunityHub() {
                     role="tab"
                     aria-selected={searchMode === "users"}
                     onClick={() => setSearchMode("users")}
-                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${focusRing} ${
+                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:text-sm ${focusRing} ${
                       searchMode === "users"
-                        ? "bg-[#EA580C] text-white shadow-sm"
-                        : "text-[#71717A] hover:text-[#18181B]"
+                        ? "bg-accent-primary text-white shadow-card"
+                        : "text-secondary hover:text-primary"
                     }`}
                   >
                     <Users className="h-3.5 w-3.5" aria-hidden="true" />
@@ -2008,7 +2008,7 @@ export default function CommunityHub() {
                   </button>
                 </div>
 
-                <span className="text-xs text-[#71717A]">
+                <span className="text-xs text-secondary">
                   {searchMode === "users"
                     ? "Cari anggota untuk kirim pesan (DM) atau lihat postingan"
                     : "Filter diskusi berdasarkan kata kunci, tag, atau kategori"}
@@ -2030,14 +2030,14 @@ export default function CommunityHub() {
                       ? "Cari nama lengkap atau @username anggota (cth. Rizky, @bagas)…"
                       : "Cari topik, hardware, atau tag seperti #RTX4060"
                   }
-                  className={`vt-form-control w-full rounded-lg border border-default bg-[#FAF9F6] py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary sm:py-3 sm:pl-12 ${focusRing}`}
+                  className={`vt-form-control w-full rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-9 text-sm text-primary placeholder:text-secondary focus:bg-surface sm:py-3 sm:pl-12 ${focusRing}`}
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
                     aria-label="Bersihkan kata kunci pencarian"
-                    className={`absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-[#71717A] hover:bg-[#E4E4E7]/50 hover:text-[#18181B] ${focusRing}`}
+                    className={`absolute right-2.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -2053,13 +2053,13 @@ export default function CommunityHub() {
                   )}
 
                   {isSearchingUsers ? (
-                    <div className="flex items-center justify-center gap-2.5 rounded-xl border border-[#E4E4E7] bg-[#FAF9F6] p-6 text-sm text-[#71717A]">
-                      <LoaderCircle className="h-4 w-4 animate-spin text-[#EA580C]" aria-hidden="true" />
+                    <div className="flex items-center justify-center gap-2.5 rounded-xl border border-default bg-canvas p-6 text-sm text-secondary">
+                      <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />
                       <span>Mencari anggota komunitas…</span>
                     </div>
                   ) : userResults.length > 0 ? (
                     <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs text-[#71717A]">
+                      <div className="flex items-center justify-between text-xs text-secondary">
                         <span>
                           {query.trim()
                             ? `Menampilkan ${userResults.length} anggota untuk “${query.trim()}”`
@@ -2068,7 +2068,7 @@ export default function CommunityHub() {
                         <button
                           type="button"
                           onClick={() => setSearchMode("posts")}
-                          className="font-medium text-[#EA580C] hover:underline"
+                          className="font-medium text-accent-primary hover:underline"
                         >
                           Kembali ke Postingan
                         </button>
@@ -2092,10 +2092,10 @@ export default function CommunityHub() {
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-dashed border-[#E4E4E7] bg-[#FAF9F6] p-6 text-center">
-                      <Users className="mx-auto h-7 w-7 text-[#71717A]" strokeWidth={1.6} aria-hidden="true" />
-                      <p className="mt-2 font-medium text-[#18181B]">Pengguna tidak ditemukan</p>
-                      <p className="mt-1 text-xs text-[#71717A]">
+                    <div className="rounded-xl border border-dashed border-default bg-canvas p-6 text-center">
+                      <Users className="mx-auto h-7 w-7 text-secondary" strokeWidth={1.6} aria-hidden="true" />
+                      <p className="mt-2 font-medium text-primary">Pengguna tidak ditemukan</p>
+                      <p className="mt-1 text-xs text-secondary">
                         Tidak ada anggota dengan nama atau username “{query.trim()}”. Coba kata kunci lain.
                       </p>
                     </div>
@@ -2105,9 +2105,9 @@ export default function CommunityHub() {
             </div>
 
             {authorFilter && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#EA580C]/30 bg-[#FFF7ED] px-3.5 py-2.5 text-xs text-[#18181B] sm:text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-accent-primary/30 bg-accent-subtle px-3.5 py-2.5 text-xs text-primary sm:text-sm">
                 <span className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-[#EA580C]" aria-hidden="true" />
+                  <User className="h-4 w-4 text-accent-primary" aria-hidden="true" />
                   <span>
                     Menampilkan postingan dari <strong>{authorFilter.name}</strong>
                     {authorFilter.username ? ` (@${authorFilter.username})` : ""}

@@ -9,15 +9,15 @@ export const metadata: Metadata = {
 
 export default function SettingsPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-12">
+    <main className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8 lg:pt-10">
       <header className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EA580C]">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
           Pusat Pengaturan ViciTech OS
         </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#18181B] sm:text-4xl">
+        <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
           Pengaturan &amp; Privasi Akun
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-[#52525B] sm:text-base">
+        <p className="mt-3 text-sm leading-relaxed text-secondary sm:text-base">
           Sesuaikan kenyamanan visual, aksesibilitas antarmuka, serta hak pelindungan data pribadi
           Anda dalam satu tempat.
         </p>

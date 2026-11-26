@@ -98,7 +98,7 @@ export function ProfileHeaderCard({
           className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/25"
         />
         {isPreview && (
-          <span className="absolute left-3 top-3 rounded-lg border border-white/50 bg-[#FAF8F5]/95 px-3 py-1.5 font-mono text-[11px] font-semibold text-primary shadow-md backdrop-blur-sm">
+          <span className="absolute left-3 top-3 rounded-md border border-default bg-surface px-3 py-1.5 font-mono text-[11px] font-semibold text-primary shadow-card">
             Pratinjau Langsung
           </span>
         )}

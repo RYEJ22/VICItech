@@ -75,18 +75,18 @@ export default function QCPanelDashboard() {
           };
 
   return (
-    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 pb-28 pt-8 text-primary transition-colors sm:px-6 sm:pb-28 sm:pt-12">
-      <div className="mx-auto max-w-6xl">
+    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 pb-24 pt-8 text-primary transition-colors sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div className="flex items-start gap-4">
-            <div className="mt-1 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent-primary text-white shadow-sm">
+            <div className="mt-1 grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-accent-primary text-white shadow-card">
               <Activity className="h-5 w-5" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-primary">
                 ViciTech · Kontrol Kualitas
               </p>
-              <h1 className="mt-2 font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              <h1 className="mt-2 font-sans text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
                 Panel Diagnostik IoT QC
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
@@ -104,7 +104,7 @@ export default function QCPanelDashboard() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-secondary">{label}</p>
                 <p className="mt-2 text-sm font-semibold tracking-wide text-primary">{value}</p>
               </div>
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent-subtle text-accent-primary">
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-subtle text-accent-primary">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
             </SpotlightCard>
@@ -122,12 +122,12 @@ export default function QCPanelDashboard() {
           </div>
 
           <aside className="space-y-4">
-            <div className="vt-obsidian-panel rounded-2xl p-5">
+            <div className="vt-obsidian-panel rounded-xl p-5">
               <div className="flex items-center justify-between">
                 <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#A1A1AA]">
                   Waktu Telemetri
                 </p>
-                <span className="h-2 w-2 rounded-full bg-[#EA580C]" aria-hidden="true" />
+                <span className="h-2 w-2 rounded-full bg-accent-primary" aria-hidden="true" />
               </div>
               <p className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-[#FAFAFA]">
                 {clock}
