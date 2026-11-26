@@ -140,7 +140,7 @@ export function MarketStorefront({
   };
 
   return (
-    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-hidden px-3 py-4 sm:space-y-6 sm:px-6 sm:py-8">
+    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8">
       {(onOpenLibrary || onOpenBuilder) && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-4 sm:p-5">
           <p className="line-clamp-2 max-w-[68ch] text-xs leading-relaxed text-secondary sm:text-sm">

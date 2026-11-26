@@ -16,7 +16,8 @@ export type NavSubIconKey =
   | 'upgrade'
   | 'qc'
   | 'messages'
-  | 'account';
+  | 'account'
+  | 'settings';
 
 export type DesktopNavUmbrellaId = 'market' | 'toolkit' | 'services' | 'community';
 
@@ -301,10 +302,34 @@ export const GLOBAL_SEARCH_ITEMS: readonly SearchCommandItem[] = [
     keys: 'dm messages chat teknisi pesan',
   },
   {
+    label: 'Konsultan Rakitan AI',
+    hint: 'Tanya rekomendasi rakitan PC, upgrade laptop, dan katalog ViciTech',
+    href: '/toolkit/konsultan-ai',
+    keys: 'ai konsultan chat asisten rekomendasi rakitan upgrade',
+  },
+  {
     label: 'Profil & Akun',
-    hint: 'Kartu profil publik, pesanan, preset tersimpan & pengaturan',
+    hint: 'Kartu profil publik, pesanan, preset tersimpan & kustomisasi',
     href: '/profile',
     keys: 'profil akun profile account pesanan preset kustomisasi',
+  },
+  {
+    label: 'Pengaturan & Privasi',
+    hint: 'Bahasa, kontras tinggi, skala teks, ekspor data & kontrol UU PDP',
+    href: '/settings',
+    keys: 'pengaturan settings aksesibilitas kontras tinggi teks privasi ekspor data',
+  },
+  {
+    label: 'Umpan Balik & Validasi',
+    hint: 'Kirim saran fitur, laporan bug, atau testimoni pengguna',
+    href: '/feedback',
+    keys: 'feedback umpan balik bug saran testimoni validasi',
+  },
+  {
+    label: 'Kebijakan Cookie & Privasi (UU PDP)',
+    hint: 'Atur preferensi cookie dan baca hak pelindungan data pribadi',
+    href: '/cookies',
+    keys: 'cookie cookies privasi uu pdp kebijakan data',
   },
 ];
 
@@ -418,7 +443,8 @@ export function resolveActiveUmbrellaId(
   if (
     pathname.startsWith('/builder') ||
     pathname.startsWith('/bottleneck') ||
-    pathname.startsWith('/versus')
+    pathname.startsWith('/versus') ||
+    pathname.startsWith('/toolkit')
   ) {
     return 'toolkit';
   }
@@ -481,7 +507,8 @@ export function resolveActiveNavId(
   if (
     pathname.startsWith('/builder') ||
     pathname.startsWith('/bottleneck') ||
-    pathname.startsWith('/versus')
+    pathname.startsWith('/versus') ||
+    pathname.startsWith('/toolkit')
   ) {
     return 'builder';
   }

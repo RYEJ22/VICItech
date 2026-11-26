@@ -16,6 +16,7 @@ import {
   MessageSquare,
   RefreshCw,
   Search,
+  Settings,
   ShoppingBag,
   ShoppingCart,
   Sliders,
@@ -106,7 +107,7 @@ function SubNavIcon({
   readonly active?: boolean;
 }): ReactElement {
   const cls = `mt-0.5 h-4 w-4 shrink-0 transition-colors ${
-    active ? 'text-[#C2410C]' : 'text-[#71717A] group-hover:text-[#C2410C]'
+    active ? 'text-[#C2410C]' : 'text-[#52525B] group-hover:text-[#C2410C]'
   }`;
   switch (iconKey) {
     case 'home':
@@ -135,6 +136,8 @@ function SubNavIcon({
       return <MessageSquare className={cls} strokeWidth={1.75} aria-hidden="true" />;
     case 'account':
       return <User className={cls} strokeWidth={1.75} aria-hidden="true" />;
+    case 'settings':
+      return <Settings className={cls} strokeWidth={1.75} aria-hidden="true" />;
   }
 }
 
@@ -637,6 +640,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
   const activeUmbrella = resolveActiveUmbrellaId(pathname, activeModule, activeView);
   const isMessagesRoute = pathname === '/messages' || Boolean(pathname?.startsWith('/messages/'));
   const isProfileRoute = pathname === '/profile' || Boolean(pathname?.startsWith('/profile/'));
+  const isSettingsRoute = pathname === '/settings' || Boolean(pathname?.startsWith('/settings/'));
 
   const handleHrefClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>, href: string) => {
@@ -865,7 +869,7 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                     <span>{group.label}</span>
                     <ChevronDown
                       className={`vt-chevron h-3.5 w-3.5 shrink-0 ${
-                        isOpen ? 'rotate-180 text-[#C2410C]' : 'text-[#71717A]'
+                        isOpen ? 'rotate-180 text-[#C2410C]' : 'text-[#52525B]'
                       }`}
                       strokeWidth={1.75}
                       aria-hidden="true"
@@ -1263,6 +1267,31 @@ export default function Navbar({ initialRole = 'guest' }: NavbarProps): ReactEle
                       </span>
                       <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
                         Pesanan, preset tersimpan &amp; preferensi akun.
+                      </span>
+                    </span>
+                  </Link>
+
+                  <Link
+                    href="/settings"
+                    onClick={(event) => handleHrefClick(event, '/settings')}
+                    aria-current={isSettingsRoute ? 'page' : undefined}
+                    className={`group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#F3F1ED] ${focusRing} ${
+                      isSettingsRoute ? 'bg-[#F3F1ED]' : ''
+                    }`}
+                  >
+                    <SubNavIcon iconKey="settings" active={isSettingsRoute} />
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`block text-sm font-semibold ${
+                          isSettingsRoute
+                            ? 'text-[#C2410C]'
+                            : 'text-[#18181B] group-hover:text-[#C2410C]'
+                        }`}
+                      >
+                        Pengaturan &amp; Privasi
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-[#52525B]">
+                        Aksesibilitas tampilan, ekspor data &amp; kontrol UU PDP.
                       </span>
                     </span>
                   </Link>

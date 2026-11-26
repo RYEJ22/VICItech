@@ -141,7 +141,8 @@ export function buildPartnerStoreLinks(
   componentName: string,
   category?: PartCategory,
 ): readonly PartnerStoreLink[] {
-  const query = cleanSearchQuery(componentName, category);
+  const safeName = typeof componentName === 'string' ? componentName : '';
+  const query = cleanSearchQuery(safeName, category);
   const encoded = encodeURIComponent(query);
 
   const tokpedBase = `https://www.tokopedia.com/search?st=product&q=${encoded}&official=true`;
@@ -191,11 +192,13 @@ export function matchPartToMarket(
   category: PartCategory,
   marketProducts: readonly ProductRow[] = [],
 ): PartMatchResult {
-  const partnerLinks = buildPartnerStoreLinks(componentName, category);
-  const marketSearchHref = buildMarketCatalogUrl(cleanSearchQuery(componentName, category));
+  const safeName = typeof componentName === 'string' ? componentName : '';
+  const safeProducts = Array.isArray(marketProducts) ? marketProducts : [];
+  const partnerLinks = buildPartnerStoreLinks(safeName, category);
+  const marketSearchHref = buildMarketCatalogUrl(cleanSearchQuery(safeName, category));
 
-  const normalizedQuery = normalizeText(componentName);
-  const tokens = tokenizeComponent(componentName);
+  const normalizedQuery = normalizeText(safeName);
+  const tokens = tokenizeComponent(safeName);
 
   // Skip matching placeholder/integrated options such as "Tanpa Monitor" or "Grafis Terintegrasi"
   if (
@@ -218,7 +221,7 @@ export function matchPartToMarket(
   let bestProduct: ProductRow | null = null;
   let bestScore = 0;
 
-  for (const product of marketProducts) {
+  for (const product of safeProducts) {
     if (!product || !isProductAvailable(product)) continue;
 
     const productCategory = String(product.category ?? '').toLowerCase();

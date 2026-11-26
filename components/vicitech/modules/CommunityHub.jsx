@@ -1855,7 +1855,7 @@ export default function CommunityHub() {
 
   return (
     <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-3 py-4 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-7xl px-3 pb-24 pt-4 sm:px-6 sm:pb-24 sm:pt-10">
         <header>
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>

@@ -140,6 +140,7 @@ export function FeedbackForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (submitting) return;
     setErrorMessage(null);
 
     const trimmedMessage = message.trim();

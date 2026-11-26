@@ -867,12 +867,28 @@ html[data-high-contrast='true'] :focus-visible {
   outline-offset: 2px;
 }
 
+html[data-high-contrast='true'] [class*='border-[#E4E4E7]'],
+html[data-high-contrast='true'] [class*='border-[#EEEAE5]'],
+html[data-high-contrast='true'] [class*='border-[#E7E2DC]'] {
+  border-color: #71717a;
+}
+
+html[data-high-contrast='true'] [class*='text-[#52525B]'],
+html[data-high-contrast='true'] [class*='text-[#71717A]'] {
+  color: #18181b;
+}
+
 html[data-text-scale='large'] {
   font-size: 112.5%;
 }
 
 html[data-text-scale='xlarge'] {
   font-size: 125%;
+}
+
+html[data-text-scale='large'] body,
+html[data-text-scale='xlarge'] body {
+  overflow-wrap: break-word;
 }
 
 html[data-reduced-motion='true'] *,

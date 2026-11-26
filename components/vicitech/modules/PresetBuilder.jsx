@@ -866,13 +866,12 @@ export default function PresetBuilder({
   };
 
   const handleCheckBottleneck = () => {
-    const params = new URLSearchParams({
-      cpu: sel.cpu,
-      gpu: sel.gpu,
-      ram: sel.ram,
-      mobo: sel.mobo,
-      psu: sel.psu,
-    });
+    const params = new URLSearchParams();
+    if (sel.cpu) params.set("cpu", String(sel.cpu));
+    if (sel.gpu) params.set("gpu", String(sel.gpu));
+    if (sel.ram) params.set("ram", String(sel.ram));
+    if (sel.mobo) params.set("mobo", String(sel.mobo));
+    if (sel.psu) params.set("psu", String(sel.psu));
     router.push(`/bottleneck?${params.toString()}`);
   };
 

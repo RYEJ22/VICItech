@@ -210,6 +210,7 @@ export function SettingsHub() {
   }
 
   async function handleExportMyData(): Promise<void> {
+    if (exporting) return;
     if (!authUser || !isSupabaseAuthConfigured) {
       setExportNotice('Silakan masuk ke akun Anda terlebih dahulu untuk mengekspor data pribadi.');
       return;
@@ -288,6 +289,7 @@ export function SettingsHub() {
   }
 
   async function handleSubmitDeletionRequest(): Promise<void> {
+    if (submittingDelete) return;
     setDeleteError(null);
 
     if (deleteConfirmText.trim().toUpperCase() !== 'HAPUS') {

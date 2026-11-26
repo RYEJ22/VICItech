@@ -121,7 +121,7 @@ export default async function ProductDetailPage({
     <>
       <JsonLd data={buildSingleProductJsonLd(product)} />
 
-      <main className="mx-auto min-h-[75vh] w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6 sm:pt-8">
+      <main className="mx-auto min-h-[75vh] w-full max-w-7xl px-4 pb-24 pt-4 sm:px-6 sm:pt-8">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-xs text-secondary sm:text-sm">

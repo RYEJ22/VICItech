@@ -30,7 +30,7 @@ export default async function PartnersPage(): Promise<ReactElement> {
   const verifiedCount = partners.filter((partner) => partner.is_verified).length;
 
   return (
-    <main className="mx-auto min-h-[75vh] w-full max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12 md:pb-16">
+    <main className="mx-auto min-h-[75vh] w-full max-w-7xl px-4 pb-24 pt-8 sm:px-6 sm:pt-12">
       <JsonLd data={buildSupabasePartnersJsonLd(partners)} />
       <section className="rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
