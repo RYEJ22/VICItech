@@ -133,23 +133,36 @@ const newFilters = () => Object.fromEntries(CAT_ORDER.map((k) => [k, { cond: "al
 
 function Overlay({ label, onClose, wide = false, children }) {
   const [mounted, setMounted] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    window.setTimeout(() => {
+      onClose();
+    }, 150);
+  }, [onClose]);
+
   useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
+    const onKey = (e) => e.key === "Escape" && handleClose();
     const prev = document.body.style.overflow;
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     setMounted(true);
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
-  }, [onClose]);
+  }, [handleClose]);
+
   if (!mounted) return null;
   return createPortal((
-    <div className="vt-backdrop-enter fixed inset-0 z-[60] bg-black/40" onClick={onClose}>
+    <div
+      className={`vt-backdrop-enter fixed inset-0 z-[60] bg-black/45 transition-opacity duration-150 motion-reduce:transition-none ${closing ? "opacity-0" : "opacity-100"}`}
+      onClick={handleClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={label}
         onClick={(e) => e.stopPropagation()}
-        className={`vt-panel-enter fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl ${wide ? "max-w-3xl" : "max-w-md"}`}
+        className={`vt-panel-enter fixed inset-y-0 right-0 z-[70] flex w-full flex-col overflow-y-auto border-l border-default bg-white pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl transition-transform duration-150 motion-reduce:transition-none ${closing ? "translate-x-6 opacity-0" : "translate-x-0 opacity-100"} ${wide ? "max-w-3xl" : "max-w-lg"}`}
       >
         <div className="flex justify-center pt-3 pb-1 md:hidden" aria-hidden="true">
           <span className="h-1 w-10 rounded-full bg-default" />
@@ -193,79 +206,88 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
   const cfg = CATS[p.cat];
   const Icon = iconOf(p);
   const blocked = compareFull && !inCompare;
-  const secondary = `inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-subtle ${focusRing}`;
+  const secondary = `inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-default bg-surface px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-subtle ${focusRing}`;
   return (
     <article
-      className={`vt-card-lift relative flex flex-col justify-between rounded-xl border bg-surface p-5 shadow-sm ${
+      className={`vt-card-lift group relative flex h-full flex-col rounded-2xl border bg-surface p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:transform-none sm:p-5 ${
         inCompare ? "border-accent-primary ring-1 ring-accent-primary/25" : "border-default hover:border-accent-primary/40"
       }`}
     >
-      <div>
-        <div className="grid h-24 place-items-center rounded-lg border border-default bg-canvas text-primary" aria-hidden="true">
-          <Icon className="h-9 w-9" strokeWidth={1.6} />
-        </div>
-        <div className="mt-3.5 flex flex-wrap items-center gap-2">
-          <span className="rounded-md border border-default bg-canvas px-2 py-0.5 text-xs font-medium text-secondary">{p.brand}</span>
+      <div className="relative grid aspect-[16/10] place-items-center overflow-hidden rounded-xl border border-default bg-canvas text-primary" aria-hidden="true">
+        <Icon className="h-10 w-10 text-primary/80 transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100" strokeWidth={1.55} />
+        <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">
           <CondBadge cond={p.cond} />
-          <span className="ml-auto text-xs text-secondary">{p.type}</span>
         </div>
-        <h3 className="tracking-tight mt-2.5 text-base font-bold leading-snug text-primary">{p.name}</h3>
-        <div className="mt-2">
-          <p className="flex items-center gap-1 text-xs text-secondary"><Zap className="h-3 w-3 text-accent-primary" /> Indeks harga referensi</p>
-          <p className="font-mono text-xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
-          <Delta d={p.delta} />
-        </div>
-        <dl className="mt-3.5 grid grid-cols-2 gap-2">
-          {cfg.card.map((key) => {
+        <span className="absolute right-2.5 top-2.5 rounded-md border border-default bg-surface px-2 py-0.5 text-[11px] font-medium text-secondary">
+          {p.type}
+        </span>
+      </div>
+
+      <div className="mt-3.5 flex flex-1 flex-col">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-accent-cta">{p.brand}</p>
+        <h3 className="mt-1 min-h-[2.75rem] line-clamp-2 text-base font-bold leading-snug tracking-tight text-primary">{p.name}</h3>
+
+        <dl className="mt-3 grid grid-cols-2 gap-1.5">
+          {cfg.card.slice(0, 4).map((key) => {
             const s = cfg.specs.find((x) => x.key === key);
+            if (!s) return null;
             return (
-              <div key={key} className="rounded-lg border border-default bg-canvas p-2.5">
-                <dt className="text-[11px] text-secondary">{specLabel(s)}</dt>
-                <dd className="mt-0.5 text-xs font-medium leading-snug text-primary">{specValue(p, s)}</dd>
+              <div key={key} className="min-w-0 rounded-lg border border-default bg-canvas px-2.5 py-1.5">
+                <dt className="truncate text-[10px] font-medium text-secondary">{specLabel(s)}</dt>
+                <dd className="mt-0.5 truncate font-mono text-xs font-semibold text-primary">{specValue(p, s)}</dd>
               </div>
             );
           })}
         </dl>
-      </div>
-      <div className="mt-5 space-y-2 pt-2">
-        <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => onSheet(p.id)} className={secondary}>
-            <FileText className="h-3.5 w-3.5 text-secondary" />
-            <span>Lihat Datasheet</span>
-          </button>
+
+        <div className="mt-auto space-y-2.5 border-t border-default pt-3.5">
+          <div className="flex items-baseline justify-between gap-2 pt-0.5">
+            <div>
+              <p className="flex items-center gap-1 text-[11px] text-secondary"><Zap className="h-3 w-3 text-accent-primary" aria-hidden="true" /> Referensi</p>
+              <Delta d={p.delta} />
+            </div>
+            <p className="font-mono text-lg font-bold tabular-nums text-primary">{idr(p.price)}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => onSheet(p.id)} className={secondary}>
+              <FileText className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
+              <span>Datasheet</span>
+            </button>
+            <button
+              type="button"
+              aria-pressed={inBuilder}
+              onClick={() => onBuilder(p.id)}
+              className={`${secondary} ${inBuilder ? "border-accent-primary/40 bg-accent-subtle text-accent-hover font-semibold" : ""}`}
+            >
+              {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" /> : <Plus className="h-3.5 w-3.5" aria-hidden="true" />}
+              <span>{inBuilder ? "Di Builder" : "+ Builder"}</span>
+            </button>
+          </div>
           <button
             type="button"
-            aria-pressed={inBuilder}
-            onClick={() => onBuilder(p.id)}
-            className={`${secondary} ${inBuilder ? "border-accent-primary/40 bg-accent-subtle text-accent-hover font-semibold" : ""}`}
+            aria-pressed={inCompare}
+            disabled={blocked}
+            onClick={() => onCompare(p)}
+            title={blocked ? `Bandingkan hingga ${MAX_COMPARE} unit` : undefined}
+            className={`inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition-colors ${focusRing} ${
+              inCompare
+                ? "bg-accent-cta text-white hover:bg-accent-cta-hover"
+                : blocked
+                  ? "cursor-not-allowed bg-subtle text-secondary"
+                  : "border border-default bg-surface text-primary hover:bg-subtle"
+            }`}
           >
-            {inBuilder ? <CheckCircle2 className="h-3.5 w-3.5 text-accent-primary" /> : <Plus className="h-3.5 w-3.5" />}
-            <span>{inBuilder ? "Di Preset Builder" : "+ ke Preset Builder"}</span>
+            {inCompare ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />}
+            <span>{inCompare ? "Dalam Perbandingan" : "Bandingkan"}</span>
           </button>
+          {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
+            <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}>
+              <Zap className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />
+              <span>Cek Potensi Upgrade</span>
+            </button>
+          )}
         </div>
-        <button
-          type="button"
-          aria-pressed={inCompare}
-          disabled={blocked}
-          onClick={() => onCompare(p)}
-          title={blocked ? `Bandingkan hingga ${MAX_COMPARE} unit` : undefined}
-          className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${focusRing} ${
-            inCompare
-              ? "bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover"
-              : blocked
-                ? "cursor-not-allowed bg-subtle text-secondary"
-                : "border border-default bg-surface text-primary hover:bg-subtle"
-          }`}
-        >
-          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />}
-          <span>{inCompare ? "Dalam Perbandingan" : "Bandingkan"}</span>
-        </button>
-        {onUpgrade && (p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop")) && (
-          <button type="button" onClick={() => onUpgrade(p.id)} className={`${secondary} w-full`}>
-            <Zap className="h-3.5 w-3.5 text-accent-primary" />
-            <span>Cek Potensi Upgrade</span>
-          </button>
-        )}
       </div>
     </article>
   );
@@ -275,45 +297,102 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
 
 function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder, onClose }) {
   const cfg = CATS[p.cat];
-  const hasPerf = "perf" in p.specs;
+  const hasPerf = "perf" in p.specs && Number.isFinite(Number(p.specs.perf));
+  const perfScore = hasPerf ? Math.min(100, Math.max(0, Number(p.specs.perf))) : 0;
+  const hasUpgradeHeadroom = p.cat === "laptops" || (p.cat === "pc" && p.type === "Desktop");
+  const ramMaxHint = p.cat === "laptops" ? 64 : 128;
+  const currentRamGb = Number(String(p.specs.ram ?? "16").match(/\d+/)?.[0] ?? 16);
+  const ramHeadroomPct = Math.min(100, Math.max(15, Math.round((currentRamGb / ramMaxHint) * 100)));
+  const nvmeSlotsPct = p.cat === "laptops" ? 50 : 35;
+
   return (
     <Overlay label={`Datasheet untuk ${p.name}`} onClose={onClose}>
       <OverlayHeader title="Datasheet Lengkap" subtitle={p.name} onClose={onClose} />
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md border border-default px-2 py-0.5 text-xs text-primary">{p.brand}</span>
+          <span className="rounded-md border border-default bg-canvas px-2.5 py-0.5 text-xs font-semibold text-primary">{p.brand}</span>
           <CondBadge cond={p.cond} />
-          <span className="text-xs text-secondary">{cfg.short}, {p.type}</span>
+          <span className="text-xs font-medium text-secondary">{cfg.short} · {p.type}</span>
         </div>
-        <div>
-          <p className="text-xs text-secondary">Indeks harga referensi</p>
-          <p className="font-mono text-2xl font-semibold tabular-nums text-primary">{idr(p.price)}</p>
-          <Delta d={p.delta} />
+
+        <div className="rounded-xl border border-default bg-canvas p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <p className="text-xs font-medium text-secondary">Indeks harga referensi</p>
+              <p className="mt-0.5 font-mono text-2xl font-bold tabular-nums text-primary">{idr(p.price)}</p>
+            </div>
+            <Delta d={p.delta} />
+          </div>
+          {hasPerf && (
+            <div className="mt-3.5 border-t border-default pt-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-secondary">Skor Performa Relatif</span>
+                <span className="font-mono font-bold text-primary">{perfScore} / 100 · {perfPerMillion(p).toFixed(1)} / Rp 1 jt</span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-subtle">
+                <div className="h-full rounded-full bg-accent-primary" style={{ width: `${perfScore}%` }} />
+              </div>
+            </div>
+          )}
         </div>
+
+        {hasUpgradeHeadroom && (
+          <section className="rounded-xl border border-default bg-surface p-4 shadow-sm">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent-cta">
+              Headroom Ekspansi (RAM &amp; NVMe)
+            </h3>
+            <div className="mt-3 space-y-3 text-xs">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-primary">Kapasitas RAM Terpasang vs Maks</span>
+                  <span className="font-mono font-semibold text-secondary">{currentRamGb} GB / {ramMaxHint} GB</span>
+                </div>
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-subtle">
+                  <div className="h-full rounded-full bg-accent-primary" style={{ width: `${ramHeadroomPct}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-primary">Slot NVMe / Storage Tersedia</span>
+                  <span className="font-mono font-semibold text-emerald-800">
+                    {p.cat === "laptops" ? "1/2 Slot Terpakai (Siap Upgrade)" : "1/3 Slot Terpakai (Ekspansi Luas)"}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-subtle">
+                  <div className="h-full rounded-full bg-emerald-600" style={{ width: `${nvmeSlotsPct}%` }} />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
         <section>
-          <h3 className="tracking-tight mb-2 text-sm font-bold text-primary">Semua Spesifikasi</h3>
-          <dl className="divide-y divide-default rounded-xl border border-default">
+          <h3 className="tracking-tight mb-2.5 text-sm font-bold text-primary">Spesifikasi Teknis Lengkap</h3>
+          <dl className="divide-y divide-default overflow-hidden rounded-xl border border-default">
             {cfg.specs.map((s) => (
-              <div key={s.key} className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm">
-                <dt className="col-span-2 text-secondary">{s.label}</dt>
-                <dd className="col-span-3 text-primary">{specValue(p, s)}</dd>
+              <div key={s.key} className="grid grid-cols-5 gap-3 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface">
+                <dt className="col-span-2 font-medium text-secondary">{s.label}</dt>
+                <dd className="col-span-3 font-mono text-xs font-semibold text-primary sm:text-sm">{specValue(p, s)}</dd>
               </div>
             ))}
             {hasPerf && (
-              <div className="grid grid-cols-5 gap-3 px-3 py-2.5 text-sm">
-                <dt className="col-span-2 text-secondary">Performa per Rp 1 juta</dt>
-                <dd className="col-span-3 font-mono tabular-nums text-status-live">{perfPerMillion(p).toFixed(1)}</dd>
+              <div className="grid grid-cols-5 gap-3 bg-accent-subtle/60 px-3.5 py-2.5 text-sm">
+                <dt className="col-span-2 font-medium text-secondary">Performa per Rp 1 juta</dt>
+                <dd className="col-span-3 font-mono font-bold tabular-nums text-status-live">{perfPerMillion(p).toFixed(1)}</dd>
               </div>
             )}
           </dl>
         </section>
-        <p className="flex gap-2 rounded-lg border border-default bg-canvas p-3 text-sm text-secondary">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-status-live" />
-          {p.cond === "refurb"
-            ? "Unit recertified lulus 15 titik inspeksi IoT QC dan disertai garansi ViciTech 12 bulan."
-            : p.cond === "used"
-              ? "Komponen bekas pakai; periksa daftar spesifikasi dan kondisi sebelum membeli."
-              : "Unit baru tersegel dengan garansi resmi pabrikan."}
+
+        <p className="flex gap-2 rounded-xl border border-default bg-canvas p-3.5 text-xs leading-relaxed text-secondary sm:text-sm">
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-status-live" aria-hidden="true" />
+          <span>
+            {p.cond === "refurb"
+              ? "Unit recertified lulus 15 titik inspeksi QC (mode demo/simulasi pada katalog referensi) dan disertai garansi ViciTech 12 bulan."
+              : p.cond === "used"
+                ? "Komponen bekas pakai; periksa daftar spesifikasi dan kondisi sebelum membeli."
+                : "Unit baru tersegel dengan garansi resmi pabrikan."}
+          </span>
         </p>
       </div>
       <div className="grid gap-2 border-t border-default p-5 sm:grid-cols-2">
@@ -321,21 +400,21 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
           type="button"
           onClick={() => onCompare(p)}
           disabled={compareFull && !inCompare}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${
-            inCompare ? "bg-accent-cta font-semibold text-white hover:bg-accent-cta-hover" : "border border-default bg-surface text-primary hover:bg-subtle"
+          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${focusRing} ${
+            inCompare ? "bg-accent-cta text-white hover:bg-accent-cta-hover" : "border border-default bg-surface text-primary hover:bg-subtle"
           }`}
         >
-          {inCompare ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRightLeft className="h-4 w-4" />}
+          {inCompare ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />}
           <span>{inCompare ? "Dalam Perbandingan" : "Tambah ke Perbandingan"}</span>
         </button>
         <button
           type="button"
           onClick={() => onBuilder(p.id)}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${focusRing} ${
-            inBuilder ? "border border-accent-primary/40 bg-accent-subtle font-semibold text-primary" : "border border-default bg-surface text-primary hover:bg-subtle"
+          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ${focusRing} ${
+            inBuilder ? "border border-accent-primary/40 bg-accent-subtle text-primary" : "border border-default bg-surface text-primary hover:bg-subtle"
           }`}
         >
-          {inBuilder ? <CheckCircle2 className="h-4 w-4 text-accent-primary" /> : <Plus className="h-4 w-4" />}
+          {inBuilder ? <CheckCircle2 className="h-4 w-4 text-accent-primary" aria-hidden="true" /> : <Plus className="h-4 w-4" aria-hidden="true" />}
           <span>{inBuilder ? "Di Preset Builder" : "Tambah ke Preset Builder"}</span>
         </button>
       </div>
@@ -370,9 +449,14 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
   return (
     <Overlay label="Perbandingan spesifikasi berdampingan" onClose={onClose} wide>
       <OverlayHeader title={`Bandingkan ${cfg.short}`} subtitle="Nilai spesifikasi terbaik ditandai pada setiap baris." onClose={onClose} />
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-default px-5 py-3 text-sm">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-secondary">
-          {highlights.map(([k, p]) => <p key={k}>{k}: <span className="font-medium text-primary">{p.name}</span></p>)}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-default bg-canvas px-5 py-3 text-xs sm:text-sm">
+        <div className="flex flex-wrap gap-2 text-secondary">
+          {highlights.map(([k, p]) => (
+            <span key={k} className="inline-flex items-center gap-1 rounded-full border border-default bg-surface px-2.5 py-1 text-xs">
+              <span>{k}:</span>
+              <strong className="font-semibold text-primary">{p.name}</strong>
+            </span>
+          ))}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex min-h-11 cursor-pointer items-center gap-2 text-primary">
@@ -380,7 +464,7 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
             <span>Tampilkan perbedaan saja</span>
           </label>
           {onClear && (
-            <button type="button" onClick={onClear} className={`min-h-11 rounded-lg border border-default bg-subtle px-3 py-1.5 text-xs font-medium text-primary hover:bg-canvas ${focusRing}`}>
+            <button type="button" onClick={onClear} className={`min-h-11 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}>
               Hapus semua
             </button>
           )}
@@ -389,13 +473,15 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
       <div className="flex-1 overflow-auto">
         <table className="w-full min-w-[600px] border-collapse text-sm">
           <thead>
-            <tr>
-              <th className="w-40 p-3 sm:pl-5" />
+            <tr className="bg-surface">
+              <th className="sticky left-0 z-10 w-40 bg-surface p-3 text-left text-xs font-semibold uppercase tracking-wider text-secondary sm:pl-5">
+                Parameter
+              </th>
               {items.map((p) => (
                 <th key={p.id} className="p-3 text-left align-top font-normal">
                   <div className="flex items-start justify-between gap-2">
                     <div><p className="font-semibold text-primary">{p.name}</p><p className="mt-1"><CondBadge cond={p.cond} /></p></div>
-                    <button type="button" aria-label={`Hapus ${p.name}`} onClick={() => onRemove(p)} className={`inline-flex h-11 w-11 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
+                    <button type="button" aria-label={`Hapus ${p.name}`} onClick={() => onRemove(p)} className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}><X className="h-4 w-4" aria-hidden="true" /></button>
                   </div>
                 </th>
               ))}
@@ -404,12 +490,12 @@ function CompareModal({ items, cat, diffOnly, setDiffOnly, onRemove, onClear, on
           <tbody>
             {shown.length === 0 && <tr><td colSpan={items.length + 1} className="p-6 text-center text-secondary">Perangkat yang dipilih memiliki spesifikasi identik.</td></tr>}
             {shown.map((r) => (
-              <tr key={r.key} className="border-t border-default">
-                <th scope="row" className="p-3 text-left font-normal text-secondary sm:pl-5">{r.label}</th>
+              <tr key={r.key} className="border-t border-default odd:bg-canvas/55 even:bg-surface">
+                <th scope="row" className="sticky left-0 z-10 bg-inherit p-3 text-left text-xs font-semibold text-secondary sm:pl-5 sm:text-sm">{r.label}</th>
                 {items.map((p, i) => {
                   const win = r.best !== null && r.vals[i] === r.best;
                   return (
-                    <td key={p.id} className={`p-3 align-top tabular-nums ${win ? "bg-accent-subtle font-semibold text-primary" : r.same ? "text-secondary" : "text-primary"}`}>
+                    <td key={p.id} className={`p-3 align-top font-mono text-xs tabular-nums sm:text-sm ${win ? "bg-accent-subtle font-semibold text-primary" : r.same ? "text-secondary" : "text-primary"}`}>
                       <span className="inline-flex items-start gap-1.5">{win && <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-primary" aria-label="Unggul pada baris ini" />}{r.show(r.vals[i])}</span>
                     </td>
                   );

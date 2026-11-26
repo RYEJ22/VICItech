@@ -317,10 +317,16 @@ export function getFormattedProductSpecs(
 }
 
 export function getHighlightSpecs(
-  product: Pick<ProductRow, 'specs'>,
-  maxItems = 4,
+  product: Pick<ProductRow, 'specs' | 'metadata'>,
+  maxItems = 3,
 ): readonly MarketSpecItem[] {
-  const all = getFormattedProductSpecs(product);
+  const specItems = getFormattedProductSpecs(product);
+  const metaItems = getFormattedProductMetadata(product);
+  const seenKeys = new Set(specItems.map((item) => item.key.toLowerCase()));
+  const all = [
+    ...specItems,
+    ...metaItems.filter((item) => !seenKeys.has(item.key.toLowerCase())),
+  ];
   if (all.length === 0 || maxItems <= 0) return [];
 
   const picked: MarketSpecItem[] = [];

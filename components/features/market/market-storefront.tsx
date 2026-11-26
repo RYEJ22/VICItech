@@ -140,7 +140,7 @@ export function MarketStorefront({
   };
 
   return (
-    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8">
+    <div className="mx-auto min-w-0 max-w-shell space-y-3 overflow-x-clip px-3 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8">
       {(onOpenLibrary || onOpenBuilder) && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-4 sm:p-5">
           <p className="line-clamp-2 max-w-[68ch] text-xs leading-relaxed text-secondary sm:text-sm">
@@ -228,143 +228,163 @@ export function MarketStorefront({
         </div>
       )}
 
-      {/* Search, Stock Status, IoT QC Toggle & Sort Bar */}
-      <div className="flex flex-col gap-2 rounded-xl border border-default bg-surface p-2.5 shadow-sm sm:gap-3 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="relative flex-1">
-          <label htmlFor={searchInputId} className="sr-only">
-            Cari produk di ViciTech Market
-          </label>
-          <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary"
-            strokeWidth={1.75}
-            aria-hidden="true"
-          />
-          <input
-            id={searchInputId}
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Cari PC build, ThinkPad, PS5, Steam Deck, GPU, atau komponen…"
-            className="vt-form-control min-h-10 w-full rounded-lg border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
-          <div
-            role="group"
-            aria-label="Filter ketersediaan stok"
-            className="no-scrollbar inline-flex max-w-full flex-nowrap gap-0.5 overflow-x-auto rounded-lg border border-default bg-subtle p-0.5 sm:gap-1 sm:p-1"
-          >
-            {STOCK_FILTER_OPTIONS.map((option) => {
-              const active = stockFilter === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setStockFilter(option.id)}
-                  className={`vt-motion-press vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:px-3 sm:py-1.5 sm:text-xs ${
-                    active
-                      ? 'bg-accent-cta font-semibold text-accent-foreground'
-                      : 'text-secondary hover:bg-surface hover:text-primary'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <ToggleSwitch
-            compact
-            label="Lulus IoT QC"
-            checked={iotQcOnly}
-            onChange={setIotQcOnly}
-          />
-
-          <div className="flex items-center gap-2">
-            <label htmlFor={sortSelectId} className="sr-only">
-              Urutkan produk
+      {/* Sticky Search, Filter Controls & Category Pills */}
+      <div className="sticky top-14 z-20 space-y-2.5 rounded-2xl border border-default bg-surface p-3 shadow-sm sm:space-y-3 sm:p-4 md:top-[76px]">
+        <div className="flex flex-col gap-2 sm:gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="relative flex-1">
+            <label htmlFor={searchInputId} className="sr-only">
+              Cari produk di ViciTech Market
             </label>
-            <span className="inline-flex items-center gap-1.5 text-xs text-secondary">
-              <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-              <span className="hidden sm:inline">Urutkan:</span>
-            </span>
-            <select
-              id={sortSelectId}
-              value={sortBy}
-              onChange={(event) => {
-                const value = event.target.value;
-                if (value === 'newest' || value === 'price_asc' || value === 'price_desc') {
-                  setSortBy(value);
-                }
-              }}
-              className="vt-form-control min-h-10 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+            <input
+              id={searchInputId}
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Cari PC build, ThinkPad, PS5, Steam Deck, GPU, atau komponen…"
+              className="vt-form-control min-h-10 w-full rounded-xl border border-default bg-canvas py-2 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11 sm:py-2.5"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2.5">
+            <div
+              role="group"
+              aria-label="Filter ketersediaan stok"
+              className="no-scrollbar inline-flex max-w-full flex-nowrap gap-0.5 overflow-x-auto rounded-xl border border-default bg-subtle p-0.5 sm:gap-1 sm:p-1"
             >
-              <option value="newest">Terbaru</option>
-              <option value="price_asc">Harga Terendah</option>
-              <option value="price_desc">Harga Tertinggi</option>
-            </select>
+              {STOCK_FILTER_OPTIONS.map((option) => {
+                const active = stockFilter === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setStockFilter(option.id)}
+                    className={`vt-motion-press vt-btn-tactile min-h-8 shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:px-3 sm:py-1.5 sm:text-xs ${
+                      active
+                        ? 'bg-accent-cta font-semibold text-accent-foreground'
+                        : 'text-secondary hover:bg-surface hover:text-primary'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <ToggleSwitch
+              compact
+              label="Lulus IoT QC"
+              checked={iotQcOnly}
+              onChange={setIotQcOnly}
+            />
+
+            <div className="flex items-center gap-2">
+              <label htmlFor={sortSelectId} className="sr-only">
+                Urutkan produk
+              </label>
+              <span className="inline-flex items-center gap-1.5 text-xs text-secondary">
+                <ArrowUpDown className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+                <span className="hidden sm:inline">Urutkan:</span>
+              </span>
+              <select
+                id={sortSelectId}
+                value={sortBy}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === 'newest' || value === 'price_asc' || value === 'price_desc') {
+                    setSortBy(value);
+                  }
+                }}
+                className="vt-form-control min-h-10 rounded-xl border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary outline-none transition focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 sm:min-h-11"
+              >
+                <option value="newest">Terbaru</option>
+                <option value="price_asc">Harga Terendah</option>
+                <option value="price_desc">Harga Tertinggi</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Category Filter Pills + Live Count */}
-      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3">
-        <div
-          role="tablist"
-          aria-label="Filter kategori produk market"
-          className="no-scrollbar -mx-3 flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selectedCategory === 'all'}
-            onClick={() => setSelectedCategory('all')}
-            className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
-              selectedCategory === 'all'
-                ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
-                : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
-            }`}
-          >
-            <span>Semua Kategori</span>
-            <span className="font-mono text-xs tabular-nums opacity-85">
-              {initialProducts.length}
-            </span>
-          </button>
-
-          {PRODUCT_CATEGORIES.map((category) => {
-            const active = selectedCategory === category;
-            const count = categoryCounts[category];
-            return (
+        {/* Category Filter Pills (with mobile right-edge fade cue) + Live Count */}
+        <div className="flex flex-col gap-2 border-t border-default pt-2.5 md:flex-row md:items-center md:justify-between md:gap-3">
+          <div className="relative min-w-0 flex-1">
+            <div
+              role="tablist"
+              aria-label="Filter kategori produk market"
+              className="no-scrollbar flex flex-nowrap gap-1.5 overflow-x-auto pb-0.5 pr-8 md:flex-wrap md:overflow-visible md:pb-0 md:pr-0"
+            >
               <button
-                key={category}
                 type="button"
                 role="tab"
-                aria-selected={active}
-                onClick={() => setSelectedCategory(category)}
-                className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm ${
-                  active
+                aria-selected={selectedCategory === 'all'}
+                onClick={() => setSelectedCategory('all')}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-2 sm:px-4 ${
+                  selectedCategory === 'all'
                     ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
-                    : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
+                    : 'border border-default bg-canvas font-medium text-secondary hover:bg-subtle hover:text-primary'
                 }`}
               >
-                <span>{PRODUCT_CATEGORY_LABELS[category]}</span>
-                <span className="font-mono text-xs tabular-nums opacity-85">{count}</span>
+                <span>Semua</span>
+                <span className="font-mono text-[11px] tabular-nums opacity-85">
+                  {initialProducts.length}
+                </span>
               </button>
-            );
-          })}
-        </div>
 
-        <p className="text-xs font-medium text-secondary">
-          Menampilkan{' '}
-          <AnimatedNumber
-            value={filteredProducts.length}
-            format="number"
-            className="font-semibold text-primary"
-          />{' '}
-          produk
-        </p>
+              {PRODUCT_CATEGORIES.map((category) => {
+                const active = selectedCategory === category;
+                const count = categoryCounts[category];
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`vt-motion-press vt-btn-tactile inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-2 sm:px-4 ${
+                      active
+                        ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
+                        : 'border border-default bg-canvas font-medium text-secondary hover:bg-subtle hover:text-primary'
+                    }`}
+                  >
+                    <span>{PRODUCT_CATEGORY_LABELS[category]}</span>
+                    <span className="font-mono text-[11px] tabular-nums opacity-85">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent md:hidden"
+            />
+          </div>
+
+          <div className="flex shrink-0 items-center justify-between gap-2 md:justify-end">
+            <p className="text-xs font-medium text-secondary">
+              Menampilkan{' '}
+              <AnimatedNumber
+                value={filteredProducts.length}
+                format="number"
+                className="font-semibold text-primary"
+              />{' '}
+              produk
+            </p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-accent-cta hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              >
+                <RotateCcw className="h-3 w-3" aria-hidden="true" />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Product Grid or Empty States */}
@@ -410,20 +430,25 @@ export function MarketStorefront({
       ) : filteredProducts.length === 0 ? (
         <section
           aria-live="polite"
-          className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
+          className="rounded-2xl border border-default bg-surface p-6 text-center shadow-sm sm:p-12"
         >
-          <p className="font-sans text-2xl font-semibold text-primary">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-default bg-canvas text-accent-primary">
+            <Search className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+          </div>
+          <h2 className="mt-4 font-sans text-xl font-bold tracking-tight text-primary sm:text-2xl">
             Produk tidak ditemukan
-          </p>
-          <p className="mx-auto mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
-            Tidak ada produk yang cocok dengan kata kunci atau filter yang dipilih. Atur ulang
-            filter untuk menampilkan semua produk di etalase ViciTech Market.
+          </h2>
+          <p className="mx-auto mt-2 max-w-[58ch] text-sm leading-relaxed text-secondary">
+            {debouncedQuery.trim()
+              ? `Tidak ada produk yang cocok dengan pencarian “${debouncedQuery.trim()}” pada filter aktif.`
+              : 'Belum ada unit pada kombinasi kategori dan status stok yang Anda pilih.'}{' '}
+            Atur ulang filter untuk kembali melihat seluruh etalase ViciTech Market.
           </p>
           {hasActiveFilters && (
             <button
               type="button"
               onClick={resetFilters}
-              className="vt-motion-press vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+              className="vt-motion-press vt-btn-tactile mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent-cta px-5 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <RotateCcw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
               <span>Reset Filter</span>
