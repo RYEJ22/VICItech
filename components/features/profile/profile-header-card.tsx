@@ -25,12 +25,13 @@ import {
   DEFAULT_PROFILE_VISUAL_STYLE,
   getSinPresetMeta,
 } from '@/lib/profile/profile-customization';
-import type {
+import {
   AvatarFrameStyle,
   ProfileBadgeStyle,
   ProfileSinPresetId,
   ProfileVisualCustomization,
 } from '@/lib/profile/profile-customization';
+import { ProfileAvatarFrame } from './profile-avatar-frame';
 import { ProfileBannerMedia } from './profile-banner-media';
 import styles from './profile-hub.module.css';
 
@@ -48,14 +49,6 @@ interface ProfileHeaderCardProps {
   readonly onQuickAvatarPick?: (() => void) | undefined;
   readonly onSignOut?: (() => void) | undefined;
 }
-
-const AVATAR_FRAME_CLASS_MAP: Readonly<Record<AvatarFrameStyle, string | undefined>> = {
-  classic: styles.avatarFrameClassic,
-  pixel: styles.avatarFramePixel,
-  corners: styles.avatarFrameCorners,
-  double: styles.avatarFrameDouble,
-  minimal: styles.avatarFrameMinimal,
-};
 
 const BADGE_STYLE_CLASS_MAP: Readonly<Record<ProfileBadgeStyle, string | undefined>> = {
   solid: styles.badgeSolid,
@@ -118,10 +111,8 @@ export function ProfileHeaderCard({
     '--profile-accent': profile.accentColor || DEFAULT_PROFILE_ACCENT_COLOR,
   };
 
-  const isSquareAvatar =
-    activeStyle.avatarFrame === 'pixel' || activeStyle.avatarFrame === 'corners';
-  const avatarShapeClass = isSquareAvatar ? 'rounded-lg' : 'rounded-full';
-  const avatarFrameClass = AVATAR_FRAME_CLASS_MAP[activeStyle.avatarFrame] ?? styles.avatarFrame;
+  const avatarShapeClass =
+    activeStyle.avatarFrame === 'corners' ? 'rounded-lg' : 'rounded-full';
   const badgeVariantClass = BADGE_STYLE_CLASS_MAP[activeStyle.badgeStyle] ?? styles.badgeOutline ?? '';
   const trimCardClass =
     activeStyle.accentTrim === 'left-stripe'
@@ -133,7 +124,6 @@ export function ProfileHeaderCard({
     activeStyle.accentTrim === 'top-rail' ||
     (hasSinPreset && activeStyle.accentTrim === 'none');
   const showCardCornerTicks = activeStyle.accentTrim === 'corner-ticks';
-  const showAvatarCorners = activeStyle.avatarFrame === 'corners';
 
   return (
     <section
@@ -190,8 +180,11 @@ export function ProfileHeaderCard({
           <div className="-mt-14 flex min-w-0 flex-col gap-3 sm:-mt-16 sm:flex-row sm:items-end sm:gap-5">
             {/* Overlapping Avatar */}
             <div className={`relative shrink-0 self-start ${avatarShapeClass} ${styles.avatarWrapper ?? ''}`}>
-              <div
-                className={`relative h-24 w-24 overflow-hidden bg-surface sm:h-28 sm:w-28 ${avatarFrameClass ?? ''}`}
+              <ProfileAvatarFrame
+                visualStyle={activeStyle}
+                accentColor={profile.accentColor}
+                size="xl"
+                sizeClassName="h-24 w-24 sm:h-28 sm:w-28"
               >
                 {profile.avatarUrl ? (
                   <img
@@ -211,35 +204,14 @@ export function ProfileHeaderCard({
                     {initials}
                   </span>
                 )}
-              </div>
-
-              {showAvatarCorners && (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className={`-left-1 -top-1 border-l-2 border-t-2 ${styles.avatarCornerTick ?? ''}`}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`-right-1 -top-1 border-r-2 border-t-2 ${styles.avatarCornerTick ?? ''}`}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`-bottom-1 -left-1 border-b-2 border-l-2 ${styles.avatarCornerTick ?? ''}`}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className={`-bottom-1 -right-1 border-b-2 border-r-2 ${styles.avatarCornerTick ?? ''}`}
-                  />
-                </>
-              )}
+              </ProfileAvatarFrame>
 
               {isOwner && !isPreview && onQuickAvatarPick && (
                 <button
                   type="button"
                   onClick={onQuickAvatarPick}
                   aria-label={isEnglish ? 'Change profile photo' : 'Ubah foto profil'}
-                  className={`absolute inset-0 grid place-items-center bg-black/55 text-white ${avatarShapeClass} ${styles.cameraOverlay ?? ''} ${focusRing}`}
+                  className={`absolute inset-0 z-10 grid place-items-center bg-black/55 text-white ${avatarShapeClass} ${styles.cameraOverlay ?? ''} ${focusRing}`}
                 >
                   <Camera className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
                 </button>

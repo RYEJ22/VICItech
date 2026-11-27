@@ -1,0 +1,390 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  --av-accent: var(--av-sin-accent, var(--av-profile-accent, var(--accent-primary, #ea580c)));
+  --av-halo: color-mix(in srgb, var(--av-accent) 44%, transparent);
+  --av-ring-bg: var(--bg-surface, #ffffff);
+  --av-collar: var(--bg-canvas, #faf9f6);
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  background-color: var(--bg-surface, #ffffff);
+}
+
+:global(html[data-theme='dark']) .root {
+  --av-accent: var(--av-sin-accent, var(--av-profile-accent, #e11d48));
+  --av-halo: color-mix(in srgb, var(--av-accent) 56%, transparent);
+  --av-ring-bg: #12151c;
+  --av-collar: #09090b;
+}
+
+:global(html[data-theme='dark']) .inner {
+  background-color: #12151c;
+}
+
+/* 7 Deadly Sins Avatar Accent Tokens */
+.sin_pride {
+  --av-sin-accent: #b45309;
+}
+.sin_greed {
+  --av-sin-accent: #047857;
+}
+.sin_wrath {
+  --av-sin-accent: #dc2626;
+}
+.sin_sloth {
+  --av-sin-accent: #475569;
+}
+.sin_envy {
+  --av-sin-accent: #0f766e;
+}
+.sin_gluttony {
+  --av-sin-accent: #c2410c;
+}
+.sin_lust {
+  --av-sin-accent: #be185d;
+}
+
+:global(html[data-theme='dark']) .sin_pride {
+  --av-sin-accent: #f59e0b;
+}
+:global(html[data-theme='dark']) .sin_greed {
+  --av-sin-accent: #10b981;
+}
+:global(html[data-theme='dark']) .sin_wrath {
+  --av-sin-accent: #e11d48;
+}
+:global(html[data-theme='dark']) .sin_sloth {
+  --av-sin-accent: #94a3b8;
+}
+:global(html[data-theme='dark']) .sin_envy {
+  --av-sin-accent: #14b8a6;
+}
+:global(html[data-theme='dark']) .sin_gluttony {
+  --av-sin-accent: #fb923c;
+}
+:global(html[data-theme='dark']) .sin_lust {
+  --av-sin-accent: #f43f5e;
+}
+
+/* 1. Clean Ring */
+.frameClassic {
+  padding: 2px;
+  background-color: var(--av-accent);
+  box-shadow: 0 0 0 2px var(--av-collar);
+}
+
+.sizeSm.frameClassic {
+  padding: 1.5px;
+  box-shadow: 0 0 0 1px var(--av-collar);
+}
+
+.sizeXl.frameClassic {
+  padding: 3px;
+  box-shadow: 0 0 0 4px var(--av-collar);
+}
+
+/* 2. Double Frame (Concentric HUD Ring) */
+.frameDouble {
+  padding: 2px;
+  background-color: var(--av-collar);
+  border: 2px solid var(--av-accent);
+  box-shadow: 0 0 0 2px var(--av-collar), 0 0 0 3.5px color-mix(in srgb, var(--av-accent) 45%, transparent);
+}
+
+.sizeSm.frameDouble {
+  padding: 1.5px;
+  border-width: 1.5px;
+  box-shadow: 0 0 0 1.5px var(--av-collar), 0 0 0 2.5px color-mix(in srgb, var(--av-accent) 45%, transparent);
+}
+
+.sizeXl.frameDouble {
+  padding: 3px;
+  border-width: 2.5px;
+  box-shadow: 0 0 0 3px var(--av-collar), 0 0 0 5px var(--av-accent);
+}
+
+/* 3. Pixel Brackets (Sharp 4-Corner Brackets) */
+.frameCorners {
+  border-radius: 0.5rem;
+  padding: 2px;
+  background-color: var(--border-strong, #d4d0c8);
+  box-shadow: 0 0 0 2px var(--av-collar);
+}
+
+.sizeSm.frameCorners {
+  border-radius: 0.375rem;
+  padding: 1.5px;
+  box-shadow: 0 0 0 1px var(--av-collar);
+}
+
+.sizeXl.frameCorners {
+  border-radius: 0.5rem;
+  padding: 2.5px;
+  box-shadow: 0 0 0 3px var(--av-collar);
+}
+
+:global(html[data-theme='dark']) .frameCorners {
+  border-radius: 0px;
+  background-color: #475569;
+}
+
+.bracket {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 6;
+  border-color: var(--av-accent);
+}
+
+.sizeSm .bracket {
+  width: 7px;
+  height: 7px;
+}
+
+.sizeXl .bracket {
+  width: 12px;
+  height: 12px;
+}
+
+.bracketTL {
+  top: -2px;
+  left: -2px;
+  border-top: 2px solid var(--av-accent);
+  border-left: 2px solid var(--av-accent);
+}
+
+.bracketTR {
+  top: -2px;
+  right: -2px;
+  border-top: 2px solid var(--av-accent);
+  border-right: 2px solid var(--av-accent);
+}
+
+.bracketBL {
+  bottom: -2px;
+  left: -2px;
+  border-bottom: 2px solid var(--av-accent);
+  border-left: 2px solid var(--av-accent);
+}
+
+.bracketBR {
+  bottom: -2px;
+  right: -2px;
+  border-bottom: 2px solid var(--av-accent);
+  border-right: 2px solid var(--av-accent);
+}
+
+/* 4. Luminous Glow */
+.frameLuminousGlow {
+  padding: 2px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--av-accent) 45%, #ffffff) 0%,
+    var(--av-accent) 55%,
+    color-mix(in srgb, var(--av-accent) 75%, #09090b) 100%
+  );
+  box-shadow:
+    0 0 0 2px var(--av-collar),
+    0 0 12px 1px var(--av-halo);
+}
+
+.sizeSm.frameLuminousGlow {
+  padding: 1.5px;
+  box-shadow:
+    0 0 0 1px var(--av-collar),
+    0 0 9px 0px var(--av-halo);
+}
+
+.sizeXl.frameLuminousGlow {
+  padding: 3px;
+  box-shadow:
+    0 0 0 3px var(--av-collar),
+    0 0 20px 3px var(--av-halo);
+}
+
+/* 5. Rotating Light Beam */
+@keyframes avatarBeamSpin {
+  from {
+    --vt-beam-angle: 0deg;
+  }
+  to {
+    --vt-beam-angle: 360deg;
+  }
+}
+
+.frameRotatingBeam {
+  padding: 2.5px;
+  border: 2px solid color-mix(in srgb, var(--av-accent) 70%, #ffffff 30%);
+  box-shadow: 0 0 0 2px var(--av-collar);
+}
+
+.sizeSm.frameRotatingBeam {
+  padding: 2px;
+  border-width: 1.5px;
+  box-shadow: 0 0 0 1px var(--av-collar);
+}
+
+.sizeXl.frameRotatingBeam {
+  padding: 3.5px;
+  border-width: 2.5px;
+  box-shadow: 0 0 0 3px var(--av-collar), 0 0 14px var(--av-halo);
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .frameRotatingBeam {
+    border: none;
+    background-color: color-mix(in srgb, var(--av-accent) 24%, var(--av-collar));
+  }
+
+  .frameRotatingBeam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 4;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      color-mix(in srgb, var(--av-accent) 25%, transparent) 0deg,
+      color-mix(in srgb, var(--av-accent) 30%, transparent) 210deg,
+      var(--av-accent) 270deg,
+      color-mix(in srgb, var(--av-accent) 55%, #ffffff) 315deg,
+      #ffffff 334deg,
+      var(--av-accent) 352deg,
+      color-mix(in srgb, var(--av-accent) 25%, transparent) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: avatarBeamSpin 3.4s linear infinite;
+  }
+
+  .sizeSm.frameRotatingBeam::before {
+    padding: 2px;
+  }
+
+  .sizeXl.frameRotatingBeam::before {
+    padding: 3.5px;
+  }
+}
+
+/* 6. Pulse Aura */
+@keyframes avatarPulseAura {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.07);
+  }
+}
+
+.framePulseAura {
+  padding: 2.5px;
+  background-color: var(--av-accent);
+  box-shadow: 0 0 0 2px var(--av-collar);
+}
+
+.sizeSm.framePulseAura {
+  padding: 2px;
+  box-shadow: 0 0 0 1px var(--av-collar);
+}
+
+.sizeXl.framePulseAura {
+  padding: 3px;
+  box-shadow: 0 0 0 3px var(--av-collar);
+}
+
+.framePulseAura::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid var(--av-accent);
+  box-shadow: 0 0 12px var(--av-halo);
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+  animation: avatarPulseAura 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.sizeSm.framePulseAura::after {
+  inset: -3px;
+  border-width: 1.5px;
+  box-shadow: 0 0 8px var(--av-halo);
+}
+
+.sizeXl.framePulseAura::after {
+  inset: -5px;
+  border-width: 2.5px;
+  box-shadow: 0 0 18px var(--av-halo);
+}
+
+/* High-Contrast Reinforcements */
+:global(html[data-high-contrast='true']) .frameClassic,
+:global(html[data-high-contrast='true']) .frameDouble,
+:global(html[data-high-contrast='true']) .frameLuminousGlow,
+:global(html[data-high-contrast='true']) .framePulseAura {
+  box-shadow: 0 0 0 2px #141416;
+}
+
+:global(html[data-high-contrast='true']) .frameCorners {
+  background-color: #141416;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .frameClassic,
+:global(html[data-theme='dark'][data-high-contrast='true']) .frameDouble,
+:global(html[data-theme='dark'][data-high-contrast='true']) .frameLuminousGlow,
+:global(html[data-theme='dark'][data-high-contrast='true']) .framePulseAura {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 12px var(--av-halo);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .frameCorners {
+  background-color: #ffffff;
+  box-shadow: 2px 2px 0px var(--av-accent);
+}
+
+/* Reduced Motion Static Luminous Fallbacks */
+:global(html[data-reduced-motion='true']) .frameRotatingBeam::before {
+  animation: none !important;
+  background: linear-gradient(135deg, #ffffff 0%, var(--av-accent) 48%, color-mix(in srgb, var(--av-accent) 75%, #09090b) 100%);
+}
+
+:global(html[data-reduced-motion='true']) .framePulseAura::after {
+  animation: none !important;
+  opacity: 0.72;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frameRotatingBeam::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #ffffff 0%, var(--av-accent) 48%, color-mix(in srgb, var(--av-accent) 75%, #09090b) 100%);
+  }
+
+  .framePulseAura::after {
+    animation: none !important;
+    opacity: 0.72;
+    transform: none !important;
+  }
+}

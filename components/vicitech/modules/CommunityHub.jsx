@@ -13,6 +13,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { sanitizeSingleLineText, sanitizeUserText } from "@/lib/validation/sanitize-text";
 import { insertTextAtCursor } from "@/lib/chat/chat-media-catalog";
 import { ChatMediaPicker } from "@/components/chat/ChatMediaPicker";
+import { ProfileAvatarFrame } from "@/components/features/profile/profile-avatar-frame";
 import {
   CommentGifDisplay,
   CommunityGifPicker,
@@ -234,7 +235,15 @@ const usernameHref = (username) =>
 
 function resolveAuthor(key, { currentUser, profiles }) {
   const seed = key !== "you" ? AUTHORS[key] : undefined;
-  if (seed) return { ...seed, avatarUrl: "", href: key === "team" ? "" : usernameHref(key), isSelf: false };
+  if (seed) {
+    return {
+      ...seed,
+      userId: "",
+      avatarUrl: "",
+      href: key === "team" ? "" : usernameHref(key),
+      isSelf: false,
+    };
+  }
 
   const userId = key === "you" ? currentUser?.id : key;
   const isSelf = key === "you" || (Boolean(userId) && userId === currentUser?.id);
@@ -243,6 +252,7 @@ function resolveAuthor(key, { currentUser, profiles }) {
   const avatarUrl = profile?.avatar_url || (isSelf ? currentUser?.user_metadata?.avatar_url : "") || "";
 
   return {
+    userId: userId || "",
     name: profile?.display_name || profile?.full_name || username || "Anggota ViciTech",
     role: profile?.role === "admin" ? "team" : "fan",
     avatarUrl,
@@ -252,7 +262,8 @@ function resolveAuthor(key, { currentUser, profiles }) {
 }
 
 function Avatar({ author, size = "h-10 w-10" }) {
-  const avatar = author.avatarUrl ? (
+  const frameSize = size === "h-8 w-8" ? "sm" : "md";
+  const innerAvatar = author.avatarUrl ? (
     <img
       src={author.avatarUrl}
       alt=""
@@ -260,16 +271,28 @@ function Avatar({ author, size = "h-10 w-10" }) {
       height={40}
       loading="lazy"
       decoding="async"
-      className={`${size} shrink-0 rounded-full border border-default bg-surface object-cover`}
+      className="h-full w-full object-cover"
     />
   ) : author.isSelf ? (
-    <span className={`grid ${size} shrink-0 place-items-center rounded-full bg-subtle text-primary`}><User className="h-1/2 w-1/2" /></span>
+    <span className="grid h-full w-full place-items-center bg-subtle text-primary">
+      <User className="h-1/2 w-1/2" />
+    </span>
   ) : (
-    <span className={`grid ${size} shrink-0 place-items-center rounded-full text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`} aria-hidden="true">{author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}</span>
+    <span
+      className={`grid h-full w-full place-items-center text-sm font-semibold ${AVATAR_TONES[[...author.name].reduce((s, c) => s + c.charCodeAt(0), 0) % AVATAR_TONES.length]}`}
+      aria-hidden="true"
+    >
+      {author.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+    </span>
+  );
+  const framedAvatar = (
+    <ProfileAvatarFrame userId={author.userId} size={frameSize} sizeClassName={size}>
+      {innerAvatar}
+    </ProfileAvatarFrame>
   );
   return author.href
-    ? <Link href={author.href} aria-label={author.isSelf ? "Lihat profil Anda" : `Lihat profil ${author.name}`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">{avatar}</Link>
-    : avatar;
+    ? <Link href={author.href} aria-label={author.isSelf ? "Lihat profil Anda" : `Lihat profil ${author.name}`} className="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary">{framedAvatar}</Link>
+    : framedAvatar;
 }
 
 function RoleBadge({ role }) {
@@ -1140,6 +1163,7 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
       <div className="flex min-w-0 items-start gap-3">
         <Avatar
           author={{
+            userId: member.id,
             name: member.name,
             avatarUrl: member.avatarUrl,
             href: member.href,

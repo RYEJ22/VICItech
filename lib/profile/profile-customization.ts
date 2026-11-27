@@ -6,7 +6,13 @@ import { PROFILE_BANNER_PRESET_IDS, isPresetBannerValue } from './profile-types'
 export type BannerMediaType = 'video' | 'image' | 'preset';
 export type BannerPosition = 'top' | 'center' | 'bottom';
 export type BannerScrimStrength = 'subtle' | 'balanced' | 'strong';
-export type AvatarFrameStyle = 'classic' | 'pixel' | 'corners' | 'double' | 'minimal';
+export type AvatarFrameStyle =
+  | 'classic'
+  | 'double'
+  | 'corners'
+  | 'luminous-glow'
+  | 'rotating-beam'
+  | 'pulse-aura';
 export type ProfileAccentTrimStyle =
   | 'none'
   | 'top-rail'
@@ -43,6 +49,14 @@ export interface ProfileVisualCustomization {
   readonly badgeStyle: ProfileBadgeStyle;
   readonly customRoleLine: string;
   readonly sinPreset: ProfileSinPresetId;
+  readonly accentColor: string | null;
+}
+
+export interface AvatarBorderPresetMeta {
+  readonly id: AvatarFrameStyle;
+  readonly label: { readonly id: string; readonly en: string };
+  readonly description: { readonly id: string; readonly en: string };
+  readonly isAnimated: boolean;
 }
 
 export interface BannerCatalogItem {
@@ -88,7 +102,47 @@ export const DEFAULT_PROFILE_VISUAL_STYLE: ProfileVisualCustomization = {
   badgeStyle: 'outline',
   customRoleLine: '',
   sinPreset: 'none',
+  accentColor: null,
 };
+
+export const AVATAR_BORDER_PRESETS: readonly AvatarBorderPresetMeta[] = [
+  {
+    id: 'classic',
+    label: { id: 'Cincin Bersih', en: 'Clean Ring' },
+    description: { id: 'Garis tunggal presisi', en: 'Crisp single border' },
+    isAnimated: false,
+  },
+  {
+    id: 'double',
+    label: { id: 'Bingkai Ganda', en: 'Double Frame' },
+    description: { id: 'Cincin ganda gaya HUD', en: 'Concentric HUD ring' },
+    isAnimated: false,
+  },
+  {
+    id: 'corners',
+    label: { id: 'Braket Piksel', en: 'Pixel Brackets' },
+    description: { id: 'Siku sudut piksel tegas', en: 'Sharp corner brackets' },
+    isAnimated: false,
+  },
+  {
+    id: 'luminous-glow',
+    label: { id: 'Cahaya Ambient', en: 'Luminous Glow' },
+    description: { id: 'Halo cahaya bernuansa aksen', en: 'Soft accent light halo' },
+    isAnimated: false,
+  },
+  {
+    id: 'rotating-beam',
+    label: { id: 'Sinar Berputar', en: 'Rotating Light Beam' },
+    description: { id: 'Sorot cahaya berputar mulus', en: 'Rotating conic light ring' },
+    isAnimated: true,
+  },
+  {
+    id: 'pulse-aura',
+    label: { id: 'Aura Berdenyut', en: 'Pulse Aura' },
+    description: { id: 'Cahaya napas halus', en: 'Subtle breathing aura' },
+    isAnimated: true,
+  },
+];
 
 export const BANNER_CATALOG_ITEMS: readonly BannerCatalogItem[] = [
   {
@@ -312,6 +366,24 @@ export function isValidImageBannerUrl(raw: string): boolean {
   }
 }
 
+const AVATAR_HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+
+function normalizeAvatarFrame(raw: unknown): AvatarFrameStyle {
+  if (raw === 'pixel') return 'corners';
+  if (raw === 'minimal') return 'classic';
+  if (
+    raw === 'classic' ||
+    raw === 'double' ||
+    raw === 'corners' ||
+    raw === 'luminous-glow' ||
+    raw === 'rotating-beam' ||
+    raw === 'pulse-aura'
+  ) {
+    return raw;
+  }
+  return 'classic';
+}
+
 export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomization {
   if (!isRecord(raw)) {
     return DEFAULT_PROFILE_VISUAL_STYLE;
@@ -340,18 +412,15 @@ export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomiz
     raw.bannerPosition === 'top' || raw.bannerPosition === 'bottom' ? raw.bannerPosition : 'center';
   const bannerScrim: BannerScrimStrength =
     raw.bannerScrim === 'subtle' || raw.bannerScrim === 'strong' ? raw.bannerScrim : 'balanced';
-  const avatarFrame: AvatarFrameStyle =
-    raw.avatarFrame === 'pixel' ||
-    raw.avatarFrame === 'corners' ||
-    raw.avatarFrame === 'double' ||
-    raw.avatarFrame === 'minimal'
-      ? raw.avatarFrame
-      : 'classic';
+  const avatarFrame = normalizeAvatarFrame(raw.avatarFrame);
 
   const rawSin = typeof raw.sinPreset === 'string' ? raw.sinPreset : 'none';
   const sinPreset: ProfileSinPresetId = SEVEN_DEADLY_SINS_PRESETS.some((s) => s.id === rawSin)
     ? (rawSin as ProfileSinPresetId)
     : 'none';
+
+  const rawAccent = typeof raw.accentColor === 'string' ? raw.accentColor.trim() : '';
+  const accentColor = AVATAR_HEX_RE.test(rawAccent) ? rawAccent.toUpperCase() : null;
 
   const accentTrim: ProfileAccentTrimStyle =
     raw.accentTrim === 'none' ||
@@ -396,6 +465,7 @@ export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomiz
     badgeStyle,
     customRoleLine,
     sinPreset,
+    accentColor,
   };
 }
 

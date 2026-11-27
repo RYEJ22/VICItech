@@ -25,6 +25,7 @@ import {
 } from '@/lib/profile/profile-types';
 import type { ProfileFormDraft, UnifiedProfile } from '@/lib/profile/profile-types';
 import {
+  AVATAR_BORDER_PRESETS,
   DEFAULT_PROFILE_VISUAL_STYLE,
   MAX_CUSTOM_ROLE_LINE_LENGTH,
   SEVEN_DEADLY_SINS_PRESETS,
@@ -32,7 +33,6 @@ import {
   saveProfileVisualStyle,
 } from '@/lib/profile/profile-customization';
 import type {
-  AvatarFrameStyle,
   BannerCatalogItem,
   BannerPosition,
   BannerScrimStrength,
@@ -47,6 +47,7 @@ import {
   uploadProfileMediaFile,
 } from '@/lib/storage/uploadProfileMedia';
 import { BannerGridSelector } from './banner-grid-selector';
+import { ProfileAvatarFrame } from './profile-avatar-frame';
 import { ProfileBannerMedia } from './profile-banner-media';
 import { ProfileHeaderCard } from './profile-header-card';
 import styles from './profile-hub.module.css';
@@ -314,6 +315,7 @@ export function ProfileCustomizationTab({
     updateVisualDraft((prev) => ({
       ...prev,
       sinPreset: presetId,
+      accentColor: presetId !== 'none' ? recommendedAccent : prev.accentColor,
       accentTrim:
         presetId !== 'none' && prev.accentTrim === 'none' ? 'top-rail' : prev.accentTrim,
     }));
@@ -355,10 +357,10 @@ export function ProfileCustomizationTab({
 
     setIsSaving(true);
     try {
-      const { saved: savedVisual, strippedInlineVideo } = saveProfileVisualStyle(
-        userId,
-        visualDraft,
-      );
+      const { saved: savedVisual, strippedInlineVideo } = saveProfileVisualStyle(userId, {
+        ...visualDraft,
+        accentColor: validation.normalized.accentColor,
+      });
       onVisualStyleSaved?.(savedVisual);
       hasEditedVisualRef.current = false;
 
@@ -422,13 +424,13 @@ export function ProfileCustomizationTab({
     { id: 'strong', label: isEnglish ? 'Strong' : 'Gelap' },
   ];
 
-  const avatarFrameOptions: readonly { readonly id: AvatarFrameStyle; readonly label: string }[] = [
-    { id: 'classic', label: isEnglish ? 'Clean Ring' : 'Cincin Bersih' },
-    { id: 'pixel', label: isEnglish ? 'Crisp Frame' : 'Bingkai Piksel' },
-    { id: 'corners', label: isEnglish ? 'Pixel Corners' : 'Sudut Piksel' },
-    { id: 'double', label: isEnglish ? 'Double Bezel' : 'Bezel Ganda' },
-    { id: 'minimal', label: isEnglish ? 'Minimal' : 'Minimalis' },
-  ];
+  const previewInitials =
+    (draft.displayName.trim() || profile.displayName)
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('') || 'VT';
 
   const accentTrimOptions: readonly { readonly id: ProfileAccentTrimStyle; readonly label: string }[] = [
     { id: 'none', label: isEnglish ? 'Clean' : 'Polos' },
@@ -512,31 +514,65 @@ export function ProfileCustomizationTab({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium text-secondary">
-              {isEnglish ? 'Avatar Frame Style' : 'Gaya Bingkai Avatar'}
+            <p className="mb-1 text-xs font-medium text-secondary">
+              {isEnglish
+                ? 'Avatar (PP) Border Style — synced across Profile, Community & DM'
+                : 'Gaya Bingkai Foto Profil (PP) — sinkron ke Profil, Komunitas & DM'}
             </p>
             <div
-              className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+              className="grid grid-cols-2 gap-2.5 sm:grid-cols-3"
               role="group"
-              aria-label={isEnglish ? 'Avatar frame style' : 'Gaya bingkai avatar'}
+              aria-label={isEnglish ? 'Avatar border style' : 'Gaya bingkai foto profil'}
             >
-              {avatarFrameOptions.map((opt) => {
-                const active = visualDraft.avatarFrame === opt.id;
+              {AVATAR_BORDER_PRESETS.map((preset) => {
+                const active = visualDraft.avatarFrame === preset.id;
                 return (
                   <button
-                    key={opt.id}
+                    key={preset.id}
                     type="button"
                     aria-pressed={active}
                     onClick={() =>
-                      updateVisualDraft((prev) => ({ ...prev, avatarFrame: opt.id }))
+                      updateVisualDraft((prev) => ({ ...prev, avatarFrame: preset.id }))
                     }
-                    className={`vt-btn-tactile min-h-11 rounded-lg border px-2.5 py-2 text-xs font-semibold ${focusRing} ${
+                    className={`vt-btn-tactile flex min-h-11 min-w-0 items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left ${focusRing} ${
                       active
-                        ? 'border-accent-primary bg-accent-cta text-white'
+                        ? 'border-accent-primary bg-accent-subtle text-primary ring-2 ring-accent-primary/25'
                         : 'border-default bg-canvas text-primary hover:bg-subtle'
                     }`}
                   >
-                    {opt.label}
+                    <ProfileAvatarFrame
+                      frameStyle={preset.id}
+                      sinPreset={visualDraft.sinPreset}
+                      accentColor={draft.accentColor}
+                      size="sm"
+                      sizeClassName="h-9 w-9"
+                    >
+                      {draft.avatarUrl ? (
+                        <img
+                          src={draft.avatarUrl}
+                          alt=""
+                          width={36}
+                          height={36}
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="grid h-full w-full place-items-center bg-accent-subtle font-sans text-xs font-bold text-accent-cta">
+                          {previewInitials}
+                        </span>
+                      )}
+                    </ProfileAvatarFrame>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center justify-between gap-1 text-xs font-semibold text-primary">
+                        <span className="truncate">{preset.label[language]}</span>
+                        {active && (
+                          <Check className="h-3.5 w-3.5 shrink-0 text-accent-cta" aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="block truncate text-[10px] text-secondary">
+                        {preset.description[language]}
+                      </span>
+                    </span>
                   </button>
                 );
               })}
@@ -967,7 +1003,10 @@ export function ProfileCustomizationTab({
                     aria-label={swatch.label}
                     aria-pressed={active}
                     title={swatch.label}
-                    onClick={() => setDraft((prev) => ({ ...prev, accentColor: swatch.hex }))}
+                    onClick={() => {
+                      setDraft((prev) => ({ ...prev, accentColor: swatch.hex }));
+                      updateVisualDraft((prev) => ({ ...prev, accentColor: swatch.hex }));
+                    }}
                     className={`vt-btn-tactile grid h-11 w-11 place-items-center rounded-full border-2 text-white ${styles.swatchButton ?? ''} ${focusRing} ${
                       active ? 'border-primary ring-2 ring-accent-primary/40' : 'border-surface'
                     }`}

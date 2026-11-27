@@ -17,6 +17,7 @@ import { dispatchDmReadSync } from "@/lib/chat/dm-notifications";
 import { ChatMediaPicker } from "@/components/chat/ChatMediaPicker";
 import { ChatGifImage } from "@/components/chat/ChatGifImage";
 import { ViciTechStickerGraphic } from "@/components/chat/ViciTechStickerGraphic";
+import { ProfileAvatarFrame } from "@/components/features/profile/profile-avatar-frame";
 import pickerStyles from "@/components/chat/chat-media-picker.module.css";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
@@ -885,7 +886,9 @@ export default function DirectMessageDrawer({
               if (!item?.userId || !profile) return null;
               return (
                 <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex min-h-11 w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
-                  {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile, isEnglish)}</span>}
+                  <ProfileAvatarFrame userId={item.userId} size="md" sizeClassName="h-11 w-11">
+                    {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile, isEnglish)}</span>}
+                  </ProfileAvatarFrame>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-sm font-semibold text-primary">{displayName(profile, isEnglish)}</span>
@@ -918,7 +921,9 @@ export default function DirectMessageDrawer({
                     href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
                     className="flex min-w-0 items-center gap-3 rounded-lg transition-colors hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
-                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
+                    <ProfileAvatarFrame userId={selectedProfile.id} size="md" sizeClassName="h-11 w-11">
+                      {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
+                    </ProfileAvatarFrame>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile, isEnglish)}</span>
                       <span className="block font-mono text-xs text-secondary">@{selectedProfile.username}</span>
@@ -926,7 +931,9 @@ export default function DirectMessageDrawer({
                   </Link>
                 ) : (
                   <>
-                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
+                    <ProfileAvatarFrame userId={selectedProfile.id} size="md" sizeClassName="h-11 w-11">
+                      {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <span className="grid h-full w-full place-items-center bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
+                    </ProfileAvatarFrame>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile, isEnglish)}</span>
                       <span className="block text-xs text-secondary">@{isEnglish ? "member" : "anggota"}</span>
