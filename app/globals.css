@@ -1004,6 +1004,13 @@ html[data-high-contrast='true'] {
   --border-default: #141416;
   --border-strong: #141416;
   --vt-line-strong: #141416;
+  --hc-surface: #ffffff;
+  --hc-ink: #141416;
+  --hc-border: #141416;
+  --hc-shadow-card: 4px 4px 0px #141416;
+  --hc-shadow-control: 3px 3px 0px #141416;
+  --hc-shadow-badge: 2px 2px 0px #141416;
+  --hc-shadow-modal: 6px 6px 0px #141416;
 }
 
 html[data-high-contrast='true'] .vt-glass-bar,
@@ -1083,7 +1090,8 @@ html[data-reduced-motion='true'] *::after {
    Preserves Plus Jakarta Sans & JetBrains Mono tabular-nums typography while transforming
    surfaces, geometry, borders, shadows, grids, controls, and telemetry into Obsidian Ruby Pixel UI. */
 
-html[data-theme='dark'] {
+html[data-theme='dark'],
+html.dark {
   --dark-bg-canvas: #09090b;
   --dark-bg-surface: #12151c;
   --dark-bg-subtle: #181c26;
@@ -1588,6 +1596,19 @@ html[data-theme='dark'] .text-orange-900 {
   color: #fb7185;
 }
 
+html[data-theme='dark'] [class*='hover:bg-rose-100']:hover,
+html[data-theme='dark'] [class*='hover:bg-red-100']:hover {
+  background-color: rgba(244, 63, 94, 0.22);
+}
+
+html[data-theme='dark'] [class*='hover:bg-emerald-100']:hover {
+  background-color: rgba(16, 185, 129, 0.22);
+}
+
+html[data-theme='dark'] [class*='hover:bg-amber-100']:hover {
+  background-color: rgba(245, 158, 11, 0.22);
+}
+
 /* Dark Scrollbar & Skeleton Shimmer */
 html[data-theme='dark'] ::-webkit-scrollbar-track {
   background: #09090b;
@@ -1624,6 +1645,13 @@ html[data-theme='dark'][data-high-contrast='true'] {
   --accent-primary: #e11d48;
   --accent-cta: #e11d48;
   --accent-hover: #be123c;
+  --hc-surface: #0b0e14;
+  --hc-ink: #ffffff;
+  --hc-border: #ffffff;
+  --hc-shadow-card: 4px 4px 0px #e11d48;
+  --hc-shadow-control: 3px 3px 0px #e11d48;
+  --hc-shadow-badge: 2px 2px 0px #e11d48;
+  --hc-shadow-modal: 6px 6px 0px #e11d48;
 }
 
 html[data-theme='dark'][data-high-contrast='true'] .vt-glass-bar,
@@ -1910,6 +1938,304 @@ html[data-source-badges='minimal'] [data-badge-essential='true'] {
   html[data-mobile-density='compact'] [data-settings-row='true'] {
     padding-top: 0.875rem;
     padding-bottom: 0.875rem;
+  }
+}
+
+/* ───────────────────────────── High-Contrast Surface & Control System ─────────────────────────────
+   Strictly scoped to html[data-high-contrast='true'] and html[data-theme='dark'][data-high-contrast='true'].
+   Placed after subtle pixel intensity overrides so accessibility borders, high-contrast surfaces,
+   and hard offset shadows always take precedence without altering default styling. */
+
+@media (max-width: 639px) {
+  html[data-high-contrast='true'] {
+    --hc-shadow-card: 3px 3px 0px #141416;
+    --hc-shadow-modal: 4px 4px 0px #141416;
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] {
+    --hc-shadow-card: 3px 3px 0px #e11d48;
+    --hc-shadow-modal: 4px 4px 0px #e11d48;
+  }
+}
+
+html[data-high-contrast='true'] .vt-card,
+html[data-high-contrast='true'] .vt-card-lift,
+html[data-high-contrast='true'] .vt-card-interactive,
+html[data-high-contrast='true'] .card-unibody,
+html[data-high-contrast='true'] .vt-metal,
+html[data-high-contrast='true'] .vt-glass,
+html[data-high-contrast='true'] .glass-floating,
+html[data-high-contrast='true'] .vt-qc-preview-card,
+html[data-high-contrast='true'] section.bg-surface.border,
+html[data-high-contrast='true'] article.bg-surface.border,
+html[data-high-contrast='true'] div.bg-surface.border.shadow-sm,
+html[data-high-contrast='true'] div.bg-surface.border.shadow-card,
+html[data-high-contrast='true'] aside.bg-surface.border {
+  background-color: var(--hc-surface);
+  border-width: 2px;
+  border-style: solid;
+  border-color: var(--hc-border);
+  box-shadow: var(--hc-shadow-card);
+}
+
+html[data-high-contrast='true'] .vt-well,
+html[data-high-contrast='true'] div.bg-canvas.border,
+html[data-high-contrast='true'] div.bg-subtle.border,
+html[data-high-contrast='true'] section.bg-canvas.border {
+  border-width: 1.5px;
+  border-color: var(--hc-border);
+}
+
+html[data-high-contrast='true'] .vt-obsidian-panel {
+  border: 2px solid #141416;
+  box-shadow: var(--hc-shadow-card);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-obsidian-panel {
+  background-color: #000000;
+  border: 2px solid #ffffff;
+  box-shadow: var(--hc-shadow-card);
+}
+
+html[data-high-contrast='true'] [role='dialog'] {
+  background-color: var(--hc-surface);
+  border: 2px solid var(--hc-border);
+  box-shadow: var(--hc-shadow-modal);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-high-contrast='true'] .vt-card-lift:hover,
+  html[data-high-contrast='true'] .vt-card-interactive:hover,
+  html[data-high-contrast='true'] .vt-card-hover:hover,
+  html[data-high-contrast='true'] .card-unibody-hover:hover {
+    border-color: #ea580c;
+    box-shadow: 4px 4px 0px #ea580c;
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-lift:hover,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-interactive:hover,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-hover:hover,
+  html[data-theme='dark'][data-high-contrast='true'] .card-unibody-hover:hover {
+    border-color: #fb7185;
+    box-shadow: 4px 4px 0px #e11d48;
+  }
+}
+
+html[data-high-contrast='true'] input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html[data-high-contrast='true'] select,
+html[data-high-contrast='true'] textarea,
+html[data-high-contrast='true'] .vt-form-control,
+html[data-high-contrast='true'] .vt-input,
+html[data-high-contrast='true'] .vt-select,
+html[data-high-contrast='true'] .vt-textarea {
+  background-color: var(--hc-surface);
+  color: var(--hc-ink);
+  border-width: 2px;
+  border-color: var(--hc-border);
+}
+
+html[data-high-contrast='true'] input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+html[data-high-contrast='true'] select:focus,
+html[data-high-contrast='true'] textarea:focus,
+html[data-high-contrast='true'] .vt-form-control:focus,
+html[data-high-contrast='true'] .vt-input:focus,
+html[data-high-contrast='true'] .vt-select:focus,
+html[data-high-contrast='true'] .vt-textarea:focus {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.28);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] input:not([type='checkbox']):not([type='radio']):not([type='range']):focus,
+html[data-theme='dark'][data-high-contrast='true'] select:focus,
+html[data-theme='dark'][data-high-contrast='true'] textarea:focus,
+html[data-theme='dark'][data-high-contrast='true'] .vt-form-control:focus,
+html[data-theme='dark'][data-high-contrast='true'] .vt-input:focus,
+html[data-theme='dark'][data-high-contrast='true'] .vt-select:focus,
+html[data-theme='dark'][data-high-contrast='true'] .vt-textarea:focus {
+  border-color: #fb7185;
+  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.42);
+}
+
+html[data-high-contrast='true'] .vt-btn-primary,
+html[data-high-contrast='true'] .btn-signal,
+html[data-high-contrast='true'] button.bg-accent-primary,
+html[data-high-contrast='true'] a.bg-accent-primary,
+html[data-high-contrast='true'] button.bg-accent-cta,
+html[data-high-contrast='true'] a.bg-accent-cta {
+  background-color: #c2410c;
+  border: 2px solid var(--hc-border);
+  box-shadow: var(--hc-shadow-control);
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-high-contrast='true'] .vt-btn-primary:hover:not(:disabled),
+  html[data-high-contrast='true'] .btn-signal:hover:not(:disabled),
+  html[data-high-contrast='true'] button.bg-accent-primary:hover:not(:disabled),
+  html[data-high-contrast='true'] a.bg-accent-primary:hover:not(:disabled),
+  html[data-high-contrast='true'] button.bg-accent-cta:hover:not(:disabled),
+  html[data-high-contrast='true'] a.bg-accent-cta:hover:not(:disabled) {
+    background-color: #9a3412;
+  }
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary,
+html[data-theme='dark'][data-high-contrast='true'] .btn-signal,
+html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary,
+html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary,
+html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta,
+html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta {
+  background-color: #e11d48;
+  border: 2px solid var(--hc-border);
+  box-shadow: var(--hc-shadow-control);
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary:hover:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] .btn-signal:hover:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary:hover:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary:hover:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta:hover:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta:hover:not(:disabled) {
+    background-color: #be123c;
+    border-color: #fb7185;
+  }
+}
+
+html[data-high-contrast='true'] .vt-btn-ghost,
+html[data-high-contrast='true'] .vt-chip,
+html[data-high-contrast='true'] button.border-default,
+html[data-high-contrast='true'] a.border-default {
+  border-width: 2px;
+  border-color: var(--hc-border);
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] [role='tab'],
+html[data-high-contrast='true'] [role='group'] > button[aria-pressed='true'] {
+  border-width: 2px;
+  border-color: var(--hc-border);
+}
+
+html[data-high-contrast='true'] [role='tab'][aria-selected='true'],
+html[data-high-contrast='true'] [role='group'] > button[aria-pressed='true'] {
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] [role='switch'] {
+  border: 2px solid var(--hc-border);
+}
+
+html[data-high-contrast='true'] [role='switch'] > span {
+  border: 1.5px solid var(--hc-border);
+}
+
+html[data-high-contrast='true'] .vt-badge-live {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1.5px solid #065f46;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] .vt-badge-simulated {
+  background-color: #f0f9ff;
+  color: #075985;
+  border: 1.5px solid #075985;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] .vt-badge-sample {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1.5px solid #92400e;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] .vt-tag,
+html[data-high-contrast='true'] .vt-tag-signal,
+html[data-high-contrast='true'] .badge-certified {
+  border: 1.5px solid #141416;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-badge-live {
+  background-color: #022c22;
+  color: #6ee7b7;
+  border: 2px solid #34d399;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-badge-simulated {
+  background-color: #082f49;
+  color: #7dd3fc;
+  border: 2px solid #38bdf8;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-badge-sample {
+  background-color: #451a03;
+  color: #fde68a;
+  border: 2px solid #fbbf24;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-theme='dark'][data-high-contrast='true'] .vt-tag,
+html[data-theme='dark'][data-high-contrast='true'] .vt-tag-signal,
+html[data-theme='dark'][data-high-contrast='true'] .badge-certified {
+  border: 2px solid #ffffff;
+  box-shadow: var(--hc-shadow-badge);
+}
+
+html[data-high-contrast='true'] [role='progressbar'],
+html[data-high-contrast='true'] [role='meter'],
+html[data-high-contrast='true'] .vt-pixel-bar {
+  background-color: #eceae4;
+  border: 2px solid #141416;
+}
+
+html[data-theme='dark'][data-high-contrast='true'] [role='progressbar'],
+html[data-theme='dark'][data-high-contrast='true'] [role='meter'],
+html[data-theme='dark'][data-high-contrast='true'] .vt-pixel-bar {
+  background-color: #000000;
+  border: 2px solid #ffffff;
+}
+
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-card-lift:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-card-lift:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-card-interactive:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-card-interactive:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-card-hover:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .card-unibody-hover:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-primary:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-primary:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .btn-signal:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .btn-signal:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-ghost:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-ghost:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-tactile:hover,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-tactile:active,
+html[data-high-contrast='true'][data-reduced-motion='true'] .vt-motion-press:active {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-high-contrast='true'] .vt-card-lift:hover,
+  html[data-high-contrast='true'] .vt-card-lift:active,
+  html[data-high-contrast='true'] .vt-card-interactive:hover,
+  html[data-high-contrast='true'] .vt-card-interactive:active,
+  html[data-high-contrast='true'] .vt-card-hover:hover,
+  html[data-high-contrast='true'] .card-unibody-hover:hover,
+  html[data-high-contrast='true'] .vt-btn-primary:hover,
+  html[data-high-contrast='true'] .vt-btn-primary:active,
+  html[data-high-contrast='true'] .btn-signal:hover,
+  html[data-high-contrast='true'] .btn-signal:active,
+  html[data-high-contrast='true'] .vt-btn-ghost:hover,
+  html[data-high-contrast='true'] .vt-btn-ghost:active,
+  html[data-high-contrast='true'] .vt-btn-tactile:hover,
+  html[data-high-contrast='true'] .vt-btn-tactile:active,
+  html[data-high-contrast='true'] .vt-motion-press:active {
+    transform: none !important;
   }
 }
 

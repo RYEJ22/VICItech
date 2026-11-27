@@ -455,7 +455,7 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
             </span>
           </div>
           {stagedMedia[0]?.mediaType === "video" ? (
-            <div className="relative overflow-hidden rounded-lg border border-default bg-ink">
+            <div className="relative overflow-hidden rounded-lg border border-default bg-black">
               <video
                 src={stagedMedia[0].previewUrl}
                 controls
@@ -492,7 +492,7 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
                     onClick={() => removeStagedMedia(item.id)}
                     disabled={isPublishing}
                     aria-label={`Hapus ${item.name}`}
-                    className={`absolute right-1.5 top-1.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink/80 text-white hover:bg-status-danger ${focusRing}`}
+                    className={`absolute right-1.5 top-1.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/80 text-white hover:bg-status-danger ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -822,7 +822,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
         </div>
       ) : (
         isVideoPost ? (
-          <div className="mt-3 aspect-video w-full overflow-hidden rounded-lg border border-default bg-ink">
+          <div className="mt-3 aspect-video w-full overflow-hidden rounded-lg border border-default bg-black">
             <video
               src={mediaUrls[0]}
               controls
@@ -927,7 +927,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 type="button"
                 disabled={reportSubmitting}
                 onClick={() => void handleReportPost(reason)}
-                className="min-h-9 rounded-full border border-rose-300 bg-surface px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
+                className="min-h-9 rounded-full border border-rose-300 bg-surface px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-500/15 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
               >
                 {reason}
               </button>
@@ -2032,7 +2032,7 @@ export default function CommunityHub() {
   }, []);
 
   return (
-    <div className="w-full max-w-full min-w-0 overflow-x-clip bg-canvas text-primary antialiased">
+    <div className={`${communityStyles.communityShell ?? ""} w-full max-w-full min-w-0 overflow-x-clip bg-canvas text-primary antialiased`}>
       <div className="box-border mx-auto w-full max-w-7xl min-w-0 px-4 pb-28 pt-5 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
         <header className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

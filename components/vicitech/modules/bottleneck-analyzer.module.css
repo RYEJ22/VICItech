@@ -112,12 +112,26 @@
 }
 
 :global(html[data-high-contrast='true']) .meterPanel,
-:global(html[data-high-contrast='true']) .meterSummaryBox,
 :global(html[data-high-contrast='true']) .psuCard,
-:global(html[data-high-contrast='true']) .compatCard,
+:global(html[data-high-contrast='true']) .compatCard {
+  background-color: #ffffff;
+  border: 2px solid #141416;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0px #141416);
+}
+
+:global(html[data-high-contrast='true']) .meterSummaryBox,
 :global(html[data-high-contrast='true']) .psuStatBox {
   background-color: #ffffff;
   border: 2px solid #141416;
+}
+
+:global(html[data-high-contrast='true']) .barTrack {
+  border: 2px solid #141416;
+  background-color: #eceae4;
+}
+
+:global(html[data-high-contrast='true']) .psuSegEmpty {
+  border: 1.5px solid #141416;
 }
 
 :global(html[data-high-contrast='true']) .gaugeTrack {
@@ -128,6 +142,7 @@
   background-color: #ffffff;
   border: 1.5px solid #9a3412;
   color: #9a3412;
+  box-shadow: var(--hc-shadow-badge, 2px 2px 0px #141416);
 }
 
 :global(html[data-theme='dark']) .meterPanel {
@@ -266,16 +281,31 @@
 }
 
 :global(html[data-theme='dark'][data-high-contrast='true']) .meterPanel,
-:global(html[data-theme='dark'][data-high-contrast='true']) .meterSummaryBox,
 :global(html[data-theme='dark'][data-high-contrast='true']) .psuCard,
-:global(html[data-theme='dark'][data-high-contrast='true']) .compatCard,
+:global(html[data-theme='dark'][data-high-contrast='true']) .compatCard {
+  background-color: #0b0e14;
+  border: 2px solid #ffffff;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0px #e11d48);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .meterSummaryBox,
 :global(html[data-theme='dark'][data-high-contrast='true']) .psuStatBox {
   background-color: #0b0e14;
   border: 2px solid #ffffff;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .barTrack {
+  border: 2px solid #ffffff;
+  background-color: #000000;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .psuSegEmpty {
+  border: 1.5px solid #ffffff;
 }
 
 :global(html[data-theme='dark'][data-high-contrast='true']) .limiterBadge {
   background-color: #0b0e14;
   border: 2px solid #fb7185;
   color: #fb7185;
+  box-shadow: var(--hc-shadow-badge, 2px 2px 0px #e11d48);
 }

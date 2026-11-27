@@ -22,3 +22,19 @@
     will-change: auto;
   }
 }
+
+:global(html[data-reduced-motion='true']) .barFill {
+  transition: none;
+  will-change: auto;
+}
+
+:global(html[data-high-contrast='true']) .barTrack {
+  border: 2px solid #141416;
+  background-color: #eceae4;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .barTrack {
+  border: 2px solid #ffffff;
+  background-color: #000000;
+  border-radius: 0px;
+}

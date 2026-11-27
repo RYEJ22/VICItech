@@ -941,7 +941,7 @@ export default function DirectMessageDrawer({
                         </div>
                       ) : null}
                       {payload.kind === "video" ? (
-                        <div className="mb-2 overflow-hidden rounded-xl bg-ink">
+                        <div className="mb-2 overflow-hidden rounded-xl bg-black">
                           <video
                             src={payload.mediaUrls[0]}
                             controls
@@ -1002,7 +1002,7 @@ export default function DirectMessageDrawer({
                           muted
                           playsInline
                           preload="metadata"
-                          className="h-12 w-16 rounded-lg bg-ink object-cover"
+                          className="h-12 w-16 rounded-lg bg-black object-cover"
                         />
                       ) : (
                         <img

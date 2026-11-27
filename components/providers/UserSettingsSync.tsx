@@ -71,8 +71,28 @@ export function UserSettingsSync() {
             : [];
         if (remoteKeys.length === 0) return;
 
-        const merged = mergeRemoteUserSettings(profile.settings, getStoredUserSettings());
-        saveStoredUserSettings(merged);
+        const localBefore = getStoredUserSettings();
+        const merged = mergeRemoteUserSettings(profile.settings, localBefore);
+        const unchanged =
+          localBefore !== null &&
+          localBefore.theme === merged.theme &&
+          localBefore.language === merged.language &&
+          localBefore.pixelIntensity === merged.pixelIntensity &&
+          localBefore.highContrast === merged.highContrast &&
+          localBefore.textScale === merged.textScale &&
+          localBefore.reducedMotion === merged.reducedMotion &&
+          localBefore.temperatureUnit === merged.temperatureUnit &&
+          localBefore.compactNumbers === merged.compactNumbers &&
+          localBefore.showSourceBadges === merged.showSourceBadges &&
+          localBefore.navbarScrollBehavior === merged.navbarScrollBehavior &&
+          localBefore.mobileDensity === merged.mobileDensity &&
+          localBefore.deletionRequestedAt === merged.deletionRequestedAt;
+
+        if (unchanged) {
+          applyUserSettingsToDocument(merged);
+        } else {
+          saveStoredUserSettings(merged, { preserveUpdatedAt: true });
+        }
       } catch {
         // Pertahankan preferensi lokal jika sinkronisasi profil belum tersedia.
       }

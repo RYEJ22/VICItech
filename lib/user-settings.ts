@@ -287,12 +287,31 @@ export function getStoredUserSettings(): UserSettings | null {
   }
 }
 
+function parseSettingsTimestamp(value: unknown): number {
+  if (typeof value !== 'string' || !value.trim()) {
+    return 0;
+  }
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function mergeRemoteUserSettings(
   remoteRaw: unknown,
   localFallback?: UserSettings | null,
 ): UserSettings {
   const normalized = normalizeUserSettings(remoteRaw);
   const record = isRecord(remoteRaw) ? remoteRaw : {};
+  const remoteTs = parseSettingsTimestamp(record.updatedAt);
+  const localTs = parseSettingsTimestamp(localFallback?.updatedAt);
+
+  if (localFallback && localTs > 0 && (remoteTs === 0 || localTs >= remoteTs)) {
+    return {
+      ...localFallback,
+      deletionRequestedAt:
+        normalized.deletionRequestedAt ?? localFallback.deletionRequestedAt ?? null,
+    };
+  }
+
   const remoteHasTheme = record.theme === 'dark' || record.theme === 'light';
   const remoteHasLanguage = record.language === 'en' || record.language === 'id';
   const remoteHasPixelIntensity =
@@ -329,6 +348,7 @@ export function mergeRemoteUserSettings(
     mobileDensity: remoteHasMobileDensity
       ? normalized.mobileDensity
       : (localFallback?.mobileDensity ?? DEFAULT_USER_SETTINGS.mobileDensity),
+    updatedAt: normalized.updatedAt ?? localFallback?.updatedAt,
   };
 }
 
@@ -401,10 +421,18 @@ export function applyUserSettingsToDocument(settings: UserSettings): void {
   root.setAttribute('data-language', settings.language);
 }
 
-export function saveStoredUserSettings(next: UserSettings): UserSettings {
+export function saveStoredUserSettings(
+  next: UserSettings,
+  options?: { readonly preserveUpdatedAt?: boolean },
+): UserSettings {
+  const base = normalizeUserSettings(next);
+  const preservedTimestamp =
+    options?.preserveUpdatedAt && typeof next.updatedAt === 'string' && next.updatedAt.trim()
+      ? next.updatedAt
+      : new Date().toISOString();
   const normalized: UserSettings = {
-    ...normalizeUserSettings(next),
-    updatedAt: new Date().toISOString(),
+    ...base,
+    updatedAt: preservedTimestamp,
   };
 
   if (typeof window !== 'undefined') {

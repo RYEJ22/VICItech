@@ -137,6 +137,7 @@
 :global(html[data-high-contrast='true']) .workflowDeck {
   background: #ffffff;
   border: 2px solid #141416;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0px #141416);
 }
 
 :global(html[data-high-contrast='true']) .workflowBgImage {
@@ -156,13 +157,15 @@
 :global(html[data-high-contrast='true']) .stepDeckCardActive {
   background-color: #ffffff;
   border: 2px solid #9a3412;
-  box-shadow: 3px 3px 0 #141416;
+  box-shadow: var(--hc-shadow-control, 3px 3px 0 #141416);
 }
 
-:global(html[data-high-contrast='true']) .workflowPreviewCard {
+:global(html[data-high-contrast='true']) .workflowPreviewCard,
+:global(html[data-high-contrast='true']) .manifestoBand,
+:global(html[data-high-contrast='true']) .diagramFrame {
   background-color: #ffffff;
   border: 2px solid #141416;
-  box-shadow: 3px 3px 0 #141416;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0 #141416);
 }
 
 :global(html[data-high-contrast='true']) .stepPhaseLabel {
@@ -267,4 +270,21 @@
 
 :global(html[data-theme='dark']) .watermarkText {
   color: rgb(225 29 72 / 0.16);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .workflowDeck,
+:global(html[data-theme='dark'][data-high-contrast='true']) .workflowPreviewCard,
+:global(html[data-theme='dark'][data-high-contrast='true']) .manifestoBand,
+:global(html[data-theme='dark'][data-high-contrast='true']) .diagramFrame,
+:global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCard {
+  background-color: #0b0e14;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0 #e11d48);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive {
+  background-color: #0b0e14;
+  border: 2px solid #fb7185;
+  box-shadow: var(--hc-shadow-card, 4px 4px 0 #e11d48);
 }

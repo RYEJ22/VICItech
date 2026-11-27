@@ -201,3 +201,31 @@
 :global(html[data-theme='dark'][data-reduced-motion='true']) .ctaSecondary:active {
   transform: none;
 }
+
+:global(html[data-high-contrast='true']) .ctaPrimary {
+  background: #c2410c;
+  border: 2px solid #141416;
+  box-shadow: var(--hc-shadow-control, 3px 3px 0px #141416);
+  color: #ffffff;
+}
+
+:global(html[data-high-contrast='true']) .ctaSecondary {
+  background: #ffffff;
+  color: #141416;
+  border: 2px solid #141416;
+  box-shadow: var(--hc-shadow-control, 3px 3px 0px #141416);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .ctaPrimary {
+  background: #e11d48;
+  border: 2px solid #ffffff;
+  box-shadow: var(--hc-shadow-control, 3px 3px 0px #e11d48);
+  color: #ffffff;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .ctaSecondary {
+  background: #0b0e14;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: var(--hc-shadow-control, 3px 3px 0px #e11d48);
+}

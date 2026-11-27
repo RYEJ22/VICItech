@@ -978,7 +978,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   type="button"
                   onClick={() => setActionNote("")}
                   aria-label="Tutup notifikasi penyeimbangan"
-                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
                 >
                   <X className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
@@ -1098,7 +1098,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                     type="button"
                     onClick={() => setShareStatus("")}
                     aria-label={bn.closeShareNoticeAria}
-                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
