@@ -6,6 +6,7 @@ import { CheckoutProvider } from "@/context/CheckoutContext";
 import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import ThemeProvider from "@/components/providers/ThemeProvider";
 import { UserSettingsSync } from "@/components/providers/UserSettingsSync";
+import { DualThemeClickBurst } from "@/components/providers/DualThemeClickBurst";
 import IntroSplash from "@/components/ui/IntroSplash";
 import Navbar from "@/components/Navbar";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
           <LanguageProvider>
             <CheckoutProvider>
               <UserSettingsSync />
+              <DualThemeClickBurst />
               <IntroSplash />
               <Navbar />
               <div className="min-w-0 max-w-full overflow-x-clip pb-24 md:pb-0">{children}</div>
