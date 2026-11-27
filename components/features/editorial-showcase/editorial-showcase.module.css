@@ -288,3 +288,78 @@
   border: 2px solid #fb7185;
   box-shadow: var(--hc-shadow-card, 4px 4px 0 #e11d48);
 }
+
+@keyframes showcaseRubyBeamSpin {
+  from {
+    --vt-beam-angle: 0deg;
+  }
+  to {
+    --vt-beam-angle: 360deg;
+  }
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  :global(html[data-theme='dark'][data-high-contrast='true']) .workflowPreviewCard,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .manifestoBand {
+    position: relative;
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive {
+    position: relative;
+    border-color: rgba(251, 113, 133, 0.55);
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true']) .workflowPreviewCard::before,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .manifestoBand::before,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      rgba(255, 255, 255, 0.45) 0deg,
+      rgba(255, 255, 255, 0.22) 215deg,
+      #e11d48 265deg,
+      #f43f5e 298deg,
+      #fda4af 320deg,
+      #ffffff 332deg,
+      #f43f5e 346deg,
+      #e11d48 354deg,
+      rgba(255, 255, 255, 0.45) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: showcaseRubyBeamSpin 4.8s linear infinite;
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive::before {
+    animation-duration: 3.8s;
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .workflowPreviewCard::before,
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .manifestoBand::before,
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .stepDeckCardActive::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html[data-theme='dark'][data-high-contrast='true']) .workflowPreviewCard::before,
+    :global(html[data-theme='dark'][data-high-contrast='true']) .manifestoBand::before,
+    :global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive::before {
+      animation: none !important;
+      background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+    }
+  }
+}

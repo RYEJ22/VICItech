@@ -229,3 +229,60 @@
   border: 2px solid #ffffff;
   box-shadow: var(--hc-shadow-control, 3px 3px 0px #e11d48);
 }
+
+@keyframes heroRubyBeamSpin {
+  from {
+    --vt-beam-angle: 0deg;
+  }
+  to {
+    --vt-beam-angle: 360deg;
+  }
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  :global(html[data-theme='dark'][data-high-contrast='true']) .ctaPrimary {
+    position: relative;
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true']) .ctaPrimary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      rgba(255, 255, 255, 0.42) 0deg,
+      rgba(136, 19, 55, 0.6) 210deg,
+      #f43f5e 265deg,
+      #fda4af 305deg,
+      #ffffff 328deg,
+      #fecdd3 344deg,
+      rgba(255, 255, 255, 0.42) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: heroRubyBeamSpin 3.2s linear infinite;
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .ctaPrimary::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fda4af 45%, #fb7185 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html[data-theme='dark'][data-high-contrast='true']) .ctaPrimary::before {
+      animation: none !important;
+      background: linear-gradient(135deg, #ffffff 0%, #fda4af 45%, #fb7185 100%);
+    }
+  }
+}

@@ -2239,6 +2239,175 @@ html[data-high-contrast='true'][data-reduced-motion='true'] .vt-motion-press:act
   }
 }
 
+/* ───────────────────────────── Dark High-Contrast Rotating Ruby Border Beam ───────────────────────────── */
+
+@property --vt-beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes vtRubyBorderBeam {
+  from {
+    --vt-beam-angle: 0deg;
+  }
+  to {
+    --vt-beam-angle: 360deg;
+  }
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  html[data-theme='dark'][data-high-contrast='true'] .vt-qc-preview-card:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-obsidian-panel:not(.pointer-events-none):not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-lift:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-interactive:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-metal:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] #community-composer:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-hc-beam:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary:not(:disabled):not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .btn-signal:not(:disabled):not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary:not([role='switch']):not([role='tab']):not(:disabled):not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary:not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta:not([role='switch']):not([role='tab']):not(:disabled):not(.fixed):not(.sticky):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta:not(.fixed):not(.sticky):not(.absolute) {
+    position: relative;
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] .vt-qc-preview-card,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-obsidian-panel:not(.pointer-events-none):not(.absolute),
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-lift,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-interactive,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-metal,
+  html[data-theme='dark'][data-high-contrast='true'] #community-composer,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-hc-beam {
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] .btn-signal:not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary:not([role='switch']):not([role='tab']):not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary,
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta:not([role='switch']):not([role='tab']):not(:disabled),
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta {
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] .vt-qc-preview-card::before,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-obsidian-panel:not(.pointer-events-none):not(.absolute)::before,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-lift::before,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-card-interactive::before,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-metal::before,
+  html[data-theme='dark'][data-high-contrast='true'] #community-composer::before,
+  html[data-theme='dark'][data-high-contrast='true'] .vt-hc-beam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      rgba(255, 255, 255, 0.45) 0deg,
+      rgba(255, 255, 255, 0.22) 215deg,
+      #e11d48 265deg,
+      #f43f5e 298deg,
+      #fda4af 320deg,
+      #ffffff 332deg,
+      #f43f5e 346deg,
+      #e11d48 354deg,
+      rgba(255, 255, 255, 0.45) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: vtRubyBorderBeam 4.8s linear infinite;
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary:not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'] .btn-signal:not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary:not([role='switch']):not([role='tab']):not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary::before,
+  html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta:not([role='switch']):not([role='tab']):not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      rgba(255, 255, 255, 0.42) 0deg,
+      rgba(136, 19, 55, 0.6) 210deg,
+      #f43f5e 265deg,
+      #fda4af 305deg,
+      #ffffff 328deg,
+      #fecdd3 344deg,
+      rgba(255, 255, 255, 0.42) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: vtRubyBorderBeam 3.2s linear infinite;
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-qc-preview-card::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-obsidian-panel:not(.pointer-events-none):not(.absolute)::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-card-lift::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-card-interactive::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-metal::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] #community-composer::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-hc-beam::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+  }
+
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .vt-btn-primary:not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] .btn-signal:not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] button.bg-accent-primary:not([role='switch']):not([role='tab']):not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] a.bg-accent-primary::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] button.bg-accent-cta:not([role='switch']):not([role='tab']):not(:disabled)::before,
+  html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true'] a.bg-accent-cta::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fda4af 45%, #fb7185 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html[data-theme='dark'][data-high-contrast='true'] .vt-qc-preview-card::before,
+    html[data-theme='dark'][data-high-contrast='true'] .vt-obsidian-panel:not(.pointer-events-none):not(.absolute)::before,
+    html[data-theme='dark'][data-high-contrast='true'] .vt-card-lift::before,
+    html[data-theme='dark'][data-high-contrast='true'] .vt-card-interactive::before,
+    html[data-theme='dark'][data-high-contrast='true'] .vt-metal::before,
+    html[data-theme='dark'][data-high-contrast='true'] #community-composer::before,
+    html[data-theme='dark'][data-high-contrast='true'] .vt-hc-beam::before {
+      animation: none !important;
+      background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+    }
+
+    html[data-theme='dark'][data-high-contrast='true'] .vt-btn-primary:not(:disabled)::before,
+    html[data-theme='dark'][data-high-contrast='true'] .btn-signal:not(:disabled)::before,
+    html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-primary:not([role='switch']):not([role='tab']):not(:disabled)::before,
+    html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-primary::before,
+    html[data-theme='dark'][data-high-contrast='true'] button.bg-accent-cta:not([role='switch']):not([role='tab']):not(:disabled)::before,
+    html[data-theme='dark'][data-high-contrast='true'] a.bg-accent-cta::before {
+      animation: none !important;
+      background: linear-gradient(135deg, #ffffff 0%, #fda4af 45%, #fb7185 100%);
+    }
+  }
+}
+
 /* ───────────────────────────── Utilities ───────────────────────────── */
 
 @layer utilities {

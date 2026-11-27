@@ -309,3 +309,70 @@
   color: #fb7185;
   box-shadow: var(--hc-shadow-badge, 2px 2px 0px #e11d48);
 }
+
+@keyframes analyzerRubyBeamSpin {
+  from {
+    --vt-beam-angle: 0deg;
+  }
+  to {
+    --vt-beam-angle: 360deg;
+  }
+}
+
+@supports ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  :global(html[data-theme='dark'][data-high-contrast='true']) .meterPanel,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .psuCard,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .compatCard {
+    position: relative;
+    border-color: rgba(255, 255, 255, 0.28);
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true']) .meterPanel::before,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .psuCard::before,
+  :global(html[data-theme='dark'][data-high-contrast='true']) .compatCard::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+    background: conic-gradient(
+      from var(--vt-beam-angle),
+      rgba(255, 255, 255, 0.45) 0deg,
+      rgba(255, 255, 255, 0.22) 215deg,
+      #e11d48 265deg,
+      #f43f5e 298deg,
+      #fda4af 320deg,
+      #ffffff 332deg,
+      #f43f5e 346deg,
+      #e11d48 354deg,
+      rgba(255, 255, 255, 0.45) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: analyzerRubyBeamSpin 4.8s linear infinite;
+  }
+
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .meterPanel::before,
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .psuCard::before,
+  :global(html[data-theme='dark'][data-high-contrast='true'][data-reduced-motion='true']) .compatCard::before {
+    animation: none !important;
+    background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html[data-theme='dark'][data-high-contrast='true']) .meterPanel::before,
+    :global(html[data-theme='dark'][data-high-contrast='true']) .psuCard::before,
+    :global(html[data-theme='dark'][data-high-contrast='true']) .compatCard::before {
+      animation: none !important;
+      background: linear-gradient(135deg, #fda4af 0%, #f43f5e 38%, #e11d48 72%, #fb7185 100%);
+    }
+  }
+}
