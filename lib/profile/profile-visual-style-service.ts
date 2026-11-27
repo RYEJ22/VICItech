@@ -1,4 +1,8 @@
-import { DEFAULT_PROFILE_VISUAL_STYLE, loadProfileVisualStyle, normalizeProfileVisualStyle } from './profile-customization';
+import {
+  DEFAULT_PROFILE_VISUAL_STYLE,
+  loadProfileVisualStyle,
+  normalizeProfileVisualStyle,
+} from './profile-customization';
 import type { ProfileVisualCustomization } from './profile-customization';
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from '@/lib/supabase/client';
 
@@ -33,7 +37,9 @@ export function fetchProfileVisualStyle(
 
   const cached = profileStyleCache.get(cleanUserId);
   if (cached) {
-    return cached.then((style) => style ?? (allowLocalFallback ? loadProfileVisualStyle(cleanUserId) : DEFAULT_PROFILE_VISUAL_STYLE));
+    return cached.then((style) =>
+      style ?? (allowLocalFallback ? loadProfileVisualStyle(cleanUserId) : DEFAULT_PROFILE_VISUAL_STYLE),
+    );
   }
 
   const request = (async (): Promise<ProfileVisualCustomization | null> => {
@@ -58,13 +64,18 @@ export function fetchProfileVisualStyle(
   })();
 
   profileStyleCache.set(cleanUserId, request);
-  return request.then((style) => style ?? (allowLocalFallback ? loadProfileVisualStyle(cleanUserId) : DEFAULT_PROFILE_VISUAL_STYLE));
+  return request.then((style) =>
+    style ?? (allowLocalFallback ? loadProfileVisualStyle(cleanUserId) : DEFAULT_PROFILE_VISUAL_STYLE),
+  );
 }
 
 export async function saveProfileVisualStyleToProfile(
   userId: string,
   style: ProfileVisualCustomization,
-): Promise<{ readonly ok: true; readonly style: ProfileVisualCustomization } | { readonly ok: false; readonly error: string }> {
+): Promise<
+  | { readonly ok: true; readonly style: ProfileVisualCustomization }
+  | { readonly ok: false; readonly error: string }
+> {
   const cleanUserId = userId.trim();
   if (!cleanUserId) return { ok: false, error: 'ID profil tidak tersedia untuk menyimpan kustomisasi.' };
   if (!isSupabaseAuthConfigured) return { ok: false, error: 'Konfigurasi Supabase belum aktif.' };
@@ -78,7 +89,9 @@ export async function saveProfileVisualStyleToProfile(
       .eq('id', cleanUserId)
       .maybeSingle();
 
-    if (readError) return { ok: false, error: `Gagal membaca pengaturan profil: ${readError.message}` };
+    if (readError) {
+      return { ok: false, error: `Gagal membaca pengaturan profil: ${readError.message}` };
+    }
     if (!profile) return { ok: false, error: 'Profil tidak ditemukan. Muat ulang halaman lalu coba lagi.' };
 
     const existingSettings = isRecord(profile.settings) ? profile.settings : {};
@@ -90,14 +103,19 @@ export async function saveProfileVisualStyleToProfile(
       })
       .eq('id', cleanUserId);
 
-    if (updateError) return { ok: false, error: `Gagal menyimpan kustomisasi profil: ${updateError.message}` };
+    if (updateError) {
+      return { ok: false, error: `Gagal menyimpan kustomisasi profil: ${updateError.message}` };
+    }
 
     profileStyleCache.set(cleanUserId, Promise.resolve(normalized));
     return { ok: true, style: normalized };
   } catch (error: unknown) {
     return {
       ok: false,
-      error: error instanceof Error ? `Gagal menyimpan kustomisasi profil: ${error.message}` : 'Gagal menyimpan kustomisasi profil.',
+      error:
+        error instanceof Error
+          ? `Gagal menyimpan kustomisasi profil: ${error.message}`
+          : 'Gagal menyimpan kustomisasi profil.',
     };
   }
 }
