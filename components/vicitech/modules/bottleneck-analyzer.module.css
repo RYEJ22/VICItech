@@ -1,10 +1,86 @@
+.meterPanel {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(20, 20, 22, 0.04), 0 4px 12px -4px rgba(20, 20, 22, 0.06);
+}
+
+.meterSummaryBox {
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-default);
+}
+
+.psuCard,
+.compatCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(20, 20, 22, 0.04), 0 4px 12px -4px rgba(20, 20, 22, 0.06);
+}
+
+.psuStatBox {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+}
+
+.psuSegEmpty {
+  background-color: #e4e2dd;
+}
+
+.psuSegSafe {
+  background-color: #059669;
+}
+
+.psuSegTight {
+  background-color: #d97706;
+}
+
+.psuSegInsufficient {
+  background-color: #dc2626;
+}
+
+.psuSegIdle {
+  background-color: #a1a1aa;
+}
+
+.gaugeTrack {
+  stroke: #e4e2dd;
+}
+
+.gaugeArcOptimal {
+  stroke: #059669;
+}
+
+.gaugeArcWarning {
+  stroke: #d97706;
+}
+
+.gaugeArcHigh {
+  stroke: #dc2626;
+}
+
+.barFillLimiter {
+  background-color: #ea580c;
+}
+
+.barFillBalanced {
+  background-color: #059669;
+}
+
+.limiterBadge {
+  background-color: #fff7ed;
+  border: 1px solid rgba(234, 88, 12, 0.35);
+  color: #c2410c;
+}
+
 .barTrack {
   position: relative;
-  height: 0.5rem;
+  height: 0.625rem;
   width: 100%;
   overflow: hidden;
   border-radius: 9999px;
   background-color: var(--bg-subtle);
+  border: 1px solid var(--border-default);
 }
 
 .barFill {
@@ -16,7 +92,9 @@
 }
 
 .gaugeArc {
-  transition: stroke-dashoffset var(--vt-motion-reveal) var(--vt-motion-ease), stroke var(--vt-motion-hover) var(--vt-motion-ease);
+  transition:
+    stroke-dashoffset var(--vt-motion-reveal) var(--vt-motion-ease),
+    stroke var(--vt-motion-hover) var(--vt-motion-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -25,4 +103,179 @@
     transition: none;
     will-change: auto;
   }
+}
+
+:global(html[data-reduced-motion='true']) .barFill,
+:global(html[data-reduced-motion='true']) .gaugeArc {
+  transition: none;
+  will-change: auto;
+}
+
+:global(html[data-high-contrast='true']) .meterPanel,
+:global(html[data-high-contrast='true']) .meterSummaryBox,
+:global(html[data-high-contrast='true']) .psuCard,
+:global(html[data-high-contrast='true']) .compatCard,
+:global(html[data-high-contrast='true']) .psuStatBox {
+  background-color: #ffffff;
+  border: 2px solid #141416;
+}
+
+:global(html[data-high-contrast='true']) .gaugeTrack {
+  stroke: #d4d0c8;
+}
+
+:global(html[data-high-contrast='true']) .limiterBadge {
+  background-color: #ffffff;
+  border: 1.5px solid #9a3412;
+  color: #9a3412;
+}
+
+:global(html[data-theme='dark']) .meterPanel {
+  background-color: #0d1016;
+  border: 2px solid #2a303c;
+  color: #f8fafc;
+  box-shadow: 4px 4px 0 #000000;
+  background-image:
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48),
+    linear-gradient(#e11d48, #e11d48);
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  background-position:
+    0 0,
+    100% 0,
+    0 100%,
+    100% 100%;
+}
+
+:global(html[data-theme='dark']) .meterSummaryBox {
+  background-color: #151923;
+  border: 2px solid #2a303c;
+}
+
+:global(html[data-theme='dark']) .psuCard,
+:global(html[data-theme='dark']) .compatCard {
+  background-color: #12151c;
+  border: 2px solid #2a303c;
+  color: #f8fafc;
+  box-shadow: 4px 4px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .psuStatBox {
+  background-color: #181c26;
+  border: 1.5px solid #2a303c;
+}
+
+:global(html[data-theme='dark']) .psuSegEmpty {
+  background-color: #181c26;
+  border: 1px solid #2a303c;
+}
+
+:global(html[data-theme='dark']) .psuSegSafe {
+  background-color: #10b981;
+}
+
+:global(html[data-theme='dark']) .psuSegTight {
+  background-color: #fbbf24;
+}
+
+:global(html[data-theme='dark']) .psuSegInsufficient {
+  background-color: #e11d48;
+}
+
+:global(html[data-theme='dark']) .psuSegIdle {
+  background-color: #475569;
+}
+
+:global(html[data-theme='dark']) .gaugeTrack {
+  stroke: #2a303c;
+}
+
+:global(html[data-theme='dark']) .gaugeArcOptimal {
+  stroke: #34d399;
+}
+
+:global(html[data-theme='dark']) .gaugeArcWarning {
+  stroke: #fbbf24;
+}
+
+:global(html[data-theme='dark']) .gaugeArcHigh {
+  stroke: #f43f5e;
+}
+
+:global(html[data-theme='dark']) .barFillLimiter {
+  background-color: #e11d48;
+}
+
+:global(html[data-theme='dark']) .barFillBalanced {
+  background-color: #10b981;
+}
+
+:global(html[data-theme='dark']) .limiterBadge {
+  background-color: rgba(225, 29, 72, 0.16);
+  border: 1.5px solid #e11d48;
+  color: #fb7185;
+}
+
+:global(html[data-theme='dark']) .barTrack {
+  border-radius: 0px;
+  border: 2px solid #2a303c;
+  background-color: #07090d;
+  box-shadow: inset 2px 2px 0 #000000;
+}
+
+:global(html[data-theme='dark']) .barTrack::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 8px,
+    rgba(9, 9, 11, 0.72) 8px 10px
+  );
+}
+
+:global(html[data-theme='dark']) .barFill {
+  border-radius: 0px;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .meterPanel,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .psuCard,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .compatCard {
+  background-image: none;
+  border-width: 1px;
+  box-shadow: 0 10px 26px -10px rgba(0, 0, 0, 0.55);
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .meterSummaryBox,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .psuStatBox,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .barTrack {
+  border-width: 1px;
+  box-shadow: none;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .barTrack,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .barFill {
+  border-radius: 9999px;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .barTrack::after {
+  opacity: 0.25;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .meterPanel,
+:global(html[data-theme='dark'][data-high-contrast='true']) .meterSummaryBox,
+:global(html[data-theme='dark'][data-high-contrast='true']) .psuCard,
+:global(html[data-theme='dark'][data-high-contrast='true']) .compatCard,
+:global(html[data-theme='dark'][data-high-contrast='true']) .psuStatBox {
+  background-color: #0b0e14;
+  border: 2px solid #ffffff;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .limiterBadge {
+  background-color: #0b0e14;
+  border: 2px solid #fb7185;
+  color: #fb7185;
 }

@@ -321,6 +321,46 @@ export interface TranslationDictionary {
       readonly eyebrow: string;
       readonly title: string;
       readonly desc: string;
+      readonly meterTitlePrefix: string;
+      readonly gaugeCaption: string;
+      readonly statusOptimal: string;
+      readonly statusWarning: string;
+      readonly statusHigh: string;
+      readonly legendOptimal: string;
+      readonly legendWarning: string;
+      readonly legendHigh: string;
+      readonly directionBalanced: string;
+      readonly directionCpuMild: string;
+      readonly directionCpuSevere: string;
+      readonly directionGpuMild: string;
+      readonly directionGpuSevere: string;
+      readonly cpuUtilization: string;
+      readonly gpuUtilization: string;
+      readonly primaryLimiter: string;
+      readonly askAiCta: string;
+      readonly shareCardCta: string;
+      readonly preparingCard: string;
+      readonly closeShareNoticeAria: string;
+      readonly scenarioLabels: Readonly<Record<string, string>>;
+      readonly projectedLabels: Readonly<Record<string, { readonly label: string; readonly unit: string }>>;
+      readonly psuTitle: string;
+      readonly psuStatusSafe: string;
+      readonly psuStatusTight: string;
+      readonly psuStatusInsufficient: string;
+      readonly psuStatusUnspecified: string;
+      readonly psuEstLoad: string;
+      readonly psuRecommended: string;
+      readonly psuLoadOnPrefix: string;
+      readonly psuNoneSelected: string;
+      readonly psuMeterAria: string;
+      readonly psuHintSafe: string;
+      readonly psuHintIdeal: string;
+      readonly psuHintCritical: string;
+      readonly compatTitle: string;
+      readonly compatSocketLabel: string;
+      readonly compatMemoryLabel: string;
+      readonly compatRamCapPrefix: string;
+      readonly compatPsuLabel: string;
     };
     readonly versus: {
       readonly badge: string;
@@ -879,6 +919,56 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         eyebrow: 'Kalkulator Telemetri ViciTech',
         title: 'Analisis Bottleneck & Headroom PSU',
         desc: 'Evaluasi keseimbangan CPU dan GPU berdasarkan skenario resolusi, cek kompatibilitas soket/DDR4–DDR5, hitung margin aman daya PSU +35%, dan dapatkan rekomendasi upgrade terukur.',
+        meterTitlePrefix: 'Meter Bottleneck',
+        gaugeCaption: 'Bottleneck',
+        statusOptimal: 'Optimal',
+        statusWarning: 'Perhatian',
+        statusHigh: 'Bottleneck Tinggi',
+        legendOptimal: 'Optimal',
+        legendWarning: 'Perhatian',
+        legendHigh: 'Bottleneck',
+        directionBalanced: 'Seimbang / Optimal',
+        directionCpuMild: 'CPU Bottleneck Ringan',
+        directionCpuSevere: 'CPU Bottleneck Berat',
+        directionGpuMild: 'GPU Bottleneck Ringan',
+        directionGpuSevere: 'GPU Bottleneck Berat',
+        cpuUtilization: 'Utilisasi CPU',
+        gpuUtilization: 'Utilisasi GPU',
+        primaryLimiter: 'Pembatas Utama',
+        askAiCta: 'Tanya ViciTech AI soal Hasil Ini',
+        shareCardCta: 'Bagikan / Unduh Kartu Hasil',
+        preparingCard: 'Menyiapkan Kartu…',
+        closeShareNoticeAria: 'Tutup notifikasi kartu hasil',
+        scenarioLabels: {
+          '1080p_esports': '1080p Esports',
+          '1440p_aaa': '1440p AAA',
+          '4k_ultra': '4K Ultra',
+          rendering: 'Rendering & Produktivitas',
+        },
+        projectedLabels: {
+          '1080p_esports': { label: 'Proyeksi FPS Esports (1080p)', unit: 'FPS' },
+          '1440p_aaa': { label: 'Proyeksi FPS Game AAA (1440p High)', unit: 'FPS' },
+          '4k_ultra': { label: 'Proyeksi FPS 4K Ultra (2160p)', unit: 'FPS' },
+          rendering: { label: 'Indeks Kecepatan Render & Ekspor 4K', unit: 'indeks / 100' },
+        },
+        psuTitle: 'Headroom Daya PSU',
+        psuStatusSafe: 'Aman / Optimal',
+        psuStatusTight: 'Mepet',
+        psuStatusInsufficient: 'Tidak Disarankan / Kurang Daya',
+        psuStatusUnspecified: 'PSU Belum Dipilih',
+        psuEstLoad: 'Estimasi Beban',
+        psuRecommended: 'Rekomendasi (+35%)',
+        psuLoadOnPrefix: 'Beban terhadap PSU',
+        psuNoneSelected: 'Belum ada PSU dipilih',
+        psuMeterAria: 'Persentase beban daya PSU',
+        psuHintSafe: '0% Aman',
+        psuHintIdeal: '75% Ideal',
+        psuHintCritical: '90%+ Kritis',
+        compatTitle: 'Daftar Periksa Kompatibilitas',
+        compatSocketLabel: 'Soket CPU & Motherboard',
+        compatMemoryLabel: 'Generasi Memori (DDR4 / DDR5)',
+        compatRamCapPrefix: 'Kapasitas RAM',
+        compatPsuLabel: 'Headroom Daya PSU (+35% Safety Buffer)',
       },
       versus: {
         badge: 'Skor Simulasi Terbobot',
@@ -1434,6 +1524,56 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         eyebrow: 'ViciTech Telemetry Calculator',
         title: 'Bottleneck & PSU Headroom Analyzer',
         desc: 'Evaluate CPU and GPU balance by target resolution, check socket/DDR4–DDR5 compatibility, verify +35% PSU safety headroom, and get measurable upgrade recommendations.',
+        meterTitlePrefix: 'Bottleneck Meter',
+        gaugeCaption: 'Bottleneck',
+        statusOptimal: 'Optimal',
+        statusWarning: 'Warning',
+        statusHigh: 'High Bottleneck',
+        legendOptimal: 'Optimal',
+        legendWarning: 'Warning',
+        legendHigh: 'Bottleneck',
+        directionBalanced: 'Balanced / Optimal',
+        directionCpuMild: 'Mild CPU Bottleneck',
+        directionCpuSevere: 'Severe CPU Bottleneck',
+        directionGpuMild: 'Mild GPU Bottleneck',
+        directionGpuSevere: 'Severe GPU Bottleneck',
+        cpuUtilization: 'CPU Utilization',
+        gpuUtilization: 'GPU Utilization',
+        primaryLimiter: 'Primary Limiter',
+        askAiCta: 'Ask ViciTech AI about This Result',
+        shareCardCta: 'Share / Download Result Card',
+        preparingCard: 'Preparing Card…',
+        closeShareNoticeAria: 'Close result card notification',
+        scenarioLabels: {
+          '1080p_esports': '1080p Esports',
+          '1440p_aaa': '1440p AAA',
+          '4k_ultra': '4K Ultra',
+          rendering: 'Rendering & Productivity',
+        },
+        projectedLabels: {
+          '1080p_esports': { label: 'Projected Esports FPS (1080p)', unit: 'FPS' },
+          '1440p_aaa': { label: 'Projected AAA FPS (1440p High)', unit: 'FPS' },
+          '4k_ultra': { label: 'Projected 4K Ultra FPS (2160p)', unit: 'FPS' },
+          rendering: { label: '4K Render & Export Speed Index', unit: 'index / 100' },
+        },
+        psuTitle: 'PSU Power Headroom',
+        psuStatusSafe: 'Safe / Optimal',
+        psuStatusTight: 'Tight Margin',
+        psuStatusInsufficient: 'Insufficient Power',
+        psuStatusUnspecified: 'No PSU Selected',
+        psuEstLoad: 'Estimated Load',
+        psuRecommended: 'Recommended (+35%)',
+        psuLoadOnPrefix: 'Load on PSU',
+        psuNoneSelected: 'No PSU selected yet',
+        psuMeterAria: 'PSU power load percentage',
+        psuHintSafe: '0% Safe',
+        psuHintIdeal: '75% Ideal',
+        psuHintCritical: '90%+ Critical',
+        compatTitle: 'Compatibility Checklist',
+        compatSocketLabel: 'CPU & Motherboard Socket',
+        compatMemoryLabel: 'Memory Generation (DDR4 / DDR5)',
+        compatRamCapPrefix: 'RAM Capacity',
+        compatPsuLabel: 'PSU Power Headroom (+35% Safety Buffer)',
       },
       versus: {
         badge: 'Weighted Simulation Score',

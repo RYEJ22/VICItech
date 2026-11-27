@@ -100,31 +100,38 @@ export function EditorialShowcaseSteps({
 
   return (
     <div className="space-y-16">
-      {/* Reference 00:14–00:21: Stacked Workflow Deck over Framed Hardware Photography */}
-      <RevealOnScroll as="section" ariaLabelledBy="workflow-deck-heading" className="relative overflow-hidden rounded-xl border border-default bg-[#09090B]">
-        <div className="relative min-h-[28rem] w-full p-5 sm:p-8 lg:p-10">
+      {/* Stacked Workflow Deck: Warm Cream + White + Orange in Light Mode, Obsidian Ruby Pixel in Dark Mode */}
+      <RevealOnScroll
+        as="section"
+        ariaLabelledBy="workflow-deck-heading"
+        className={`rounded-xl ${styles.workflowDeck ?? ''}`}
+      >
+        <div className="relative min-h-[26rem] w-full p-4 sm:p-8 lg:p-10">
           <div key={`workflow-background-${activeStep.imageSrc}`} className="absolute inset-0 vt-crossfade">
             <Image
               src={activeStep.imageSrc}
               alt=""
               fill
               sizes="(min-width: 1024px) 1200px, 100vw"
-              className="object-cover opacity-35"
+              className={`object-cover ${styles.workflowBgImage ?? ''}`}
             />
           </div>
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#09090B]/95 via-[#09090B]/85 to-[#09090B]/50"
+            className={`pointer-events-none absolute inset-0 ${styles.workflowScrim ?? ''}`}
           />
 
-          <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+          <div className="relative z-10 grid gap-6 lg:grid-cols-12 lg:items-center lg:gap-8">
             {/* Stacked Interactive Step Deck */}
-            <div className="space-y-2.5 lg:col-span-6">
+            <div className="min-w-0 space-y-2.5 lg:col-span-6">
               <div className="mb-4">
-                <span className="vt-badge-sample">{s.workflowBadge}</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-default bg-surface px-3 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-primary shadow-sm">
+                  <span className="vt-pixel-led bg-accent-primary" aria-hidden="true" />
+                  <span>{s.workflowBadge}</span>
+                </span>
                 <h2
                   id="workflow-deck-heading"
-                  className="tracking-tight mt-3 font-sans text-2xl font-bold text-[#FAFAFA] [text-wrap:balance] sm:text-3xl"
+                  className="tracking-tight mt-3 font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl"
                 >
                   {s.workflowHeadline}
                 </h2>
@@ -154,18 +161,18 @@ export function EditorialShowcaseSteps({
                         <span className="min-w-0">
                           <span
                             className={`block font-mono text-[11px] font-semibold uppercase tracking-wider ${
-                              isActive ? 'text-accent-cta' : 'text-white'
+                              styles.stepPhaseLabel ?? 'text-accent-hover'
                             }`}
                           >
                             {step.phaseLabel}
                           </span>
-                          <span className="mt-0.5 block font-sans text-base font-semibold sm:text-lg">
+                          <span className="mt-0.5 block break-words font-sans text-base font-semibold sm:text-lg">
                             {step.title}
                           </span>
                         </span>
                         <ChevronDown
-                          className={`vt-chevron h-5 w-5 shrink-0 ${
-                            isActive ? 'rotate-180 text-accent-cta' : 'text-white'
+                          className={`vt-chevron h-5 w-5 shrink-0 ${styles.stepChevron ?? 'text-accent-primary'} ${
+                            isActive ? 'rotate-180' : ''
                           }`}
                           strokeWidth={1.75}
                           aria-hidden="true"
@@ -181,10 +188,10 @@ export function EditorialShowcaseSteps({
                             {step.deliverables.map((item) => (
                               <li
                                 key={item}
-                                className="inline-flex items-center gap-1.5 rounded-md bg-subtle px-2.5 py-1 text-xs font-medium text-primary"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-default bg-canvas px-2.5 py-1 text-xs font-medium text-primary"
                               >
                                 <CheckCircle2
-                                  className="h-3.5 w-3.5 text-status-live"
+                                  className="h-3.5 w-3.5 shrink-0 text-status-live"
                                   strokeWidth={1.75}
                                   aria-hidden="true"
                                 />
@@ -220,10 +227,10 @@ export function EditorialShowcaseSteps({
               </div>
             </div>
 
-            {/* Active Visual Card Callout on Desktop */}
-            <div className="hidden lg:col-span-6 lg:block">
-              <div className="ml-auto max-w-md rounded-xl border border-default bg-surface p-5 text-primary shadow-xl">
-                <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-subtle">
+            {/* Active Visual Card Callout (Responsive across Mobile & Desktop) */}
+            <div className="min-w-0 lg:col-span-6">
+              <div className={`w-full rounded-xl p-4 sm:p-5 lg:ml-auto lg:max-w-md ${styles.workflowPreviewCard ?? ''}`}>
+                <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-default bg-subtle">
                   {previousStep && !prefersReducedMotion && (
                     <div className="vt-crossfade-out absolute inset-0" aria-hidden="true">
                       <Image
@@ -249,10 +256,10 @@ export function EditorialShowcaseSteps({
                     />
                   </div>
                 </div>
-                <p className="mt-3 font-mono text-xs font-semibold text-accent-cta">
+                <p className={`mt-3 font-mono text-xs font-semibold uppercase tracking-wider ${styles.stepPhaseLabel ?? 'text-accent-hover'}`}>
                   {activeStep.phaseLabel}
                 </p>
-                <p className="mt-1 font-sans text-lg font-semibold text-primary">
+                <p className="mt-1 break-words font-sans text-lg font-semibold text-primary">
                   {activeStep.title}
                 </p>
                 <p className="mt-1 text-xs leading-relaxed text-secondary">

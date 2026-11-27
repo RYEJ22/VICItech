@@ -15,18 +15,64 @@
   border-top: 1px dashed var(--border-default);
 }
 
+.workflowDeck {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #faf9f6 0%, #f3f1ed 100%);
+  border: 1px solid #e4e2dd;
+  color: var(--text-primary);
+}
+
+.workflowBgImage {
+  opacity: 0.14;
+}
+
+.workflowScrim {
+  background: linear-gradient(
+    90deg,
+    rgba(250, 249, 246, 0.96) 0%,
+    rgba(243, 241, 237, 0.9) 56%,
+    rgba(255, 247, 237, 0.72) 100%
+  );
+}
+
+.workflowPreviewCard {
+  background-color: #ffffff;
+  border: 1px solid #e4e2dd;
+  color: var(--text-primary);
+  box-shadow: 0 14px 32px -14px rgba(24, 24, 27, 0.12), 0 2px 6px -2px rgba(24, 24, 27, 0.05);
+}
+
 .stepDeckCard {
-  background-color: #b43b0b;
-  color: var(--accent-foreground);
-  border: 1px solid rgb(255 255 255 / 0.16);
-  transition: transform var(--vt-motion-hover) var(--vt-motion-ease), background-color var(--vt-motion-press) var(--vt-motion-ease);
+  background-color: #fff7ed;
+  color: #18181b;
+  border: 1px solid rgba(234, 88, 12, 0.24);
+  transition:
+    transform var(--vt-motion-hover) var(--vt-motion-ease),
+    background-color var(--vt-motion-press) var(--vt-motion-ease),
+    border-color var(--vt-motion-press) var(--vt-motion-ease);
+}
+
+.stepDeckCard:hover {
+  background-color: #ffffff;
+  border-color: rgba(234, 88, 12, 0.52);
 }
 
 .stepDeckCardActive {
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--accent-primary);
-  box-shadow: 0 18px 36px -16px rgb(24 24 27 / 0.25);
+  background-color: #ffffff;
+  color: #18181b;
+  border: 1.5px solid #ea580c;
+  box-shadow:
+    0 16px 32px -16px rgba(234, 88, 12, 0.24),
+    0 4px 10px -4px rgba(24, 24, 27, 0.08);
+}
+
+.stepPhaseLabel {
+  color: #c2410c;
+}
+
+.stepChevron {
+  color: #ea580c;
 }
 
 .stepPanelReveal {
@@ -80,6 +126,76 @@
   }
 }
 
+:global(html[data-reduced-motion='true']) .stepDeckCard,
+:global(html[data-reduced-motion='true']) .pillarRow,
+:global(html[data-reduced-motion='true']) .stepPanelReveal {
+  animation: none;
+  transition: none;
+  transform: none;
+}
+
+:global(html[data-high-contrast='true']) .workflowDeck {
+  background: #ffffff;
+  border: 2px solid #141416;
+}
+
+:global(html[data-high-contrast='true']) .workflowBgImage {
+  opacity: 0.04;
+}
+
+:global(html[data-high-contrast='true']) .workflowScrim {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+:global(html[data-high-contrast='true']) .stepDeckCard {
+  background-color: #ffffff;
+  border: 2px solid #141416;
+  color: #141416;
+}
+
+:global(html[data-high-contrast='true']) .stepDeckCardActive {
+  background-color: #ffffff;
+  border: 2px solid #9a3412;
+  box-shadow: 3px 3px 0 #141416;
+}
+
+:global(html[data-high-contrast='true']) .workflowPreviewCard {
+  background-color: #ffffff;
+  border: 2px solid #141416;
+  box-shadow: 3px 3px 0 #141416;
+}
+
+:global(html[data-high-contrast='true']) .stepPhaseLabel {
+  color: #9a3412;
+}
+
+:global(html[data-theme='dark']) .workflowDeck {
+  background: #09090b;
+  border: 2px solid #2a303c;
+  box-shadow: 4px 4px 0 #000000;
+  color: #f8fafc;
+}
+
+:global(html[data-theme='dark']) .workflowBgImage {
+  opacity: 0.35;
+}
+
+:global(html[data-theme='dark']) .workflowScrim {
+  background: linear-gradient(
+    90deg,
+    rgba(9, 9, 11, 0.95) 0%,
+    rgba(9, 9, 11, 0.85) 55%,
+    rgba(9, 9, 11, 0.5) 100%
+  );
+}
+
+:global(html[data-theme='dark']) .workflowPreviewCard {
+  background-color: #12151c;
+  border: 2px solid #2a303c;
+  color: #f8fafc;
+  box-shadow: 4px 4px 0 #000000;
+}
+
 :global(html[data-theme='dark']) .manifestoBand {
   background-color: #12151c;
   border: 2px solid #e11d48;
@@ -100,10 +216,46 @@
   box-shadow: 4px 4px 0 #000000;
 }
 
+:global(html[data-theme='dark']) .stepDeckCard:hover {
+  background-color: #181c26;
+  border-color: #e11d48;
+}
+
 :global(html[data-theme='dark']) .stepDeckCardActive {
   background-color: #181c26;
   color: #f8fafc;
   border: 2px solid #e11d48;
+  box-shadow: 4px 4px 0 #e11d48;
+}
+
+:global(html[data-theme='dark']) .stepPhaseLabel,
+:global(html[data-theme='dark']) .stepChevron {
+  color: #fb7185;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .workflowDeck,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .workflowPreviewCard,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .stepDeckCard,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .stepDeckCardActive {
+  border-width: 1px;
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.55);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .workflowDeck,
+:global(html[data-theme='dark'][data-high-contrast='true']) .workflowPreviewCard,
+:global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCard {
+  background-color: #0b0e14;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .workflowScrim {
+  background: rgba(0, 0, 0, 0.94);
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .stepDeckCardActive {
+  background-color: #0b0e14;
+  border: 2px solid #fb7185;
   box-shadow: 4px 4px 0 #e11d48;
 }
 

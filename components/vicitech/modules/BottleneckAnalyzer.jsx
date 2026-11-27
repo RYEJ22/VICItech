@@ -21,6 +21,7 @@ import {
   Search,
   Share2,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Store,
   X,
@@ -106,17 +107,17 @@ const selectClass = `vt-form-control min-h-11 w-full rounded-lg border border-de
 const RING_RADIUS = 56;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
+function BottleneckGaugeMeter({ pct, severity, statusBadge, bn, isEnglish }) {
   const sevStyle = SEVERITY_UI[severity];
   const SevIcon = sevStyle.Icon;
   const clampedFraction = Math.min(1, Math.max(0.03, pct / 50));
   const dashOffset = RING_CIRCUMFERENCE * (1 - clampedFraction);
-  const obsidianBadge =
+  const strokeTone =
     severity === "optimal"
-      ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+      ? styles.gaugeArcOptimal
       : severity === "warning"
-        ? "border-amber-400/30 bg-amber-500/15 text-amber-300"
-        : "border-rose-400/30 bg-rose-500/15 text-rose-300";
+        ? styles.gaugeArcWarning
+        : styles.gaugeArcHigh;
 
   return (
     <div className="flex flex-col items-center">
@@ -125,7 +126,11 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
           viewBox="0 0 144 144"
           className="h-full w-full -rotate-90"
           role="img"
-          aria-label={`Skor bottleneck ${pct.toFixed(1)} persen, status ${statusBadge}`}
+          aria-label={
+            isEnglish
+              ? `Bottleneck score ${pct.toFixed(1)} percent, status ${statusBadge}`
+              : `Skor bottleneck ${pct.toFixed(1)} persen, status ${statusBadge}`
+          }
         >
           <circle
             cx="72"
@@ -133,7 +138,7 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
             r={RING_RADIUS}
             fill="none"
             strokeWidth="12"
-            className="stroke-white/10"
+            className={styles.gaugeTrack}
           />
           <circle
             cx="72"
@@ -144,7 +149,7 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
             strokeLinecap="round"
             strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
             strokeDashoffset={dashOffset}
-            className={`${sevStyle.strokeClass} transition-[stroke-dashoffset,stroke] duration-500 ease-out motion-reduce:transition-none`}
+            className={`${strokeTone} ${styles.gaugeArc}`}
           />
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
@@ -152,68 +157,59 @@ function BottleneckGaugeMeter({ pct, severity, statusBadge }) {
             value={pct}
             format="percent"
             decimals={1}
-            className="font-mono text-3xl font-bold tracking-tight tabular-nums text-[#FAFAFA]"
+            className="font-mono text-3xl font-bold tracking-tight tabular-nums text-primary"
           />
-          <span className="mt-0.5 text-[11px] font-medium text-[#A1A1AA]">
-            Bottleneck
+          <span className="mt-0.5 text-[11px] font-medium text-secondary">
+            {bn.gaugeCaption}
           </span>
         </div>
       </div>
 
       <span
-        className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${obsidianBadge}`}
+        className={`mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${sevStyle.badgeClass}`}
       >
         <SevIcon className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
         <span>{statusBadge}</span>
       </span>
 
-      <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-[#A1A1AA]">
+      <ul className="mt-3 flex flex-wrap justify-center gap-x-3.5 gap-y-1 text-[11px] text-secondary">
         <li className="inline-flex items-center gap-1.5">
-          <span className="vt-pixel-led bg-emerald-400" aria-hidden="true" />
-          <span className="font-mono font-semibold tabular-nums text-emerald-400">&lt;10%</span> Optimal
+          <span className="vt-pixel-led bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-emerald-700 dark:text-emerald-400">&lt;10%</span> {bn.legendOptimal}
         </li>
         <li className="inline-flex items-center gap-1.5">
-          <span className="vt-pixel-led bg-amber-400" aria-hidden="true" />
-          <span className="font-mono font-semibold tabular-nums text-amber-400">10–19.9%</span> Perhatian
+          <span className="vt-pixel-led bg-amber-500 dark:bg-amber-400" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-amber-700 dark:text-amber-400">10–19.9%</span> {bn.legendWarning}
         </li>
         <li className="inline-flex items-center gap-1.5">
-          <span className="vt-pixel-led bg-rose-400" aria-hidden="true" />
-          <span className="font-mono font-semibold tabular-nums text-rose-400">≥20%</span> Bottleneck
+          <span className="vt-pixel-led bg-rose-600 dark:bg-[#F43F5E]" aria-hidden="true" />
+          <span className="font-mono font-semibold tabular-nums text-rose-700 dark:text-rose-400">≥20%</span> {bn.legendHigh}
         </li>
       </ul>
     </div>
   );
 }
 
-function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass, dark = false }) {
+function GpuScaledBar({ label, valuePct, badgeLabel, barColorClass }) {
   const clampedScale = Math.max(0.04, Math.min(1, valuePct / 100));
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`font-medium ${dark ? "text-[#FAFAFA]" : "text-primary"}`}>{label}</span>
+    <div className="min-w-0 space-y-1.5">
+      <div className="flex items-start justify-between gap-2 text-xs sm:items-center sm:text-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="break-words font-medium text-primary">{label}</span>
           {badgeLabel && (
-            <span
-              className={`vt-pixel-tag rounded border px-2 py-0.5 ${
-                dark
-                  ? "border-accent-primary/40 bg-accent-primary/20 text-orange-300"
-                  : "border-accent-primary/30 bg-accent-subtle text-accent-hover"
-              }`}
-            >
+            <span className={`vt-pixel-tag shrink-0 rounded px-2 py-0.5 ${styles.limiterBadge}`}>
               {badgeLabel}
             </span>
           )}
         </div>
-        <span className={`font-mono tabular-nums font-bold ${dark ? "text-[#FAFAFA]" : "text-primary"}`}>
+        <span className="shrink-0 font-mono font-bold tabular-nums text-primary">
           {Math.round(valuePct)}%
         </span>
       </div>
-      <div
-        className={`h-2.5 overflow-hidden ${dark ? "vt-pixel-bar rounded-[3px] bg-white/10" : "rounded-full bg-subtle"}`}
-        role="presentation"
-      >
+      <div className={styles.barTrack} role="presentation">
         <div
-          className={`h-full w-full origin-left transition-transform duration-500 ease-out motion-reduce:transition-none ${dark ? "rounded-[2px]" : "rounded-full"} ${barColorClass}`}
+          className={`${styles.barFill} ${barColorClass}`}
           style={{ transform: `scaleX(${clampedScale})` }}
         />
       </div>
@@ -463,7 +459,7 @@ function findBottleneckMatch(list, rawHint) {
 }
 
 export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = [] }) {
-  const { t } = useLanguage();
+  const { t, isEnglish } = useLanguage();
   const bn = t.routes.bottleneck;
   const [remoteComponents, setRemoteComponents] = useState([]);
   const [catalogNotice, setCatalogNotice] = useState("");
@@ -574,6 +570,127 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
   const sevUi = SEVERITY_UI[result.severity];
   const psuUi = PSU_STATUS_UI[result.psuHeadroom.status];
+
+  const localizedScenarioLabel = bn.scenarioLabels[selection.scenario] ?? result.scenario.label;
+  const localizedProjected = bn.projectedLabels[selection.scenario] ?? {
+    label: result.projectedMetricLabel,
+    unit: result.projectedMetricUnit,
+  };
+  const localizedStatusBadge =
+    result.severity === "optimal"
+      ? bn.statusOptimal
+      : result.severity === "warning"
+        ? bn.statusWarning
+        : bn.statusHigh;
+  const localizedDirectionLabel =
+    result.direction === "balanced"
+      ? bn.directionBalanced
+      : result.direction === "cpu"
+        ? result.severity === "high"
+          ? bn.directionCpuSevere
+          : bn.directionCpuMild
+        : result.severity === "high"
+          ? bn.directionGpuSevere
+          : bn.directionGpuMild;
+  const localizedExplanation = !isEnglish
+    ? result.explanation
+    : result.direction === "balanced"
+      ? `${selectedCpu.name} and ${selectedGpu.name} pair cleanly for ${localizedScenarioLabel} (${result.bottleneckPct.toFixed(1)}% load delta). Both CPU and GPU run near peak efficiency without holding each other back.`
+      : result.direction === "cpu"
+        ? selection.scenario === "1080p_esports"
+          ? `At ${localizedScenarioLabel}, the GPU renders frames faster so ${selectedCpu.name} becomes the primary limiter (${result.bottleneckPct.toFixed(1)}%). Upgrade the CPU or step up to 1440p to shift load onto the GPU.`
+          : `${selectedCpu.name} trails ${selectedGpu.name} by ${result.bottleneckPct.toFixed(1)}% under ${localizedScenarioLabel}, leaving part of the graphics card's potential untapped.`
+        : selection.scenario === "4k_ultra"
+          ? `${localizedScenarioLabel} heavily stresses shaders and VRAM; ${selectedGpu.name} runs at 100% load while the CPU still has headroom (${result.bottleneckPct.toFixed(1)}% GPU limit).`
+          : `${selectedGpu.name} runs at full capacity while ${selectedCpu.name} still has spare headroom, creating a ${result.bottleneckPct.toFixed(1)}% GPU bottleneck at ${localizedScenarioLabel}.`;
+
+  const localizedPsuStatusLabel =
+    result.psuHeadroom.status === "safe"
+      ? bn.psuStatusSafe
+      : result.psuHeadroom.status === "tight"
+        ? bn.psuStatusTight
+        : result.psuHeadroom.status === "insufficient"
+          ? bn.psuStatusInsufficient
+          : bn.psuStatusUnspecified;
+
+  const localizedPsuExplanation = !isEnglish
+    ? result.psuHeadroom.explanation
+    : result.psuHeadroom.status === "unspecified"
+      ? `Estimated peak system load is ${result.psuHeadroom.estimatedWattage} W. A minimum ${result.psuHeadroom.recommendedPsuWatts} W PSU is recommended for +35% safety headroom.`
+      : result.psuHeadroom.status === "safe"
+        ? `Peak load of ${result.psuHeadroom.loadPct?.toFixed(1)}% on your ${result.psuHeadroom.selectedPsuWatts} W PSU leaves comfortable headroom for power transient spikes.`
+        : result.psuHeadroom.status === "tight"
+          ? `Load of ${result.psuHeadroom.loadPct?.toFixed(1)}% approaches the ceiling of a ${result.psuHeadroom.selectedPsuWatts} W PSU. Consider upgrading to ${result.psuHeadroom.recommendedPsuWatts} W for quieter fan operation.`
+          : `Peak load of ${result.psuHeadroom.loadPct?.toFixed(1)}% exceeds the safe margin of a ${result.psuHeadroom.selectedPsuWatts} W PSU. Upgrading to at least ${result.psuHeadroom.recommendedPsuWatts} W is strongly recommended.`;
+
+  const psuSegmentActiveClass =
+    result.psuHeadroom.status === "safe"
+      ? styles.psuSegSafe
+      : result.psuHeadroom.status === "tight"
+        ? styles.psuSegTight
+        : result.psuHeadroom.status === "insufficient"
+          ? styles.psuSegInsufficient
+          : styles.psuSegIdle;
+
+  const localizedCompatibilityChecks = result.compatibilityChecks.map((check) => {
+    if (!isEnglish) return check;
+
+    if (check.id === "socket") {
+      return {
+        ...check,
+        label: bn.compatSocketLabel,
+        detail: selectedMobo
+          ? check.status === "pass"
+            ? `Compatible (${selectedCpu.socket} fits ${selectedMobo.name}).`
+            : `Mismatch: CPU uses socket ${selectedCpu.socket}, while the motherboard uses socket ${selectedMobo.socket}.`
+          : `CPU requires a ${selectedCpu.socket} motherboard (not specifically selected yet).`,
+      };
+    }
+
+    if (check.id === "memory_type") {
+      if (!selectedRam) {
+        return {
+          ...check,
+          label: bn.compatMemoryLabel,
+          detail: `CPU supports ${selectedCpu.supportedMemory.join(" / ")} (RAM kit selection is optional).`,
+        };
+      }
+      const cpuSupportsRam = selectedCpu.supportedMemory.includes(selectedRam.memoryType);
+      return {
+        ...check,
+        label: bn.compatMemoryLabel,
+        detail:
+          check.status === "pass"
+            ? `Compatible (${selectedRam.memoryType} supported by ${selectedCpu.name}${selectedMobo ? ` & ${selectedMobo.memoryType} motherboard` : ""}).`
+            : !cpuSupportsRam
+              ? `Mismatch: ${selectedCpu.name} only supports ${selectedCpu.supportedMemory.join("/")}, incompatible with ${selectedRam.memoryType} RAM.`
+              : `Mismatch: Motherboard supports ${selectedMobo?.memoryType ?? ""}, which differs from the ${selectedRam.memoryType} RAM kit.`,
+      };
+    }
+
+    if (check.id === "ram_capacity" && selectedRam) {
+      return {
+        ...check,
+        label: `${bn.compatRamCapPrefix} (${localizedScenarioLabel})`,
+        detail:
+          selection.scenario === "rendering" && selectedRam.capacityGb < 32
+            ? `${selectedRam.capacityGb} GB RAM handles light projects, though 4K Editing & Rendering recommends at least 32 GB.`
+            : selectedRam.capacityGb < 16 && selection.scenario !== "1080p_esports"
+              ? `Warning: ${selectedRam.capacityGb} GB is below the 16 GB baseline for ${localizedScenarioLabel} and may cause stuttering.`
+              : `${selectedRam.capacityGb} GB meets the memory baseline for ${localizedScenarioLabel}.`,
+      };
+    }
+
+    if (check.id === "psu_headroom") {
+      return {
+        ...check,
+        label: bn.compatPsuLabel,
+        detail: localizedPsuExplanation,
+      };
+    }
+
+    return check;
+  });
 
   const handleApplySuggestion = (suggestion) => {
     if (suggestion.targetKind === "cpu") {
@@ -887,83 +1004,83 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
 
           {/* Right Panel: Telemetry Output */}
           <div className="space-y-6 lg:col-span-7">
-            {/* Obsidian Telemetry Highlight Card: Bottleneck Gauge & Effective Load */}
+            {/* Bottleneck Meter Result Card (Light Mode Ceramic Surface / Dark Mode Obsidian Ruby Pixel UI) */}
             <section
               aria-labelledby="gauge-heading"
-              className="vt-obsidian-panel rounded-2xl p-5 sm:p-6"
+              className={`min-w-0 rounded-2xl p-4 sm:p-6 ${styles.meterPanel}`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3.5">
-                <h2 id="gauge-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-[#FAFAFA] sm:text-xl">
-                  <Activity className="h-5 w-5 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Meter Bottleneck: {result.scenario.label}</span>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3.5">
+                <h2 id="gauge-heading" className="tracking-tight flex min-w-0 items-center gap-2 font-sans text-lg font-bold text-primary sm:text-xl">
+                  <Activity className="h-5 w-5 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="break-words">{bn.meterTitlePrefix}: {localizedScenarioLabel}</span>
                 </h2>
-                <span className="font-mono text-xs text-[#A1A1AA]">
-                  {result.projectedMetricLabel}:{" "}
-                  <strong className="text-[#FAFAFA]">
-                    <AnimatedNumber value={result.projectedMetricValue} format="number" /> {result.projectedMetricUnit}
+                <span className="font-mono text-xs tabular-nums text-secondary">
+                  {localizedProjected.label}:{" "}
+                  <strong className="text-primary">
+                    <AnimatedNumber value={result.projectedMetricValue} format="number" /> {localizedProjected.unit}
                   </strong>
                 </span>
               </div>
 
               <div className="mt-5 grid items-center gap-6 md:grid-cols-12">
-                <div className="md:col-span-5">
+                <div className="min-w-0 md:col-span-5">
                   <BottleneckGaugeMeter
                     pct={result.bottleneckPct}
                     severity={result.severity}
-                    statusBadge={result.statusBadge}
+                    statusBadge={localizedStatusBadge}
+                    bn={bn}
+                    isEnglish={isEnglish}
                   />
                 </div>
 
-                <div className="space-y-4 md:col-span-7">
-                  <div className="rounded-xl border border-white/10 bg-white/[0.05] p-3.5 text-sm text-[#FAFAFA]">
-                    <p className="font-bold text-[#FAFAFA]">{result.directionLabel}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-[#A1A1AA] sm:text-sm">
-                      {result.explanation}
+                <div className="min-w-0 space-y-4 md:col-span-7">
+                  <div className={`rounded-xl p-3.5 text-sm text-primary ${styles.meterSummaryBox}`}>
+                    <p className="font-bold text-primary">{localizedDirectionLabel}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-secondary sm:text-sm">
+                      {localizedExplanation}
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <GpuScaledBar
-                      dark
-                      label={`Utilisasi CPU (${selectedCpu.name})`}
+                      label={`${bn.cpuUtilization} (${selectedCpu.name})`}
                       valuePct={result.cpuUtilizationPct}
-                      badgeLabel={result.direction === "cpu" ? "Pembatas Utama" : undefined}
-                      barColorClass={result.direction === "cpu" ? "bg-[#EA580C]" : "bg-emerald-500"}
+                      badgeLabel={result.direction === "cpu" ? bn.primaryLimiter : undefined}
+                      barColorClass={result.direction === "cpu" ? styles.barFillLimiter : styles.barFillBalanced}
                     />
                     <GpuScaledBar
-                      dark
-                      label={`Utilisasi GPU (${selectedGpu.name})`}
+                      label={`${bn.gpuUtilization} (${selectedGpu.name})`}
                       valuePct={result.gpuUtilizationPct}
-                      badgeLabel={result.direction === "gpu" ? "Pembatas Utama" : undefined}
-                      barColorClass={result.direction === "gpu" ? "bg-[#EA580C]" : "bg-emerald-500"}
+                      badgeLabel={result.direction === "gpu" ? bn.primaryLimiter : undefined}
+                      barColorClass={result.direction === "gpu" ? styles.barFillLimiter : styles.barFillBalanced}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Aksi Cepat Hasil: Tanya ViciTech AI & Bagikan / Unduh Kartu PNG */}
-              <div className="mt-5 grid grid-cols-1 gap-2.5 border-t border-white/10 pt-4 sm:flex sm:flex-wrap sm:items-center">
+              <div className="mt-5 grid grid-cols-1 gap-2.5 border-t border-default pt-4 sm:flex sm:flex-wrap sm:items-center">
                 <button
                   type="button"
                   onClick={handleAskViciAi}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#EA580C] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#C2410C] active:scale-[0.98] sm:w-auto sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent-primary px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-accent-hover active:scale-[0.98] sm:w-auto sm:text-sm ${focusRing}`}
                 >
                   <Bot className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Tanya ViciTech AI soal Hasil Ini</span>
+                  <span>{bn.askAiCta}</span>
                 </button>
 
                 <button
                   type="button"
                   disabled={isGeneratingCard}
                   onClick={() => void handleShareOrDownloadCard()}
-                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-2.5 text-xs font-semibold text-[#FAFAFA] hover:border-[#EA580C]/60 hover:bg-white/[0.12] active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:text-sm ${focusRing}`}
+                  className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-default bg-canvas px-4 py-2.5 text-xs font-semibold text-primary hover:border-accent-primary/60 hover:bg-subtle active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:text-sm ${focusRing}`}
                 >
                   {isGeneratingCard ? (
-                    <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-[#EA580C]" aria-hidden="true" />
+                    <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-accent-primary" aria-hidden="true" />
                   ) : (
-                    <Download className="h-4 w-4 shrink-0 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
+                    <Download className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                   )}
-                  <span>{isGeneratingCard ? "Menyiapkan Kartu…" : "Bagikan / Unduh Kartu Hasil"}</span>
+                  <span>{isGeneratingCard ? bn.preparingCard : bn.shareCardCta}</span>
                 </button>
               </div>
 
@@ -980,7 +1097,7 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                   <button
                     type="button"
                     onClick={() => setShareStatus("")}
-                    aria-label="Tutup notifikasi kartu hasil"
+                    aria-label={bn.closeShareNoticeAria}
                     className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600/50"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1063,52 +1180,52 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
               </p>
             </section>
 
-            {/* PSU Headroom (Obsidian Telemetry) & Compatibility Checklist */}
-            <div className="grid gap-6 md:grid-cols-2">
+            {/* Unified Two-Card Telemetry Block: PSU Power Headroom & Compatibility Checklist */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <section
                 aria-labelledby="psu-heading"
-                className="vt-obsidian-panel rounded-2xl p-5"
+                className={`min-w-0 rounded-2xl p-4 sm:p-5 ${styles.psuCard}`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
-                  <h2 id="psu-heading" className="tracking-tight flex items-center gap-2 font-sans text-lg font-bold text-[#FAFAFA]">
-                    <Zap className="h-4 w-4 text-[#EA580C]" strokeWidth={1.75} aria-hidden="true" />
-                    <span>Headroom Daya PSU</span>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default pb-3">
+                  <h2 id="psu-heading" className="tracking-tight flex min-w-0 items-center gap-2 font-sans text-lg font-bold text-primary">
+                    <Zap className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                    <span className="break-words">{bn.psuTitle}</span>
                   </h2>
-                  <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors duration-300 ${psuUi.badgeClass}`}>
-                    {result.psuHeadroom.statusLabel}
+                  <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors duration-300 ${psuUi.badgeClass}`}>
+                    {localizedPsuStatusLabel}
                   </span>
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
-                  <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                    <p className="text-xs text-[#A1A1AA]">Estimasi Beban</p>
-                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#FAFAFA] sm:text-xl">
+                  <div className={`min-w-0 rounded-xl p-3 ${styles.psuStatBox}`}>
+                    <p className="text-xs font-medium text-secondary">{bn.psuEstLoad}</p>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-primary sm:text-xl">
                       <AnimatedNumber value={result.psuHeadroom.estimatedWattage} format="number" suffix=" W" />
                     </p>
                   </div>
-                  <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.04] p-3">
-                    <p className="text-xs text-[#A1A1AA]">Rekomendasi (+35%)</p>
-                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#EA580C] sm:text-xl">
+                  <div className={`min-w-0 rounded-xl p-3 ${styles.psuStatBox}`}>
+                    <p className="text-xs font-medium text-secondary">{bn.psuRecommended}</p>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-accent-primary sm:text-xl">
                       <AnimatedNumber value={result.psuHeadroom.recommendedPsuWatts} format="number" suffix=" W" />
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#A1A1AA]">
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="min-w-0 break-words text-secondary">
                       {result.psuHeadroom.selectedPsuWatts
-                        ? `Beban terhadap PSU ${result.psuHeadroom.selectedPsuWatts} W`
-                        : "Belum ada PSU dipilih"}
+                        ? `${bn.psuLoadOnPrefix} ${result.psuHeadroom.selectedPsuWatts} W`
+                        : bn.psuNoneSelected}
                     </span>
-                    <span className="font-mono tabular-nums font-bold text-[#FAFAFA]">
+                    <span className="shrink-0 font-mono font-bold tabular-nums text-primary">
                       {result.psuHeadroom.loadPct !== null ? `${result.psuHeadroom.loadPct.toFixed(1)}%` : "-"}
                     </span>
                   </div>
                   {/* 10-Segment Health Bar */}
                   <div
                     role="meter"
-                    aria-label="Persentase beban daya PSU"
+                    aria-label={bn.psuMeterAria}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={result.psuHeadroom.loadPct !== null ? Math.round(result.psuHeadroom.loadPct) : 0}
@@ -1123,33 +1240,34 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                         <span
                           key={segIdx}
                           className={`h-2.5 rounded-sm transition-colors duration-300 motion-reduce:transition-none ${
-                            active ? psuUi.segmentActive : "bg-white/10"
+                            active ? psuSegmentActiveClass : styles.psuSegEmpty
                           }`}
                         />
                       );
                     })}
                   </div>
-                  <div className="flex justify-between font-mono text-[10px] text-[#A1A1AA]">
-                    <span>0% Aman</span>
-                    <span>75% Ideal</span>
-                    <span>90%+ Kritis</span>
+                  <div className="flex justify-between font-mono text-[10px] tabular-nums text-secondary">
+                    <span>{bn.psuHintSafe}</span>
+                    <span>{bn.psuHintIdeal}</span>
+                    <span>{bn.psuHintCritical}</span>
                   </div>
                 </div>
 
-                <p className="mt-3 text-xs leading-relaxed text-[#A1A1AA]">
-                  {result.psuHeadroom.explanation}
+                <p className="mt-3 text-xs leading-relaxed text-secondary">
+                  {localizedPsuExplanation}
                 </p>
               </section>
 
               <section
                 aria-labelledby="compat-heading"
-                className="rounded-xl border border-default bg-surface p-5 shadow-sm"
+                className={`min-w-0 rounded-2xl p-4 sm:p-5 ${styles.compatCard}`}
               >
-                <h2 id="compat-heading" className="tracking-tight border-b border-default pb-3 font-sans text-lg font-bold text-primary">
-                  Daftar Periksa Kompatibilitas
+                <h2 id="compat-heading" className="tracking-tight flex items-center gap-2 border-b border-default pb-3 font-sans text-lg font-bold text-primary">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+                  <span className="break-words">{bn.compatTitle}</span>
                 </h2>
                 <ul className="mt-3 divide-y divide-default">
-                  {result.compatibilityChecks.map((check) => {
+                  {localizedCompatibilityChecks.map((check) => {
                     const StatusIcon =
                       check.status === "pass"
                         ? CheckCircle2
@@ -1170,9 +1288,9 @@ export default function BottleneckAnalyzer({ onSwapToPreset, marketProducts = []
                           strokeWidth={1.75}
                           aria-hidden="true"
                         />
-                        <div className="min-w-0">
-                          <p className="font-semibold text-primary">{check.label}</p>
-                          <p className="mt-0.5 leading-relaxed text-secondary">{check.detail}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="break-words font-semibold text-primary">{check.label}</p>
+                          <p className="mt-0.5 break-words leading-relaxed text-secondary">{check.detail}</p>
                         </div>
                       </li>
                     );
