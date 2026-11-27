@@ -21,6 +21,7 @@ import {
   UserRound,
   XCircle,
 } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import { loadMidtransSnap } from '@/lib/payments/load-midtrans-snap';
 import {
@@ -28,6 +29,14 @@ import {
   getSupabaseBrowserClient,
   isSupabaseAuthConfigured,
 } from '@/lib/supabase/client';
+import {
+  DEFAULT_PROFILE_VISUAL_STYLE,
+  PROFILE_STYLE_STORAGE_PREFIX,
+  PROFILE_STYLE_UPDATED_EVENT,
+  loadProfileVisualStyle,
+  normalizeProfileVisualStyle,
+} from '@/lib/profile/profile-customization';
+import type { ProfileVisualCustomization } from '@/lib/profile/profile-customization';
 import {
   cancelUserOrder,
   fetchOwnProfile,
@@ -112,6 +121,7 @@ export function ProfileAccountHub({
   onNavigateModule,
   onSignOut: externalSignOut,
 }: ProfileAccountHubProps): ReactElement {
+  const { isEnglish } = useLanguage();
   const router = useRouter();
   const usesExternalAuth = externalUser !== undefined;
 
@@ -122,6 +132,9 @@ export function ProfileAccountHub({
   const authLoading = usesExternalAuth ? Boolean(externalAuthLoading) : internalAuthLoading;
 
   const [profile, setProfile] = useState<UnifiedProfile | null>(null);
+  const [visualStyle, setVisualStyle] = useState<ProfileVisualCustomization>(
+    DEFAULT_PROFILE_VISUAL_STYLE,
+  );
   const [workspace, setWorkspace] = useState<ProfileWorkspaceData>(EMPTY_WORKSPACE);
   const [status, setStatus] = useState<'loading' | 'signed-out' | 'not-found' | 'error' | 'ready'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
@@ -307,6 +320,37 @@ export function ProfileAccountHub({
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  const activeProfileId = profile?.id ?? '';
+
+  // Hydrate visual customization client-side so SSR matches initial render without mismatch
+  useEffect(() => {
+    if (!activeProfileId || typeof window === 'undefined') return undefined;
+
+    setVisualStyle(loadProfileVisualStyle(activeProfileId));
+
+    const handleLocalUpdate = (event: Event) => {
+      if (event instanceof CustomEvent && isRecord(event.detail)) {
+        const eventUserId = typeof event.detail.userId === 'string' ? event.detail.userId : '';
+        if (eventUserId === activeProfileId && event.detail.style) {
+          setVisualStyle(normalizeProfileVisualStyle(event.detail.style));
+        }
+      }
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === `${PROFILE_STYLE_STORAGE_PREFIX}${activeProfileId}`) {
+        setVisualStyle(loadProfileVisualStyle(activeProfileId));
+      }
+    };
+
+    window.addEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [activeProfileId]);
+
   const continuePayment = async (order: ProfileOrderRecord): Promise<void> => {
     const paymentStatus = (order.paymentStatus ?? 'unpaid').toLowerCase();
     const orderStatus = (order.status ?? '').toLowerCase();
@@ -445,10 +489,10 @@ export function ProfileAccountHub({
 
   if (status === 'loading') {
     return (
-      <main className="min-h-[65vh] bg-canvas px-4 py-8 sm:px-6">
+      <main className="min-h-[65vh] bg-canvas px-4 pt-8 pb-24 sm:px-6 sm:pb-16">
         <div className="mx-auto max-w-shell space-y-5">
           <div className="h-44 animate-pulse rounded-xl border border-default bg-surface" />
-          <div className="h-12 w-80 animate-pulse rounded-lg bg-surface" />
+          <div className="h-12 w-full max-w-80 animate-pulse rounded-lg bg-surface" />
           <div className="grid gap-4 md:grid-cols-2">
             <div className="h-48 animate-pulse rounded-xl border border-default bg-surface" />
             <div className="h-48 animate-pulse rounded-xl border border-default bg-surface" />
@@ -460,27 +504,29 @@ export function ProfileAccountHub({
 
   if (status === 'signed-out') {
     return (
-      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 py-12 text-primary">
+      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 pt-12 pb-24 text-primary sm:pb-16">
         <section className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <ShieldCheck className="mx-auto h-10 w-10 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
           <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance]">
-            Masuk untuk membuka Profil &amp; Akun
+            {isEnglish ? 'Sign in to open Profile & Account' : 'Masuk untuk membuka Profil & Akun'}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">
-            Kelola kartu profil publik, pantau pesanan Market dan Trade-In, serta simpan konfigurasi preset setelah masuk lewat tombol Masuk di bilah navigasi.
+            {isEnglish
+              ? 'Manage your public profile card, track Market & Trade-In orders, and save build presets after signing in from the navigation bar.'
+              : 'Kelola kartu profil publik, pantau pesanan Market dan Trade-In, serta simpan konfigurasi preset setelah masuk lewat tombol Masuk di bilah navigasi.'}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/"
               className={`vt-btn-tactile inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
             >
-              Ke Beranda
+              {isEnglish ? 'Go Home' : 'Ke Beranda'}
             </Link>
             <Link
               href="/community"
               className={`vt-btn-tactile inline-flex min-h-11 items-center rounded-lg border border-default bg-surface px-4 py-2 text-sm font-medium text-primary hover:bg-subtle ${focusRing}`}
             >
-              Lihat Komunitas
+              {isEnglish ? 'Explore Community' : 'Lihat Komunitas'}
             </Link>
           </div>
         </section>
@@ -490,20 +536,22 @@ export function ProfileAccountHub({
 
   if (status === 'not-found') {
     return (
-      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 py-12 text-primary">
+      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 pt-12 pb-24 text-primary sm:pb-16">
         <section className="w-full max-w-lg rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <UserRound className="mx-auto h-11 w-11 text-secondary" strokeWidth={1.75} aria-hidden="true" />
           <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary">
-            Profil anggota tidak ditemukan
+            {isEnglish ? 'Member profile not found' : 'Profil anggota tidak ditemukan'}
           </h1>
           <p className="mt-2 text-sm leading-relaxed text-secondary">
-            Username tersebut belum terdaftar atau telah diubah oleh pemiliknya.
+            {isEnglish
+              ? 'That username has not been registered yet or was updated by its owner.'
+              : 'Username tersebut belum terdaftar atau telah diubah oleh pemiliknya.'}
           </p>
           <Link
             href="/community"
             className={`vt-btn-tactile mt-6 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
           >
-            Kembali ke Komunitas
+            {isEnglish ? 'Back to Community' : 'Kembali ke Komunitas'}
           </Link>
         </section>
       </main>
@@ -512,16 +560,18 @@ export function ProfileAccountHub({
 
   if (status === 'error' || !profile) {
     return (
-      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 py-12">
+      <main className="grid min-h-[65vh] place-items-center bg-canvas px-4 pt-12 pb-24 sm:pb-16">
         <section role="alert" className="w-full max-w-lg rounded-xl border border-red-200 bg-surface p-6 text-center shadow-sm">
-          <p className="text-sm font-semibold text-red-800">{errorMsg || 'Terjadi kendala saat memuat profil.'}</p>
+          <p className="text-sm font-semibold text-red-800">
+            {errorMsg || (isEnglish ? 'Unable to load profile data.' : 'Terjadi kendala saat memuat profil.')}
+          </p>
           <button
             type="button"
             onClick={() => void loadAll()}
             className={`vt-btn-tactile mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
           >
             <RefreshCw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Coba Muat Ulang</span>
+            <span>{isEnglish ? 'Retry' : 'Coba Muat Ulang'}</span>
           </button>
         </section>
       </main>
@@ -534,15 +584,33 @@ export function ProfileAccountHub({
     readonly Icon: typeof LayoutGrid;
   }[] = isOwner
     ? [
-        { id: 'overview', label: 'Ringkasan & Showcase', Icon: LayoutGrid },
-        { id: 'orders', label: 'Pesanan & Trade-In', Icon: Package },
-        { id: 'settings', label: 'Kustomisasi & Pengaturan', Icon: Settings },
+        {
+          id: 'overview',
+          label: isEnglish ? 'Overview & Showcase' : 'Ringkasan & Showcase',
+          Icon: LayoutGrid,
+        },
+        {
+          id: 'orders',
+          label: isEnglish ? 'Orders & Trade-In' : 'Pesanan & Trade-In',
+          Icon: Package,
+        },
+        {
+          id: 'settings',
+          label: isEnglish ? 'Customization & Settings' : 'Kustomisasi & Pengaturan',
+          Icon: Settings,
+        },
       ]
-    : [{ id: 'overview', label: 'Ringkasan & Showcase', Icon: LayoutGrid }];
+    : [
+        {
+          id: 'overview',
+          label: isEnglish ? 'Overview & Showcase' : 'Ringkasan & Showcase',
+          Icon: LayoutGrid,
+        },
+      ];
 
   return (
-    <main className="min-h-[70vh] bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-shell space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+    <main className="min-h-[70vh] overflow-x-clip bg-canvas text-primary antialiased">
+      <div className="mx-auto max-w-shell space-y-6 px-4 pt-6 pb-28 sm:px-6 sm:pt-10 sm:pb-16">
         {toast && (
           <div
             role="status"
@@ -556,6 +624,7 @@ export function ProfileAccountHub({
 
         <ProfileHeaderCard
           profile={profile}
+          visualStyle={visualStyle}
           stats={{
             communityPosts: workspace.stats.communityPosts,
             savedPresets: workspace.stats.savedPresets,
@@ -971,6 +1040,7 @@ export function ProfileAccountHub({
             <ProfileCustomizationTab
               userId={profile.id}
               profile={profile}
+              visualStyle={visualStyle}
               stats={{
                 communityPosts: workspace.stats.communityPosts,
                 savedPresets: workspace.stats.savedPresets,
@@ -979,6 +1049,7 @@ export function ProfileAccountHub({
                 setProfile(updated);
                 setToast(message);
               }}
+              onVisualStyleSaved={(nextVisual) => setVisualStyle(nextVisual)}
             />
           </div>
         )}
