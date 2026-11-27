@@ -42,6 +42,7 @@ import type {
   ProfileVisualCustomization,
 } from '@/lib/profile/profile-customization';
 import { saveProfileCustomization } from '@/lib/profile/profile-service';
+import { saveProfileVisualStyleToProfile } from '@/lib/profile/profile-visual-style-service';
 import {
   PROFILE_MEDIA_ACCEPT,
   uploadProfileMediaFile,
@@ -179,6 +180,13 @@ export function ProfileCustomizationTab({
       if (!saveRes.ok) {
         setFormError(saveRes.error);
         return;
+      }
+      if (kind === 'banner') {
+        const styleResult = await saveProfileVisualStyleToProfile(userId, savedVisual);
+        if (!styleResult.ok) {
+          setFormError(styleResult.error);
+          return;
+        }
       }
 
       setDraft({
@@ -386,6 +394,11 @@ export function ProfileCustomizationTab({
       const result = await saveProfileCustomization(userId, validation.normalized);
       if (!result.ok) {
         setFormError(result.error);
+        return;
+      }
+      const styleResult = await saveProfileVisualStyleToProfile(userId, savedVisual);
+      if (!styleResult.ok) {
+        setFormError(styleResult.error);
         return;
       }
       setDraft({

@@ -6,9 +6,9 @@ import {
   DEFAULT_PROFILE_VISUAL_STYLE,
   PROFILE_STYLE_STORAGE_PREFIX,
   PROFILE_STYLE_UPDATED_EVENT,
-  loadProfileVisualStyle,
   normalizeProfileVisualStyle,
 } from '@/lib/profile/profile-customization';
+import { fetchProfileVisualStyle } from '@/lib/profile/profile-visual-style-service';
 import type {
   AvatarFrameStyle,
   ProfileSinPresetId,
@@ -72,8 +72,11 @@ export function ProfileAvatarFrame({
     if (!shouldAutoHydrate || typeof window === 'undefined') {
       return undefined;
     }
+    let active = true;
 
-    setStoredStyle(loadProfileVisualStyle(cleanUserId));
+    void fetchProfileVisualStyle(cleanUserId, true).then((style) => {
+      if (active) setStoredStyle(style);
+    });
 
     const handleLocalUpdate = (event: Event) => {
       if (
@@ -91,13 +94,16 @@ export function ProfileAvatarFrame({
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === `${PROFILE_STYLE_STORAGE_PREFIX}${cleanUserId}`) {
-        setStoredStyle(loadProfileVisualStyle(cleanUserId));
+        void fetchProfileVisualStyle(cleanUserId, true).then((style) => {
+          if (active) setStoredStyle(style);
+        });
       }
     };
 
     window.addEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
     window.addEventListener('storage', handleStorage);
     return () => {
+      active = false;
       window.removeEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
       window.removeEventListener('storage', handleStorage);
     };

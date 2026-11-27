@@ -249,10 +249,23 @@ export function SettingsHub() {
     setSyncStatus('saving');
     try {
       const supabase = getSupabaseBrowserClient();
+      const { data: profile, error: readError } = await supabase
+        .from('profiles')
+        .select('settings')
+        .eq('id', authUser.id)
+        .maybeSingle();
+      if (readError) {
+        setSyncStatus('local-only');
+        return;
+      }
+      const existingSettings =
+        profile?.settings && typeof profile.settings === 'object' && !Array.isArray(profile.settings)
+          ? profile.settings
+          : {};
       const { error } = await supabase
         .from('profiles')
         .update({
-          settings: saved,
+          settings: { ...existingSettings, ...saved },
           updated_at: new Date().toISOString(),
         })
         .eq('id', authUser.id);

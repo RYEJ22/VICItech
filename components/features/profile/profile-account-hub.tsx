@@ -33,10 +33,10 @@ import {
   DEFAULT_PROFILE_VISUAL_STYLE,
   PROFILE_STYLE_STORAGE_PREFIX,
   PROFILE_STYLE_UPDATED_EVENT,
-  loadProfileVisualStyle,
   normalizeProfileVisualStyle,
 } from '@/lib/profile/profile-customization';
 import type { ProfileVisualCustomization } from '@/lib/profile/profile-customization';
+import { fetchProfileVisualStyle } from '@/lib/profile/profile-visual-style-service';
 import {
   cancelUserOrder,
   fetchOwnProfile,
@@ -325,8 +325,12 @@ export function ProfileAccountHub({
   // Hydrate visual customization client-side so SSR matches initial render without mismatch
   useEffect(() => {
     if (!activeProfileId || typeof window === 'undefined') return undefined;
+    let active = true;
+    const allowLocalFallback = activeUser?.id === activeProfileId;
 
-    setVisualStyle(loadProfileVisualStyle(activeProfileId));
+    void fetchProfileVisualStyle(activeProfileId, allowLocalFallback).then((style) => {
+      if (active) setVisualStyle(style);
+    });
 
     const handleLocalUpdate = (event: Event) => {
       if (event instanceof CustomEvent && isRecord(event.detail)) {
@@ -339,17 +343,20 @@ export function ProfileAccountHub({
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === `${PROFILE_STYLE_STORAGE_PREFIX}${activeProfileId}`) {
-        setVisualStyle(loadProfileVisualStyle(activeProfileId));
+        void fetchProfileVisualStyle(activeProfileId, allowLocalFallback).then((style) => {
+          if (active) setVisualStyle(style);
+        });
       }
     };
 
     window.addEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
     window.addEventListener('storage', handleStorage);
     return () => {
+      active = false;
       window.removeEventListener(PROFILE_STYLE_UPDATED_EVENT, handleLocalUpdate);
       window.removeEventListener('storage', handleStorage);
     };
-  }, [activeProfileId]);
+  }, [activeProfileId, activeUser?.id]);
 
   const continuePayment = async (order: ProfileOrderRecord): Promise<void> => {
     const paymentStatus = (order.paymentStatus ?? 'unpaid').toLowerCase();
