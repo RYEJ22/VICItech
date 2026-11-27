@@ -2,6 +2,7 @@
 
 import type { ReactElement } from "react";
 import { MessageSquare, X } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import type { IncomingDmToast } from "@/lib/chat/dm-notifications";
 
 export interface DmNotificationToastProps {
@@ -20,12 +21,13 @@ export function DmNotificationToast({
   onOpen,
   onDismiss,
 }: DmNotificationToastProps): ReactElement | null {
+  const { isEnglish } = useLanguage();
   if (toasts.length === 0) return null;
 
   return (
     <div
       role="region"
-      aria-label="Notifikasi pesan langsung baru"
+      aria-label={isEnglish ? "New direct message notifications" : "Notifikasi pesan langsung baru"}
       aria-live="polite"
       className="pointer-events-none fixed right-3 top-20 z-[70] flex w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2.5 md:right-4 md:top-20"
     >
@@ -37,7 +39,7 @@ export function DmNotificationToast({
           <button
             type="button"
             onClick={() => onOpen(toast)}
-            className="flex min-w-0 flex-1 items-start gap-3 rounded-lg text-left transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-lg text-left transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <span className="relative mt-0.5 grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover ring-1 ring-black/[0.06]">
               {toast.senderAvatarUrl ? (
@@ -56,7 +58,7 @@ export function DmNotificationToast({
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-accent-hover">
                 <MessageSquare className="h-3 w-3 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                <span>Pesan Baru</span>
+                <span>{isEnglish ? "New Message" : "Pesan Baru"}</span>
               </span>
               <span className="mt-0.5 block truncate text-sm font-semibold text-primary">
                 {toast.senderName}
@@ -70,8 +72,8 @@ export function DmNotificationToast({
           <button
             type="button"
             onClick={() => onDismiss(toast.id)}
-            aria-label={`Tutup notifikasi dari ${toast.senderName}`}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+            aria-label={isEnglish ? `Dismiss notification from ${toast.senderName}` : `Tutup notifikasi dari ${toast.senderName}`}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <X className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
           </button>

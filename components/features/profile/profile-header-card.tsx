@@ -27,6 +27,7 @@ import {
 } from '@/lib/profile/profile-customization';
 import type {
   AvatarFrameStyle,
+  ProfileBadgeStyle,
   ProfileSinPresetId,
   ProfileVisualCustomization,
 } from '@/lib/profile/profile-customization';
@@ -51,8 +52,15 @@ interface ProfileHeaderCardProps {
 const AVATAR_FRAME_CLASS_MAP: Readonly<Record<AvatarFrameStyle, string | undefined>> = {
   classic: styles.avatarFrameClassic,
   pixel: styles.avatarFramePixel,
+  corners: styles.avatarFrameCorners,
   double: styles.avatarFrameDouble,
   minimal: styles.avatarFrameMinimal,
+};
+
+const BADGE_STYLE_CLASS_MAP: Readonly<Record<ProfileBadgeStyle, string | undefined>> = {
+  solid: styles.badgeSolid,
+  outline: styles.badgeOutline,
+  pixel: styles.badgePixel,
 };
 
 const SIN_CLASS_MAP: Readonly<Record<ProfileSinPresetId, string | undefined>> = {
@@ -110,8 +118,22 @@ export function ProfileHeaderCard({
     '--profile-accent': profile.accentColor || DEFAULT_PROFILE_ACCENT_COLOR,
   };
 
-  const avatarShapeClass = activeStyle.avatarFrame === 'pixel' ? 'rounded-lg' : 'rounded-full';
+  const isSquareAvatar =
+    activeStyle.avatarFrame === 'pixel' || activeStyle.avatarFrame === 'corners';
+  const avatarShapeClass = isSquareAvatar ? 'rounded-lg' : 'rounded-full';
   const avatarFrameClass = AVATAR_FRAME_CLASS_MAP[activeStyle.avatarFrame] ?? styles.avatarFrame;
+  const badgeVariantClass = BADGE_STYLE_CLASS_MAP[activeStyle.badgeStyle] ?? styles.badgeOutline ?? '';
+  const trimCardClass =
+    activeStyle.accentTrim === 'left-stripe'
+      ? styles.trimLeftStripe ?? ''
+      : activeStyle.accentTrim === 'full-frame'
+        ? styles.trimFullFrame ?? ''
+        : '';
+  const showTopRail =
+    activeStyle.accentTrim === 'top-rail' ||
+    (hasSinPreset && activeStyle.accentTrim === 'none');
+  const showCardCornerTicks = activeStyle.accentTrim === 'corner-ticks';
+  const showAvatarCorners = activeStyle.avatarFrame === 'corners';
 
   return (
     <section
@@ -126,10 +148,33 @@ export function ProfileHeaderCard({
             : `Kartu profil ${profile.displayName}`
       }
       className={`box-border w-full max-w-full min-w-0 overflow-hidden rounded-xl border border-default bg-surface shadow-sm ${
+        styles.trimCard ?? ''
+      } ${trimCardClass} ${
         hasSinPreset ? `${styles.sinCard ?? ''} ${sinClass ?? ''}` : ''
       }`}
     >
-      {hasSinPreset && <div aria-hidden="true" className={styles.sinTopRail} />}
+      {showTopRail && <div aria-hidden="true" className={styles.trimTopRail} />}
+
+      {showCardCornerTicks && (
+        <>
+          <span
+            aria-hidden="true"
+            className={`left-1.5 top-1.5 border-l-2 border-t-2 ${styles.trimCornerPip ?? ''}`}
+          />
+          <span
+            aria-hidden="true"
+            className={`right-1.5 top-1.5 border-r-2 border-t-2 ${styles.trimCornerPip ?? ''}`}
+          />
+          <span
+            aria-hidden="true"
+            className={`bottom-1.5 left-1.5 border-b-2 border-l-2 ${styles.trimCornerPip ?? ''}`}
+          />
+          <span
+            aria-hidden="true"
+            className={`bottom-1.5 right-1.5 border-b-2 border-r-2 ${styles.trimCornerPip ?? ''}`}
+          />
+        </>
+      )}
 
       {/* Cover Banner (Video / Image / Preset) */}
       <ProfileBannerMedia
@@ -168,6 +213,27 @@ export function ProfileHeaderCard({
                 )}
               </div>
 
+              {showAvatarCorners && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className={`-left-1 -top-1 border-l-2 border-t-2 ${styles.avatarCornerTick ?? ''}`}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`-right-1 -top-1 border-r-2 border-t-2 ${styles.avatarCornerTick ?? ''}`}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`-bottom-1 -left-1 border-b-2 border-l-2 ${styles.avatarCornerTick ?? ''}`}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`-bottom-1 -right-1 border-b-2 border-r-2 ${styles.avatarCornerTick ?? ''}`}
+                  />
+                </>
+              )}
+
               {isOwner && !isPreview && onQuickAvatarPick && (
                 <button
                   type="button"
@@ -188,11 +254,13 @@ export function ProfileHeaderCard({
                 </h1>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold ${
-                    roleLabel === 'Admin'
-                      ? 'border-accent-primary/35 bg-accent-subtle text-accent-cta'
-                      : roleLabel === 'Builder'
-                        ? 'border-emerald-600/30 bg-emerald-500/15 text-emerald-700'
-                        : 'border-default bg-subtle text-primary'
+                    activeStyle.badgeStyle === 'pixel'
+                      ? badgeVariantClass
+                      : roleLabel === 'Admin'
+                        ? badgeVariantClass
+                        : roleLabel === 'Builder'
+                          ? 'border-emerald-600/30 bg-emerald-500/15 text-emerald-700'
+                          : badgeVariantClass
                   }`}
                 >
                   {roleLabel === 'Admin' ? (
@@ -206,7 +274,11 @@ export function ProfileHeaderCard({
                 {hasSinPreset && (
                   <span
                     className={`inline-flex max-w-full shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-[11px] font-semibold ${
-                      styles.sinBadge ?? ''
+                      activeStyle.badgeStyle === 'solid'
+                        ? styles.badgeSolid ?? ''
+                        : activeStyle.badgeStyle === 'pixel'
+                          ? `${styles.sinBadge ?? ''} ${styles.badgePixel ?? ''}`
+                          : styles.sinBadge ?? ''
                     }`}
                   >
                     <Flame className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden="true" />
@@ -222,7 +294,9 @@ export function ProfileHeaderCard({
                   @{profile.username || (isEnglish ? 'member' : 'anggota')}
                 </span>
                 {activeStyle.customRoleLine && (
-                  <span className="inline-flex max-w-full items-center rounded-md border border-default bg-canvas px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
+                  <span
+                    className={`inline-flex max-w-full items-center rounded-md border px-2.5 py-0.5 font-mono text-xs font-semibold ${badgeVariantClass}`}
+                  >
                     <span className="truncate">{activeStyle.customRoleLine}</span>
                   </span>
                 )}

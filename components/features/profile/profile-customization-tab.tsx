@@ -6,6 +6,7 @@ import {
   Check,
   Flame,
   LoaderCircle,
+  RotateCcw,
   Save,
   Trash2,
   Upload,
@@ -13,6 +14,7 @@ import {
 import { useLanguage } from '@/components/providers/LanguageProvider';
 import { isSupabaseAuthConfigured } from '@/lib/supabase/client';
 import {
+  DEFAULT_PROFILE_ACCENT_COLOR,
   MAX_BIO_LENGTH,
   MAX_FEATURED_RIG_LENGTH,
   MAX_STATUS_LENGTH,
@@ -34,6 +36,8 @@ import type {
   BannerCatalogItem,
   BannerPosition,
   BannerScrimStrength,
+  ProfileAccentTrimStyle,
+  ProfileBadgeStyle,
   ProfileSinPresetId,
   ProfileVisualCustomization,
 } from '@/lib/profile/profile-customization';
@@ -307,10 +311,30 @@ export function ProfileCustomizationTab({
   };
 
   const handleSelectSinPreset = (presetId: ProfileSinPresetId, recommendedAccent: string): void => {
-    updateVisualDraft((prev) => ({ ...prev, sinPreset: presetId }));
+    updateVisualDraft((prev) => ({
+      ...prev,
+      sinPreset: presetId,
+      accentTrim:
+        presetId !== 'none' && prev.accentTrim === 'none' ? 'top-rail' : prev.accentTrim,
+    }));
     if (presetId !== 'none') {
       setDraft((prev) => ({ ...prev, accentColor: recommendedAccent }));
     }
+  };
+
+  const handleResetVisualStyle = (): void => {
+    hasEditedVisualRef.current = true;
+    setVisualDraft(DEFAULT_PROFILE_VISUAL_STYLE);
+    setDraft((prev) => ({
+      ...prev,
+      accentColor: DEFAULT_PROFILE_ACCENT_COLOR,
+      bannerUrl: 'preset:alabaster-grid',
+    }));
+    setUploadNotice(
+      isEnglish
+        ? 'Visual trim, frame, badge, and banner reset to defaults—click Save Changes to apply.'
+        : 'Trim, bingkai, lencana, dan banner dikembalikan ke bawaan—klik Simpan Perubahan untuk menerapkan.',
+    );
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -399,10 +423,25 @@ export function ProfileCustomizationTab({
   ];
 
   const avatarFrameOptions: readonly { readonly id: AvatarFrameStyle; readonly label: string }[] = [
-    { id: 'classic', label: isEnglish ? 'Classic Ring' : 'Lingkar Klasik' },
-    { id: 'pixel', label: isEnglish ? 'Pixel Frame' : 'Bingkai Pixel' },
+    { id: 'classic', label: isEnglish ? 'Clean Ring' : 'Cincin Bersih' },
+    { id: 'pixel', label: isEnglish ? 'Crisp Frame' : 'Bingkai Piksel' },
+    { id: 'corners', label: isEnglish ? 'Pixel Corners' : 'Sudut Piksel' },
     { id: 'double', label: isEnglish ? 'Double Bezel' : 'Bezel Ganda' },
-    { id: 'minimal', label: 'Minimal' },
+    { id: 'minimal', label: isEnglish ? 'Minimal' : 'Minimalis' },
+  ];
+
+  const accentTrimOptions: readonly { readonly id: ProfileAccentTrimStyle; readonly label: string }[] = [
+    { id: 'none', label: isEnglish ? 'Clean' : 'Polos' },
+    { id: 'top-rail', label: isEnglish ? 'Top Rail' : 'Rel Atas' },
+    { id: 'left-stripe', label: isEnglish ? 'Side Stripe' : 'Garis Samping' },
+    { id: 'corner-ticks', label: isEnglish ? 'Pixel Corners' : 'Sudut Piksel' },
+    { id: 'full-frame', label: isEnglish ? 'Full Frame' : 'Bingkai Penuh' },
+  ];
+
+  const badgeStyleOptions: readonly { readonly id: ProfileBadgeStyle; readonly label: string }[] = [
+    { id: 'solid', label: 'Solid' },
+    { id: 'outline', label: isEnglish ? 'Outline' : 'Garis Tepi' },
+    { id: 'pixel', label: isEnglish ? 'Pixel Tag' : 'Tag Piksel' },
   ];
 
   return (
@@ -477,7 +516,7 @@ export function ProfileCustomizationTab({
               {isEnglish ? 'Avatar Frame Style' : 'Gaya Bingkai Avatar'}
             </p>
             <div
-              className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+              className="grid grid-cols-2 gap-2 sm:grid-cols-3"
               role="group"
               aria-label={isEnglish ? 'Avatar frame style' : 'Gaya bingkai avatar'}
             >
@@ -615,6 +654,90 @@ export function ProfileCustomizationTab({
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Accent Trim & Badge Style Controls */}
+        <div className="space-y-4 border-t border-default pt-5">
+          <div>
+            <p className="mb-1.5 text-sm font-medium text-primary">
+              {isEnglish ? 'Profile Accent Trim' : 'Trim Aksen Kartu Profil'}
+            </p>
+            <p className="mb-2 text-xs text-secondary">
+              {isEnglish
+                ? 'Choose how your active accent color trims the profile card in Light, Dark Ruby, and High-Contrast modes.'
+                : 'Pilih gaya garis aksen kartu profil di Mode Terang, Gelap Ruby, dan Kontras Tinggi.'}
+            </p>
+            <div
+              className="grid grid-cols-2 gap-2 sm:grid-cols-5"
+              role="group"
+              aria-label={isEnglish ? 'Profile accent trim' : 'Trim aksen kartu profil'}
+            >
+              {accentTrimOptions.map((opt) => {
+                const active = visualDraft.accentTrim === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      updateVisualDraft((prev) => ({ ...prev, accentTrim: opt.id }))
+                    }
+                    className={`vt-btn-tactile min-h-11 rounded-lg border px-2.5 py-2 text-xs font-semibold ${focusRing} ${
+                      active
+                        ? 'border-accent-primary bg-accent-cta text-white'
+                        : 'border-default bg-canvas text-primary hover:bg-subtle'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-medium text-primary">
+              {isEnglish ? 'Role & Persona Badge Style' : 'Gaya Lencana Peran & Persona'}
+            </p>
+            <div
+              className="grid grid-cols-3 gap-2"
+              role="group"
+              aria-label={isEnglish ? 'Profile badge style' : 'Gaya lencana profil'}
+            >
+              {badgeStyleOptions.map((opt) => {
+                const active = visualDraft.badgeStyle === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      updateVisualDraft((prev) => ({ ...prev, badgeStyle: opt.id }))
+                    }
+                    className={`vt-btn-tactile flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-semibold ${focusRing} ${
+                      active
+                        ? 'border-accent-primary bg-accent-subtle text-primary ring-2 ring-accent-primary/25'
+                        : 'border-default bg-canvas text-primary hover:bg-subtle'
+                    }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`inline-block px-2 py-0.5 font-mono text-[10px] font-bold ${
+                        opt.id === 'solid'
+                          ? 'rounded border border-accent-cta bg-accent-cta text-white'
+                          : opt.id === 'pixel'
+                            ? 'rounded-none border-2 border-accent-primary bg-surface text-primary shadow-[2px_2px_0_var(--accent-primary)]'
+                            : 'rounded border border-accent-primary bg-surface text-primary'
+                      }`}
+                    >
+                      TAG
+                    </span>
+                    <span>{opt.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -813,38 +936,55 @@ export function ProfileCustomizationTab({
           />
         </div>
 
-        {/* Profile Accent Swatches */}
+        {/* Profile Accent Swatches & Quick Reset */}
         <div>
-          <p className="mb-2 text-sm font-medium text-primary">
-            {isEnglish ? 'Profile Accent Color' : 'Warna Aksen Profil'}
-          </p>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-primary">
+              {isEnglish ? 'Profile Accent Color' : 'Warna Aksen Profil'}
+            </p>
+            <span className="font-mono text-xs text-secondary">
+              {draft.accentColor.toUpperCase()}
+            </span>
+          </div>
           <div
-            className="flex flex-wrap items-center gap-2.5"
-            role="group"
-            aria-label={isEnglish ? 'Select profile accent color' : 'Pilih warna aksen profil'}
+            className="flex flex-wrap items-center justify-between gap-3"
           >
-            {PROFILE_ACCENT_SWATCHES.map((swatch) => {
-              const active = draft.accentColor.toUpperCase() === swatch.hex;
-              const swatchStyle: CSSProperties & Record<`--${string}`, string | number> = {
-                '--swatch-color': swatch.hex,
-              };
-              return (
-                <button
-                  key={swatch.hex}
-                  type="button"
-                  style={swatchStyle}
-                  aria-label={swatch.label}
-                  aria-pressed={active}
-                  title={swatch.label}
-                  onClick={() => setDraft((prev) => ({ ...prev, accentColor: swatch.hex }))}
-                  className={`vt-btn-tactile grid h-11 w-11 place-items-center rounded-full border-2 text-white ${styles.swatchButton ?? ''} ${focusRing} ${
-                    active ? 'border-primary ring-2 ring-accent-primary/40' : 'border-surface'
-                  }`}
-                >
-                  {active && <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />}
-                </button>
-              );
-            })}
+            <div
+              className="flex flex-wrap items-center gap-2.5"
+              role="group"
+              aria-label={isEnglish ? 'Select profile accent color' : 'Pilih warna aksen profil'}
+            >
+              {PROFILE_ACCENT_SWATCHES.map((swatch) => {
+                const active = draft.accentColor.toUpperCase() === swatch.hex;
+                const swatchStyle: CSSProperties & Record<`--${string}`, string | number> = {
+                  '--swatch-color': swatch.hex,
+                };
+                return (
+                  <button
+                    key={swatch.hex}
+                    type="button"
+                    style={swatchStyle}
+                    aria-label={swatch.label}
+                    aria-pressed={active}
+                    title={swatch.label}
+                    onClick={() => setDraft((prev) => ({ ...prev, accentColor: swatch.hex }))}
+                    className={`vt-btn-tactile grid h-11 w-11 place-items-center rounded-full border-2 text-white ${styles.swatchButton ?? ''} ${focusRing} ${
+                      active ? 'border-primary ring-2 ring-accent-primary/40' : 'border-surface'
+                    }`}
+                  >
+                    {active && <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden="true" />}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={handleResetVisualStyle}
+              className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-semibold text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
+            >
+              <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
+              <span>{isEnglish ? 'Reset Visual Style' : 'Reset Gaya Visual'}</span>
+            </button>
           </div>
         </div>
 

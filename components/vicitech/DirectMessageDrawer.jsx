@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ImagePlus, LoaderCircle, MessageSquare, Send, Smile, UserRound, X } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { sanitizeUserText } from "@/lib/validation/sanitize-text";
 import {
@@ -34,39 +35,59 @@ const DM_PAGE_SIZE = 25;
 const INBOX_FETCH_LIMIT = 120;
 const DM_COLUMNS = "id, sender_id, receiver_id, content, media_urls, media_type, is_read, created_at";
 
-function displayName(profile) {
-  return profile?.full_name || profile?.display_name || (profile?.username ? `@${profile.username}` : "Anggota ViciTech");
+function displayName(profile, isEnglish = false) {
+  return (
+    profile?.full_name ||
+    profile?.display_name ||
+    (profile?.username
+      ? `@${profile.username}`
+      : isEnglish
+        ? "ViciTech Member"
+        : "Anggota ViciTech")
+  );
 }
 
-function formatMessageTime(value) {
+function formatMessageTime(value, isEnglish = false) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat(isEnglish ? "en-US" : "id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
-function formatInboxTime(value) {
+function formatInboxTime(value, isEnglish = false) {
   if (!value) return "";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
-  if (diffMin < 1) return "baru saja";
-  if (diffMin < 60) return `${diffMin} mnt lalu`;
-  if (diffMin < 1440) return `${Math.floor(diffMin / 60)} jam lalu`;
-  if (diffMin < 10080) return `${Math.floor(diffMin / 1440)} hr lalu`;
-  return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(date);
+  if (diffMin < 1) return isEnglish ? "just now" : "baru saja";
+  if (diffMin < 60) return isEnglish ? `${diffMin}m ago` : `${diffMin} mnt lalu`;
+  if (diffMin < 1440) {
+    const hrs = Math.floor(diffMin / 60);
+    return isEnglish ? `${hrs}h ago` : `${hrs} jam lalu`;
+  }
+  if (diffMin < 10080) {
+    const days = Math.floor(diffMin / 1440);
+    return isEnglish ? `${days}d ago` : `${days} hr lalu`;
+  }
+  return new Intl.DateTimeFormat(isEnglish ? "en-US" : "id-ID", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
 }
 
-function profileInitial(profile) {
-  return displayName(profile).trim().charAt(0).toUpperCase() || "V";
+function profileInitial(profile, isEnglish = false) {
+  return displayName(profile, isEnglish).trim().charAt(0).toUpperCase() || "V";
 }
 
-function latestPreview(latest, profile) {
+function latestPreview(latest, profile, isEnglish = false) {
   return formatChatMessagePreview({
     content: latest?.content,
     mediaUrls: latest?.media_urls,
     mediaType: latest?.media_type,
-    fallback: `@${profile?.username || "anggota"}`,
+    fallback: `@${profile?.username || (isEnglish ? "member" : "anggota")}`,
   });
 }
 
@@ -171,6 +192,7 @@ export default function DirectMessageDrawer({
   initialPeerId = "",
   isAuthLoading,
 }) {
+  const { isEnglish } = useLanguage();
   const [client, setClient] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [profiles, setProfiles] = useState({});
@@ -781,7 +803,8 @@ export default function DirectMessageDrawer({
     return (
       <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
         <section role="status" className="mx-auto flex max-w-3xl items-center justify-center gap-3 text-sm text-secondary">
-          <LoaderCircle className="h-5 w-5 animate-spin text-accent-primary" /> Memeriksa sesi ViciTech Anda…
+          <LoaderCircle className="h-5 w-5 animate-spin text-accent-primary" />
+          <span>{isEnglish ? "Checking your ViciTech session…" : "Memeriksa sesi ViciTech Anda…"}</span>
         </section>
       </div>
     );
@@ -792,8 +815,14 @@ export default function DirectMessageDrawer({
       <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
         <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 text-center shadow-sm">
           <MessageSquare className="mx-auto h-10 w-10 text-accent-primary" />
-          <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary">Masuk untuk membuka pesan</h1>
-          <p className="mt-2 text-sm leading-relaxed text-secondary">Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk.</p>
+          <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary">
+            {isEnglish ? "Sign in to open messages" : "Masuk untuk membuka pesan"}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">
+            {isEnglish
+              ? "Direct messages are private and available only to signed-in ViciTech members."
+              : "Pesan langsung bersifat privat dan hanya tersedia bagi anggota ViciTech yang sudah masuk."}
+          </p>
         </section>
       </div>
     );
@@ -803,10 +832,16 @@ export default function DirectMessageDrawer({
     return (
       <div className="flex h-full min-h-0 w-full items-center justify-center overflow-y-auto px-4 py-6">
         <section className="mx-auto w-full max-w-3xl rounded-xl border border-default bg-surface p-8 shadow-sm">
-          <h1 className="font-sans text-2xl font-bold tracking-tight text-primary">Lengkapi pengaturan profil Anda</h1>
-          <p className="mt-2 text-sm leading-relaxed text-secondary">Simpan username unik di Profil &amp; Akun sebelum memulai pesan langsung.</p>
+          <h1 className="font-sans text-2xl font-bold tracking-tight text-primary">
+            {isEnglish ? "Complete your profile setup" : "Lengkapi pengaturan profil Anda"}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-secondary">
+            {isEnglish
+              ? "Save a unique username in Profile & Account before starting direct messages."
+              : "Simpan username unik di Profil & Akun sebelum memulai pesan langsung."}
+          </p>
           <Link href="/profile?tab=settings" className="vt-motion-press vt-btn-tactile mt-4 inline-flex min-h-11 items-center rounded-lg bg-accent-cta px-4 py-2 text-sm font-semibold text-white hover:bg-accent-cta-hover">
-            Buka Pengaturan Profil
+            {isEnglish ? "Open Profile Settings" : "Buka Pengaturan Profil"}
           </Link>
           {error && <p role="alert" className="mt-4 text-sm text-status-danger">{error}</p>}
         </section>
@@ -820,37 +855,56 @@ export default function DirectMessageDrawer({
         <aside className={`flex h-full min-h-0 w-full flex-col border-default bg-surface md:w-80 md:shrink-0 md:border-r ${selectedId ? "hidden md:flex" : "flex"}`}>
           <div className="shrink-0 border-b border-default px-5 py-4">
             <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-hover">
-              <MessageSquare className="h-4 w-4 text-accent-primary" /> Kotak Masuk
+              <MessageSquare className="h-4 w-4 text-accent-primary" /> {isEnglish ? "Inbox" : "Kotak Masuk"}
               <span className={`ml-auto inline-flex items-center gap-1.5 text-[10px] font-medium tracking-normal ${realtimeStatus === "connected" ? "text-status-live" : realtimeStatus === "error" ? "text-status-danger" : "text-secondary"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${realtimeStatus === "connected" ? "bg-status-live" : realtimeStatus === "error" ? "bg-status-danger" : "bg-secondary/50"}`} />
-                {realtimeStatus === "connected" ? "Terhubung" : realtimeStatus === "error" ? "Terputus" : "Menghubungkan"}
+                {realtimeStatus === "connected"
+                  ? isEnglish ? "Connected" : "Terhubung"
+                  : realtimeStatus === "error"
+                    ? isEnglish ? "Disconnected" : "Terputus"
+                    : isEnglish ? "Connecting" : "Menghubungkan"}
               </span>
             </p>
-            <h1 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary">Pesan Langsung</h1>
-            <p className="mt-1 text-xs leading-relaxed text-secondary">Percakapan pribadi dengan teknisi dan sesama anggota ViciTech.</p>
+            <h1 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary">
+              {isEnglish ? "Direct Messages" : "Pesan Langsung"}
+            </h1>
+            <p className="mt-1 text-xs leading-relaxed text-secondary">
+              {isEnglish
+                ? "Private conversations with technicians and fellow ViciTech members."
+                : "Percakapan pribadi dengan teknisi dan sesama anggota ViciTech."}
+            </p>
           </div>
           <div className={`min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 ${pickerStyles.pickerScroll}`}>
             {isLoading ? (
-              <p className="flex items-center gap-2 p-4 text-sm text-secondary"><LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" /> Memuat daftar percakapan…</p>
+              <p className="flex items-center gap-2 p-4 text-sm text-secondary">
+                <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" />
+                <span>{isEnglish ? "Loading conversations…" : "Memuat daftar percakapan…"}</span>
+              </p>
             ) : conversations.length ? conversations.map((item) => {
               const profile = profiles[item?.userId];
               if (!item?.userId || !profile) return null;
               return (
-                <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
-                  {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile)}</span>}
+                <button key={item.userId} type="button" aria-current={selectedId === item.userId ? "true" : undefined} onClick={() => setSelectedId(item.userId)} className={`flex min-h-11 w-full items-center gap-3 rounded-xl p-3 text-left transition-colors ${selectedId === item.userId ? "bg-accent-subtle ring-1 ring-accent-primary/25" : "hover:bg-subtle"}`}>
+                  {profile.avatar_url ? <img src={profile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-hover">{profileInitial(profile, isEnglish)}</span>}
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-sm font-semibold text-primary">{displayName(profile)}</span>
+                      <span className="truncate text-sm font-semibold text-primary">{displayName(profile, isEnglish)}</span>
                       {item.latest?.created_at && (
-                        <span className="shrink-0 font-mono text-[10px] text-secondary">{formatInboxTime(item.latest.created_at)}</span>
+                        <span className="shrink-0 font-mono text-[10px] text-secondary">{formatInboxTime(item.latest.created_at, isEnglish)}</span>
                       )}
                     </span>
-                    <span className="mt-0.5 block truncate text-xs text-secondary">{latestPreview(item.latest, profile)}</span>
+                    <span className="mt-0.5 block truncate text-xs text-secondary">{latestPreview(item.latest, profile, isEnglish)}</span>
                   </span>
                   {item.unread > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-accent-cta px-1 font-mono text-[11px] font-semibold text-white">{item.unread}</span>}
                 </button>
               );
-            }) : !error ? <p className="p-4 text-sm text-secondary">Belum ada percakapan. Kunjungi profil pengguna lain untuk mulai berkirim pesan.</p> : null}
+            }) : !error ? (
+              <p className="p-4 text-sm text-secondary">
+                {isEnglish
+                  ? "No conversations yet. Visit another member's profile to start messaging."
+                  : "Belum ada percakapan. Kunjungi profil pengguna lain untuk mulai berkirim pesan."}
+              </p>
+            ) : null}
           </div>
         </aside>
 
@@ -858,24 +912,24 @@ export default function DirectMessageDrawer({
           {selectedId && selectedProfile ? (
             <>
               <header className="flex shrink-0 items-center gap-2.5 border-b border-default bg-surface px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
-                <button type="button" aria-label="Kembali ke daftar percakapan" onClick={() => setSelectedId("")} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-5 w-5" /></button>
+                <button type="button" aria-label={isEnglish ? "Back to conversations" : "Kembali ke daftar percakapan"} onClick={() => setSelectedId("")} className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 md:hidden"><ArrowLeft className="h-5 w-5" /></button>
                 {selectedProfile.username ? (
                   <Link
                     href={`/profile/${encodeURIComponent(selectedProfile.username)}`}
                     className="flex min-w-0 items-center gap-3 rounded-lg transition-colors hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
-                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile)}</span>
+                      <span className="block truncate text-sm font-semibold text-primary hover:text-accent-cta">{displayName(selectedProfile, isEnglish)}</span>
                       <span className="block font-mono text-xs text-secondary">@{selectedProfile.username}</span>
                     </span>
                   </Link>
                 ) : (
                   <>
-                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile)}</span>}
+                    {selectedProfile.avatar_url ? <img src={selectedProfile.avatar_url} alt="" width={44} height={44} loading="lazy" decoding="async" className="h-11 w-11 rounded-full object-cover ring-1 ring-black/[0.06]" /> : <span className="grid h-11 w-11 place-items-center rounded-full bg-accent-subtle font-semibold text-accent-hover">{profileInitial(selectedProfile, isEnglish)}</span>}
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile)}</span>
-                      <span className="block text-xs text-secondary">@anggota</span>
+                      <span className="block truncate text-sm font-semibold text-primary">{displayName(selectedProfile, isEnglish)}</span>
+                      <span className="block text-xs text-secondary">@{isEnglish ? "member" : "anggota"}</span>
                     </span>
                   </>
                 )}
@@ -891,10 +945,14 @@ export default function DirectMessageDrawer({
                     type="button"
                     onClick={loadOlderMessages}
                     disabled={loadingOlder}
-                    className="inline-flex min-h-10 items-center gap-2 rounded-full border border-default bg-surface px-4 py-1.5 text-xs font-medium text-primary shadow-sm transition hover:border-accent-primary/40 hover:text-accent-hover disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-default bg-surface px-4 py-1.5 text-xs font-medium text-primary shadow-sm transition hover:border-accent-primary/40 hover:text-accent-hover disabled:opacity-50"
                   >
                     {loadingOlder && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
-                    <span>{loadingOlder ? "Memuat…" : "Muat pesan sebelumnya"}</span>
+                    <span>
+                      {loadingOlder
+                        ? isEnglish ? "Loading…" : "Memuat…"
+                        : isEnglish ? "Load earlier messages" : "Muat pesan sebelumnya"}
+                    </span>
                   </button>
                 </div>
               )}
@@ -917,7 +975,7 @@ export default function DirectMessageDrawer({
                           <ViciTechStickerGraphic sticker={payload.sticker} size="md" />
                         </div>
                         <p className="mt-1 px-1 font-mono text-[10px] text-secondary">
-                          {formatMessageTime(message.created_at)}
+                          {formatMessageTime(message.created_at, isEnglish)}
                         </p>
                       </div>
                     </div>
@@ -925,8 +983,8 @@ export default function DirectMessageDrawer({
                 }
 
                 return (
-                  <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}>
-                    <article className={`max-w-[88%] rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-accent-cta text-white" : "rounded-bl-md border border-default bg-surface text-primary"}`}>
+                  <div key={message.id} className={`flex min-w-0 ${own ? "justify-end" : "justify-start"}`}>
+                    <article className={`min-w-0 max-w-[88%] overflow-hidden rounded-2xl px-4 py-3 shadow-sm sm:max-w-[72%] ${own ? "rounded-br-md bg-accent-cta text-white" : "rounded-bl-md border border-default bg-surface text-primary"}`}>
                       {payload.kind === "gif" ? (
                         <div className="mb-1.5 w-[220px] max-w-full sm:w-[240px]">
                           <ChatGifImage
@@ -958,12 +1016,12 @@ export default function DirectMessageDrawer({
                               key={`${url}-${idx}`}
                               type="button"
                               onClick={() => setLightbox({ images: payload.mediaUrls, index: idx })}
-                              aria-label={`Perbesar lampiran foto ${idx + 1}`}
+                              aria-label={isEnglish ? `Zoom photo attachment ${idx + 1}` : `Perbesar lampiran foto ${idx + 1}`}
                               className="overflow-hidden rounded-xl bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                             >
                               <img
                                 src={url}
-                                alt={`Lampiran pesan ${idx + 1}`}
+                                alt={isEnglish ? `Message attachment ${idx + 1}` : `Lampiran pesan ${idx + 1}`}
                                 width={480}
                                 height={360}
                                 loading="lazy"
@@ -981,11 +1039,17 @@ export default function DirectMessageDrawer({
                       ) : "caption" in payload && payload.caption ? (
                         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{payload.caption}</p>
                       ) : null}
-                      <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/90" : "text-secondary"}`}>{formatMessageTime(message.created_at)}</p>
+                      <p className={`mt-1.5 text-right text-[10px] ${own ? "text-white/90" : "text-secondary"}`}>{formatMessageTime(message.created_at, isEnglish)}</p>
                     </article>
                   </div>
                 );
-              }) : <p className="py-12 text-center text-sm text-secondary">Belum ada pesan. Kirim sapaan untuk memulai percakapan.</p>}
+              }) : (
+                <p className="py-12 text-center text-sm text-secondary">
+                  {isEnglish
+                    ? "No messages yet. Say hello to start the conversation."
+                    : "Belum ada pesan. Kirim sapaan untuk memulai percakapan."}
+                </p>
+              )}
             </div>
 
             {pendingAttachments.length > 0 && (
@@ -994,7 +1058,7 @@ export default function DirectMessageDrawer({
                   {pendingAttachments.map((item) => (
                     <div
                       key={item.id}
-                      className="relative flex items-center gap-2 overflow-hidden rounded-xl border border-default bg-surface p-1.5 pr-2 shadow-sm"
+                      className="relative flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-xl border border-default bg-surface p-1.5 pr-1.5 shadow-sm"
                     >
                       {item.mediaType === "video" ? (
                         <video
@@ -1022,10 +1086,10 @@ export default function DirectMessageDrawer({
                         type="button"
                         onClick={() => removeAttachment(item.id)}
                         disabled={isSending}
-                        aria-label={`Hapus lampiran ${item.name}`}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-subtle text-primary transition hover:bg-red-50 hover:text-status-danger"
+                        aria-label={isEnglish ? `Remove attachment ${item.name}` : `Hapus lampiran ${item.name}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-subtle text-primary transition hover:bg-red-50 hover:text-status-danger"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
@@ -1051,13 +1115,13 @@ export default function DirectMessageDrawer({
                 multiple
                 onChange={handleFilesSelected}
                 className="sr-only"
-                aria-label="Pilih foto atau video untuk dikirim"
+                aria-label={isEnglish ? "Select photo or video to send" : "Pilih foto atau video untuk dikirim"}
               />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSending}
-                aria-label="Lampirkan foto atau video"
+                aria-label={isEnglish ? "Attach photo or video" : "Lampirkan foto atau video"}
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-default bg-subtle text-primary transition hover:border-accent-primary/50 hover:text-accent-hover active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <ImagePlus className="h-5 w-5" />
@@ -1069,7 +1133,7 @@ export default function DirectMessageDrawer({
                 disabled={isSending}
                 aria-expanded={isPickerOpen}
                 aria-haspopup="dialog"
-                aria-label="Pilih Emoji, GIF, atau Stiker ViciTech"
+                aria-label={isEnglish ? "Choose Emoji, GIF, or ViciTech Sticker" : "Pilih Emoji, GIF, atau Stiker ViciTech"}
                 className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border transition active:scale-[0.95] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 disabled:cursor-not-allowed disabled:opacity-45 ${
                   isPickerOpen
                     ? "border-accent-primary bg-accent-subtle text-accent-hover"
@@ -1098,18 +1162,24 @@ export default function DirectMessageDrawer({
                 rows={1}
                 placeholder={
                   isSending
-                    ? "Mengirim…"
+                    ? isEnglish ? "Sending…" : "Mengirim…"
                     : pendingAttachments.length
-                      ? "Tambahkan keterangan (opsional)…"
-                      : "Tulis pesan…"
+                      ? isEnglish ? "Add a caption (optional)…" : "Tambahkan keterangan (opsional)…"
+                      : isEnglish ? "Write a message…" : "Tulis pesan…"
                 }
-                aria-label="Tulis pesan"
-                className="vt-form-control max-h-36 min-h-11 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                aria-label={isEnglish ? "Write a message" : "Tulis pesan"}
+                className="vt-form-control max-h-36 min-h-11 min-w-0 flex-1 resize-y rounded-2xl border border-default bg-subtle px-4 py-3 text-sm text-primary outline-none transition-colors placeholder:text-secondary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               />
               <button
                 type="submit"
                 disabled={(!draft.trim() && pendingAttachments.length === 0) || isSending}
-                aria-label={sendStage === "uploading" ? "Mengunggah media" : sendStage === "sending" ? "Mengirim…" : "Kirim pesan"}
+                aria-label={
+                  sendStage === "uploading"
+                    ? isEnglish ? "Uploading media" : "Mengunggah media"
+                    : sendStage === "sending"
+                      ? isEnglish ? "Sending…" : "Mengirim…"
+                      : isEnglish ? "Send message" : "Kirim pesan"
+                }
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-cta text-white shadow-sm transition-colors hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -1120,8 +1190,12 @@ export default function DirectMessageDrawer({
           <div className="grid flex-1 place-items-center p-8 text-center">
             <div>
               <UserRound className="mx-auto h-10 w-10 text-accent-primary/80" />
-              <p className="mt-3 font-sans text-lg font-medium text-primary">Percakapan Anda tampil di sini.</p>
-              <p className="mt-1 text-sm text-secondary">Pilih salah satu utas untuk membaca dan membalas.</p>
+              <p className="mt-3 font-sans text-lg font-medium text-primary">
+                {isEnglish ? "Your conversations appear here." : "Percakapan Anda tampil di sini."}
+              </p>
+              <p className="mt-1 text-sm text-secondary">
+                {isEnglish ? "Select a thread to read and reply." : "Pilih salah satu utas untuk membaca dan membalas."}
+              </p>
             </div>
           </div>
         )}
@@ -1132,7 +1206,7 @@ export default function DirectMessageDrawer({
         <MediaLightbox
           images={lightbox.images}
           initialIndex={lightbox.index}
-          altPrefix="Lampiran pesan langsung"
+          altPrefix={isEnglish ? "Direct message attachment" : "Lampiran pesan langsung"}
           onClose={() => setLightbox(null)}
         />
       )}

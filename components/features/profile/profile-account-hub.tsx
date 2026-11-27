@@ -855,9 +855,9 @@ export function ProfileAccountHub({
                     return (
                       <li
                         key={order.id}
-                        className="vt-card-lift rounded-lg border border-default bg-canvas p-4"
+                        className="vt-card-lift min-w-0 rounded-lg border border-default bg-canvas p-4"
                       >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               {showPaymentBadge && (
@@ -912,7 +912,7 @@ export function ProfileAccountHub({
                               type="button"
                               disabled={Boolean(payingOrderId)}
                               onClick={() => void continuePayment(order)}
-                              className={`vt-btn-tactile inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:w-auto ${focusRing}`}
+                              className={`vt-btn-tactile inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-3 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover sm:w-auto ${focusRing}`}
                             >
                               {payingOrderId === order.id && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
                               {paymentStatus === 'pending' && (order.paymentReference ?? '').trim() ? 'Lanjutkan Bayar' : 'Bayar Sekarang'}
@@ -927,7 +927,7 @@ export function ProfileAccountHub({
                                 <button
                                   type="button"
                                   onClick={() => onNavigateModule('qc', order.serialNumber)}
-                                  className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
+                                  className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
                                 >
                                   <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                                   <span>Periksa Log IoT QC</span>
@@ -935,7 +935,7 @@ export function ProfileAccountHub({
                               ) : (
                                 <Link
                                   href="/qc-panel"
-                                  className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
+                                  className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-1.5 text-xs font-semibold text-primary hover:bg-subtle ${focusRing}`}
                                 >
                                   <Activity className="h-3.5 w-3.5 text-accent-cta" strokeWidth={1.75} aria-hidden="true" />
                                   <span>Periksa Log IoT QC</span>
@@ -950,7 +950,7 @@ export function ProfileAccountHub({
                                   setCancelOrderError('');
                                   setOrderToCancel(order);
                                 }}
-                                className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 ${focusRing}`}
+                                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 ${focusRing}`}
                               >
                                 <XCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                                 <span>Batalkan Pesanan</span>
@@ -961,7 +961,7 @@ export function ProfileAccountHub({
                                 type="button"
                                 onClick={() => void handleDeleteCancelledOrder(order)}
                                 disabled={Boolean(deletingOrderId)}
-                                className={`vt-btn-tactile inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
+                                className={`vt-btn-tactile inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-red-200 bg-surface px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
                               >
                                 {deletingOrderId === order.id
                                   ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />

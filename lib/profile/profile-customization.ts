@@ -6,7 +6,14 @@ import { PROFILE_BANNER_PRESET_IDS, isPresetBannerValue } from './profile-types'
 export type BannerMediaType = 'video' | 'image' | 'preset';
 export type BannerPosition = 'top' | 'center' | 'bottom';
 export type BannerScrimStrength = 'subtle' | 'balanced' | 'strong';
-export type AvatarFrameStyle = 'classic' | 'pixel' | 'double' | 'minimal';
+export type AvatarFrameStyle = 'classic' | 'pixel' | 'corners' | 'double' | 'minimal';
+export type ProfileAccentTrimStyle =
+  | 'none'
+  | 'top-rail'
+  | 'left-stripe'
+  | 'corner-ticks'
+  | 'full-frame';
+export type ProfileBadgeStyle = 'solid' | 'outline' | 'pixel';
 export type ProfileSinPresetId =
   | 'none'
   | 'pride'
@@ -32,6 +39,8 @@ export interface ProfileVisualCustomization {
   readonly bannerPosition: BannerPosition;
   readonly bannerScrim: BannerScrimStrength;
   readonly avatarFrame: AvatarFrameStyle;
+  readonly accentTrim: ProfileAccentTrimStyle;
+  readonly badgeStyle: ProfileBadgeStyle;
   readonly customRoleLine: string;
   readonly sinPreset: ProfileSinPresetId;
 }
@@ -75,6 +84,8 @@ export const DEFAULT_PROFILE_VISUAL_STYLE: ProfileVisualCustomization = {
   bannerPosition: 'center',
   bannerScrim: 'balanced',
   avatarFrame: 'classic',
+  accentTrim: 'none',
+  badgeStyle: 'outline',
   customRoleLine: '',
   sinPreset: 'none',
 };
@@ -330,7 +341,10 @@ export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomiz
   const bannerScrim: BannerScrimStrength =
     raw.bannerScrim === 'subtle' || raw.bannerScrim === 'strong' ? raw.bannerScrim : 'balanced';
   const avatarFrame: AvatarFrameStyle =
-    raw.avatarFrame === 'pixel' || raw.avatarFrame === 'double' || raw.avatarFrame === 'minimal'
+    raw.avatarFrame === 'pixel' ||
+    raw.avatarFrame === 'corners' ||
+    raw.avatarFrame === 'double' ||
+    raw.avatarFrame === 'minimal'
       ? raw.avatarFrame
       : 'classic';
 
@@ -338,6 +352,20 @@ export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomiz
   const sinPreset: ProfileSinPresetId = SEVEN_DEADLY_SINS_PRESETS.some((s) => s.id === rawSin)
     ? (rawSin as ProfileSinPresetId)
     : 'none';
+
+  const accentTrim: ProfileAccentTrimStyle =
+    raw.accentTrim === 'none' ||
+    raw.accentTrim === 'top-rail' ||
+    raw.accentTrim === 'left-stripe' ||
+    raw.accentTrim === 'corner-ticks' ||
+    raw.accentTrim === 'full-frame'
+      ? raw.accentTrim
+      : sinPreset !== 'none'
+        ? 'top-rail'
+        : 'none';
+
+  const badgeStyle: ProfileBadgeStyle =
+    raw.badgeStyle === 'solid' || raw.badgeStyle === 'pixel' ? raw.badgeStyle : 'outline';
 
   const customRoleLine =
     typeof raw.customRoleLine === 'string'
@@ -364,6 +392,8 @@ export function normalizeProfileVisualStyle(raw: unknown): ProfileVisualCustomiz
     bannerPosition,
     bannerScrim,
     avatarFrame,
+    accentTrim,
+    badgeStyle,
     customRoleLine,
     sinPreset,
   };
