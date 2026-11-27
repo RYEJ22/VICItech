@@ -18,6 +18,7 @@ import type {
   RoutePreviewKind,
 } from './route-preview-content';
 import { ShareMenu } from '@/components/features/share/share-menu';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import styles from './route-preview.module.css';
 
@@ -40,6 +41,7 @@ export function RoutePreviewExplorer({
   drawerDescription,
   searchPlaceholder,
 }: RoutePreviewExplorerProps): ReactElement {
+  const { isEnglish } = useLanguage();
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [query, setQuery] = useState<string>('');
   const debouncedQuery = useDebouncedValue(query, 250);
@@ -123,8 +125,12 @@ export function RoutePreviewExplorer({
       setIsNotifying(false);
       setNotifyFeedback(
         kind === 'market'
-          ? 'Permintaan notifikasi peluncuran katalog lengkap telah dicatat secara lokal.'
-          : 'Permintaan notifikasi pembukaan direktori peta mitra telah dicatat secara lokal.',
+          ? isEnglish
+            ? 'Full catalog launch notification request has been noted locally.'
+            : 'Permintaan notifikasi peluncuran katalog lengkap telah dicatat secara lokal.'
+          : isEnglish
+            ? 'Partner map directory launch notification request has been noted locally.'
+            : 'Permintaan notifikasi pembukaan direktori peta mitra telah dicatat secara lokal.',
       );
       setNotifyEmail('');
     }, 240);
@@ -162,14 +168,22 @@ export function RoutePreviewExplorer({
           className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
         >
           <Filter className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-          <span>Filter & Info Fase</span>
+          <span>{isEnglish ? 'Filters & Phase Info' : 'Filter & Info Fase'}</span>
         </button>
       </div>
 
       {/* Category / City Filter Pills */}
       <div
         role="tablist"
-        aria-label={kind === 'market' ? 'Filter kategori market' : 'Filter kota mitra'}
+        aria-label={
+          kind === 'market'
+            ? isEnglish
+              ? 'Filter market categories'
+              : 'Filter kategori market'
+            : isEnglish
+              ? 'Filter partner cities'
+              : 'Filter kota mitra'
+        }
         className="flex flex-wrap gap-2"
       >
         {filters.map((option) => {
@@ -200,11 +214,12 @@ export function RoutePreviewExplorer({
           className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm"
         >
           <p className="font-sans text-xl font-semibold text-primary">
-            Tidak ada pratinjau yang cocok
+            {isEnglish ? 'No matching previews found' : 'Tidak ada pratinjau yang cocok'}
           </p>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm text-secondary">
-            Kata kunci atau filter yang dipilih belum menemukan item yang sesuai. Reset filter untuk
-            melihat seluruh ringkasan modul aktif.
+            {isEnglish
+              ? 'Your current keyword or filter did not match any preview item. Reset filters to view all active module highlights.'
+              : 'Kata kunci atau filter yang dipilih belum menemukan item yang sesuai. Reset filter untuk melihat seluruh ringkasan modul aktif.'}
           </p>
           <button
             type="button"
@@ -214,7 +229,7 @@ export function RoutePreviewExplorer({
             }}
             className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
-            Tampilkan Semua
+            {isEnglish ? 'Show All' : 'Tampilkan Semua'}
           </button>
         </section>
       ) : (
@@ -351,7 +366,9 @@ export function RoutePreviewExplorer({
 
             <div className="flex items-start justify-between gap-3 border-b border-default px-5 py-4">
               <div>
-                <span className="vt-badge-sample">Rilis Bertahap Roadmap</span>
+                <span className="vt-badge-sample">
+                  {isEnglish ? 'Phased Roadmap Release' : 'Rilis Bertahap Roadmap'}
+                </span>
                 <h2 id={overlayTitleId} className="tracking-tight mt-2 font-sans text-xl font-bold text-primary">
                   {drawerTitle}
                 </h2>
@@ -360,7 +377,7 @@ export function RoutePreviewExplorer({
                 ref={closeButtonRef}
                 type="button"
                 onClick={closeOverlay}
-                aria-label="Tutup panel filter dan info"
+                aria-label={isEnglish ? 'Close filter and info drawer' : 'Tutup panel filter dan info'}
                 className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
@@ -374,7 +391,7 @@ export function RoutePreviewExplorer({
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-                  Pilih Filter Cepat
+                  {isEnglish ? 'Quick Filters' : 'Pilih Filter Cepat'}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {filters.map((option) => {
@@ -406,10 +423,12 @@ export function RoutePreviewExplorer({
               >
                 <p className="flex items-center gap-2 text-sm font-semibold text-primary">
                   <Sparkles className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Pengingat Kesiapan Fitur</span>
+                  <span>{isEnglish ? 'Feature Launch Reminder' : 'Pengingat Kesiapan Fitur'}</span>
                 </p>
                 <label htmlFor={notifyEmailId} className="block text-xs text-secondary">
-                  Masukkan email Anda untuk mencatat minat akses awal di sesi ini.
+                  {isEnglish
+                    ? 'Enter your email to save early-access interest for this session.'
+                    : 'Masukkan email Anda untuk mencatat minat akses awal di sesi ini.'}
                 </label>
                 <input
                   id={notifyEmailId}
@@ -418,7 +437,7 @@ export function RoutePreviewExplorer({
                   value={notifyEmail}
                   onChange={(event) => setNotifyEmail(event.target.value)}
                   disabled={isNotifying}
-                  placeholder="nama@domain.com"
+                  placeholder={isEnglish ? 'name@domain.com' : 'nama@domain.com'}
                   className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20 disabled:opacity-50"
                 />
                 <button
@@ -429,7 +448,15 @@ export function RoutePreviewExplorer({
                   {isNotifying && (
                     <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={1.75} aria-hidden="true" />
                   )}
-                  <span>{isNotifying ? 'Menyimpan…' : 'Catat Pengingat'}</span>
+                  <span>
+                    {isNotifying
+                      ? isEnglish
+                        ? 'Saving…'
+                        : 'Menyimpan…'
+                      : isEnglish
+                        ? 'Save Reminder'
+                        : 'Catat Pengingat'}
+                  </span>
                 </button>
                 {notifyFeedback && (
                   <p

@@ -18,6 +18,7 @@ import {
   useState,
 } from 'react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { buildSharePlatformLinks, resolveShareUrl } from './share-state';
 import type { SharePlatformLink } from './share-state';
 import styles from './share.module.css';
@@ -46,10 +47,12 @@ export function ShareMenu({
   title,
   text = '',
   url,
-  label = 'Bagikan',
+  label,
   compact = false,
   openUpward = false,
 }: ShareMenuProps): ReactElement {
+  const { isEnglish } = useLanguage();
+  const displayLabel = label ?? (isEnglish ? 'Share' : 'Bagikan');
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [resolvedUrl, setResolvedUrl] = useState('');
@@ -168,12 +171,20 @@ export function ShareMenu({
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
-        showToast('Tautan berhasil disalin');
+        showToast(isEnglish ? 'Link copied to clipboard' : 'Tautan berhasil disalin');
       } else {
-        showToast('Salin tautan dari bilah alamat browser Anda');
+        showToast(
+          isEnglish
+            ? 'Copy the link from your browser address bar'
+            : 'Salin tautan dari bilah alamat browser Anda',
+        );
       }
     } catch {
-      showToast('Tautan gagal disalin secara otomatis');
+      showToast(
+        isEnglish
+          ? 'Could not copy link automatically'
+          : 'Tautan gagal disalin secara otomatis',
+      );
     }
     setPopoverOpen(false);
     setSheetOpen(false);
@@ -187,14 +198,14 @@ export function ShareMenu({
         onClick={() => void handleTriggerClick()}
         aria-haspopup="dialog"
         aria-expanded={popoverOpen || sheetOpen}
-        aria-label={compact ? `${label}: ${title}` : undefined}
-        title={compact ? label : undefined}
+        aria-label={compact ? `${displayLabel}: ${title}` : undefined}
+        title={compact ? displayLabel : undefined}
         className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-surface text-primary transition hover:border-accent-primary/50 hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 ${
           compact ? 'px-3 py-2 text-xs font-medium' : 'px-4 py-2.5 text-sm font-medium'
         }`}
       >
         <Share2 className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-        {!compact && <span>{label}</span>}
+        {!compact && <span>{displayLabel}</span>}
       </button>
 
       {/* Desktop Anchored Popover (>= 768px) */}
@@ -206,7 +217,7 @@ export function ShareMenu({
         >
           <div className="border-b border-default px-3.5 py-2.5">
             <p id={menuTitleId} className="text-xs font-semibold text-primary">
-              Bagikan ke
+              {isEnglish ? 'Share via' : 'Bagikan ke'}
             </p>
           </div>
           <div className="grid gap-1 p-2">
@@ -229,7 +240,7 @@ export function ShareMenu({
               className="flex min-h-11 w-full items-center gap-2.5 rounded-lg border-t border-default px-3 py-2 text-left text-xs font-semibold text-primary transition hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
             >
               <Copy className="h-4 w-4 shrink-0 text-secondary" strokeWidth={1.75} aria-hidden="true" />
-              <span>Salin Tautan</span>
+              <span>{isEnglish ? 'Copy Link' : 'Salin Tautan'}</span>
             </button>
           </div>
         </div>
@@ -250,13 +261,13 @@ export function ShareMenu({
             </div>
             <div className="flex items-center justify-between border-b border-default px-4 pb-3 pt-1">
               <p id={menuTitleId} className="font-sans text-base font-semibold text-primary">
-                Bagikan Tautan
+                {isEnglish ? 'Share Link' : 'Bagikan Tautan'}
               </p>
               <button
                 ref={sheetCloseRef}
                 type="button"
                 onClick={closeAll}
-                aria-label="Tutup menu bagikan"
+                aria-label={isEnglish ? 'Close share menu' : 'Tutup menu bagikan'}
                 className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-default bg-subtle text-primary hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
@@ -282,7 +293,7 @@ export function ShareMenu({
                 className="mt-1 flex min-h-11 w-full items-center gap-3 rounded-lg bg-accent-cta px-3.5 py-2.5 text-left text-sm font-semibold text-white hover:bg-accent-cta-hover"
               >
                 <Copy className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-                <span>Salin Tautan</span>
+                <span>{isEnglish ? 'Copy Link' : 'Salin Tautan'}</span>
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Activity, Cpu, Gauge, LoaderCircle, Radio, Search, ShieldCheck, Thermometer, Timer, Wifi } from "lucide-react";
 import { getQcTrackingRecord, listMyOrders } from "@/lib/supabase";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { formatTelemetryMetric, formatTemperature } from "@/lib/user-settings";
 
@@ -20,27 +21,27 @@ function getProgress(record) {
   return 18;
 }
 
-function translateStressStatus(rawStatus) {
+function translateStressStatus(rawStatus, isEnglish = false) {
   switch (rawStatus) {
     case "Complete":
     case "Pass":
-      return "Lulus";
+      return isEnglish ? "Passed" : "Lulus";
     case "Running":
     case "In Progress":
-      return "Sedang Uji Beban";
+      return isEnglish ? "Stress Testing" : "Sedang Uji Beban";
     case "Failed":
     case "Fail":
-      return "Gagal Uji";
+      return isEnglish ? "Test Failed" : "Gagal Uji";
     case "Pending":
     case "IoT Stress-Test Pending":
-      return "Menunggu Uji QC";
+      return isEnglish ? "Awaiting QC Test" : "Menunggu Uji QC";
     case "Ready to ship":
-      return "Siap Kirim";
+      return isEnglish ? "Ready to Ship" : "Siap Kirim";
     case "Shipped":
     case "Dikirim":
-      return "Terkirim";
+      return isEnglish ? "Shipped" : "Terkirim";
     default:
-      return rawStatus || "Menunggu Perakitan";
+      return rawStatus || (isEnglish ? "Awaiting Assembly" : "Menunggu Perakitan");
   }
 }
 
@@ -77,7 +78,40 @@ const QC_15_POINT_GROUPS = [
   },
 ];
 
-function Stat({ icon: Icon, label, value, detail, color = "text-[#EA580C]", barColor = "bg-[#EA580C]", level }) {
+const QC_15_POINT_GROUPS_EN = [
+  {
+    title: "Thermal & Power Stability (5 Points)",
+    items: [
+      "CPU idle & full-load thermal burn-in temps",
+      "GPU peak thermal ceiling & clock stability",
+      "Fan RPM curve & acoustic noise profiling",
+      "PSU 12V / 5V / 3.3V voltage rail stability",
+      "Continuous 4-hour sustained power stability test",
+    ],
+  },
+  {
+    title: "Hardware & Port Integrity (5 Points)",
+    items: [
+      "SSD / NVMe SMART health & bad-sector check",
+      "Dual-channel RAM error-free memory verification",
+      "Full USB, HDMI/DP & LAN/Wi-Fi port checks",
+      "Display / analog controller calibration (if applicable)",
+      "Chassis inspection & fresh thermal paste application",
+    ],
+  },
+  {
+    title: "Sanitization & Certification (5 Points)",
+    items: [
+      "Permanent NIST SP 800-88 data sanitization",
+      "Official BIOS/UEFI & latest firmware verification",
+      "License verification & clean OS deployment",
+      "Unique VICI-XXX serial certificate issuance",
+      "Anti-static packaging & ViciCare warranty seal",
+    ],
+  },
+];
+
+function Stat({ icon: Icon, label, value, detail, color = "text-accent-primary", barColor = "bg-accent-primary", level }) {
   const gaugeLevel = Number.isFinite(level) ? Math.max(0, Math.min(100, level)) : null;
   return (
     <div className="vt-obsidian-panel rounded-xl p-4 transition-colors duration-200">
@@ -107,6 +141,7 @@ function Stat({ icon: Icon, label, value, detail, color = "text-[#EA580C]", barC
 }
 
 export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }) {
+  const { isEnglish } = useLanguage();
   const userSettings = useUserSettings();
   const [query, setQuery] = useState(typeof initialSerial === "string" ? initialSerial.trim().toUpperCase() : "");
   const [record, setRecord] = useState(null);
@@ -310,46 +345,53 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
   }, [record?.serial_number]);
 
   const progress = getProgress(record);
-  const testLabel = translateStressStatus(record?.stress_test_status || record?.status);
+  const testLabel = translateStressStatus(record?.stress_test_status || record?.status, isEnglish);
   const burninHours = Number(telemetry?.burnin_hours ?? record?.burnin_hours ?? 0);
+  const qcPointGroups = isEnglish ? QC_15_POINT_GROUPS_EN : QC_15_POINT_GROUPS;
 
   const sourceBadge = telemetry?.source === "esp32" ? (
     <span data-badge-essential="true" className="vt-badge-live">Live ESP32</span>
   ) : telemetry?.source === "admin_simulation" ? (
     <span data-badge-essential="true" className="vt-badge-simulated">Simulated / Demo</span>
   ) : (
-    <span data-badge-essential="true" className="vt-badge-sample">Menunggu Telemetri</span>
+    <span data-badge-essential="true" className="vt-badge-sample">
+      {isEnglish ? "Awaiting Telemetry" : "Menunggu Telemetri"}
+    </span>
   );
 
   return (
-    <div className="space-y-5 text-primary">
+    <div className="min-w-0 space-y-5 text-primary">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent-cta">
             <ShieldCheck className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            <span>Pelacakan Pelanggan</span>
+            <span>{isEnglish ? "Customer Tracking" : "Pelacakan Pelanggan"}</span>
           </p>
           <h2 className="mt-2 font-sans text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-            Status Perakitan &amp; Telemetri IoT QC
+            {isEnglish ? "Assembly Status & IoT QC Telemetry" : "Status Perakitan & Telemetri IoT QC"}
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-secondary">
-            Lacak progres pesanan serta pembacaan sensor perangkat Anda. Tampilan ini bersifat baca-saja dan memisahkan data sensor ESP32 dari simulasi admin.
+            {isEnglish
+              ? "Track order progress and live sensor readings for your device. This view is read-only and explicitly separates physical ESP32 sensors from admin simulations."
+              : "Lacak progres pesanan serta pembacaan sensor perangkat Anda. Tampilan ini bersifat baca-saja dan memisahkan data sensor ESP32 dari simulasi admin."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {sourceBadge}
           <span className="inline-flex items-center gap-1.5 rounded-md border border-default bg-surface px-3 py-1.5 text-xs font-medium text-secondary">
             <Wifi className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-            <span>Status Baca-Saja</span>
+            <span>{isEnglish ? "Read-Only Status" : "Status Baca-Saja"}</span>
           </span>
         </div>
       </header>
 
       {userId && (
-        <section className="rounded-xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200">
-          <h3 className="tracking-tight text-sm font-bold text-primary">Pesanan Akun Anda</h3>
+        <section className="rounded-xl border border-default bg-surface p-4 shadow-sm transition-colors duration-200 sm:p-5">
+          <h3 className="tracking-tight text-sm font-bold text-primary">
+            {isEnglish ? "Your Account Orders" : "Pesanan Akun Anda"}
+          </h3>
           {ordersLoading ? (
-            <div role="status" aria-label="Memuat daftar pesanan" className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div role="status" aria-label={isEnglish ? "Loading orders" : "Memuat daftar pesanan"} className="mt-3 grid gap-2 sm:grid-cols-2">
               {[0, 1].map((idx) => (
                 <div key={idx} className="space-y-2 rounded-lg border border-default bg-canvas p-3">
                   <div className="h-3 w-28 animate-pulse rounded bg-subtle" />
@@ -370,16 +412,20 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                     className="min-h-11 w-full rounded-lg border border-default bg-canvas p-3 text-left transition-colors hover:border-accent-primary/50 hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
                     <span className="block font-mono text-xs font-semibold text-status-live">
-                      {order.order_number || "Menunggu ID Pesanan"}
+                      {order.order_number || (isEnglish ? "Pending Order ID" : "Menunggu ID Pesanan")}
                     </span>
                     <span className="mt-1 block truncate text-sm font-medium text-primary">{order.product_name}</span>
-                    <span className="mt-1 block text-xs text-secondary">{translateStressStatus(order.status)}</span>
+                    <span className="mt-1 block text-xs text-secondary">{translateStressStatus(order.status, isEnglish)}</span>
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-secondary">Belum ada pesanan yang terhubung dengan akun Anda.</p>
+            <p className="mt-2 text-sm text-secondary">
+              {isEnglish
+                ? "No orders are linked to your account yet."
+                : "Belum ada pesanan yang terhubung dengan akun Anda."}
+            </p>
           )}
         </section>
       )}
@@ -389,21 +435,25 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
           event.preventDefault();
           lookup(query);
         }}
-        className="rounded-xl border border-default bg-surface p-5 shadow-sm transition-colors duration-200 sm:p-6"
+        className="rounded-xl border border-default bg-surface p-4 shadow-sm transition-colors duration-200 sm:p-6"
       >
         <label htmlFor="qc-tracking-query" className="mb-2 block text-sm font-medium text-primary">
-          Nomor Seri Unit atau Nomor Pesanan
+          {isEnglish ? "Unit Serial Number or Order ID" : "Nomor Seri Unit atau Nomor Pesanan"}
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary" strokeWidth={1.75} aria-hidden="true" />
             <input
               id="qc-tracking-query"
               value={query}
               onChange={(event) => setQuery(event.target.value.toUpperCase())}
-              placeholder="VT-PO-2026-0412 atau VICI-SRV-2026-9042"
+              placeholder={
+                isEnglish
+                  ? "VT-PO-2026-0412 or VICI-SRV-2026-9042"
+                  : "VT-PO-2026-0412 atau VICI-SRV-2026-9042"
+              }
               autoComplete="off"
-              className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 font-mono text-sm text-primary outline-none transition-colors placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+              className="vt-form-control box-border min-h-11 w-full min-w-0 rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-3 font-mono text-sm text-primary outline-none transition-colors placeholder:text-secondary/65 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
             />
           </div>
           <button
@@ -411,14 +461,20 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
             disabled={status === "loading"}
             className="min-h-11 rounded-lg bg-accent-cta px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-cta-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
-            {status === "loading" ? "Memeriksa…" : "Lacak Perangkat"}
+            {status === "loading"
+              ? isEnglish
+                ? "Checking…"
+                : "Memeriksa…"
+              : isEnglish
+                ? "Track Device"
+                : "Lacak Perangkat"}
           </button>
         </div>
         {error && <p role="alert" className="mt-3 text-sm text-status-danger">{error}</p>}
       </form>
 
       {status === "loading" && (
-        <div role="status" aria-label="Memuat status pelacakan IoT QC" className="mt-5 space-y-4">
+        <div role="status" aria-label={isEnglish ? "Loading IoT QC tracking status" : "Memuat status pelacakan IoT QC"} className="mt-5 space-y-4">
           <div className="h-40 animate-pulse rounded-2xl border border-default bg-surface p-6" />
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             {[0, 1, 2, 3, 4].map((idx) => (
@@ -429,37 +485,39 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
       )}
       {status === "notfound" && (
         <p role="status" className="mt-5 rounded-xl border border-default bg-surface p-5 text-sm text-primary">
-          Tidak ditemukan catatan pesanan atau laporan IoT QC untuk nomor tersebut.
+          {isEnglish
+            ? "No order record or IoT QC report was found for that serial/order number."
+            : "Tidak ditemukan catatan pesanan atau laporan IoT QC untuk nomor tersebut."}
         </p>
       )}
 
       {status === "ready" && record && typeof record === "object" && (
-        <section aria-label="Status pelacakan perangkat" className="mt-6 space-y-5">
+        <section aria-label={isEnglish ? "Device tracking status" : "Status pelacakan perangkat"} className="mt-6 space-y-5">
           <div className="vt-obsidian-panel rounded-xl p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <p className="inline-flex max-w-full items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-accent-primary">
                   <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
-                  <span className="break-all">{record.order_id || "Pelacakan Unit"}</span>
+                  <span className="break-all">{record.order_id || (isEnglish ? "Unit Tracking" : "Pelacakan Unit")}</span>
                 </p>
                 <h2 className="tracking-tight mt-1 break-words font-sans text-xl font-bold text-[#FAFAFA]">
-                  {record.device_name || "Unit Rakitan ViciTech"}
+                  {record.device_name || (isEnglish ? "ViciTech Custom Rig" : "Unit Rakitan ViciTech")}
                 </h2>
                 <p className="mt-1 break-all font-mono text-sm text-[#A1A1AA]">
-                  {record.serial_number || "Nomor seri QC sedang disiapkan"}
+                  {record.serial_number || (isEnglish ? "QC serial number pending" : "Nomor seri QC sedang disiapkan")}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {sourceBadge}
                 <span className="vt-pixel-tag inline-flex items-center rounded border border-white/15 bg-white/[0.06] px-2.5 py-1 text-[#FAFAFA]">
-                  {translateStressStatus(record.shipping_status) || testLabel}
+                  {translateStressStatus(record.shipping_status, isEnglish) || testLabel}
                 </span>
               </div>
             </div>
 
             <div className="mt-6">
               <div className="mb-2 flex justify-between text-xs text-[#A1A1AA]">
-                <span>Progres perakitan dan uji burn-in</span>
+                <span>{isEnglish ? "Assembly & burn-in progress" : "Progres perakitan dan uji burn-in"}</span>
                 <span className="font-mono tabular-nums font-bold text-[#FAFAFA]">{Math.round(progress)}%</span>
               </div>
               <div
@@ -468,7 +526,7 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                 aria-valuenow={progress}
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-label="Progres perakitan dan uji burn-in"
+                aria-label={isEnglish ? "Assembly and burn-in progress" : "Progres perakitan dan uji burn-in"}
               >
                 <div
                   className="h-full w-full origin-left rounded-[2px] bg-accent-primary transition-transform duration-300 motion-reduce:transition-none"
@@ -476,9 +534,9 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
                 />
               </div>
               <div className="mt-2 flex justify-between text-[11px] text-[#A1A1AA]">
-                <span>Perakitan</span>
-                <span>Uji Beban QC</span>
-                <span>Pengiriman</span>
+                <span>{isEnglish ? "Assembly" : "Perakitan"}</span>
+                <span>{isEnglish ? "QC Stress Test" : "Uji Beban QC"}</span>
+                <span>{isEnglish ? "Shipping" : "Pengiriman"}</span>
               </div>
             </div>
           </div>
@@ -486,79 +544,97 @@ export default function IoTQCConsumer({ initialSerial, onTelemetrySourceChange }
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
             <Stat
               icon={Cpu}
-              label="Suhu CPU"
+              label={isEnglish ? "CPU Temp" : "Suhu CPU"}
               value={formatTemperature(telemetry?.cpu_temp_c, userSettings.temperatureUnit, 1)}
-              detail="Pembacaan sensor terbaru"
-              color="text-[#EA580C]"
-              barColor="bg-[#EA580C]"
+              detail={isEnglish ? "Latest sensor reading" : "Pembacaan sensor terbaru"}
+              color="text-accent-primary"
+              barColor="bg-accent-primary"
               level={telemetry?.cpu_temp_c == null ? null : (Number(telemetry.cpu_temp_c) / 120) * 100}
             />
             <Stat
               icon={Thermometer}
-              label="Suhu GPU"
+              label={isEnglish ? "GPU Temp" : "Suhu GPU"}
               value={formatTemperature(telemetry?.gpu_temp_c, userSettings.temperatureUnit, 1)}
-              detail="Pembacaan sensor terbaru"
+              detail={isEnglish ? "Latest sensor reading" : "Pembacaan sensor terbaru"}
               color="text-amber-400"
               barColor="bg-amber-400"
               level={telemetry?.gpu_temp_c == null ? null : (Number(telemetry.gpu_temp_c) / 120) * 100}
             />
             <Stat
               icon={Gauge}
-              label="Kecepatan Kipas"
+              label={isEnglish ? "Fan Speed" : "Kecepatan Kipas"}
               value={formatTelemetryMetric(telemetry?.fan_rpm, {
                 compact: userSettings.compactNumbers,
                 unit: "RPM",
                 language: userSettings.language,
               })}
-              detail="Pembacaan sensor terbaru"
+              detail={isEnglish ? "Latest sensor reading" : "Pembacaan sensor terbaru"}
               color="text-sky-400"
               barColor="bg-sky-400"
               level={telemetry?.fan_rpm == null ? null : (Number(telemetry.fan_rpm) / 2500) * 100}
             />
             <Stat
               icon={Activity}
-              label="Stabilitas Voltase"
+              label={isEnglish ? "Voltage Stability" : "Stabilitas Voltase"}
               value={telemetry?.voltage_stability == null ? "—" : `${telemetry.voltage_stability}%`}
-              detail="Pembacaan sensor terbaru"
+              detail={isEnglish ? "Latest sensor reading" : "Pembacaan sensor terbaru"}
               color="text-emerald-400"
               barColor="bg-emerald-400"
               level={telemetry?.voltage_stability == null ? null : Number(telemetry.voltage_stability)}
             />
             <Stat
               icon={Timer}
-              label="Status Uji Beban"
-              value={translateStressStatus(telemetry?.stress_test_status) || testLabel}
-              detail={`${burninHours} / 4 jam burn-in`}
-              color="text-[#EA580C]"
+              label={isEnglish ? "Stress Test" : "Status Uji Beban"}
+              value={translateStressStatus(telemetry?.stress_test_status, isEnglish) || testLabel}
+              detail={isEnglish ? `${burninHours} / 4 hrs burn-in` : `${burninHours} / 4 jam burn-in`}
+              color="text-accent-primary"
             />
           </div>
 
           <div className="rounded-xl border border-default bg-surface p-4 text-xs leading-relaxed text-secondary shadow-sm">
             <Radio className="mr-2 inline h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             {telemetry
-              ? `${telemetry.source === "admin_simulation" ? "Payload simulasi admin (Simulated / Demo, bukan sensor fisik)" : "Telemetri sensor ESP32 terverifikasi"} · ${new Date(telemetry.created_at).toLocaleString("id-ID")}`
-              : "Menunggu kiriman payload telemetri. Tidak ada pembacaan sensor palsu yang ditampilkan sebagai data langsung."}{" "}
-            Kontrol pengujian dibatasi khusus untuk administrator QC resmi.
+              ? `${
+                  telemetry.source === "admin_simulation"
+                    ? isEnglish
+                      ? "Admin simulation payload (Simulated / Demo, not a physical sensor)"
+                      : "Payload simulasi admin (Simulated / Demo, bukan sensor fisik)"
+                    : isEnglish
+                      ? "Verified ESP32 sensor telemetry"
+                      : "Telemetri sensor ESP32 terverifikasi"
+                } · ${new Date(telemetry.created_at).toLocaleString(isEnglish ? "en-US" : "id-ID")}`
+              : isEnglish
+                ? "Awaiting telemetry payload. No fabricated sensor readings are shown as live data."
+                : "Menunggu kiriman payload telemetri. Tidak ada pembacaan sensor palsu yang ditampilkan sebagai data langsung."}{" "}
+            {isEnglish
+              ? "Test controls are restricted to authorized QC administrators."
+              : "Kontrol pengujian dibatasi khusus untuk administrator QC resmi."}
           </div>
         </section>
       )}
 
       {/* Protokol Inspeksi 15 Titik Hybrid IoT QC */}
-      <section aria-labelledby="qc-15-points-heading" className="rounded-xl border border-default bg-surface p-5 shadow-card sm:p-6">
+      <section aria-labelledby="qc-15-points-heading" className="rounded-xl border border-default bg-surface p-4 shadow-card sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5">
-          <div>
+          <div className="min-w-0">
             <h3 id="qc-15-points-heading" className="font-sans text-base font-bold text-primary sm:text-lg">
-              Standar Inspeksi 15 Titik Hybrid IoT QC
+              {isEnglish
+                ? "15-Point Hybrid IoT QC Inspection Standard"
+                : "Standar Inspeksi 15 Titik Hybrid IoT QC"}
             </h3>
             <p className="mt-0.5 text-xs text-secondary">
-              Setiap unit melewati 3 kelompok verifikasi sebelum terbit sertifikat serial digital.
+              {isEnglish
+                ? "Every unit passes 3 verification groups before its digital serial certificate is issued."
+                : "Setiap unit melewati 3 kelompok verifikasi sebelum terbit sertifikat serial digital."}
             </p>
           </div>
-          <span className="vt-badge-simulated">Protokol Referensi · ESP32 v2.5</span>
+          <span className="vt-badge-simulated">
+            {isEnglish ? "Reference Protocol · ESP32 v2.5" : "Protokol Referensi · ESP32 v2.5"}
+          </span>
         </div>
         <span aria-hidden="true" className="vt-pixel-divider" />
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          {QC_15_POINT_GROUPS.map((group) => (
+          {qcPointGroups.map((group) => (
             <div key={group.title} className="rounded-xl border border-default bg-canvas p-4">
               <p className="text-xs font-bold text-primary">{group.title}</p>
               <ul className="mt-2.5 space-y-1.5 text-xs leading-relaxed text-secondary">

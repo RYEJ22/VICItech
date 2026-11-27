@@ -1,0 +1,201 @@
+.pageMain {
+  min-height: calc(100dvh - 9.5rem);
+  height: calc(100dvh - 9.5rem - env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-height: 540px) {
+  .pageMain {
+    height: auto;
+    min-height: 28rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .pageMain {
+    height: calc(100dvh - 5.5rem);
+    min-height: 36rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .pageMain {
+    height: auto;
+    min-height: calc(100dvh - 6rem);
+  }
+}
+
+.chatShell {
+  background-color: var(--bg-surface, #ffffff);
+  border-color: var(--border-default, #e4e2dd);
+}
+
+.threadViewport {
+  background-color: var(--bg-canvas, #faf9f6);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.userBubble {
+  background-color: var(--accent-primary, #ea580c);
+  color: #ffffff;
+}
+
+.assistantBubble {
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e4e2dd);
+  color: var(--text-primary, #18181b);
+  box-shadow: 0 1px 2px rgba(20, 20, 22, 0.04);
+}
+
+.catalogCard {
+  background-color: var(--bg-canvas, #faf9f6);
+  border: 1px solid var(--border-default, #e4e2dd);
+}
+
+.markdownTableWrap {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-default, #e4e2dd);
+  border-radius: 0.625rem;
+  background-color: var(--bg-canvas, #faf9f6);
+}
+
+.composerBar {
+  background-color: var(--bg-surface, #ffffff);
+  border-top: 1px solid var(--border-default, #e4e2dd);
+}
+
+.starterChip {
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e4e2dd);
+  color: var(--text-primary, #18181b);
+  transition:
+    border-color 180ms var(--ease-smooth, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color 180ms var(--ease-smooth, cubic-bezier(0.22, 1, 0.36, 1)),
+    color 180ms var(--ease-smooth, cubic-bezier(0.22, 1, 0.36, 1)),
+    transform 180ms var(--ease-smooth, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.starterChip:hover {
+  border-color: rgba(234, 88, 12, 0.45);
+  background-color: var(--accent-subtle, #fff5eb);
+  color: var(--accent-hover, #c2410c);
+}
+
+:global(html[data-theme='dark']) .chatShell {
+  background-color: var(--bg-surface, #12151c);
+  border-width: 2px;
+  border-color: var(--border-default, #2a303c);
+  border-radius: 0px;
+  box-shadow: 4px 4px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .threadViewport {
+  background-color: var(--bg-canvas, #09090b);
+  background-image: radial-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+:global(html[data-theme='dark']) .userBubble {
+  background-color: #e11d48;
+  border: 2px solid #f43f5e;
+  border-radius: 0px;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .assistantBubble {
+  background-color: var(--bg-surface, #12151c);
+  border: 2px solid var(--border-default, #2a303c);
+  border-radius: 0px;
+  box-shadow: 3px 3px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .catalogCard {
+  background-color: var(--bg-subtle, #181c26);
+  border: 2px solid var(--border-default, #2a303c);
+  border-radius: 0px;
+  box-shadow: 2px 2px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .markdownTableWrap {
+  border-width: 2px;
+  border-color: var(--border-default, #2a303c);
+  border-radius: 0px;
+  background-color: var(--bg-subtle, #181c26);
+}
+
+:global(html[data-theme='dark']) .composerBar {
+  background-color: var(--bg-surface, #12151c);
+  border-top: 2px solid var(--border-default, #2a303c);
+}
+
+:global(html[data-theme='dark']) .starterChip {
+  background-color: var(--bg-subtle, #181c26);
+  border: 2px solid var(--border-default, #2a303c);
+  border-radius: 0px;
+  color: var(--text-primary, #f8fafc);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+:global(html[data-theme='dark']) .starterChip:hover {
+  border-color: #e11d48;
+  background-color: rgba(225, 29, 72, 0.16);
+  color: #ffffff;
+  box-shadow: 3px 3px 0px #e11d48;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .chatShell,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .assistantBubble,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .catalogCard,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .markdownTableWrap,
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .starterChip {
+  border-width: 1px;
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .userBubble {
+  border-width: 1px;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px -4px rgba(225, 29, 72, 0.35);
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .threadViewport {
+  background-image: none;
+}
+
+:global(html[data-theme='dark'][data-pixel-intensity='subtle']) .composerBar {
+  border-top-width: 1px;
+}
+
+:global(html[data-high-contrast='true']) .chatShell,
+:global(html[data-high-contrast='true']) .assistantBubble,
+:global(html[data-high-contrast='true']) .catalogCard,
+:global(html[data-high-contrast='true']) .markdownTableWrap,
+:global(html[data-high-contrast='true']) .starterChip {
+  border-width: 2px;
+  border-color: var(--border-strong, #141416);
+}
+
+:global(html[data-high-contrast='true']) .userBubble {
+  border: 2px solid #141416;
+}
+
+:global(html[data-theme='dark'][data-high-contrast='true']) .userBubble {
+  border-color: #ffffff;
+}
+
+:global(html[data-reduced-motion='true']) .starterChip,
+:global(html[data-reduced-motion='true']) .starterChip:hover {
+  transition: none;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starterChip,
+  .starterChip:hover {
+    transition: none;
+    transform: none !important;
+  }
+}

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ShareMenu } from '@/components/features/share/share-menu';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import {
@@ -90,7 +91,14 @@ export function PartnersDirectory({
   initialPartners,
   initialError = null,
 }: PartnersDirectoryProps): ReactElement {
+  const { isEnglish } = useLanguage();
   const [selectedCity, setSelectedCity] = useState<string>('all');
+  const getPartnerTypeLabel = (type: PartnerType): string => {
+    if (!isEnglish) return PARTNER_TYPE_LABELS[type] ?? type;
+    if (type === 'service_center') return 'Service Center';
+    if (type === 'toko_komponen') return 'Component Store';
+    return PARTNER_TYPE_LABELS[type] ?? type;
+  };
   const [selectedType, setSelectedType] = useState<'all' | PartnerType>('all');
   const [query, setQuery] = useState<string>('');
   const debouncedQuery = useDebouncedValue(query, 250);
@@ -228,12 +236,12 @@ export function PartnersDirectory({
             <MapPin className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
           </div>
           <h2 className="tracking-tight mt-4 font-sans text-2xl font-bold text-primary">
-            Belum ada mitra yang terdaftar
+            {isEnglish ? 'No partners listed yet' : 'Belum ada mitra yang terdaftar'}
           </h2>
           <p className="mx-auto mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
-            Daftar toko komponen dan service center terverifikasi yang ditambahkan oleh tim ViciTech
-            akan tampil di halaman ini. Sementara itu, Anda dapat berkonsultasi langsung dengan
-            teknisi atau mengajukan inspeksi Trade-In.
+            {isEnglish
+              ? 'Verified component stores and service centers added by the ViciTech team will appear here. Meanwhile, you can chat directly with our technicians or submit a Trade-In inspection.'
+              : 'Daftar toko komponen dan service center terverifikasi yang ditambahkan oleh tim ViciTech akan tampil di halaman ini. Sementara itu, Anda dapat berkonsultasi langsung dengan teknisi atau mengajukan inspeksi Trade-In.'}
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
@@ -241,13 +249,13 @@ export function PartnersDirectory({
               className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
             >
               <MessageSquare className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-              <span>Konsultasi Teknisi via DM</span>
+              <span>{isEnglish ? 'Consult Technician via DM' : 'Konsultasi Teknisi via DM'}</span>
             </Link>
             <Link
               href="/trade-in"
               className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-subtle px-5 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas ${focusRing}`}
             >
-              <span>Ajukan Inspeksi Trade-In</span>
+              <span>{isEnglish ? 'Request Trade-In Inspection' : 'Ajukan Inspeksi Trade-In'}</span>
               <ArrowRight className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
             </Link>
           </div>
@@ -256,9 +264,11 @@ export function PartnersDirectory({
         <>
           {/* Search + Service Type Filter Bar */}
           <div className="flex flex-col gap-3 rounded-xl border border-default bg-surface p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1">
               <label htmlFor={searchInputId} className="sr-only">
-                Cari nama mitra, kota, atau alamat layanan
+                {isEnglish
+                  ? 'Search partner name, city, or service address'
+                  : 'Cari nama mitra, kota, atau alamat layanan'}
               </label>
               <Search
                 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary"
@@ -270,14 +280,18 @@ export function PartnersDirectory({
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Cari mitra, kota, atau alamat bengkel…"
-                className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
+                placeholder={
+                  isEnglish
+                    ? 'Search partners, cities, or workshop addresses…'
+                    : 'Cari mitra, kota, atau alamat bengkel…'
+                }
+                className="vt-form-control box-border min-h-11 w-full min-w-0 rounded-lg border border-default bg-canvas py-2.5 pl-10 pr-4 text-sm text-primary outline-none transition placeholder:text-secondary/75 focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/20"
               />
             </div>
 
             <div
               role="group"
-              aria-label="Filter tipe layanan mitra"
+              aria-label={isEnglish ? 'Filter partner service type' : 'Filter tipe layanan mitra'}
               className="inline-flex flex-wrap gap-1 rounded-lg border border-default bg-subtle p-1"
             >
               <button
@@ -290,7 +304,7 @@ export function PartnersDirectory({
                     : 'text-secondary hover:bg-surface hover:text-primary'
                 }`}
               >
-                Semua Layanan
+                {isEnglish ? 'All Services' : 'Semua Layanan'}
               </button>
               {PARTNER_TYPES.map((typeOption) => {
                 const active = selectedType === typeOption;
@@ -306,7 +320,7 @@ export function PartnersDirectory({
                         : 'text-secondary hover:bg-surface hover:text-primary'
                     }`}
                   >
-                    {PARTNER_TYPE_LABELS[typeOption]}
+                    {getPartnerTypeLabel(typeOption)}
                   </button>
                 );
               })}
@@ -317,7 +331,7 @@ export function PartnersDirectory({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div
               role="tablist"
-              aria-label="Filter kota mitra"
+              aria-label={isEnglish ? 'Filter partner cities' : 'Filter kota mitra'}
               className="flex flex-wrap gap-2"
             >
               <button
@@ -331,7 +345,7 @@ export function PartnersDirectory({
                     : 'border border-default bg-surface font-medium text-secondary hover:bg-subtle hover:text-primary'
                 }`}
               >
-                <span>Semua Kota</span>
+                <span>{isEnglish ? 'All Cities' : 'Semua Kota'}</span>
                 <span className="font-mono text-xs tabular-nums opacity-85">
                   {initialPartners.length}
                 </span>
@@ -360,11 +374,11 @@ export function PartnersDirectory({
             </div>
 
             <p className="text-xs font-medium text-secondary">
-              Menampilkan{' '}
+              {isEnglish ? 'Showing ' : 'Menampilkan '}
               <span className="font-mono font-semibold tabular-nums text-primary">
                 {filteredPartners.length}
               </span>{' '}
-              mitra
+              {isEnglish ? (filteredPartners.length === 1 ? 'partner' : 'partners') : 'mitra'}
             </p>
           </div>
 
@@ -375,11 +389,12 @@ export function PartnersDirectory({
               className="rounded-xl border border-default bg-surface p-8 text-center shadow-sm"
             >
               <p className="font-sans text-xl font-semibold text-primary">
-                Mitra tidak ditemukan
+                {isEnglish ? 'No matching partners found' : 'Mitra tidak ditemukan'}
               </p>
               <p className="mx-auto mt-2 max-w-[65ch] text-sm text-secondary">
-                Tidak ada mitra yang cocok dengan kata kunci, tipe layanan, atau kota yang dipilih.
-                Atur ulang filter untuk menampilkan seluruh direktori mitra ViciTech.
+                {isEnglish
+                  ? 'No partners match your search keyword, service type, or selected city. Reset filters to view the full ViciTech partner directory.'
+                  : 'Tidak ada mitra yang cocok dengan kata kunci, tipe layanan, atau kota yang dipilih. Atur ulang filter untuk menampilkan seluruh direktori mitra ViciTech.'}
               </p>
               {hasActiveFilters && (
                 <button
@@ -388,7 +403,7 @@ export function PartnersDirectory({
                   className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
                 >
                   <RotateCcw className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Reset Filter</span>
+                  <span>{isEnglish ? 'Reset Filters' : 'Reset Filter'}</span>
                 </button>
               )}
             </section>
@@ -398,19 +413,21 @@ export function PartnersDirectory({
                 const mapsUrl = getPartnerMapsUrl(featuredPartner);
                 const whatsappUrl = getPartnerWhatsappUrl(featuredPartner);
                 const coords = formatCoordinates(featuredPartner);
-                const typeLabel = PARTNER_TYPE_LABELS[featuredPartner.type] ?? featuredPartner.type;
+                const typeLabel = getPartnerTypeLabel(featuredPartner.type);
                 const featuredIsSample = isSamplePartner(featuredPartner);
                 return (
-                  <article className="vt-card-lift rounded-xl border border-accent-primary/25 bg-accent-subtle p-6 shadow-sm sm:p-8">
+                  <article className="vt-card-lift rounded-xl border border-accent-primary/25 bg-accent-subtle p-5 shadow-sm sm:p-8">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-2">
                         {featuredPartner.is_verified ? (
                           <span className="vt-badge-live">
                             <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                            <span>Terverifikasi ViciTech</span>
+                            <span>{isEnglish ? 'ViciTech Verified' : 'Terverifikasi ViciTech'}</span>
                           </span>
                         ) : (
-                          <span className="vt-badge-sample">Mitra Terdaftar</span>
+                          <span className="vt-badge-sample">
+                            {isEnglish ? 'Listed Partner' : 'Mitra Terdaftar'}
+                          </span>
                         )}
                         {featuredIsSample && (
                           <span className="vt-badge-sample">Sample</span>
@@ -423,11 +440,11 @@ export function PartnersDirectory({
                     </div>
 
                     <div className="mt-4 grid gap-6 lg:grid-cols-3 lg:items-end">
-                      <div className="lg:col-span-2">
-                        <h2 className="tracking-tight font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
+                      <div className="min-w-0 lg:col-span-2">
+                        <h2 className="tracking-tight break-words font-sans text-2xl font-bold text-primary [text-wrap:balance] sm:text-3xl">
                           {featuredPartner.name}
                         </h2>
-                        <p className="mt-2.5 max-w-[68ch] text-sm leading-relaxed text-secondary sm:text-base">
+                        <p className="mt-2.5 max-w-[68ch] break-words text-sm leading-relaxed text-secondary sm:text-base">
                           {featuredPartner.address}
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium text-primary">
@@ -443,13 +460,13 @@ export function PartnersDirectory({
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2.5 rounded-xl border border-default bg-surface p-5">
+                      <div className="flex flex-col gap-2.5 rounded-xl border border-default bg-surface p-4 sm:p-5">
                         <button
                           type="button"
                           onClick={(event) => openPartnerDetail(featuredPartner, event.currentTarget)}
                           className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
                         >
-                          <span>Lihat Detail Mitra</span>
+                          <span>{isEnglish ? 'View Partner Details' : 'Lihat Detail Mitra'}</span>
                           <ArrowRight className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
                         </button>
                         <div className="flex flex-wrap gap-2">
@@ -488,13 +505,13 @@ export function PartnersDirectory({
                     const mapsUrl = getPartnerMapsUrl(partner);
                     const whatsappUrl = getPartnerWhatsappUrl(partner);
                     const coords = formatCoordinates(partner);
-                    const typeLabel = PARTNER_TYPE_LABELS[partner.type] ?? partner.type;
+                    const typeLabel = getPartnerTypeLabel(partner.type);
                     const partnerIsSample = isSamplePartner(partner);
 
                     return (
                       <article
                         key={partner.id}
-                        className="vt-card-lift flex flex-col justify-between rounded-xl border border-default bg-surface p-6 shadow-sm"
+                        className="vt-card-lift flex min-w-0 flex-col justify-between rounded-xl border border-default bg-surface p-5 shadow-sm sm:p-6"
                       >
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -502,10 +519,12 @@ export function PartnersDirectory({
                               {partner.is_verified ? (
                                 <span className="vt-badge-live">
                                   <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                                  <span>Terverifikasi</span>
+                                  <span>{isEnglish ? 'Verified' : 'Terverifikasi'}</span>
                                 </span>
                               ) : (
-                                <span className="vt-badge-sample">Mitra Terdaftar</span>
+                                <span className="vt-badge-sample">
+                                  {isEnglish ? 'Listed Partner' : 'Mitra Terdaftar'}
+                                </span>
                               )}
                               {partnerIsSample && (
                                 <span className="vt-badge-sample">Sample</span>
@@ -517,10 +536,10 @@ export function PartnersDirectory({
                             </span>
                           </div>
 
-                          <h3 className="tracking-tight mt-4 font-sans text-xl font-bold text-primary [text-wrap:balance]">
+                          <h3 className="tracking-tight mt-4 break-words font-sans text-xl font-bold text-primary [text-wrap:balance]">
                             {partner.name}
                           </h3>
-                          <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-secondary">
+                          <p className="mt-2 max-w-[65ch] break-words text-sm leading-relaxed text-secondary">
                             {partner.address}
                           </p>
 
@@ -568,7 +587,7 @@ export function PartnersDirectory({
                             onClick={(event) => openPartnerDetail(partner, event.currentTarget)}
                             className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-default bg-subtle px-4 py-2 text-xs font-semibold text-primary transition hover:border-accent-primary/50 hover:bg-accent-subtle ${focusRing}`}
                           >
-                            <span>Lihat Detail</span>
+                            <span>{isEnglish ? 'View Details' : 'Lihat Detail'}</span>
                             <ArrowRight className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                           </button>
                         </div>
@@ -603,18 +622,20 @@ export function PartnersDirectory({
                   {activePartner.is_verified ? (
                     <span className="vt-badge-live">
                       <ShieldCheck className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden="true" />
-                      <span>Terverifikasi ViciTech</span>
+                      <span>{isEnglish ? 'ViciTech Verified' : 'Terverifikasi ViciTech'}</span>
                     </span>
                   ) : (
-                    <span className="vt-badge-sample">Mitra Terdaftar</span>
+                    <span className="vt-badge-sample">
+                      {isEnglish ? 'Listed Partner' : 'Mitra Terdaftar'}
+                    </span>
                   )}
                   <span className="text-xs font-medium text-secondary">
-                    {PARTNER_TYPE_LABELS[activePartner.type] ?? activePartner.type}
+                    {getPartnerTypeLabel(activePartner.type)}
                   </span>
                 </div>
                 <h2
                   id={drawerTitleId}
-                  className="tracking-tight mt-2 font-sans text-xl font-bold text-primary [text-wrap:balance]"
+                  className="tracking-tight mt-2 break-words font-sans text-xl font-bold text-primary [text-wrap:balance]"
                 >
                   {activePartner.name}
                 </h2>
@@ -624,7 +645,7 @@ export function PartnersDirectory({
                 ref={closeButtonRef}
                 type="button"
                 onClick={closePartnerDetail}
-                aria-label="Tutup detail mitra"
+                aria-label={isEnglish ? 'Close partner details' : 'Tutup detail mitra'}
                 className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-default bg-subtle text-primary transition hover:bg-canvas ${focusRing}`}
               >
                 <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
@@ -634,21 +655,27 @@ export function PartnersDirectory({
             <div className="space-y-5 p-5">
               <dl className="divide-y divide-default rounded-xl border border-default bg-canvas">
                 <div className="px-4 py-3">
-                  <dt className="text-xs font-medium text-secondary">Kota</dt>
+                  <dt className="text-xs font-medium text-secondary">
+                    {isEnglish ? 'City' : 'Kota'}
+                  </dt>
                   <dd className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-primary">
                     <MapPin className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
                     <span>{activePartner.city}</span>
                   </dd>
                 </div>
                 <div className="px-4 py-3">
-                  <dt className="text-xs font-medium text-secondary">Alamat Lengkap</dt>
-                  <dd className="mt-1 text-sm leading-relaxed text-primary">
+                  <dt className="text-xs font-medium text-secondary">
+                    {isEnglish ? 'Full Address' : 'Alamat Lengkap'}
+                  </dt>
+                  <dd className="mt-1 break-words text-sm leading-relaxed text-primary">
                     {activePartner.address}
                   </dd>
                 </div>
                 {activeCoords && (
                   <div className="px-4 py-3">
-                    <dt className="text-xs font-medium text-secondary">Koordinat Lokasi</dt>
+                    <dt className="text-xs font-medium text-secondary">
+                      {isEnglish ? 'Location Coordinates' : 'Koordinat Lokasi'}
+                    </dt>
                     <dd className="mt-1 font-mono text-sm tabular-nums text-primary">
                       {activeCoords}
                     </dd>
@@ -665,7 +692,7 @@ export function PartnersDirectory({
                     className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
                   >
                     <ExternalLink className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-                    <span>Buka di Google Maps</span>
+                    <span>{isEnglish ? 'Open in Google Maps' : 'Buka di Google Maps'}</span>
                   </a>
                 )}
 
@@ -677,7 +704,7 @@ export function PartnersDirectory({
                     className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-subtle ${focusRing}`}
                   >
                     <MessageCircle className="h-4 w-4 text-status-live" strokeWidth={1.75} aria-hidden="true" />
-                    <span>Chat via WhatsApp</span>
+                    <span>{isEnglish ? 'Chat via WhatsApp' : 'Chat via WhatsApp'}</span>
                   </a>
                 )}
 
@@ -686,17 +713,19 @@ export function PartnersDirectory({
                   className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-default bg-subtle px-4 py-2.5 text-sm font-medium text-primary transition hover:bg-canvas ${focusRing}`}
                 >
                   <MessageSquare className="h-4 w-4 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
-                  <span>Konsultasi via DM ViciTech</span>
+                  <span>{isEnglish ? 'Consult via ViciTech DM' : 'Konsultasi via DM ViciTech'}</span>
                 </Link>
               </div>
 
               <div className="flex items-center justify-between border-t border-default pt-4">
-                <span className="text-xs text-secondary">Bagikan lokasi mitra ini</span>
+                <span className="text-xs text-secondary">
+                  {isEnglish ? 'Share this partner location' : 'Bagikan lokasi mitra ini'}
+                </span>
                 <ShareMenu
-                  title={`${activePartner.name} — Mitra ViciTech`}
-                  text={`${PARTNER_TYPE_LABELS[activePartner.type] ?? activePartner.type} di ${activePartner.city}: ${activePartner.address}`}
+                  title={`${activePartner.name} — ${isEnglish ? 'ViciTech Partner' : 'Mitra ViciTech'}`}
+                  text={`${getPartnerTypeLabel(activePartner.type)} ${isEnglish ? 'in' : 'di'} ${activePartner.city}: ${activePartner.address}`}
                   url="/partners"
-                  label="Bagikan"
+                  label={isEnglish ? 'Share' : 'Bagikan'}
                 />
               </div>
             </div>

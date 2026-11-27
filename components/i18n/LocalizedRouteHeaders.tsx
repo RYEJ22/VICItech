@@ -84,21 +84,27 @@ export function KonsultanAiPageHeader(): ReactElement {
   const { t } = useLanguage();
   const c = t.routes.aiConsultant;
   return (
-    <div className="max-w-3xl">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-primary">
+    <header className="min-w-0 max-w-3xl shrink-0">
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent-primary sm:text-xs">
         {c.eyebrow}
       </p>
-      <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:text-4xl">
+      <h1 className="mt-1 text-xl font-extrabold tracking-tight text-primary [text-wrap:balance] sm:mt-2 sm:text-3xl lg:text-4xl">
         {c.title}
       </h1>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-secondary sm:text-base">{c.desc}</p>
-    </div>
+      <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-secondary sm:mt-2 sm:block lg:text-base">
+        {c.desc}
+      </p>
+    </header>
   );
 }
 
 export function KonsultanAiDisclaimer(): ReactElement {
   const { t } = useLanguage();
-  return <p className="mt-3 px-1 text-xs leading-5 text-secondary">{t.routes.aiConsultant.disclaimer}</p>;
+  return (
+    <p className="mt-2 hidden px-1 text-[11px] leading-4 text-secondary sm:block sm:text-xs sm:leading-5">
+      {t.routes.aiConsultant.disclaimer}
+    </p>
+  );
 }
 
 export function FeedbackPageHeader(): ReactElement {

@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 interface MediaLightboxProps {
   readonly images: readonly string[];
@@ -14,9 +15,11 @@ interface MediaLightboxProps {
 export function MediaLightbox({
   images,
   initialIndex,
-  altPrefix = 'Lampiran gambar',
+  altPrefix,
   onClose,
 }: MediaLightboxProps): ReactElement | null {
+  const { isEnglish } = useLanguage();
+  const resolvedPrefix = altPrefix || (isEnglish ? 'Image attachment' : 'Lampiran gambar');
   const total = images.length;
   const clampedInitial =
     total > 0 ? Math.min(Math.max(initialIndex, 0), total - 1) : 0;
@@ -80,15 +83,15 @@ export function MediaLightbox({
       }}
     >
       <div className="mb-3 flex w-full max-w-5xl items-center justify-between gap-4">
-        <p id={labelId} className="font-mono text-xs font-medium text-white/85">
-          {altPrefix} ({activeIndex + 1}/{total})
+        <p id={labelId} className="min-w-0 truncate font-mono text-xs font-medium text-white/85">
+          {resolvedPrefix} ({activeIndex + 1}/{total})
         </p>
         <button
           ref={closeButtonRef}
           type="button"
           onClick={onClose}
-          aria-label="Tutup tampilan gambar penuh"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+          aria-label={isEnglish ? 'Close full-screen image view' : 'Tutup tampilan gambar penuh'}
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
         >
           <X className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
         </button>
@@ -99,8 +102,8 @@ export function MediaLightbox({
           <button
             type="button"
             onClick={() => setActiveIndex((current) => (current - 1 + total) % total)}
-            aria-label="Gambar sebelumnya"
-            className="absolute left-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#141518]/75 text-white transition hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+            aria-label={isEnglish ? 'Previous image' : 'Gambar sebelumnya'}
+            className="absolute left-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#141518]/75 text-white transition hover:bg-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             <ChevronLeft className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </button>
@@ -109,7 +112,7 @@ export function MediaLightbox({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={activeUrl}
-          alt={`${altPrefix} ${activeIndex + 1}`}
+          alt={`${resolvedPrefix} ${activeIndex + 1}`}
           decoding="async"
           className="max-h-[80vh] max-w-full rounded-2xl border border-white/15 bg-black/40 object-contain shadow-2xl"
         />
@@ -118,8 +121,8 @@ export function MediaLightbox({
           <button
             type="button"
             onClick={() => setActiveIndex((current) => (current + 1) % total)}
-            aria-label="Gambar berikutnya"
-            className="absolute right-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#141518]/75 text-white transition hover:bg-[#EA580C] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#EA580C]"
+            aria-label={isEnglish ? 'Next image' : 'Gambar berikutnya'}
+            className="absolute right-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-[#141518]/75 text-white transition hover:bg-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             <ChevronRight className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
           </button>

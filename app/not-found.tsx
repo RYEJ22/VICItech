@@ -1,18 +1,28 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowLeft, Compass, LayoutGrid } from 'lucide-react';
 import type { ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 
 export default function NotFound(): ReactElement {
+  const { isEnglish } = useLanguage();
+
   return (
     <main className="mx-auto grid min-h-[70vh] w-full max-w-3xl place-items-center px-4 pb-24 pt-12 md:pb-12">
-      <section className="w-full rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-8">
-        <span className="vt-badge-sample">Rute Tidak Ditemukan · 404</span>
+      <section className="w-full min-w-0 rounded-xl border border-default bg-surface p-6 shadow-sm sm:p-8">
+        <span className="vt-badge-sample">
+          {isEnglish ? 'Route Not Found · 404' : 'Rute Tidak Ditemukan · 404'}
+        </span>
         <h1 className="mt-4 font-sans text-3xl font-bold tracking-tight text-primary [text-wrap:balance]">
-          Halaman yang Anda cari tidak tersedia.
+          {isEnglish
+            ? 'The page you are looking for is unavailable.'
+            : 'Halaman yang Anda cari tidak tersedia.'}
         </h1>
         <p className="mt-3 max-w-[65ch] text-sm leading-relaxed text-secondary sm:text-base">
-          Tautan mungkin sudah dipindahkan ke dalam Workspace modular ViciTech atau sedang dalam
-          tahap pengembangan. Pilih salah satu tujuan utama di bawah ini.
+          {isEnglish
+            ? 'This link may have moved inside the modular ViciTech Workspace or is still under development. Choose one of the main destinations below.'
+            : 'Tautan mungkin sudah dipindahkan ke dalam Workspace modular ViciTech atau sedang dalam tahap pengembangan. Pilih salah satu tujuan utama di bawah ini.'}
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -21,7 +31,7 @@ export default function NotFound(): ReactElement {
             className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <LayoutGrid className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Jelajahi Market</span>
+            <span>{isEnglish ? 'Explore Market' : 'Jelajahi Market'}</span>
           </Link>
           <Link
             href="/community"
@@ -35,7 +45,7 @@ export default function NotFound(): ReactElement {
             className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-4 py-2.5 text-sm font-medium text-secondary transition hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-            <span>Beranda</span>
+            <span>{isEnglish ? 'Home' : 'Beranda'}</span>
           </Link>
         </div>
       </section>

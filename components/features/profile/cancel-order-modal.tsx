@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactElement } from 'react';
 import { AlertCircle, AlertTriangle, LoaderCircle, X } from 'lucide-react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { ORDER_CANCEL_REASONS } from '@/lib/profile/profile-types';
 import type { ProfileOrderRecord } from '@/lib/profile/profile-types';
 
@@ -24,6 +25,7 @@ export function CancelOrderModal({
   onClose,
   onConfirm,
 }: CancelOrderModalProps): ReactElement | null {
+  const { isEnglish } = useLanguage();
   const [selectedPreset, setSelectedPreset] = useState('');
   const [customReason, setCustomReason] = useState('');
 
@@ -81,7 +83,7 @@ export function CancelOrderModal({
                 id="cancel-order-title"
                 className="font-sans text-lg font-bold tracking-tight text-primary"
               >
-                Batalkan Pesanan?
+                {isEnglish ? 'Cancel Order?' : 'Batalkan Pesanan?'}
               </h2>
               <p className="mt-0.5 break-all font-mono text-xs text-secondary">
                 {order.orderNumber || order.id}
@@ -93,7 +95,7 @@ export function CancelOrderModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            aria-label="Tutup dialog pembatalan"
+            aria-label={isEnglish ? 'Close cancellation dialog' : 'Tutup dialog pembatalan'}
             className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle disabled:opacity-50 ${focusRing}`}
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -101,14 +103,19 @@ export function CancelOrderModal({
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-secondary">
-          Anda akan membatalkan pesanan{' '}
-          <span className="font-semibold text-primary">{order.productName}</span>. Pesanan
-          yang sudah dibatalkan tidak dapat diaktifkan kembali.
+          {isEnglish ? 'You are about to cancel order ' : 'Anda akan membatalkan pesanan '}
+          <span className="font-semibold text-primary">{order.productName}</span>
+          {isEnglish
+            ? '. Once cancelled, this order cannot be reactivated.'
+            : '. Pesanan yang sudah dibatalkan tidak dapat diaktifkan kembali.'}
         </p>
 
         <div className="mt-4 space-y-2.5">
           <p className="text-xs font-semibold text-primary">
-            Alasan Pembatalan <span className="font-normal text-secondary">(Opsional)</span>
+            {isEnglish ? 'Cancellation Reason ' : 'Alasan Pembatalan '}
+            <span className="font-normal text-secondary">
+              {isEnglish ? '(Optional)' : '(Opsional)'}
+            </span>
           </p>
           <div className="flex flex-wrap gap-1.5">
             {ORDER_CANCEL_REASONS.map((reason) => {
@@ -119,7 +126,7 @@ export function CancelOrderModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setSelectedPreset(active ? '' : reason)}
-                  className={`min-h-10 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ease-smooth ${focusRing} ${
+                  className={`min-h-11 rounded-full border px-3 py-1.5 text-xs transition-all duration-200 ease-smooth sm:min-h-10 ${focusRing} ${
                     active
                       ? 'border-accent-primary bg-accent-subtle font-semibold text-accent-hover'
                       : 'border-default bg-canvas text-secondary hover:border-strong hover:text-primary'
@@ -132,14 +139,20 @@ export function CancelOrderModal({
           </div>
 
           <label className="block pt-1">
-            <span className="sr-only">Catatan alasan pembatalan lainnya</span>
+            <span className="sr-only">
+              {isEnglish ? 'Additional cancellation reason' : 'Catatan alasan pembatalan lainnya'}
+            </span>
             <input
               type="text"
               value={customReason}
               disabled={isSubmitting}
               maxLength={240}
               onChange={(event) => setCustomReason(event.target.value)}
-              placeholder="Atau tulis alasan singkat lainnya (opsional)…"
+              placeholder={
+                isEnglish
+                  ? 'Or write another brief reason (optional)…'
+                  : 'Atau tulis alasan singkat lainnya (opsional)…'
+              }
               className="vt-form-control min-h-11 w-full rounded-lg border border-default bg-subtle px-3 py-2 text-sm text-primary placeholder:text-secondary focus:border-accent-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
             />
           </label>
@@ -162,7 +175,7 @@ export function CancelOrderModal({
             disabled={isSubmitting}
             className={`inline-flex min-h-11 items-center justify-center rounded-lg border border-default bg-canvas px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-subtle disabled:opacity-50 ${focusRing}`}
           >
-            Kembali
+            {isEnglish ? 'Back' : 'Kembali'}
           </button>
           <button
             type="button"
@@ -171,7 +184,15 @@ export function CancelOrderModal({
             className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-status-danger px-4 py-2 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-red-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
           >
             {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />}
-            <span>{isSubmitting ? 'Membatalkan…' : 'Ya, Batalkan Pesanan'}</span>
+            <span>
+              {isSubmitting
+                ? isEnglish
+                  ? 'Cancelling…'
+                  : 'Membatalkan…'
+                : isEnglish
+                  ? 'Yes, Cancel Order'
+                  : 'Ya, Batalkan Pesanan'}
+            </span>
           </button>
         </div>
       </div>

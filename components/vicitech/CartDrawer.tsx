@@ -5,6 +5,7 @@ import type { ReactElement } from 'react';
 import Link from 'next/link';
 import { Minus, Package, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
 import type { MarketCartItem } from '@/context/CheckoutContext';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CartDrawerProps {
@@ -40,6 +41,7 @@ export function CartDrawer({
   onClearCart,
   onCheckout,
 }: CartDrawerProps): ReactElement | null {
+  const { isEnglish } = useLanguage();
   useEffect(() => {
     if (!isOpen || typeof window === 'undefined') return undefined;
 
@@ -101,7 +103,7 @@ export function CartDrawer({
                   id="cart-drawer-title"
                   className="font-sans text-lg font-bold tracking-tight text-primary"
                 >
-                  Keranjang Belanja
+                  {isEnglish ? 'Shopping Cart' : 'Keranjang Belanja'}
                 </h2>
                 {totalItems > 0 && (
                   <span key={`cart-total-${totalItems}`} className="vt-motion-pop rounded-full bg-accent-subtle px-2 py-0.5 font-mono text-xs font-semibold tabular-nums text-accent-primary">
@@ -110,7 +112,9 @@ export function CartDrawer({
                 )}
               </div>
               <p className="text-xs text-secondary">
-                Unit Market &amp; komponen tersimpan
+                {isEnglish
+                  ? 'Saved Market units & components'
+                  : 'Unit Market & komponen tersimpan'}
               </p>
             </div>
           </div>
@@ -120,15 +124,15 @@ export function CartDrawer({
               <button
                 type="button"
                 onClick={onClearCart}
-                className={`min-h-9 rounded-lg px-2.5 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-status-danger ${focusRing}`}
+                className={`min-h-11 rounded-lg px-2.5 text-xs font-medium text-secondary transition-colors hover:bg-subtle hover:text-status-danger sm:min-h-9 ${focusRing}`}
               >
-                Kosongkan
+                {isEnglish ? 'Clear' : 'Kosongkan'}
               </button>
             )}
             <button
               type="button"
               onClick={onClose}
-              aria-label="Tutup keranjang belanja"
+              aria-label={isEnglish ? 'Close shopping cart' : 'Tutup keranjang belanja'}
               className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle ${focusRing}`}
             >
               <X className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
@@ -143,17 +147,19 @@ export function CartDrawer({
                 <ShoppingCart className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
               </span>
               <h3 className="mt-4 font-sans text-lg font-bold tracking-tight text-primary">
-                Keranjang masih kosong
+                {isEnglish ? 'Your cart is empty' : 'Keranjang masih kosong'}
               </h3>
               <p className="mt-1.5 max-w-[30ch] text-xs leading-relaxed text-secondary">
-                Tambahkan PC rakitan, laptop lolos IoT QC, atau komponen dari katalog Market untuk mulai checkout.
+                {isEnglish
+                  ? 'Add custom PCs, IoT QC-certified laptops, or components from the Market catalog to start checkout.'
+                  : 'Tambahkan PC rakitan, laptop lolos IoT QC, atau komponen dari katalog Market untuk mulai checkout.'}
               </p>
               <Link
                 href="/market"
                 onClick={onClose}
                 className={`vt-btn-tactile mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-accent-primary px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing}`}
               >
-                Jelajahi Market
+                {isEnglish ? 'Explore Market' : 'Jelajahi Market'}
               </Link>
             </div>
           ) : (
@@ -162,7 +168,8 @@ export function CartDrawer({
                 const qty = Math.max(1, Number(item.quantity ?? item.qty) || 1);
                 const unitPrice = Math.max(0, Number(item.price) || 0);
                 const lineTotal = unitPrice * qty;
-                const displayTitle = item.title || item.name || 'Produk ViciTech';
+                const displayTitle =
+                  item.title || item.name || (isEnglish ? 'ViciTech Product' : 'Produk ViciTech');
                 const isPreset =
                   item.source === 'preset_builder' ||
                   String(item.type || '').toLowerCase() === 'preset_builder';
@@ -202,7 +209,9 @@ export function CartDrawer({
                           <span>·</span>
                           <span>
                             {item.seller_type === 'partner'
-                              ? 'Mitra Terverifikasi'
+                              ? isEnglish
+                                ? 'Verified Partner'
+                                : 'Mitra Terverifikasi'
                               : 'ViciTech Official'}
                           </span>
                         </div>
@@ -232,32 +241,40 @@ export function CartDrawer({
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between gap-3 border-t border-default pt-2.5">
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-default pt-2.5">
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => onUpdateQuantity(item.id, qty - 1)}
                           aria-label={
                             qty <= 1
-                              ? `Hapus ${displayTitle} dari keranjang`
-                              : `Kurangi jumlah ${displayTitle}`
+                              ? isEnglish
+                                ? `Remove ${displayTitle} from cart`
+                                : `Hapus ${displayTitle} dari keranjang`
+                              : isEnglish
+                                ? `Decrease quantity of ${displayTitle}`
+                                : `Kurangi jumlah ${displayTitle}`
                           }
-                          className={`grid h-10 w-10 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
+                          className={`grid h-11 w-11 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
                         >
                           <Minus className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
                         <span
                           key={qty}
                           className="vt-num-pop min-w-[2rem] text-center font-mono text-xs font-semibold tabular-nums text-primary"
-                          aria-label={`Jumlah ${qty}`}
+                          aria-label={isEnglish ? `Quantity ${qty}` : `Jumlah ${qty}`}
                         >
                           {qty}
                         </span>
                         <button
                           type="button"
                           onClick={() => onUpdateQuantity(item.id, qty + 1)}
-                          aria-label={`Tambah jumlah ${displayTitle}`}
-                          className={`grid h-10 w-10 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
+                          aria-label={
+                            isEnglish
+                              ? `Increase quantity of ${displayTitle}`
+                              : `Tambah jumlah ${displayTitle}`
+                          }
+                          className={`grid h-11 w-11 place-items-center rounded-lg border border-default bg-canvas text-primary transition-colors hover:bg-subtle sm:h-9 sm:w-9 ${focusRing}`}
                         >
                           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                         </button>
@@ -271,11 +288,11 @@ export function CartDrawer({
                       <button
                         type="button"
                         onClick={() => onRemoveItem(item.id)}
-                        aria-label={`Hapus ${displayTitle}`}
-                        className={`inline-flex min-h-9 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary transition-colors hover:bg-red-50 hover:text-status-danger ${focusRing}`}
+                        aria-label={isEnglish ? `Remove ${displayTitle}` : `Hapus ${displayTitle}`}
+                        className={`inline-flex min-h-11 items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-secondary transition-colors hover:bg-red-50 hover:text-status-danger sm:min-h-9 ${focusRing}`}
                       >
                         <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                        <span>Hapus</span>
+                        <span>{isEnglish ? 'Remove' : 'Hapus'}</span>
                       </button>
                     </div>
                   </li>
@@ -289,7 +306,9 @@ export function CartDrawer({
           <footer className="space-y-3 border-t border-default bg-surface p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
             <div className="space-y-1.5 text-sm">
               <div className="flex items-center justify-between text-secondary">
-                <span>Subtotal ({totalItems} item)</span>
+                <span>
+                  Subtotal ({totalItems} {isEnglish ? (totalItems === 1 ? 'item' : 'items') : 'item'})
+                </span>
                 <AnimatedNumber
                   value={totalPrice}
                   format="currency"
@@ -297,15 +316,21 @@ export function CartDrawer({
                 />
               </div>
               {estimatedJitBuffer > 0 ? (
-                <div className="flex items-center justify-between text-xs text-secondary">
-                  <span>Estimasi JIT Buffer (5% item Preset Builder)</span>
-                  <span className="font-mono font-medium tabular-nums text-primary">
+                <div className="flex items-center justify-between gap-2 text-xs text-secondary">
+                  <span>
+                    {isEnglish
+                      ? 'Estimated JIT Buffer (5% Preset Builder items)'
+                      : 'Estimasi JIT Buffer (5% item Preset Builder)'}
+                  </span>
+                  <span className="shrink-0 font-mono font-medium tabular-nums text-primary">
                     +{formatIdr(estimatedJitBuffer)}
                   </span>
                 </div>
               ) : (
                 <p className="text-[11px] text-secondary">
-                  Barang Ready Stock Market bebas biaya JIT Buffer 5%.
+                  {isEnglish
+                    ? 'Ready Stock Market units have zero 5% JIT Buffer fee.'
+                    : 'Barang Ready Stock Market bebas biaya JIT Buffer 5%.'}
                 </p>
               )}
             </div>
@@ -316,7 +341,7 @@ export function CartDrawer({
               className={`vt-btn-tactile flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent-primary px-5 py-3 text-sm font-semibold text-white transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] ${focusRing}`}
             >
               <ShoppingCart className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
-              <span>Lanjut ke Pembayaran</span>
+              <span>{isEnglish ? 'Proceed to Checkout' : 'Lanjut ke Pembayaran'}</span>
             </button>
           </footer>
         )}

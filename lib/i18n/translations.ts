@@ -477,6 +477,36 @@ export interface TranslationDictionary {
       readonly title: string;
       readonly desc: string;
       readonly disclaimer: string;
+      readonly chatAria: string;
+      readonly assistantSubtitle: string;
+      readonly catalogBadge: string;
+      readonly resetBtn: string;
+      readonly resetShort: string;
+      readonly resetAria: string;
+      readonly emptyTitle: string;
+      readonly emptyDesc: string;
+      readonly starters: readonly [string, string, string];
+      readonly presetsAria: string;
+      readonly presets: readonly {
+        readonly id: 'build' | 'upgrade' | 'qc' | 'parts';
+        readonly title: string;
+        readonly shortTitle: string;
+        readonly description: string;
+        readonly prompt: string;
+      }[];
+      readonly typingAria: string;
+      readonly preparingReply: string;
+      readonly inputLabel: string;
+      readonly inputPlaceholder: string;
+      readonly clearInputAria: string;
+      readonly sendAria: string;
+      readonly enterHint: string;
+      readonly errorFallback: string;
+      readonly networkError: string;
+      readonly catalogCardCta: string;
+      readonly catalogCardLabel: string;
+      readonly stockReady: string;
+      readonly stockPreorder: string;
     };
     readonly feedback: {
       readonly eyebrow: string;
@@ -1171,6 +1201,63 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         title: 'Konsultan Rakitan AI',
         desc: 'Temukan arah rakitan PC, cek opsi upgrade laptop, dan pahami layanan ViciTech bersama konsultan hardware.',
         disclaimer: 'Ketersediaan dan harga perangkat mengikuti katalog ViciTech Market saat konsultasi dimulai.',
+        chatAria: 'Konsultan Rakitan AI',
+        assistantSubtitle: 'Konsultan Rakitan & Hardware',
+        catalogBadge: 'Katalog Aktif',
+        resetBtn: 'Reset Obrolan',
+        resetShort: 'Reset',
+        resetAria: 'Reset riwayat obrolan AI',
+        emptyTitle: 'Ada yang ingin dirakit?',
+        emptyDesc: 'Ceritakan kebutuhan atau anggaranmu, kami bantu cari opsi komponen dan unit yang pas.',
+        starters: [
+          'Rakit PC gaming sesuai budget',
+          'Cek upgrade RAM dan SSD laptop',
+          'Jelaskan IoT QC dan pembayaran DP',
+        ],
+        presetsAria: 'Topik konsultasi cepat',
+        presets: [
+          {
+            id: 'build',
+            title: 'Rakit PC sesuai budget',
+            shortTitle: 'Rakit PC Budget',
+            description: 'Gaming, editing, atau kerja harian.',
+            prompt: 'Bantu saya merakit PC sesuai budget dan kebutuhan. Tanyakan budget dan penggunaan saya terlebih dahulu.',
+          },
+          {
+            id: 'upgrade',
+            title: 'Cek upgrade laptop',
+            shortTitle: 'Upgrade Laptop',
+            description: 'Cari tahu potensi upgrade RAM dan SSD.',
+            prompt: 'Saya ingin mengecek potensi upgrade RAM dan NVMe/SSD laptop. Informasi model apa yang perlu saya berikan?',
+          },
+          {
+            id: 'qc',
+            title: 'IoT QC & pembayaran',
+            shortTitle: 'IoT QC & DP',
+            description: 'Pahami sertifikat, DP, dan Full Payment.',
+            prompt: 'Jelaskan alur IoT Burn-In & Telemetry QC, sertifikat serial, dan opsi pembayaran DP atau Full Payment.',
+          },
+          {
+            id: 'parts',
+            title: 'Pilih komponen',
+            shortTitle: 'Pilih Komponen',
+            description: 'Tanya spesifikasi dan produk di katalog.',
+            prompt: 'Bantu saya memilih komponen yang sesuai. Tanyakan kebutuhan dan kisaran anggaran saya.',
+          },
+        ],
+        typingAria: 'ViciTech AI sedang mengetik jawaban',
+        preparingReply: 'ViciTech AI sedang menyiapkan jawaban…',
+        inputLabel: 'Pesan untuk ViciTech AI',
+        inputPlaceholder: 'Tulis pertanyaan hardware, budget, atau seri laptop…',
+        clearInputAria: 'Hapus teks pesan',
+        sendAria: 'Kirim pesan',
+        enterHint: 'Enter kirim · Shift+Enter baris baru',
+        errorFallback: 'Maaf, konsultan AI belum dapat menjawab. Coba lagi sebentar.',
+        networkError: 'Koneksi terputus. Silakan kirim pertanyaan sekali lagi.',
+        catalogCardCta: 'Lihat di Market',
+        catalogCardLabel: 'Rekomendasi Katalog',
+        stockReady: 'Siap Kirim',
+        stockPreorder: 'Pre-Order',
       },
       feedback: {
         eyebrow: 'Validasi Pengguna ViciTech OS',
@@ -1862,6 +1949,63 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         title: 'AI Build Consultant',
         desc: 'Plan your next PC build, evaluate laptop upgrade paths, and explore ViciTech services with our hardware consultant.',
         disclaimer: 'Device availability and pricing reflect the live ViciTech Market catalog when your consultation begins.',
+        chatAria: 'AI Build Consultant Chat',
+        assistantSubtitle: 'PC Build & Hardware Consultant',
+        catalogBadge: 'Catalog Live',
+        resetBtn: 'Reset Chat',
+        resetShort: 'Reset',
+        resetAria: 'Reset AI chat history',
+        emptyTitle: 'What are you planning to build?',
+        emptyDesc: 'Share your workload or budget and we will suggest balanced hardware options from the catalog.',
+        starters: [
+          'Build a gaming PC on a budget',
+          'Check laptop RAM & SSD upgrades',
+          'Explain IoT QC & DP payment',
+        ],
+        presetsAria: 'Quick consultation topics',
+        presets: [
+          {
+            id: 'build',
+            title: 'Budget PC Build',
+            shortTitle: 'Budget PC',
+            description: 'Gaming, editing, or daily workstation.',
+            prompt: 'Help me plan a PC build based on my budget and workload. Please ask my budget and main use case first.',
+          },
+          {
+            id: 'upgrade',
+            title: 'Laptop Upgrade Check',
+            shortTitle: 'Laptop Upgrade',
+            description: 'Check RAM and NVMe/SSD expansion limits.',
+            prompt: 'I want to check RAM and NVMe/SSD upgrade options for my laptop. What model details should I share?',
+          },
+          {
+            id: 'qc',
+            title: 'IoT QC & Payments',
+            shortTitle: 'IoT QC & DP',
+            description: 'Serial certificates, DP, and Full Payment.',
+            prompt: 'Explain the 15-point IoT Burn-In & Telemetry QC flow, serial certificate, and DP vs Full Payment options.',
+          },
+          {
+            id: 'parts',
+            title: 'Pick Components',
+            shortTitle: 'Pick Parts',
+            description: 'Compare specs and live catalog hardware.',
+            prompt: 'Help me choose compatible components from the ViciTech catalog. Ask my requirements and target budget.',
+          },
+        ],
+        typingAria: 'ViciTech AI is typing a response',
+        preparingReply: 'ViciTech AI is preparing a response…',
+        inputLabel: 'Message for ViciTech AI',
+        inputPlaceholder: 'Ask about builds, budgets, specs, or laptop upgrades…',
+        clearInputAria: 'Clear message draft',
+        sendAria: 'Send message',
+        enterHint: 'Enter to send · Shift+Enter for new line',
+        errorFallback: 'Sorry, the AI consultant could not reply right now. Please try again shortly.',
+        networkError: 'Connection interrupted. Please resend your question.',
+        catalogCardCta: 'View in Market',
+        catalogCardLabel: 'Catalog Recommendation',
+        stockReady: 'Ready to Ship',
+        stockPreorder: 'Pre-Order',
       },
       feedback: {
         eyebrow: 'ViciTech OS User Validation',

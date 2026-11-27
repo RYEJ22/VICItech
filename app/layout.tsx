@@ -87,7 +87,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
               <UserSettingsSync />
               <IntroSplash />
               <Navbar />
-              <div className="pb-20 md:pb-0">{children}</div>
+              <div className="min-w-0 max-w-full overflow-x-clip pb-24 md:pb-0">{children}</div>
               <CookieConsentBanner />
               <FloatingChatWidget />
             </CheckoutProvider>

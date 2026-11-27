@@ -30,7 +30,8 @@ export function FloatingChatWidget() {
     pathname.startsWith('/admin') ||
     pathname === '/messages' ||
     pathname.startsWith('/messages/') ||
-    pathname === '/toolkit/konsultan-ai'
+    pathname === '/toolkit/konsultan-ai' ||
+    pathname.startsWith('/toolkit/konsultan-ai/')
   ) {
     return null;
   }
@@ -41,11 +42,11 @@ export function FloatingChatWidget() {
       : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-3 sm:right-4 md:bottom-5 md:right-5';
 
   return <div className={`fixed z-40 ${positionClass}`}>
-    {open ? <section className="vt-panel-enter mb-3 flex h-[min(520px,calc(100dvh-10.5rem))] w-[min(380px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-floating sm:h-[min(570px,calc(100dvh-7rem))]" aria-label="Chat ViciTech AI">
+    {open ? <section className="vt-panel-enter mb-3 flex h-[min(520px,calc(100dvh-10.5rem))] w-[min(380px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-xl border border-default bg-surface shadow-floating sm:h-[min(570px,calc(100dvh-7rem))]" aria-label={t.routes.aiConsultant.chatAria}>
       <div className="flex items-center justify-end gap-1 border-b border-default px-2 py-1.5">
-        <Link href="/toolkit/konsultan-ai" aria-label={t.aiWidget.expandAria} title={t.aiWidget.expandAria} className="vt-motion-press grid h-9 w-9 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><Maximize2 size={16} aria-hidden="true" /></Link>
-        <button type="button" onClick={() => setOpen(false)} aria-label={t.aiWidget.minimizeAria} title={t.aiWidget.minimizeAria} className="vt-motion-press grid h-9 w-9 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><Minus size={17} aria-hidden="true" /></button>
-        <button type="button" onClick={() => setOpen(false)} aria-label={t.aiWidget.closeWindowAria} title={t.aiWidget.closeWindowAria} className="vt-motion-press grid h-9 w-9 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"><X size={17} aria-hidden="true" /></button>
+        <Link href="/toolkit/konsultan-ai" aria-label={t.aiWidget.expandAria} title={t.aiWidget.expandAria} className="vt-motion-press grid h-11 w-11 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-9 sm:w-9"><Maximize2 size={16} aria-hidden="true" /></Link>
+        <button type="button" onClick={() => setOpen(false)} aria-label={t.aiWidget.minimizeAria} title={t.aiWidget.minimizeAria} className="vt-motion-press grid h-11 w-11 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-9 sm:w-9"><Minus size={17} aria-hidden="true" /></button>
+        <button type="button" onClick={() => setOpen(false)} aria-label={t.aiWidget.closeWindowAria} title={t.aiWidget.closeWindowAria} className="vt-motion-press grid h-11 w-11 place-items-center rounded-lg text-secondary transition-colors hover:bg-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 sm:h-9 sm:w-9"><X size={17} aria-hidden="true" /></button>
       </div>
       <ViciChatInterface variant="widget" />
     </section> : null}

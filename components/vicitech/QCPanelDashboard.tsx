@@ -26,7 +26,7 @@ const IoTQCConsumer = dynamic(() => import("./IoTQCConsumer"), {
 });
 
 export default function QCPanelDashboard() {
-  const { t } = useLanguage();
+  const { t, isEnglish } = useLanguage();
   const qc = t.routes.qcPanel;
   const [clock, setClock] = useState("00:00:00");
   const [initialSerial, setInitialSerial] = useState("");
@@ -57,17 +57,21 @@ export default function QCPanelDashboard() {
       ? {
           badgeClass: "vt-badge-live",
           badgeLabel: "Live ESP32",
-          description: "Menampilkan pembacaan suhu, kipas, dan voltase langsung dari sensor smart bench ESP32.",
+          description: isEnglish
+            ? "Displaying live temperature, fan RPM, and voltage telemetry directly from the ESP32 smart bench sensor."
+            : "Menampilkan pembacaan suhu, kipas, dan voltase langsung dari sensor smart bench ESP32.",
           footerLabel: "Live ESP32",
-          statusLabel: "Aktif (Sensor Fisik)",
+          statusLabel: isEnglish ? "Active (Physical Sensor)" : "Aktif (Sensor Fisik)",
         }
       : telemetrySource === "admin_simulation"
         ? {
             badgeClass: "vt-badge-simulated",
             badgeLabel: "Simulated / Demo",
-            description: "Data yang tampil saat ini berasal dari profil uji simulasi admin (Demo) dan dipisahkan secara eksplisit dari sensor fisik ESP32.",
+            description: isEnglish
+              ? "Current data comes from a controlled admin simulation profile (Demo) and is explicitly separated from physical ESP32 sensors."
+              : "Data yang tampil saat ini berasal dari profil uji simulasi admin (Demo) dan dipisahkan secara eksplisit dari sensor fisik ESP32.",
             footerLabel: "Simulated / Demo",
-            statusLabel: "Simulasi / Demo Terkontrol",
+            statusLabel: isEnglish ? "Controlled Simulation / Demo" : "Simulasi / Demo Terkontrol",
           }
         : {
             badgeClass: "vt-badge-sample",
@@ -78,7 +82,7 @@ export default function QCPanelDashboard() {
           };
 
   return (
-    <main className="qc-dashboard min-h-[calc(100vh-4rem)] bg-canvas px-4 pb-24 pt-8 text-primary transition-colors sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
+    <main className="qc-dashboard min-h-[calc(100vh-4rem)] w-full max-w-full min-w-0 overflow-x-clip bg-canvas px-4 pb-24 pt-8 text-primary transition-colors sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-5">
           <div className="flex items-start gap-4">
@@ -126,23 +130,27 @@ export default function QCPanelDashboard() {
             </section>
           </div>
 
-          <aside className="space-y-4">
+          <aside className="min-w-0 space-y-4">
             <div className="vt-obsidian-panel rounded-xl p-5">
               <div className="flex items-center justify-between">
                 <p className="vt-pixel-tag text-[#D4D4D8]">
-                  Waktu Telemetri
+                  {isEnglish ? "Telemetry Clock" : "Waktu Telemetri"}
                 </p>
                 <span className="vt-pixel-led vt-pixel-led-pulse bg-accent-primary" aria-hidden="true" />
               </div>
               <p className="mt-3 font-mono text-3xl font-bold tabular-nums tracking-tight text-[#FAFAFA]">
                 {clock}
               </p>
-              <p className="mt-1 text-[11px] text-[#A1A1AA]">Sinkron waktu perangkat Anda</p>
+              <p className="mt-1 text-[11px] text-[#A1A1AA]">
+                {isEnglish ? "Synced to your local device time" : "Sinkron waktu perangkat Anda"}
+              </p>
             </div>
             <SpotlightCard className="p-5">
               <div className="flex items-center gap-2 text-accent-cta">
                 <Radio className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                <h2 className="tracking-tight text-xs font-bold">Sumber Data Aktif</h2>
+                <h2 className="tracking-tight text-xs font-bold">
+                  {isEnglish ? "Active Data Source" : "Sumber Data Aktif"}
+                </h2>
               </div>
               <div className="mt-2">
                 <span data-badge-essential="true" className={sourceMeta.badgeClass}>{sourceMeta.badgeLabel}</span>
@@ -153,15 +161,15 @@ export default function QCPanelDashboard() {
             </SpotlightCard>
             <div className="rounded-xl border border-default bg-surface px-4 py-3 text-xs leading-6 text-secondary">
               <p><span className="font-medium text-primary">Status</span> · {sourceMeta.statusLabel}</p>
-              <p><span className="font-medium text-primary">Sumber</span> · {sourceMeta.footerLabel}</p>
-              <p><span className="font-medium text-primary">Jam</span> · Lokal</p>
+              <p><span className="font-medium text-primary">{isEnglish ? "Source" : "Sumber"}</span> · {sourceMeta.footerLabel}</p>
+              <p><span className="font-medium text-primary">{isEnglish ? "Clock" : "Jam"}</span> · {isEnglish ? "Local" : "Lokal"}</p>
             </div>
           </aside>
         </div>
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-default pt-4 text-xs text-secondary">
-          <span>ViciTech · Panel Diagnostik IoT QC</span>
-          <span>Mode telemetri: {sourceMeta.footerLabel}</span>
+          <span>{isEnglish ? "ViciTech · IoT QC Diagnostic Panel" : "ViciTech · Panel Diagnostik IoT QC"}</span>
+          <span>{isEnglish ? `Telemetry mode: ${sourceMeta.footerLabel}` : `Mode telemetri: ${sourceMeta.footerLabel}`}</span>
         </footer>
       </div>
     </main>
