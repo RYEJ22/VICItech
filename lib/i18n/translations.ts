@@ -411,6 +411,64 @@ export interface TranslationDictionary {
       readonly title: string;
       readonly desc: string;
       readonly createPostBtn: string;
+      readonly categories: Readonly<Record<string, string>>;
+      readonly roles: Readonly<Record<string, string>>;
+      readonly composerTitle: string;
+      readonly composerTitleLabel: string;
+      readonly composerTitlePlaceholder: string;
+      readonly composerCategoryLabel: string;
+      readonly composerDetailLabel: string;
+      readonly composerPrompts: Readonly<Record<string, string>>;
+      readonly composerTagsDetected: string;
+      readonly composerMediaBtn: string;
+      readonly composerAttachSpecs: string;
+      readonly composerAttachedSpecs: string;
+      readonly composerSpecSampleTitle: string;
+      readonly composerPublishBtn: string;
+      readonly composerUploading: string;
+      readonly composerSaving: string;
+      readonly composerAttachmentHint: string;
+      readonly composerPublishedNotice: string;
+      readonly composerTitleMinError: string;
+      readonly composerBodyMinError: string;
+      readonly searchTabPosts: string;
+      readonly searchTabUsers: string;
+      readonly searchHintPosts: string;
+      readonly searchHintUsers: string;
+      readonly searchPlaceholderPosts: string;
+      readonly searchPlaceholderUsers: string;
+      readonly searchClearAria: string;
+      readonly searchingUsers: string;
+      readonly backToPosts: string;
+      readonly usersNotFoundTitle: string;
+      readonly authorFilterPrefix: string;
+      readonly showAllBtn: string;
+      readonly showingPrefix: string;
+      readonly showingUnit: string;
+      readonly loadMoreBtn: string;
+      readonly emptyTitle: string;
+      readonly emptyDesc: string;
+      readonly resetFilterBtn: string;
+      readonly commentsLabel: string;
+      readonly shareBtn: string;
+      readonly shareSpecsBtn: string;
+      readonly reportBtn: string;
+      readonly reportPrompt: string;
+      readonly noComments: string;
+      readonly replyPlaceholder: string;
+      readonly replySendAria: string;
+      readonly specsHeader: string;
+      readonly specsTotalLabel: string;
+      readonly memberViewPosts: string;
+      readonly memberProfile: string;
+      readonly memberSendDm: string;
+      readonly sidebarContributors: string;
+      readonly sidebarLikesUnit: string;
+      readonly sidebarPostsUnit: string;
+      readonly sidebarNoContributors: string;
+      readonly sidebarGuides: string;
+      readonly sidebarTopTags: string;
+      readonly sidebarNoTags: string;
     };
     readonly aiConsultant: {
       readonly eyebrow: string;
@@ -1019,6 +1077,90 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         title: 'Komunitas & Pusat Pengetahuan',
         desc: 'Pamerkan rakitan PC Anda, pelajari praktik terbaik dari admin lab CBT maupun teknisi tersertifikasi, dan diskusikan solusi perangkat keras harian.',
         createPostBtn: 'Buat Postingan Lengkap',
+        categories: {
+          all: 'Semua Postingan',
+          hardware: 'Hardware & Rakit',
+          gaming: 'Gaming & Mabar',
+          dev: 'Dev & Coding',
+          creative: 'Desain & Kreatif',
+          qa: 'Tanya Jawab Teknis',
+          guide: 'Panduan & Diskusi',
+          meme: 'Meme Tech',
+          news: 'Pengumuman Resmi',
+        },
+        roles: {
+          tech: 'Teknisi Tersertifikasi',
+          lab: 'Admin Lab CBT',
+          fan: 'Penggemar Hardware',
+          buyer: 'Tim Pengadaan IT',
+          team: 'Tim ViciTech',
+          member: 'Anggota',
+        },
+        composerTitle: 'Bagikan Rakitan atau Ajukan Pertanyaan',
+        composerTitleLabel: 'Judul postingan',
+        composerTitlePlaceholder: 'cth. Workstation editing 4K senyap di bawah Rp 40 jt',
+        composerCategoryLabel: 'Kategori',
+        composerDetailLabel: 'Detail',
+        composerPrompts: {
+          hardware: 'Ceritakan rakitan atau komponen Anda: daftar part, suhu kerja, dan potensi upgrade. Sertakan tag seperti #RTX4060.',
+          gaming: 'Bagikan info game, benchmark FPS, atau ajakan mabar (LFG). Tambahkan tag seperti #Valorant atau #LFG.',
+          dev: 'Diskusikan setup Docker, local LLM, atau integrasi ESP32 Anda. Tambahkan tag seperti #Docker atau #ESP32.',
+          creative: 'Ceritakan workstation rendering, kalibrasi warna layar, atau workflow 4K Anda. Tambahkan tag seperti #CreatorRig.',
+          qa: 'Kendala apa yang sedang terjadi? Cantumkan seri perangkat dan gejala lengkap beserta tag seperti #PSU.',
+          guide: 'Bagikan panduan teknis untuk lab sekolah, kantor, atau perawatan laptop. Tambahkan tag seperti #CBTSetup.',
+          meme: 'Bagikan momen unik atau humor seputar dunia rakit PC dan oprek hardware. Tambahkan tag seperti #PCMeme.',
+          news: 'Tulis pengumuman resmi ekosistem ViciTech untuk seluruh anggota komunitas.',
+        },
+        composerTagsDetected: 'Tag terdeteksi:',
+        composerMediaBtn: 'Foto / Video',
+        composerAttachSpecs: 'Lampirkan Spec Sheet',
+        composerAttachedSpecs: 'Spec Sheet Terlampir',
+        composerSpecSampleTitle: 'Contoh Spec Sheet Rakitan',
+        composerPublishBtn: 'Terbitkan Postingan',
+        composerUploading: 'Mengunggah media…',
+        composerSaving: 'Menerbitkan…',
+        composerAttachmentHint: 'Mendukung hingga 4 foto (JPG/PNG/WebP) atau 1 video (MP4/WebM), maks. 30 MB per berkas.',
+        composerPublishedNotice: 'Postingan Anda berhasil diterbitkan di bagian atas feed.',
+        composerTitleMinError: 'Judul postingan minimal 5 karakter.',
+        composerBodyMinError: 'Tambahkan detail minimal 10 karakter agar anggota lain dapat memahami konteksnya.',
+        searchTabPosts: 'Postingan',
+        searchTabUsers: 'Pengguna',
+        searchHintPosts: 'Filter diskusi berdasarkan kata kunci, tag, atau kategori',
+        searchHintUsers: 'Cari anggota untuk kirim pesan (DM) atau lihat postingan',
+        searchPlaceholderPosts: 'Cari topik, hardware, atau tag seperti #RTX4060',
+        searchPlaceholderUsers: 'Cari nama atau @username (cth. Rizky, @bagas)…',
+        searchClearAria: 'Bersihkan kata kunci pencarian',
+        searchingUsers: 'Mencari anggota komunitas…',
+        backToPosts: 'Kembali ke Postingan',
+        usersNotFoundTitle: 'Pengguna tidak ditemukan',
+        authorFilterPrefix: 'Menampilkan postingan dari',
+        showAllBtn: 'Tampilkan Semua',
+        showingPrefix: 'Menampilkan',
+        showingUnit: 'postingan',
+        loadMoreBtn: 'Muat lebih banyak postingan',
+        emptyTitle: 'Belum ada postingan yang cocok dengan filter.',
+        emptyDesc: 'Coba kata kunci atau kategori lain, atau mulai diskusi baru.',
+        resetFilterBtn: 'Reset Filter',
+        commentsLabel: 'Komentar',
+        shareBtn: 'Bagikan',
+        shareSpecsBtn: 'Bagikan Spek',
+        reportBtn: 'Laporkan',
+        reportPrompt: 'Laporkan konten ini:',
+        noComments: 'Belum ada komentar. Jadilah yang pertama membalas.',
+        replyPlaceholder: 'Tulis balasan atau pilih GIF…',
+        replySendAria: 'Kirim balasan',
+        specsHeader: 'Rincian Spesifikasi Hardware',
+        specsTotalLabel: 'Total estimasi rakitan',
+        memberViewPosts: 'Lihat Postingan',
+        memberProfile: 'Profil',
+        memberSendDm: 'Kirim Pesan',
+        sidebarContributors: 'Kontributor Aktif',
+        sidebarLikesUnit: 'suka',
+        sidebarPostsUnit: 'postingan',
+        sidebarNoContributors: 'Belum ada aktivitas kontributor yang dimuat.',
+        sidebarGuides: 'Topik Panduan Cepat',
+        sidebarTopTags: 'Tag Hardware Populer',
+        sidebarNoTags: 'Tag akan muncul otomatis dari postingan komunitas.',
       },
       aiConsultant: {
         eyebrow: 'Toolkit ViciTech',
@@ -1624,6 +1766,90 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         title: 'Community & Knowledge Hub',
         desc: 'Showcase your custom PC rigs, learn best practices from CBT lab admins and certified technicians, and discuss everyday hardware solutions.',
         createPostBtn: 'Create Full Post',
+        categories: {
+          all: 'All Posts',
+          hardware: 'Hardware & Builds',
+          gaming: 'Gaming & LFG',
+          dev: 'Dev & Coding',
+          creative: 'Design & Creative',
+          qa: 'Tech Q&A',
+          guide: 'Guides & Discussion',
+          meme: 'Tech Memes',
+          news: 'Official Announcements',
+        },
+        roles: {
+          tech: 'Certified Technician',
+          lab: 'CBT Lab Admin',
+          fan: 'Hardware Enthusiast',
+          buyer: 'IT Procurement Team',
+          team: 'ViciTech Team',
+          member: 'Member',
+        },
+        composerTitle: 'Share a Build or Ask a Question',
+        composerTitleLabel: 'Post title',
+        composerTitlePlaceholder: 'e.g. Quiet 4K editing workstation under Rp 40M',
+        composerCategoryLabel: 'Category',
+        composerDetailLabel: 'Details',
+        composerPrompts: {
+          hardware: 'Share your rig or component setup: parts list, temps, and upgrade path. Add tags like #RTX4060.',
+          gaming: 'Share game benchmarks, FPS notes, or LFG squad invites. Add tags like #Valorant or #LFG.',
+          dev: 'Discuss Docker setups, local LLMs, or ESP32 integrations. Add tags like #Docker or #ESP32.',
+          creative: 'Share your rendering workstation, display calibration, or 4K workflow. Add tags like #CreatorRig.',
+          qa: 'What issue are you troubleshooting? Include your device model, symptoms, and tags like #PSU.',
+          guide: 'Share technical guides for school labs, offices, or laptop maintenance. Add tags like #CBTSetup.',
+          meme: 'Share lighthearted moments from PC building and hardware tinkering. Add tags like #PCMeme.',
+          news: 'Write an official ViciTech ecosystem announcement for the community.',
+        },
+        composerTagsDetected: 'Detected tags:',
+        composerMediaBtn: 'Photo / Video',
+        composerAttachSpecs: 'Attach Spec Sheet',
+        composerAttachedSpecs: 'Spec Sheet Attached',
+        composerSpecSampleTitle: 'Sample Build Spec Sheet',
+        composerPublishBtn: 'Publish Post',
+        composerUploading: 'Uploading media…',
+        composerSaving: 'Publishing…',
+        composerAttachmentHint: 'Supports up to 4 photos (JPG/PNG/WebP) or 1 video (MP4/WebM), max 30 MB per file.',
+        composerPublishedNotice: 'Your post has been published at the top of the feed.',
+        composerTitleMinError: 'Post title must be at least 5 characters.',
+        composerBodyMinError: 'Add at least 10 characters of detail so other members have clear context.',
+        searchTabPosts: 'Posts',
+        searchTabUsers: 'Members',
+        searchHintPosts: 'Filter discussions by keyword, tag, or category',
+        searchHintUsers: 'Find members to send a DM or view their posts',
+        searchPlaceholderPosts: 'Search topics, hardware, or tags like #RTX4060',
+        searchPlaceholderUsers: 'Search name or @username (e.g. Rizky, @bagas)…',
+        searchClearAria: 'Clear search query',
+        searchingUsers: 'Searching community members…',
+        backToPosts: 'Back to Posts',
+        usersNotFoundTitle: 'No members found',
+        authorFilterPrefix: 'Showing posts by',
+        showAllBtn: 'Show All',
+        showingPrefix: 'Showing',
+        showingUnit: 'posts',
+        loadMoreBtn: 'Load more posts',
+        emptyTitle: 'No posts match the active filters.',
+        emptyDesc: 'Try a different keyword or category, or start a new discussion.',
+        resetFilterBtn: 'Reset Filters',
+        commentsLabel: 'Comments',
+        shareBtn: 'Share',
+        shareSpecsBtn: 'Share Specs',
+        reportBtn: 'Report',
+        reportPrompt: 'Report this post:',
+        noComments: 'No comments yet. Be the first to reply.',
+        replyPlaceholder: 'Write a reply or pick a GIF…',
+        replySendAria: 'Send reply',
+        specsHeader: 'Hardware Spec Breakdown',
+        specsTotalLabel: 'Estimated build total',
+        memberViewPosts: 'View Posts',
+        memberProfile: 'Profile',
+        memberSendDm: 'Message',
+        sidebarContributors: 'Active Contributors',
+        sidebarLikesUnit: 'likes',
+        sidebarPostsUnit: 'posts',
+        sidebarNoContributors: 'No contributor activity loaded yet.',
+        sidebarGuides: 'Quick Guide Topics',
+        sidebarTopTags: 'Trending Hardware Tags',
+        sidebarNoTags: 'Tags appear automatically from community posts.',
       },
       aiConsultant: {
         eyebrow: 'ViciTech Toolkit',

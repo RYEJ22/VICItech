@@ -1349,17 +1349,17 @@ export default function ViciTechApp({
 
   return (
     <div
-      className={`flex min-w-0 flex-col bg-canvas text-primary font-sans antialiased ${
+      className={`flex w-full max-w-full min-w-0 flex-col bg-canvas text-primary font-sans antialiased ${
         isViewportLockedChat
           ? "h-[calc(100dvh-10rem)] overflow-hidden md:h-[calc(100dvh-6rem)]"
-          : "min-h-screen"
+          : "min-h-screen overflow-x-clip"
       }`}
     >
       <Suspense fallback={null}>
         <QueryParamSync onSync={handleQuerySync} />
       </Suspense>
 
-      <main className={isViewportLockedChat ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "flex-1"}>
+      <main className={isViewportLockedChat ? "flex min-h-0 flex-1 flex-col overflow-hidden" : "w-full max-w-full min-w-0 flex-1 overflow-x-clip"}>
         {active === "home" && (
           <div className="vt-in">
             <HomeDashboard

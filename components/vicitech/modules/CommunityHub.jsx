@@ -236,10 +236,12 @@ function Avatar({ author, size = "h-10 w-10" }) {
 }
 
 function RoleBadge({ role }) {
+  const { t } = useLanguage();
   const r = ROLES[role] || ROLES.fan;
+  const label = t.routes.community.roles[role] || r.label;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${r.cls}`}>
-      {r.verified && <CheckCircle2 className="h-3 w-3" />}{r.label}
+    <span className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${r.cls}`}>
+      {r.verified && <CheckCircle2 className="h-3 w-3 shrink-0" />}<span className="truncate">{label}</span>
     </span>
   );
 }
@@ -255,6 +257,8 @@ function RichText({ text, onTag }) {
 /* ───────────────────────── Post creator ───────────────────────── */
 
 function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) {
+  const { t } = useLanguage();
+  const com = t.routes.community;
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState("hardware");
   const [body, setBody] = useState("");
@@ -334,8 +338,8 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
   };
 
   const publish = async () => {
-    if (title.trim().length < 5) return setError("Judul postingan minimal 5 karakter.");
-    if (body.trim().length < 10) return setError("Tambahkan detail minimal 10 karakter agar anggota lain dapat memahami konteksnya.");
+    if (title.trim().length < 5) return setError(com.composerTitleMinError);
+    if (body.trim().length < 10) return setError(com.composerBodyMinError);
     setPublishStage(stagedMedia.length ? "uploading" : "saving");
     setError("");
     try {
@@ -354,7 +358,7 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
       setBody("");
       setAttachedSpecs(false);
       setStagedMedia([]);
-      setNotice("Postingan Anda berhasil diterbitkan di bagian atas feed.");
+      setNotice(com.composerPublishedNotice);
     } catch (publishError) {
       setError(publishError instanceof Error ? publishError.message : "Gagal menerbitkan postingan.");
     } finally {
@@ -362,36 +366,44 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
     }
   };
 
-  const field = `vt-form-control w-full rounded-lg border border-default bg-canvas px-3.5 py-3 text-sm text-primary placeholder:text-secondary ${focusRing}`;
+  const field = `vt-form-control box-border min-h-11 w-full max-w-full min-w-0 rounded-lg border border-default bg-canvas px-3 py-2.5 text-sm text-primary placeholder:text-secondary ${focusRing}`;
   return (
     <section
       id="community-composer"
       ref={sectionRef}
       aria-labelledby="composer-title"
-      className="scroll-mt-24 rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-6"
+      className="box-border w-full max-w-full min-w-0 scroll-mt-24 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-6"
     >
-      <h2 id="composer-title" className="tracking-tight flex items-center gap-2 font-sans text-xl font-bold text-primary">
-        <PenSquare className="h-5 w-5 text-accent-primary" /> Bagikan Rakitan atau Ajukan Pertanyaan
+      <h2 id="composer-title" className="tracking-tight flex min-w-0 items-start gap-2 font-sans text-lg font-bold leading-snug text-primary sm:items-center sm:text-xl">
+        <PenSquare className="mt-0.5 h-5 w-5 shrink-0 text-accent-primary sm:mt-0" aria-hidden="true" />
+        <span className="min-w-0 break-words">{com.composerTitle}</span>
       </h2>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="sm:col-span-2">
-          <label htmlFor="post-title" className="mb-1.5 block text-sm text-primary">Judul postingan</label>
-          <input ref={titleInputRef} id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder="cth. Workstation editing 4K senyap di bawah Rp 40 juta" className={field} />
+      <div className="mt-3.5 grid min-w-0 grid-cols-1 gap-3 sm:mt-4 sm:grid-cols-3">
+        <div className="min-w-0 sm:col-span-2">
+          <label htmlFor="post-title" className="mb-1.5 block text-xs font-medium text-primary sm:text-sm">{com.composerTitleLabel}</label>
+          <input ref={titleInputRef} id="post-title" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }} maxLength={120} placeholder={com.composerTitlePlaceholder} className={field} />
         </div>
-        <div>
-          <label htmlFor="post-cat" className="mb-1.5 block text-sm text-primary">Kategori</label>
+        <div className="min-w-0">
+          <label htmlFor="post-cat" className="mb-1.5 block text-xs font-medium text-primary sm:text-sm">{com.composerCategoryLabel}</label>
           <select id="post-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={field}>
-            {[...POSTABLE, ...(canPublishOfficial ? ["news"] : [])].map((k) => <option key={k} value={k}>{CATEGORIES[k].label}</option>)}
+            {[...POSTABLE, ...(canPublishOfficial ? ["news"] : [])].map((k) => <option key={k} value={k}>{com.categories[k] || CATEGORIES[k].label}</option>)}
           </select>
         </div>
       </div>
-      <div className="mt-3">
-        <label htmlFor="post-body" className="mb-1.5 block text-sm text-primary">Detail</label>
-        <textarea id="post-body" rows={4} value={body} onChange={(e) => { setBody(e.target.value); setError(""); }} placeholder={PROMPTS[cat] || PROMPTS.hardware} className={`${field} resize-y`} />
+      <div className="mt-3 min-w-0">
+        <label htmlFor="post-body" className="mb-1.5 block text-xs font-medium text-primary sm:text-sm">{com.composerDetailLabel}</label>
+        <textarea
+          id="post-body"
+          rows={3}
+          value={body}
+          onChange={(e) => { setBody(e.target.value); setError(""); }}
+          placeholder={com.composerPrompts[cat] || PROMPTS[cat] || PROMPTS.hardware}
+          className={`${field} min-h-[5.5rem] resize-y sm:min-h-[6.75rem]`}
+        />
         {tags.length > 0 && (
           <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-secondary">
-            <Tag className="h-3.5 w-3.5" /> Tag terdeteksi:
-            {tags.map((t) => <span key={t} className="rounded bg-accent-subtle px-1.5 py-0.5 text-accent-hover">{t}</span>)}
+            <Tag className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> {com.composerTagsDetected}
+            {tags.map((tagItem) => <span key={tagItem} className="rounded bg-accent-subtle px-1.5 py-0.5 text-accent-hover">{tagItem}</span>)}
           </p>
         )}
       </div>
@@ -458,17 +470,17 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
       )}
 
       {attachedSpecs && (
-        <div className="mt-3 flex gap-3 rounded-lg border border-default bg-canvas p-3">
+        <div className="mt-3 flex min-w-0 gap-3 rounded-lg border border-default bg-canvas p-3">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-default bg-surface text-accent-primary"><Cpu className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1 text-sm">
-            <p className="font-medium text-primary">Contoh Spec Sheet Rakitan</p>
-            <p className="text-xs text-secondary">{ATTACH_SPECS.map(([, v]) => v).join(" · ")}</p>
+            <p className="font-medium text-primary">{com.composerSpecSampleTitle}</p>
+            <p className="break-words text-xs text-secondary">{ATTACH_SPECS.map(([, v]) => v).join(" · ")}</p>
           </div>
           <button type="button" aria-label="Hapus spec sheet" onClick={() => setAttachedSpecs(false)} className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-secondary hover:text-primary ${focusRing}`}><X className="h-4 w-4" /></button>
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2.5">
+      <div className="mt-3.5 flex flex-col gap-2.5 sm:mt-4 sm:flex-row sm:flex-wrap sm:items-center">
         <input
           ref={fileInputRef}
           type="file"
@@ -476,48 +488,55 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
           multiple
           onChange={handleFilesSelected}
           className="sr-only"
-          aria-label="Pilih foto atau video untuk postingan"
+          aria-label={com.composerMediaBtn}
         />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isPublishing}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-default bg-canvas px-3.5 py-2 text-sm font-medium text-primary transition hover:border-accent-primary/50 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
-        >
-          <ImageIcon className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-          <Video className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-          <span>Foto / Video</span>
-        </button>
-
-        {cat === "hardware" && (
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setAttachedSpecs((v) => !v)}
+            onClick={() => fileInputRef.current?.click()}
             disabled={isPublishing}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm transition ${focusRing} ${
-              attachedSpecs
-                ? "border-accent-primary bg-accent-subtle font-medium text-accent-hover"
-                : "border-default bg-canvas text-secondary hover:text-primary"
-            }`}
+            className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-default bg-canvas px-3.5 py-2 text-xs font-medium text-primary transition hover:border-accent-primary/50 hover:text-accent-hover disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial sm:text-sm ${focusRing}`}
           >
-            <Cpu className="h-4 w-4" aria-hidden="true" />
-            <span>{attachedSpecs ? "Spec Sheet Terlampir" : "Lampirkan Spec Sheet"}</span>
+            <ImageIcon className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+            <Video className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+            <span>{com.composerMediaBtn}</span>
           </button>
-        )}
 
-        <button type="button" onClick={() => void publish()} disabled={isPublishing} className={`ml-auto inline-flex min-h-11 items-center gap-2 rounded-full bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}>
+          {cat === "hardware" && (
+            <button
+              type="button"
+              onClick={() => setAttachedSpecs((v) => !v)}
+              disabled={isPublishing}
+              className={`inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs transition sm:flex-initial sm:text-sm ${focusRing} ${
+                attachedSpecs
+                  ? "border-accent-primary bg-accent-subtle font-medium text-accent-hover"
+                  : "border-default bg-canvas text-secondary hover:text-primary"
+              }`}
+            >
+              <Cpu className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="truncate">{attachedSpecs ? com.composerAttachedSpecs : com.composerAttachSpecs}</span>
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void publish()}
+          disabled={isPublishing}
+          className={`vt-motion-press inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-accent-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60 sm:ml-auto sm:w-auto sm:rounded-full ${focusRing}`}
+        >
           {isPublishing ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
           <span>
             {publishStage === "uploading"
-              ? "Mengunggah media…"
+              ? com.composerUploading
               : publishStage === "saving"
-                ? "Menerbitkan…"
-                : "Terbitkan Postingan"}
+                ? com.composerSaving
+                : com.composerPublishBtn}
           </span>
         </button>
       </div>
-      <p className="mt-2.5 text-[11px] leading-relaxed text-secondary">
-        Lampiran mendukung hingga {MAX_IMAGE_ATTACHMENTS} foto (JPG/PNG/WebP) atau 1 video (MP4/WebM), maksimal 30 MB per berkas.
+      <p className="mt-2.5 break-words text-[11px] leading-relaxed text-secondary">
+        {com.composerAttachmentHint}
       </p>
       <div aria-live="polite">
         {error && (
@@ -535,6 +554,8 @@ function Composer({ onPublish, sectionRef, titleInputRef, canPublishOfficial }) 
 /* ───────────────────────── Post card ───────────────────────── */
 
 const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolve, onOpenMedia }) {
+  const { t } = useLanguage();
+  const com = t.routes.community;
   const [open, setOpen] = useState(false);
   const [mediaUnavailable, setMediaUnavailable] = useState(false);
   const [draft, setDraft] = useState("");
@@ -662,34 +683,37 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
     }
   };
 
-  const action = `vt-motion-press inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors sm:text-sm ${focusRing}`;
+  const action = `vt-motion-press inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors sm:min-h-10 sm:px-3 sm:text-sm ${focusRing}`;
   return (
     <article
-      className={`vt-card-lift min-w-0 overflow-hidden rounded-2xl border bg-surface p-4 shadow-sm sm:p-6 ${
+      className={`vt-card-lift box-border w-full max-w-full min-w-0 overflow-hidden rounded-2xl border bg-surface p-4 shadow-sm sm:p-6 ${
         isOfficialAnnouncement
-          ? "border-[#EA580C]/40 border-l-4 border-l-[#EA580C]"
+          ? "border-accent-primary/40 border-l-4 border-l-accent-primary"
           : "border-default"
       }`}
     >
-      <header className="flex items-start gap-3">
-        <Avatar author={author} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            {authorProfile
-              ? <Link href={authorProfile} className="break-words font-semibold text-primary hover:text-accent-hover">{author.name}</Link>
-              : <span className="break-words font-semibold text-primary">{author.name}</span>}
-            <RoleBadge role={author.role} />
-            {post.isLfg && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-                <Gamepad2 className="h-3 w-3" aria-hidden="true" />
-                LFG
-              </span>
-            )}
+      <header className="flex flex-wrap items-start justify-between gap-2 sm:flex-nowrap sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-2.5 sm:gap-3">
+          <Avatar author={author} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {authorProfile
+                ? <Link href={authorProfile} className="break-words font-semibold text-primary hover:text-accent-hover">{author.name}</Link>
+                : <span className="break-words font-semibold text-primary">{author.name}</span>}
+              <RoleBadge role={author.role} />
+              {post.isLfg && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-600/30 bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  <Gamepad2 className="h-3 w-3" aria-hidden="true" />
+                  LFG
+                </span>
+              )}
+            </div>
+            <p className="mt-0.5 text-xs text-secondary">{timeAgo(post.createdAt)}</p>
           </div>
-          <p className="mt-0.5 text-xs text-secondary">{timeAgo(post.createdAt)}</p>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${cat.cls || "border-default bg-subtle text-primary"}`}>
-          <CatIcon className="h-3.5 w-3.5" aria-hidden="true" /> {cat.label}
+        <span className={`inline-flex max-w-full shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] sm:px-3 sm:text-xs ${cat.cls || "border-default bg-subtle text-primary"}`}>
+          <CatIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate">{com.categories[post.cat] || cat.label}</span>
         </span>
       </header>
 
@@ -790,14 +814,14 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
       )}
 
       {post.specs && (
-        <div className="mt-3 rounded-lg border border-default bg-canvas">
-          <p className="flex items-center gap-1.5 border-b border-default px-3 py-2 text-xs text-secondary"><Cpu className="h-3.5 w-3.5 text-accent-primary" /> Rincian Spesifikasi Hardware</p>
+        <div className="mt-3 min-w-0 rounded-lg border border-default bg-canvas">
+          <p className="flex items-center gap-1.5 border-b border-default px-3 py-2 text-xs text-secondary"><Cpu className="h-3.5 w-3.5 shrink-0 text-accent-primary" /> {com.specsHeader}</p>
           <dl className="grid gap-x-6 px-3 py-2 text-sm sm:grid-cols-2">
             {post.specs.map(([k, v]) => (
               <div key={k} className="flex min-w-0 justify-between gap-3 py-1"><dt className="min-w-0 break-words text-secondary">{k}</dt><dd className="min-w-0 break-words text-right text-primary">{v}</dd></div>
             ))}
           </dl>
-          {post.cost && <p className="flex justify-between border-t border-default px-3 py-2 text-sm"><span className="text-secondary">Total estimasi rakitan</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
+          {post.cost && <p className="flex justify-between gap-2 border-t border-default px-3 py-2 text-sm"><span className="text-secondary">{com.specsTotalLabel}</span><span className="font-mono font-semibold tabular-nums text-status-live">{idr(post.cost)}</span></p>}
         </div>
       )}
 
@@ -807,28 +831,28 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
           <span className="sr-only">{post.liked ? "suka, Anda menyukai postingan ini" : "suka"}</span>
         </button>
         <button type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${action} ${open ? "bg-subtle text-primary" : "text-secondary hover:bg-subtle hover:text-primary"}`}>
-          <MessageSquare className="h-4 w-4" aria-hidden="true" /> <span className="font-mono tabular-nums">{post.comments.length}</span> Komentar
+          <MessageSquare className="h-4 w-4" aria-hidden="true" /> <span className="font-mono tabular-nums">{post.comments.length}</span> {com.commentsLabel}
         </button>
         <div className="ml-auto flex items-center gap-1">
           <button type="button" onClick={share} className={`${action} text-secondary hover:bg-subtle hover:text-primary`}>
-            <Share2 className="h-4 w-4" aria-hidden="true" /> <span>{post.specs ? "Bagikan Spek" : "Bagikan"}</span>
+            <Share2 className="h-4 w-4" aria-hidden="true" /> <span>{post.specs ? com.shareSpecsBtn : com.shareBtn}</span>
           </button>
           <button
             type="button"
             aria-expanded={reportOpen}
-            aria-label={`Laporkan postingan ${post.title}`}
+            aria-label={`${com.reportBtn} ${post.title}`}
             onClick={() => setReportOpen((v) => !v)}
             className={`${action} ${reportOpen ? "bg-rose-50 text-rose-700" : "text-secondary hover:bg-rose-50 hover:text-rose-700"}`}
           >
             <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">Laporkan</span>
+            <span className="hidden sm:inline">{com.reportBtn}</span>
           </button>
         </div>
       </div>
 
       {reportOpen && (
         <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2.5 text-xs">
-          <span className="font-semibold text-rose-900">Laporkan konten ini:</span>
+          <span className="font-semibold text-rose-900">{com.reportPrompt}</span>
           <div className="flex flex-wrap gap-1.5">
             {["Spam / Penipuan", "Data Pribadi (UU PDP)", "Konten Tidak Pantas"].map((reason) => (
               <button
@@ -836,7 +860,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 type="button"
                 disabled={reportSubmitting}
                 onClick={() => void handleReportPost(reason)}
-                className="rounded-full border border-rose-300 bg-surface px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
+                className="min-h-9 rounded-full border border-rose-300 bg-surface px-2.5 py-1 text-[11px] font-semibold text-rose-800 hover:bg-rose-100 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60"
               >
                 {reason}
               </button>
@@ -853,20 +877,20 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
       <p role="status" className="min-h-0 text-right text-xs text-status-live">{shareNote}</p>
 
       {open && (
-        <div className="mt-2 space-y-3 rounded-lg border border-default bg-canvas p-3">
-          {post.comments.length === 0 && <p className="text-sm text-secondary">Belum ada komentar. Jadilah yang pertama membalas.</p>}
+        <div className="mt-2 min-w-0 space-y-3 rounded-lg border border-default bg-canvas p-3">
+          {post.comments.length === 0 && <p className="text-sm text-secondary">{com.noComments}</p>}
           {post.comments.map((c) => {
             const commenter = resolve(c.by);
             const { text: commentText, gifUrl: commentGifUrl } = parseCommentBody(c.text, c.gifUrl);
             return (
-              <div key={c.id} className="flex gap-2.5">
+              <div key={c.id} className="flex min-w-0 gap-2.5">
                 <Avatar author={commenter} size="h-8 w-8" />
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-x-2 text-sm">
                     {commenter.href
                       ? <a href={commenter.href} className="font-medium text-primary hover:text-accent-hover">{commenter.name}</a>
                       : <span className="font-medium text-primary">{commenter.name}</span>}
-                    <span className="text-xs text-secondary">{ROLES[commenter.role]?.label || "Anggota"} · {timeAgo(c.createdAt)}</span>
+                    <span className="text-xs text-secondary">{com.roles[commenter.role] || com.roles.member} · {timeAgo(c.createdAt)}</span>
                   </p>
                   {commentText ? (
                     <p className="break-words whitespace-pre-line text-sm text-secondary">{commentText}</p>
@@ -879,7 +903,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
             );
           })}
           {selectedGif && (
-            <div className="flex items-center gap-3 rounded-xl border border-default bg-surface p-2">
+            <div className="flex min-w-0 items-center gap-3 rounded-xl border border-default bg-surface p-2">
               <img
                 src={selectedGif.url}
                 alt={selectedGif.title}
@@ -896,13 +920,13 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
                 type="button"
                 onClick={() => setSelectedGif(null)}
                 aria-label="Hapus GIF terpilih"
-                className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-default text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-status-danger ${focusRing}`}
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-default text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-status-danger ${focusRing}`}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
           )}
-          <form onSubmit={submitComment} className="relative flex items-center gap-2">
+          <form onSubmit={submitComment} className="relative flex w-full max-w-full min-w-0 items-center gap-1.5 sm:gap-2">
             <ChatMediaPicker
               isOpen={emojiOpen}
               onClose={() => setEmojiOpen(false)}
@@ -931,7 +955,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               aria-expanded={emojiOpen}
               aria-haspopup="dialog"
               aria-label="Sisipkan emoji ke balasan"
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg border transition active:scale-[0.95] ${focusRing} ${
+              className={`grid h-11 w-10 shrink-0 place-items-center rounded-lg border transition active:scale-[0.95] sm:w-11 ${focusRing} ${
                 emojiOpen
                   ? "border-accent-primary bg-accent-subtle text-accent-hover"
                   : "border-default bg-surface text-secondary hover:border-accent-primary/50 hover:text-primary"
@@ -950,7 +974,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               aria-expanded={gifOpen}
               aria-haspopup="dialog"
               aria-label="Pilih GIF untuk komentar"
-              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-lg border px-2.5 font-mono text-[11px] font-bold tracking-wider transition active:scale-[0.95] ${focusRing} ${
+              className={`inline-flex h-11 shrink-0 items-center justify-center rounded-lg border px-2 font-mono text-[11px] font-bold tracking-wider transition active:scale-[0.95] sm:px-2.5 ${focusRing} ${
                 gifOpen
                   ? "border-accent-primary bg-accent-subtle text-accent-hover"
                   : "border-default bg-surface text-secondary hover:border-accent-primary/50 hover:text-primary"
@@ -958,7 +982,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
             >
               GIF
             </button>
-            <label htmlFor={`reply-${post.id}`} className="sr-only">Tulis balasan</label>
+            <label htmlFor={`reply-${post.id}`} className="sr-only">{com.replyPlaceholder}</label>
             <input
               ref={commentInputRef}
               id={`reply-${post.id}`}
@@ -971,14 +995,14 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
               onClick={(e) => syncCommentSelection(e.currentTarget)}
               onKeyUp={(e) => syncCommentSelection(e.currentTarget)}
               onSelect={(e) => syncCommentSelection(e.currentTarget)}
-              placeholder="Tulis balasan atau pilih GIF…"
-              className={`min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`}
+              placeholder={com.replyPlaceholder}
+              className={`box-border min-h-11 w-full min-w-0 flex-1 rounded-lg border border-default bg-surface px-3 py-2 text-sm text-primary placeholder:text-secondary ${focusRing}`}
             />
             <button
               type="submit"
               disabled={!canSubmitComment}
-              aria-label="Kirim balasan"
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-cta text-white hover:bg-accent-cta-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}
+              aria-label={com.replySendAria}
+              className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent-primary text-white hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40 ${focusRing}`}
             >
               {submittingComment ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
@@ -1042,8 +1066,10 @@ const SAMPLE_DIRECTORY_MEMBERS = Object.entries(AUTHORS)
   );
 
 function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
+  const { t } = useLanguage();
+  const com = t.routes.community;
   return (
-    <article className="vt-card-lift flex flex-col justify-between gap-3.5 rounded-xl border border-default bg-surface p-3.5 shadow-card sm:flex-row sm:items-center sm:p-4">
+    <article className="vt-card-lift box-border flex w-full max-w-full min-w-0 flex-col justify-between gap-3.5 rounded-xl border border-default bg-surface p-3.5 shadow-card sm:flex-row sm:items-center sm:p-4">
       <div className="flex min-w-0 items-start gap-3">
         <Avatar
           author={{
@@ -1078,7 +1104,7 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
               <span className="font-mono text-secondary">@{member.username}</span>
             )}
             {postCount > 0 && (
-              <span>· {postCount} postingan di feed</span>
+              <span>· {postCount} {com.sidebarPostsUnit}</span>
             )}
             {member.statusText && (
               <span className="truncate">· {member.statusText}</span>
@@ -1094,29 +1120,29 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
         <button
           type="button"
           onClick={() => onViewPosts(member)}
-          className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:flex-initial ${focusRing}`}
+          className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-canvas px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:min-h-10 sm:flex-initial ${focusRing}`}
         >
           <MessageSquare className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
-          <span>Lihat Postingan</span>
+          <span>{com.memberViewPosts}</span>
         </button>
 
         {member.href && (
           <Link
             href={member.href}
-            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:flex-initial ${focusRing}`}
+            className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-default bg-surface px-3 py-2 text-xs font-medium text-primary transition-all duration-200 ease-smooth hover:border-strong hover:bg-subtle active:scale-[0.98] sm:min-h-10 sm:flex-initial ${focusRing}`}
           >
             <User className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
-            <span>Profil</span>
+            <span>{com.memberProfile}</span>
           </Link>
         )}
 
         {!member.isSelf && (
           <Link
             href={member.messageHref}
-            className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-3.5 py-2 text-xs font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] sm:flex-initial ${focusRing}`}
+            className={`inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent-primary px-3.5 py-2 text-xs font-semibold text-white shadow-card transition-all duration-200 ease-smooth hover:bg-accent-hover active:scale-[0.98] sm:min-h-10 sm:flex-initial ${focusRing}`}
           >
             <Send className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>Kirim Pesan</span>
+            <span>{com.memberSendDm}</span>
           </Link>
         )}
       </div>
@@ -1127,20 +1153,22 @@ function MemberSearchCard({ member, postCount = 0, onViewPosts }) {
 /* ───────────────────────── Sidebar ───────────────────────── */
 
 function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
+  const { t } = useLanguage();
+  const com = t.routes.community;
   return (
-    <aside className="space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
-      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
+    <aside className="w-full max-w-full min-w-0 space-y-3 sm:space-y-4 lg:sticky lg:top-24 lg:self-start" aria-label="Sorotan komunitas">
+      <section className="box-border w-full max-w-full min-w-0 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-5">
         <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
-          <Award className="h-5 w-5 text-status-live" aria-hidden="true" />
-          <span>Kontributor Aktif</span>
+          <Award className="h-5 w-5 shrink-0 text-status-live" aria-hidden="true" />
+          <span>{com.sidebarContributors}</span>
         </h2>
         {contributors.length > 0 ? (
           <ol className="mt-3 space-y-3">
             {contributors.map(([key, postCount, likeTotal], i) => {
               const author = resolve(key);
               return (
-                <li key={key} className="flex items-center gap-3">
-                  <span className={`w-5 text-center font-mono text-sm font-semibold tabular-nums ${i === 0 ? "text-status-live" : "text-secondary"}`}>{i + 1}</span>
+                <li key={key} className="flex min-w-0 items-center gap-3">
+                  <span className={`w-5 shrink-0 text-center font-mono text-sm font-semibold tabular-nums ${i === 0 ? "text-status-live" : "text-secondary"}`}>{i + 1}</span>
                   <Avatar author={author} size="h-9 w-9" />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1 truncate text-sm font-medium text-primary">
@@ -1149,25 +1177,25 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
                         : <span className="truncate">{author.name}</span>}
                       {i === 0 && <Award className="h-3.5 w-3.5 shrink-0 text-status-live" aria-label="Kontributor teraktif" />}
                     </p>
-                    <p className="text-xs text-secondary">{ROLES[author.role]?.label || "Anggota"}</p>
+                    <p className="truncate text-xs text-secondary">{com.roles[author.role] || com.roles.member}</p>
                   </div>
-                  <div className="text-right font-mono text-xs tabular-nums">
-                    <p className="font-medium text-accent-cta">{num(likeTotal)} suka</p>
-                    <p className="text-secondary">{postCount} postingan</p>
+                  <div className="shrink-0 text-right font-mono text-xs tabular-nums">
+                    <p className="font-medium text-accent-cta">{num(likeTotal)} {com.sidebarLikesUnit}</p>
+                    <p className="text-secondary">{postCount} {com.sidebarPostsUnit}</p>
                   </div>
                 </li>
               );
             })}
           </ol>
         ) : (
-          <p className="mt-3 text-xs text-secondary">Belum ada aktivitas kontributor yang dimuat.</p>
+          <p className="mt-3 text-xs text-secondary">{com.sidebarNoContributors}</p>
         )}
       </section>
 
-      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
+      <section className="box-border w-full max-w-full min-w-0 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-5">
         <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
-          <BookOpen className="h-5 w-5 text-accent-primary" aria-hidden="true" />
-          <span>Topik Panduan Cepat</span>
+          <BookOpen className="h-5 w-5 shrink-0 text-accent-primary" aria-hidden="true" />
+          <span>{com.sidebarGuides}</span>
         </h2>
         <ul className="mt-3 divide-y divide-default">
           {TOPIC_GUIDES.map((g) => (
@@ -1180,21 +1208,21 @@ function Sidebar({ topTags, contributors, onTag, onGuide, resolve }) {
         </ul>
       </section>
 
-      <section className="rounded-xl border border-default bg-surface p-3.5 shadow-sm sm:p-5">
+      <section className="box-border w-full max-w-full min-w-0 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-5">
         <h2 className="tracking-tight flex items-center gap-2 font-sans text-base font-bold text-primary">
-          <Tag className="h-5 w-5 text-accent-primary" aria-hidden="true" />
-          <span>Tag Hardware Populer</span>
+          <Tag className="h-5 w-5 shrink-0 text-accent-primary" aria-hidden="true" />
+          <span>{com.sidebarTopTags}</span>
         </h2>
         {topTags.length > 0 ? (
           <div className="mt-3 flex flex-wrap gap-2">
             {topTags.map(([tag, count]) => (
-              <button key={tag} type="button" onClick={() => onTag(tag)} className={`rounded-md border border-default bg-canvas px-2.5 py-1 text-xs text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>
-                {tag} <span className="font-mono text-secondary">{count}</span>
+              <button key={tag} type="button" onClick={() => onTag(tag)} className={`min-h-9 rounded-md border border-default bg-canvas px-2.5 py-1 text-xs text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>
+                {tag} <span className="font-mono tabular-nums text-secondary">{count}</span>
               </button>
             ))}
           </div>
         ) : (
-          <p className="mt-3 text-xs text-secondary">Tag akan muncul otomatis dari postingan komunitas.</p>
+          <p className="mt-3 text-xs text-secondary">{com.sidebarNoTags}</p>
         )}
       </section>
     </aside>
@@ -1937,9 +1965,9 @@ export default function CommunityHub() {
   }, []);
 
   return (
-    <div className="min-w-0 bg-canvas text-primary antialiased">
-      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
-        <header>
+    <div className="w-full max-w-full min-w-0 overflow-x-clip bg-canvas text-primary antialiased">
+      <div className="box-border mx-auto w-full max-w-7xl min-w-0 px-4 pb-28 pt-5 sm:px-6 sm:pb-24 sm:pt-10 lg:px-8">
+        <header className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className={isSampleFallback ? "vt-badge-sample" : "vt-badge-live"}>
               {isSampleFallback ? com.sampleBadge : com.liveBadge}
@@ -1951,76 +1979,74 @@ export default function CommunityHub() {
           <h1 className="mt-2.5 flex min-w-0 items-center gap-2 font-sans text-xl font-bold tracking-tight text-primary sm:mt-3 sm:gap-3 sm:text-5xl">
             <MessageSquare className="h-6 w-6 shrink-0 text-accent-primary sm:h-8 sm:w-8" /> <span className="min-w-0 break-words">{com.title}</span>
           </h1>
-          <p className="mt-2 max-w-2xl break-words text-xs text-secondary sm:mt-3 sm:text-base">
+          <p className="mt-2 max-w-2xl break-words text-xs leading-relaxed text-secondary sm:mt-3 sm:text-base">
             {com.desc}
           </p>
           <button
             type="button"
             onClick={handleFocusComposer}
-            className={`mt-4 inline-flex min-h-10 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-4 py-2 text-xs font-medium text-accent-hover transition hover:bg-accent-subtle sm:mt-5 sm:min-h-11 sm:px-5 sm:py-2.5 sm:text-sm ${focusRing}`}
+            className={`mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent-primary/25 bg-surface px-4 py-2 text-xs font-medium text-accent-hover transition hover:bg-accent-subtle sm:mt-5 sm:px-5 sm:py-2.5 sm:text-sm ${focusRing}`}
           >
             <PenSquare className="h-4 w-4 text-accent-primary" aria-hidden="true" />
             <span>{com.createPostBtn}</span>
           </button>
         </header>
 
-        <div className="mt-4 grid min-w-0 gap-3 sm:mt-8 sm:gap-6 lg:grid-cols-3">
-          <div className="space-y-3.5 sm:space-y-5 lg:col-span-2">
+        <div className="mt-4 grid w-full max-w-full min-w-0 grid-cols-1 gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-3">
+          <div className="w-full max-w-full min-w-0 space-y-3.5 sm:space-y-5 lg:col-span-2">
             <Composer
               onPublish={publish}
               canPublishOfficial={canPublishOfficial}
               sectionRef={composerSectionRef}
               titleInputRef={composerTitleInputRef}
             />
-            {publishError && <p role="alert" className="rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
+            {publishError && <p role="alert" className="break-words rounded-lg border border-status-sample/35 bg-amber-50 p-3 text-sm text-amber-900">{publishError}</p>}
 
-            <div className="space-y-3 rounded-xl border border-default bg-surface p-3 shadow-card sm:p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="box-border w-full max-w-full min-w-0 space-y-3 rounded-xl border border-default bg-surface p-3.5 shadow-card sm:p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div
                   role="tablist"
                   aria-label="Mode pencarian komunitas"
-                  className="inline-flex rounded-lg border border-default bg-subtle p-1"
+                  className="grid w-full grid-cols-2 rounded-lg border border-default bg-subtle p-1 sm:inline-flex sm:w-auto"
                 >
                   <button
                     type="button"
                     role="tab"
                     aria-selected={searchMode === "posts"}
                     onClick={() => setSearchMode("posts")}
-                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:text-sm ${focusRing} ${
+                    className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:min-h-9 sm:text-sm ${focusRing} ${
                       searchMode === "posts"
                         ? "bg-accent-primary text-white shadow-card"
                         : "text-secondary hover:text-primary"
                     }`}
                   >
-                    <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Postingan</span>
+                    <MessageSquare className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{com.searchTabPosts}</span>
                   </button>
                   <button
                     type="button"
                     role="tab"
                     aria-selected={searchMode === "users"}
                     onClick={() => setSearchMode("users")}
-                    className={`inline-flex min-h-9 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:text-sm ${focusRing} ${
+                    className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all duration-200 ease-smooth sm:min-h-9 sm:text-sm ${focusRing} ${
                       searchMode === "users"
                         ? "bg-accent-primary text-white shadow-card"
                         : "text-secondary hover:text-primary"
                     }`}
                   >
-                    <Users className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Pengguna</span>
+                    <Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{com.searchTabUsers}</span>
                   </button>
                 </div>
 
-                <span className="text-xs text-secondary">
-                  {searchMode === "users"
-                    ? "Cari anggota untuk kirim pesan (DM) atau lihat postingan"
-                    : "Filter diskusi berdasarkan kata kunci, tag, atau kategori"}
+                <span className="text-xs leading-relaxed text-secondary">
+                  {searchMode === "users" ? com.searchHintUsers : com.searchHintPosts}
                 </span>
               </div>
 
-              <div className="relative">
+              <div className="relative w-full max-w-full min-w-0">
                 <label htmlFor="feed-search" className="sr-only">
-                  {searchMode === "users" ? "Cari anggota komunitas" : "Cari postingan"}
+                  {searchMode === "users" ? com.searchPlaceholderUsers : com.searchPlaceholderPosts}
                 </label>
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary sm:left-4 sm:h-5 sm:w-5" />
                 <input
@@ -2029,17 +2055,15 @@ export default function CommunityHub() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={
-                    searchMode === "users"
-                      ? "Cari nama lengkap atau @username anggota (cth. Rizky, @bagas)…"
-                      : "Cari topik, hardware, atau tag seperti #RTX4060"
+                    searchMode === "users" ? com.searchPlaceholderUsers : com.searchPlaceholderPosts
                   }
-                  className={`vt-form-control w-full rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-11 text-sm text-primary placeholder:text-secondary focus:bg-surface sm:py-3 sm:pl-12 ${focusRing}`}
+                  className={`vt-form-control box-border min-h-11 w-full max-w-full min-w-0 rounded-lg border border-default bg-subtle py-2.5 pl-10 pr-11 text-sm text-primary placeholder:text-secondary focus:bg-surface sm:py-3 sm:pl-12 ${focusRing}`}
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery("")}
-                    aria-label="Bersihkan kata kunci pencarian"
+                    aria-label={com.searchClearAria}
                     className={`absolute right-1.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md text-secondary hover:bg-subtle hover:text-primary ${focusRing}`}
                   >
                     <X className="h-4 w-4" />
@@ -2048,9 +2072,9 @@ export default function CommunityHub() {
               </div>
 
               {searchMode === "users" && (
-                <div className="pt-1" aria-live="polite">
+                <div className="min-w-0 pt-1" aria-live="polite">
                   {userSearchError && (
-                    <p className="mb-2.5 rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <p className="mb-2.5 break-words rounded-lg border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                       {userSearchError}
                     </p>
                   )}
@@ -2058,22 +2082,22 @@ export default function CommunityHub() {
                   {isSearchingUsers ? (
                     <div className="flex items-center justify-center gap-2.5 rounded-xl border border-default bg-canvas p-6 text-sm text-secondary">
                       <LoaderCircle className="h-4 w-4 animate-spin text-accent-primary" aria-hidden="true" />
-                      <span>Mencari anggota komunitas…</span>
+                      <span>{com.searchingUsers}</span>
                     </div>
                   ) : userResults.length > 0 ? (
                     <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs text-secondary">
-                        <span>
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-secondary">
+                        <span className="break-words">
                           {query.trim()
-                            ? `Menampilkan ${userResults.length} anggota untuk “${query.trim()}”`
-                            : `Anggota komunitas aktif (${userResults.length})`}
+                            ? `${com.showingPrefix} ${userResults.length} · “${query.trim()}”`
+                            : `${com.searchTabUsers} (${userResults.length})`}
                         </span>
                         <button
                           type="button"
                           onClick={() => setSearchMode("posts")}
-                          className="font-medium text-accent-primary hover:underline"
+                          className="min-h-9 font-medium text-accent-primary hover:underline"
                         >
-                          Kembali ke Postingan
+                          {com.backToPosts}
                         </button>
                       </div>
                       <div className="space-y-2.5">
@@ -2097,9 +2121,9 @@ export default function CommunityHub() {
                   ) : (
                     <div className="rounded-xl border border-dashed border-default bg-canvas p-6 text-center">
                       <Users className="mx-auto h-7 w-7 text-secondary" strokeWidth={1.6} aria-hidden="true" />
-                      <p className="mt-2 font-medium text-primary">Pengguna tidak ditemukan</p>
-                      <p className="mt-1 text-xs text-secondary">
-                        Tidak ada anggota dengan nama atau username “{query.trim()}”. Coba kata kunci lain.
+                      <p className="mt-2 font-medium text-primary">{com.usersNotFoundTitle}</p>
+                      <p className="mt-1 break-words text-xs text-secondary">
+                        “{query.trim()}”
                       </p>
                     </div>
                   )}
@@ -2109,40 +2133,44 @@ export default function CommunityHub() {
 
             {authorFilter && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-accent-primary/30 bg-accent-subtle px-3.5 py-2.5 text-xs text-primary sm:text-sm">
-                <span className="flex items-center gap-2">
-                  <User className="h-4 w-4 text-accent-primary" aria-hidden="true" />
-                  <span>
-                    Menampilkan postingan dari <strong>{authorFilter.name}</strong>
+                <span className="flex min-w-0 items-center gap-2">
+                  <User className="h-4 w-4 shrink-0 text-accent-primary" aria-hidden="true" />
+                  <span className="break-words">
+                    {com.authorFilterPrefix} <strong>{authorFilter.name}</strong>
                     {authorFilter.username ? ` (@${authorFilter.username})` : ""}
                   </span>
                 </span>
                 <button
                   type="button"
                   onClick={() => setAuthorFilter(null)}
-                  className={`inline-flex items-center gap-1 rounded-md border border-[#EA580C]/30 bg-surface px-2.5 py-1 text-xs font-semibold text-accent-primary hover:bg-canvas ${focusRing}`}
+                  className={`inline-flex min-h-10 items-center gap-1 rounded-md border border-accent-primary/30 bg-surface px-2.5 py-1 text-xs font-semibold text-accent-primary hover:bg-canvas sm:min-h-9 ${focusRing}`}
                 >
                   <X className="h-3.5 w-3.5" />
-                  <span>Tampilkan Semua</span>
+                  <span>{com.showAllBtn}</span>
                 </button>
               </div>
             )}
 
-            <div role="group" aria-label="Filter postingan berdasarkan kategori" className="no-scrollbar -mx-3 flex flex-nowrap gap-2 overflow-x-auto px-3 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-              {CAT_ORDER.map((k) => {
-                const Icon = CATEGORIES[k].icon;
-                const active = category === k;
-                return (
-                  <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`vt-motion-press inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors sm:min-h-10 sm:gap-2 sm:px-3.5 sm:text-sm ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
-                    <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> {CATEGORIES[k].label} <span className="font-mono text-xs text-secondary">{counts[k]}</span>
-                  </button>
-                );
-              })}
+            <div className="w-full max-w-full min-w-0 overflow-hidden">
+              <div role="group" aria-label="Filter postingan berdasarkan kategori" className="no-scrollbar flex w-full max-w-full flex-nowrap gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0">
+                {CAT_ORDER.map((k) => {
+                  const Icon = CATEGORIES[k].icon;
+                  const active = category === k;
+                  return (
+                    <button key={k} type="button" aria-pressed={active} onClick={() => setCategory(k)} className={`vt-motion-press inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors sm:min-h-10 sm:gap-2 sm:px-3.5 sm:text-sm ${focusRing} ${active ? "border-accent-primary/30 bg-accent-subtle font-medium text-accent-hover" : "border-default bg-surface text-secondary hover:bg-subtle hover:text-primary"}`}>
+                      <Icon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                      <span>{com.categories[k] || CATEGORIES[k].label}</span>
+                      <span className="font-mono text-xs tabular-nums text-secondary">{counts[k]}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <p className="text-xs text-secondary sm:text-sm" aria-live="polite">
-              Menampilkan <span className="font-mono font-semibold text-primary">{visible.length}</span> postingan
-              {authorFilter ? ` oleh ${authorFilter.name}` : ""}
-              {searchMode === "posts" && query.trim() ? ` untuk “${query.trim()}”` : ""}
+            <p className="break-words text-xs text-secondary sm:text-sm" aria-live="polite">
+              {com.showingPrefix} <span className="font-mono font-semibold tabular-nums text-primary">{visible.length}</span> {com.showingUnit}
+              {authorFilter ? ` · ${authorFilter.name}` : ""}
+              {searchMode === "posts" && query.trim() ? ` · “${query.trim()}”` : ""}
             </p>
 
             {isLoadingPosts ? (
@@ -2175,7 +2203,7 @@ export default function CommunityHub() {
                 ))}
               </div>
             ) : paginatedPosts.length ? (
-              <RevealOnScroll className="space-y-3 sm:space-y-4">
+              <RevealOnScroll className="min-w-0 space-y-3 sm:space-y-4">
                 {paginatedPosts.map((p) => (
                   <PostCard
                     key={p.id}
@@ -2200,16 +2228,16 @@ export default function CommunityHub() {
                       }}
                       className={`inline-flex min-h-11 items-center gap-2 rounded-lg border border-default bg-surface px-5 py-2.5 text-sm font-medium text-primary transition hover:border-accent-primary/40 hover:bg-accent-subtle ${focusRing}`}
                     >
-                      Muat lebih banyak postingan ({paginatedPosts.length}/{visible.length})
+                      {com.loadMoreBtn} (<span className="font-mono tabular-nums">{paginatedPosts.length}/{visible.length}</span>)
                     </button>
                   </div>
                 )}
               </RevealOnScroll>
             ) : (
               <div className="rounded-xl border border-dashed border-default bg-surface p-6 text-center sm:p-10">
-                <p className="font-medium text-primary">Belum ada postingan yang cocok dengan filter.</p>
-                <p className="mt-1 text-sm text-secondary">Coba kata kunci atau kategori lain, atau mulai diskusi baru.</p>
-                <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>Reset Filter</button>
+                <p className="font-medium text-primary">{com.emptyTitle}</p>
+                <p className="mt-1 text-sm text-secondary">{com.emptyDesc}</p>
+                <button type="button" onClick={clearFilters} className={`mt-4 min-h-11 rounded-lg border border-default bg-subtle px-4 py-2 text-sm text-primary hover:border-accent-primary/40 hover:text-accent-hover ${focusRing}`}>{com.resetFilterBtn}</button>
               </div>
             )}
           </div>
