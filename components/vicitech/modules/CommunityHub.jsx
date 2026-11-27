@@ -6,7 +6,7 @@ import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   MessageSquare, ThumbsUp, Share2, Tag, User, Users, Award, PenSquare, Search, Image as ImageIcon, Send,
   CheckCircle2, HelpCircle, BookOpen, Cpu, Megaphone, X, LoaderCircle, Video, AlertCircle, Smile,
-  Gamepad2, Code2, Palette, Laugh, Flag,
+  Gamepad2, Code2, Palette, Laugh, Flag, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { getSupabaseBrowserClient, isSupabaseAuthConfigured } from "@/lib/supabase/client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -27,6 +27,7 @@ import {
   uploadMediaFile,
   validateMediaFile,
 } from "@/lib/storage/uploadMedia";
+import communityStyles from "./community-hub.module.css";
 
 const MediaLightbox = dynamic(
   () => import("@/components/vicitech/MediaLightbox").then((mod) => mod.MediaLightbox),
@@ -179,7 +180,43 @@ const idr = (n) => new Intl.NumberFormat("id-ID", { style: "currency", currency:
 const num = (n) => new Intl.NumberFormat("id-ID").format(n);
 const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 const TAG_RE = /#[A-Za-z0-9_]+/g;
+const POST_BODY_CHAR_LIMIT = 240;
+const POST_BODY_LINE_LIMIT = 4;
 const AVATAR_TONES = ["bg-accent-subtle text-accent-hover", "bg-emerald-50 text-emerald-800", "bg-sky-50 text-sky-800", "bg-amber-50 text-amber-800"];
+
+function getTruncatedPostBody(rawText) {
+  const text = typeof rawText === "string" ? rawText.trim() : "";
+  if (!text) return { isTruncatable: false, preview: "" };
+
+  const lines = text.split(/\r?\n/);
+  const exceedsLines = lines.length > POST_BODY_LINE_LIMIT;
+  const exceedsChars = text.length > POST_BODY_CHAR_LIMIT;
+  if (!exceedsLines && !exceedsChars) {
+    return { isTruncatable: false, preview: text };
+  }
+
+  let candidate = exceedsLines
+    ? lines.slice(0, POST_BODY_LINE_LIMIT).join("\n")
+    : text;
+
+  if (candidate.length > POST_BODY_CHAR_LIMIT) {
+    const slice = candidate.slice(0, POST_BODY_CHAR_LIMIT);
+    const lastBreak = Math.max(slice.lastIndexOf(" "), slice.lastIndexOf("\n"), slice.lastIndexOf("\t"));
+    candidate = lastBreak >= Math.floor(POST_BODY_CHAR_LIMIT * 0.6)
+      ? slice.slice(0, lastBreak)
+      : slice;
+  }
+
+  const cleaned = candidate.replace(/[\s,.;:!?-]+$/u, "").trimEnd();
+  if (!cleaned || cleaned.length >= text.length) {
+    return { isTruncatable: false, preview: text };
+  }
+
+  return {
+    isTruncatable: true,
+    preview: `${cleaned}…`,
+  };
+}
 
 function timeAgo(ts) {
   const m = Math.floor((Date.now() - ts) / 60000);
@@ -557,6 +594,7 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
   const { t } = useLanguage();
   const com = t.routes.community;
   const [open, setOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [mediaUnavailable, setMediaUnavailable] = useState(false);
   const [draft, setDraft] = useState("");
   const [selectedGif, setSelectedGif] = useState(null);
@@ -577,6 +615,12 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
   const isVideoPost =
     post.mediaType === "video" || mediaUrls.some((url) => /\.(mp4|webm)(\?|$)/i.test(url));
   const extraTags = (post.tags || []).filter((tag) => !post.body.includes(tag));
+  const { isTruncatable, preview: truncatedBody } = useMemo(
+    () => getTruncatedPostBody(post.body),
+    [post.body],
+  );
+  const displayedBody = isTruncatable && !isExpanded ? truncatedBody : post.body;
+  const bodyId = `post-body-${post.id}`;
 
   useEffect(() => {
     if (!shareNote) return;
@@ -718,7 +762,30 @@ const PostCard = memo(function PostCard({ post, onLike, onComment, onTag, resolv
       </header>
 
       <h3 className="tracking-tight mt-3 break-words font-sans text-base font-bold leading-snug text-primary sm:mt-4 sm:text-lg">{post.title}</h3>
-      <p className="mt-2 break-words whitespace-pre-line text-sm leading-relaxed text-secondary"><RichText text={post.body} onTag={onTag} /></p>
+      <p
+        id={bodyId}
+        className={`mt-2 min-w-0 break-words whitespace-pre-line text-sm leading-relaxed text-secondary ${
+          isTruncatable && !isExpanded ? "line-clamp-4" : ""
+        }`}
+      >
+        <RichText text={displayedBody} onTag={onTag} />
+      </p>
+      {isTruncatable && (
+        <button
+          type="button"
+          aria-expanded={isExpanded}
+          aria-controls={bodyId}
+          onClick={() => setIsExpanded((prev) => !prev)}
+          className={`${communityStyles.readMoreToggle} vt-motion-press mt-2.5 inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-lg border px-3 py-2 text-left text-xs font-semibold sm:min-h-9 sm:py-1.5 sm:text-sm ${focusRing}`}
+        >
+          <span>{isExpanded ? com.showLessBtn : com.readMoreBtn}</span>
+          {isExpanded ? (
+            <ChevronUp className={`${communityStyles.readMoreIcon} h-4 w-4 shrink-0`} aria-hidden="true" />
+          ) : (
+            <ChevronDown className={`${communityStyles.readMoreIcon} h-4 w-4 shrink-0`} aria-hidden="true" />
+          )}
+        </button>
+      )}
 
       {post.isLfg && post.lfgDetails && (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-600/20 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">

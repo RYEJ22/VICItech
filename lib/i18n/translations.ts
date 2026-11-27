@@ -449,6 +449,8 @@ export interface TranslationDictionary {
       readonly emptyTitle: string;
       readonly emptyDesc: string;
       readonly resetFilterBtn: string;
+      readonly readMoreBtn: string;
+      readonly showLessBtn: string;
       readonly commentsLabel: string;
       readonly shareBtn: string;
       readonly shareSpecsBtn: string;
@@ -1141,6 +1143,8 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         emptyTitle: 'Belum ada postingan yang cocok dengan filter.',
         emptyDesc: 'Coba kata kunci atau kategori lain, atau mulai diskusi baru.',
         resetFilterBtn: 'Reset Filter',
+        readMoreBtn: 'Baca selengkapnya',
+        showLessBtn: 'Sembunyikan',
         commentsLabel: 'Komentar',
         shareBtn: 'Bagikan',
         shareSpecsBtn: 'Bagikan Spek',
@@ -1830,6 +1834,8 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         emptyTitle: 'No posts match the active filters.',
         emptyDesc: 'Try a different keyword or category, or start a new discussion.',
         resetFilterBtn: 'Reset Filters',
+        readMoreBtn: 'Read more',
+        showLessBtn: 'Show less',
         commentsLabel: 'Comments',
         shareBtn: 'Share',
         shareSpecsBtn: 'Share Specs',
