@@ -11,6 +11,7 @@ import {
   Package,
   ShieldCheck,
   ShoppingBag,
+  Store,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -204,6 +205,15 @@ export function AdminShell({
           </p>
           <p className="mt-1 truncate text-xs font-medium text-primary">{operatorLabel}</p>
         </div>
+
+        <Link
+          href="/partner"
+          onClick={onNavigate}
+          className="inline-flex min-h-11 w-full items-center gap-2 rounded-lg border border-default bg-surface px-3.5 py-2 text-sm font-medium text-secondary transition hover:border-accent-primary/40 hover:bg-accent-subtle hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
+        >
+          <Store className="h-4 w-4 shrink-0 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+          <span>Portal Mitra</span>
+        </Link>
 
         <Link
           href="/"

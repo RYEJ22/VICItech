@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, FileText, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Check, FileText, ShieldCheck, ShoppingCart, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
 import { useLanguage } from '@/components/providers/LanguageProvider';
@@ -26,6 +26,7 @@ import {
   getStockMeta,
   getTrustBadgeClassName,
 } from '@/lib/market/product-presenter';
+import { extractPartnerAttribution } from '@/lib/partners/partner-commerce';
 import { MarketProductImage } from './market-product-image';
 
 interface MarketProductCardProps {
@@ -51,7 +52,8 @@ export function MarketProductCard({
   const specs = getHighlightSpecs(product, 3, language);
   const isCamProd = isCameraProductionProduct(product);
   const gearSubtype = resolveCameraProductionSubtype(product);
-  const isSample = isSampleCatalogProduct(product);
+  const partnerAttribution = extractPartnerAttribution(product);
+  const isSample = isSampleCatalogProduct(product) || partnerAttribution.isSimulatedDemo;
   const categoryDisplay = isCamProd
     ? gearSubtype
       ? `${t.routes.market.categoryCameraProduction} · ${getCameraSubtypeLabel(gearSubtype, language, true)}`
@@ -59,6 +61,13 @@ export function MarketProductCard({
     : getCategoryLabel(product.category);
 
   const trustBadgeClass = getTrustBadgeClassName(trustBadge.tone);
+
+  const handleOpenLocalPartnerDetail = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (partnerAttribution.isLocalPartnerListing && onOpenDatasheet) {
+      event.preventDefault();
+      onOpenDatasheet(product);
+    }
+  };
 
   useEffect(() => {
     if (!justAdded) return undefined;
@@ -99,6 +108,7 @@ export function MarketProductCard({
     >
       <Link
         href={href}
+        onClick={handleOpenLocalPartnerDetail}
         className="relative block aspect-[16/10] w-full shrink-0 overflow-hidden border-b border-default bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary/60 sm:aspect-[4/3]"
       >
         <MarketProductImage
@@ -132,8 +142,23 @@ export function MarketProductCard({
           <span className="shrink-0 font-medium">{getSellerLabel(product.seller_type)}</span>
         </div>
 
+        {partnerAttribution.isPartnerListing && (
+          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
+            <span className="inline-flex max-w-full items-center gap-1 rounded border border-accent-primary/35 bg-accent-subtle px-2 py-0.5 text-[11px] font-semibold text-accent-hover">
+              <Store className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">
+                {isEnglish ? 'Partner' : 'Mitra'}: {partnerAttribution.partnerName}
+              </span>
+            </span>
+            <span className="shrink-0 rounded border border-default bg-canvas px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-secondary">
+              Partner Listing
+            </span>
+          </div>
+        )}
+
         <Link
           href={href}
+          onClick={handleOpenLocalPartnerDetail}
           className="mt-1.5 block rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
         >
           <h3 className="min-h-[2.75rem] line-clamp-2 font-sans text-sm font-bold leading-snug tracking-tight text-primary transition-colors group-hover:text-accent-cta [text-wrap:balance] sm:min-h-[3rem] sm:text-base">

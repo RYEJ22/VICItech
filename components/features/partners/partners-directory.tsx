@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Search,
   ShieldCheck,
+  Store,
   Wrench,
   X,
 } from 'lucide-react';
@@ -245,6 +246,13 @@ export function PartnersDirectory({
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
+              href="/partner"
+              className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
+            >
+              <Store className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              <span>{isEnglish ? 'Partner Workspace · Add Product' : 'Portal Mitra · Tambah Produk'}</span>
+            </Link>
+            <Link
               href="/messages"
               className={`inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent-cta px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-cta-hover ${focusRing}`}
             >
@@ -325,6 +333,14 @@ export function PartnersDirectory({
                 );
               })}
             </div>
+
+            <Link
+              href="/partner"
+              className={`vt-btn-tactile inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-accent-cta px-4 py-2 text-xs font-semibold text-white hover:bg-accent-cta-hover ${focusRing}`}
+            >
+              <Store className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+              <span>{isEnglish ? 'Partner Workspace · Add Product' : 'Portal Mitra · Tambah Produk'}</span>
+            </Link>
           </div>
 
           {/* City Filter Pills + Result Count */}

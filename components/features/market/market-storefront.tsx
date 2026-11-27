@@ -39,6 +39,12 @@ import {
   type CameraProductionSubtype,
 } from '@/lib/market/camera-production';
 import { getProductTrustBadge } from '@/lib/market/product-presenter';
+import {
+  PARTNER_LISTINGS_STORAGE_KEY,
+  PARTNER_LISTINGS_UPDATED_EVENT,
+  getCombinedPartnerListings,
+  partnerListingToProductRow,
+} from '@/lib/partners/partner-commerce';
 import { MarketDatasheetModal } from './market-datasheet-modal';
 import { MarketProductCard } from './market-product-card';
 
@@ -98,12 +104,33 @@ export function MarketStorefront({
   const [iotQcOnly, setIotQcOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [query, setQuery] = useState('');
+  const [partnerProducts, setPartnerProducts] = useState<readonly ProductRow[]>([]);
   const debouncedQuery = useDebouncedValue(query, 250);
 
   const { totalCartItems, totalCartPrice, openCart, triggerCartCheckout } = useCheckout();
 
   const searchInputId = useId();
   const sortSelectId = useId();
+
+  useEffect(() => {
+    const syncPartnerListings = () => {
+      setPartnerProducts(getCombinedPartnerListings().map(partnerListingToProductRow));
+    };
+    syncPartnerListings();
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === PARTNER_LISTINGS_STORAGE_KEY) {
+        syncPartnerListings();
+      }
+    };
+
+    window.addEventListener(PARTNER_LISTINGS_UPDATED_EVENT, syncPartnerListings);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener(PARTNER_LISTINGS_UPDATED_EVENT, syncPartnerListings);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   useEffect(() => {
     if (isStorefrontCategoryFilter(initialCategory)) {
@@ -119,10 +146,14 @@ export function MarketStorefront({
 
   const catalogProducts = useMemo(() => {
     const hasLiveCameraGear = initialProducts.some((item) => isCameraProductionProduct(item));
-    return hasLiveCameraGear
+    const baseProducts = hasLiveCameraGear
       ? initialProducts
       : [...initialProducts, ...SAMPLE_CAMERA_PRODUCTION_PRODUCTS];
-  }, [initialProducts]);
+    if (partnerProducts.length === 0) return baseProducts;
+    const seenIds = new Set(baseProducts.map((item) => item.id));
+    const uniquePartnerProducts = partnerProducts.filter((item) => !seenIds.has(item.id));
+    return [...uniquePartnerProducts, ...baseProducts];
+  }, [initialProducts, partnerProducts]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<ProductCategory | typeof CAMERA_PRODUCTION_CATEGORY_ID, number> = {

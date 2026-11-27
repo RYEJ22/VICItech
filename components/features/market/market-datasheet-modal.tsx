@@ -6,6 +6,7 @@ import {
   ExternalLink,
   ShieldCheck,
   ShoppingCart,
+  Store,
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,7 @@ import {
   getStockMeta,
   getTrustBadgeClassName,
 } from '@/lib/market/product-presenter';
+import { extractPartnerAttribution } from '@/lib/partners/partner-commerce';
 
 interface MarketDatasheetModalProps {
   readonly product: ProductRow | null;
@@ -77,7 +79,8 @@ export function MarketDatasheetModal({
   const trustClass = getTrustBadgeClassName(trustBadge.tone);
   const isCamProd = isCameraProductionProduct(product);
   const subtype = resolveCameraProductionSubtype(product);
-  const isSample = isSampleCatalogProduct(product);
+  const partnerAttribution = extractPartnerAttribution(product);
+  const isSample = isSampleCatalogProduct(product) || partnerAttribution.isSimulatedDemo;
   const specs = getFormattedProductSpecs(product, language);
   const metadata = getFormattedProductMetadata(product, language);
   const seenKeys = new Set(specs.map((item) => item.key.toLowerCase()));
@@ -166,6 +169,31 @@ export function MarketDatasheetModal({
             {getProductSummary(product)}
           </p>
 
+          {partnerAttribution.isPartnerListing && (
+            <div className="space-y-2 rounded-xl border border-accent-primary/30 bg-accent-subtle p-3.5 text-xs">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 font-bold text-primary">
+                  <Store className="h-4 w-4 text-accent-cta" aria-hidden="true" />
+                  <span>
+                    {isEnglish ? 'Partner' : 'Mitra'}: {partnerAttribution.partnerName} (
+                    {partnerAttribution.partnerCity})
+                  </span>
+                </span>
+                <span className="rounded border border-default bg-surface px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-primary">
+                  Partner Listing
+                </span>
+              </div>
+              {partnerAttribution.conditionGrade && (
+                <p className="font-mono text-[11px] font-semibold text-accent-hover">
+                  {isEnglish ? 'Condition' : 'Kondisi'}: {partnerAttribution.conditionGrade}
+                </p>
+              )}
+              {partnerAttribution.partnerNotes && (
+                <p className="text-secondary">{partnerAttribution.partnerNotes}</p>
+              )}
+            </div>
+          )}
+
           {/* Tailored QC Checkpoints */}
           {qcCheckpoints.length > 0 && (
             <section aria-labelledby="datasheet-qc-heading" className="space-y-2.5">
@@ -238,15 +266,21 @@ export function MarketDatasheetModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="grid shrink-0 grid-cols-1 gap-2 border-t border-default bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:grid-cols-2 sm:px-6">
-          <Link
-            href={href}
-            onClick={onClose}
-            className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary transition-colors hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
-          >
-            <ExternalLink className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />
-            <span>{m.datasheetOpenDetail}</span>
-          </Link>
+        <div
+          className={`grid shrink-0 grid-cols-1 gap-2 border-t border-default bg-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6 ${
+            partnerAttribution.isLocalPartnerListing ? '' : 'sm:grid-cols-2'
+          }`}
+        >
+          {!partnerAttribution.isLocalPartnerListing && (
+            <Link
+              href={href}
+              onClick={onClose}
+              className="vt-motion-press inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-default bg-canvas px-4 text-xs font-semibold text-primary transition-colors hover:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+            >
+              <ExternalLink className="h-3.5 w-3.5 text-accent-primary" aria-hidden="true" />
+              <span>{m.datasheetOpenDetail}</span>
+            </Link>
+          )}
           <button
             type="button"
             disabled={!stockMeta.isAvailable}

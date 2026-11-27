@@ -11,6 +11,7 @@ import {
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { PartnerFinancialAuditPanel } from '@/components/features/admin/partner-financial-audit-panel';
 import { RevenueLineChart } from '@/components/admin/RevenueLineChart';
 import { getAdminOverviewData } from '@/lib/admin/overview';
 import { formatIdr } from '@/lib/admin/products-validation';
@@ -252,6 +253,9 @@ export default async function AdminOverviewPage(): Promise<ReactElement> {
           </div>
         </Link>
       </section>
+
+      {/* Read-Only Partner Financial Status Audit */}
+      <PartnerFinancialAuditPanel />
 
       {/* Bottom 2-Column Live Feeds */}
       <div className="grid gap-6 xl:grid-cols-2">
