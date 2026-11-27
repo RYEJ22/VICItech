@@ -70,8 +70,41 @@ function isChatMessage(value: unknown): value is { role: 'user' | 'assistant'; c
     typeof message.content === 'string' && message.content.length <= 4000;
 }
 
+type ReplyLanguage = 'id' | 'en';
+
+const ID_SIGNAL_RE =
+  /\b(?:apa|apakah|bagaimana|gimana|kenapa|mengapa|berapa|bantu|tolong|saya|aku|kamu|anda|yang|untuk|buat|dengan|atau|dan|dari|di|ke|ini|itu|tidak|gak|nggak|belum|sudah|bisa|mau|ingin|perlu|cocok|bagus|rakit|rakitan|anggaran|harga|cek|jelaskan|rekomendasi|rekomendasikan|pilihan|bandingkan|perbedaan|stok|pengiriman|pembayaran|garansi|spesifikasi|komponen|perangkat|layanan)\b/gi;
+
+const EN_SIGNAL_RE =
+  /\b(?:what|which|how|why|when|where|can|could|would|should|help|please|i|my|me|you|your|the|a|an|on|in|of|for|with|and|or|from|to|this|that|is|are|do|does|need|want|looking|recommend|suggest|compare|difference|between|best|build|check|explain|pick|choose|price|pricing|stock|shipping|payment|warranty|compatible|compatibility|components)\b/gi;
+
+function normalizeUiLanguage(raw: unknown): ReplyLanguage {
+  return raw === 'en' ? 'en' : 'id';
+}
+
+function detectPromptLanguage(text: string, fallback: ReplyLanguage): ReplyLanguage {
+  const sample = text.trim();
+  if (!sample) return fallback;
+
+  if (/\b(?:bahasa\s+indonesia|jawab\s+(?:dalam\s+)?(?:bahasa\s+)?indo(?:nesia)?|in\s+indonesian)\b/i.test(sample)) {
+    return 'id';
+  }
+  if (/\b(?:in\s+english|reply\s+in\s+english|bahasa\s+inggris|jawab\s+(?:dalam\s+)?(?:bahasa\s+)?inggris)\b/i.test(sample)) {
+    return 'en';
+  }
+
+  const idScore = (sample.match(ID_SIGNAL_RE) ?? []).length;
+  const enScore = (sample.match(EN_SIGNAL_RE) ?? []).length;
+
+  if (enScore > idScore) return 'en';
+  if (idScore > enScore) return 'id';
+  return fallback;
+}
+
 function isFallbackBubble(content: string): boolean {
-  return /^(?:Maaf, konsultan AI belum dapat menjawab|Koneksi terputus|Koneksi terputus\.|Konsultan AI belum dapat menjawab saat ini)/i.test(content.trim());
+  return /^(?:Maaf, konsultan AI belum dapat menjawab|Koneksi terputus|Konsultan AI belum dapat menjawab saat ini|Sorry, the AI consultant could not reply right now|Connection interrupted)/i.test(
+    content.trim(),
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -90,24 +123,67 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ error: 'Pesan tidak dapat dibaca. Silakan kirim ulang.' }, { status: 400 });
   }
-  if (!isRecord(payload) || !Array.isArray(payload.messages)) {
+  if (!isRecord(payload)) {
     return NextResponse.json({ error: 'Format percakapan tidak valid.' }, { status: 400 });
+  }
+  const uiLanguage = normalizeUiLanguage(payload.language);
+  if (!Array.isArray(payload.messages)) {
+    return NextResponse.json(
+      { error: uiLanguage === 'en' ? 'Invalid conversation format.' : 'Format percakapan tidak valid.' },
+      { status: 400 },
+    );
   }
   const rawMessages = payload.messages;
   if (rawMessages.length < 1 || rawMessages.length > 24 || !rawMessages.every(isChatMessage)) {
-    return NextResponse.json({ error: 'Pesan tidak valid atau percakapan terlalu panjang.' }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          uiLanguage === 'en'
+            ? 'Invalid message or conversation is too long.'
+            : 'Pesan tidak valid atau percakapan terlalu panjang.',
+      },
+      { status: 400 },
+    );
   }
   const normalizedMessages = rawMessages
     .filter((message) => message.content.trim().length > 0 && !isFallbackBubble(message.content))
     .map((message) => ({ role: message.role === 'assistant' ? 'model' as const : 'user' as const, content: message.content.trim() }));
   const firstUserTurn = normalizedMessages.findIndex((message) => message.role === 'user');
-  if (firstUserTurn < 0) return NextResponse.json({ error: 'Tambahkan pertanyaan sebelum mengirim.' }, { status: 400 });
+  if (firstUserTurn < 0) {
+    return NextResponse.json(
+      { error: uiLanguage === 'en' ? 'Add a question before sending.' : 'Tambahkan pertanyaan sebelum mengirim.' },
+      { status: 400 },
+    );
+  }
   const cleanMessages = normalizedMessages.slice(firstUserTurn);
   while (cleanMessages.at(-1)?.role === 'model') cleanMessages.pop();
 
+  const latestUserMessage = cleanMessages.at(-1)?.content ?? '';
+  const replyLanguage = detectPromptLanguage(latestUserMessage, uiLanguage);
+
   const catalog = await getCatalogContext();
 
-  const systemInstruction = `Kamu adalah "ViciTech AI — Konsultan Rakitan & Hardware". Jawab secara alami, ringkas, dan jelas dalam Bahasa Indonesia. Bantu merencanakan rakitan PC berdasarkan anggaran dan penggunaan, mengecek kompatibilitas upgrade RAM/NVMe laptop berdasarkan model dan spesifikasi yang diberikan, serta menjelaskan bottleneck hardware dengan mudah. Jangan mengarang kompatibilitas, stok, atau harga; gunakan katalog di bawah, jelaskan bila data tidak tersedia, dan sebutkan harga akurat dalam Rupiah. Setiap unit/rakitan ViciTech melewati IoT Burn-In & Telemetry QC serta mendapat sertifikat serial unik sebelum dikirim. Pembayaran mendukung DP (Down Payment) atau Full Payment melalui Midtrans. Fokus hanya pada hardware PC/laptop/periferal dan layanan ViciTech; tolak permintaan di luar topik dengan sopan.\n\nKATALOG ViciTech:\n${catalog}`;
+  const targetLanguageRule =
+    replyLanguage === 'en'
+      ? 'For this turn, the user wrote in English (or is browsing in English), so reply naturally, concisely, and clearly in English.'
+      : 'Untuk giliran ini, pengguna menulis dalam Bahasa Indonesia (atau memakai antarmuka Bahasa Indonesia), jadi jawab secara alami, ringkas, dan jelas dalam Bahasa Indonesia.';
+
+  const systemInstruction = [
+    'You are "ViciTech AI — PC Build, Hardware & Production Gear Consultant" ("ViciTech AI — Konsultan Rakitan & Hardware").',
+    'LANGUAGE MATCHING RULE (HIGHEST PRIORITY):',
+    '- Always match the language of the user\'s latest message: reply in natural, concise English when the user writes in English, and in natural, concise Bahasa Indonesia when the user writes in Indonesian.',
+    '- If the user explicitly asks to switch languages (e.g., "reply in English" or "jawab dalam Bahasa Indonesia"), follow their request.',
+    `- If the user\'s message is language-neutral (such as a bare part name, spec comparison, or serial code), default to the active UI language (${replyLanguage === 'en' ? 'English' : 'Bahasa Indonesia'}).`,
+    `- ${targetLanguageRule}`,
+    'TECHNICAL PRECISION & DATA TRANSPARENCY:',
+    '- Help users plan PC builds by budget and workload, evaluate laptop RAM/NVMe/SSD upgrade compatibility from their model/specs, explain CPU/GPU bottleneck & +35% PSU headroom, and advise on Camera & Production gear (cameras, lenses, gimbals, lighting, camera rigs/cages, tripods/fluid heads, field monitors).',
+    '- Keep standard technical hardware and production terms clear and accurate in both languages (e.g., CPU, GPU, PSU, TDP, bottleneck, DDR4/DDR5, NVMe, shutter count, mount, 1/4"-20, 3/8"-16 ARRI, 15mm rod, fluid head, SDI/HDMI, nits, NIST SP 800-88). Format prices in Rupiah (Rp) and numbers (FPS, °C/°F, W, %) cleanly for tabular reading.',
+    '- Never fabricate compatibility, stock, or prices. Use the ViciTech catalog below and clearly state when an item or spec is unavailable.',
+    '- Preserve honest data-source labels: explicitly distinguish Live catalog / Live ESP32 telemetry from Simulated / Demo QC profiles and Sample catalog references. Every ViciTech unit undergoes 15-point Hybrid IoT Burn-In & Telemetry QC with a unique serial certificate before shipping. Payments support DP (Down Payment) or Full Payment via Midtrans.',
+    '- Stay strictly focused on PC/laptop hardware, peripherals, Camera & Production gear, and ViciTech services; politely decline off-topic requests in the matched language.',
+    '',
+    `VICITECH CATALOG:\n${catalog}`,
+  ].join('\n');
 
   const contents: ChatMessage[] = cleanMessages.map((message) => ({
     role: message.role,
@@ -166,8 +242,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!upstream?.body) {
     console.error('[api/chat] Semua model Gemini gagal:', failures);
     const diagnostics = failures.map(({ model, status, reason }) => `${model} (${status}): ${reason}`).join(' | ')
-      || 'Tidak ada model Gemini yang tersedia.';
-    return NextResponse.json({ error: `Semua model Gemini gagal. Detail: ${diagnostics}` }, { status: 502 });
+      || (replyLanguage === 'en' ? 'No Gemini models are currently available.' : 'Tidak ada model Gemini yang tersedia.');
+    const errorPrefix = replyLanguage === 'en' ? 'All Gemini models failed. Details:' : 'Semua model Gemini gagal. Detail:';
+    return NextResponse.json({ error: `${errorPrefix} ${diagnostics}` }, { status: 502 });
   }
 
   const decoder = new TextDecoder();

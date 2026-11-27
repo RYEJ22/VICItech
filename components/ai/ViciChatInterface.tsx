@@ -414,7 +414,7 @@ function AssistantMessageBody({
 }
 
 export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const ai = t.routes.aiConsultant;
   const [messages, setMessages] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
@@ -512,6 +512,7 @@ export function ViciChatInterface({ variant }: ViciChatInterfaceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: updated.map(({ role, content }) => ({ role, content })),
+          language,
         }),
       });
       if (!response.ok || !response.body) {
