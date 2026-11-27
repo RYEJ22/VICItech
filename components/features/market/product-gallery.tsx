@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Layers, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactElement } from 'react';
 import type { ProductCategory } from '@/lib/admin/products-validation';
+import type { CameraProductionSubtype } from '@/lib/market/camera-production';
 import { getTrustBadgeClassName, type MarketTrustBadge } from '@/lib/market/product-presenter';
 import { MarketProductImage } from './market-product-image';
 import styles from './product-gallery.module.css';
@@ -14,6 +15,8 @@ interface ProductGalleryProps {
   readonly images: readonly string[];
   readonly trustBadge: MarketTrustBadge;
   readonly isPreset: boolean;
+  readonly gearSubtype?: CameraProductionSubtype | null;
+  readonly isSample?: boolean;
 }
 
 export function ProductGallery({
@@ -22,6 +25,8 @@ export function ProductGallery({
   images,
   trustBadge,
   isPreset,
+  gearSubtype = null,
+  isSample = false,
 }: ProductGalleryProps): ReactElement {
   const [activeIndex, setActiveIndex] = useState(0);
   const safeIndex = images.length > 0 && activeIndex < images.length ? activeIndex : 0;
@@ -50,6 +55,8 @@ export function ProductGallery({
             src={activeSrc}
             alt={images.length > 1 ? `${title} - Foto ${safeIndex + 1}` : title}
             category={category}
+            gearSubtype={gearSubtype}
+            isSample={isSample}
             sizes="(min-width: 1024px) 58vw, 100vw"
             isPriority
             className="object-cover transition-transform duration-motion-hover ease-natural group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -57,7 +64,10 @@ export function ProductGallery({
         </div>
 
         <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap items-center gap-2">
-          <span className={`${trustBadgeClass} shadow-sm`}>
+          <span
+            data-badge-essential={isSample ? 'true' : undefined}
+            className={`${trustBadgeClass} shadow-sm`}
+          >
             <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             <span>{trustBadge.label}</span>
           </span>

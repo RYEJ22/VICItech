@@ -283,6 +283,7 @@ export interface TranslationDictionary {
       readonly titleLibrary: string;
       readonly tabReady: string;
       readonly tabLibrary: string;
+      readonly bannerSummary: string;
       readonly searchPlaceholder: string;
       readonly stockAll: string;
       readonly stockReady: string;
@@ -293,9 +294,20 @@ export interface TranslationDictionary {
       readonly sortPriceAsc: string;
       readonly sortPriceDesc: string;
       readonly categoryAll: string;
+      readonly categoryCameraProduction: string;
+      readonly cameraFilterHeading: string;
+      readonly cameraFilterDesc: string;
+      readonly cameraSampleNotice: string;
+      readonly cameraSubtypeAll: string;
       readonly showingPrefix: string;
       readonly showingUnit: string;
       readonly reset: string;
+      readonly datasheetBtn: string;
+      readonly datasheetTitle: string;
+      readonly datasheetSpecsHeading: string;
+      readonly datasheetQcHeading: string;
+      readonly datasheetOpenDetail: string;
+      readonly datasheetCloseAria: string;
     };
     readonly builder: {
       readonly badge: string;
@@ -825,7 +837,10 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         titleLibrary: 'Hardware Library, Spesifikasi & Potensi Upgrade',
         tabReady: 'Semua / Siap Kirim',
         tabLibrary: 'Hardware Library & Spesifikasi',
-        searchPlaceholder: 'Cari PC rakitan, laptop, CPU, GPU, konsol, atau merek…',
+        bannerSummary:
+          'Pilih PC rakitan, laptop IoT QC, komponen, serta perangkat Kamera & Produksi (kamera, lensa, gimbal, lighting, camera rig/cage, tripod fluid head, dan field monitor).',
+        searchPlaceholder:
+          'Cari PC, laptop, kamera, lensa, gimbal, lighting, camera rig/cage, tripod, atau field monitor…',
         stockAll: 'Semua',
         stockReady: 'Siap Kirim',
         stockPreorder: 'Pre-Order',
@@ -835,9 +850,22 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         sortPriceAsc: 'Harga Terendah',
         sortPriceDesc: 'Harga Tertinggi',
         categoryAll: 'Semua',
+        categoryCameraProduction: 'Kamera & Produksi',
+        cameraFilterHeading: 'Sub-Kategori Kamera & Produksi',
+        cameraFilterDesc:
+          'Mencakup kamera, lensa, gimbal, lighting, camera rig/cage (ulir 1/4"-20 & 3/8"-16 ARRI, rod 15mm), tripod/fluid head, dan field monitor high-bright.',
+        cameraSampleNotice:
+          'Entri bertanda Sample / Simulated QC adalah data katalog referensi untuk pratinjau spesifikasi & checkpoint QC Kamera & Produksi.',
+        cameraSubtypeAll: 'Semua Gear',
         showingPrefix: 'Menampilkan',
         showingUnit: 'produk',
         reset: 'Reset',
+        datasheetBtn: 'Datasheet',
+        datasheetTitle: 'Datasheet & Checkpoint QC',
+        datasheetSpecsHeading: 'Spesifikasi Teknis',
+        datasheetQcHeading: 'Checkpoint Verifikasi QC',
+        datasheetOpenDetail: 'Buka Halaman Detail',
+        datasheetCloseAria: 'Tutup datasheet produk',
       },
       builder: {
         badge: 'Data Referensi & Inventori',
@@ -1364,7 +1392,10 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         titleLibrary: 'Hardware Library, Specs & Upgrade Potential',
         tabReady: 'All / Ready to Ship',
         tabLibrary: 'Hardware Library & Specs',
-        searchPlaceholder: 'Search custom PCs, laptops, CPUs, GPUs, consoles, or brands…',
+        bannerSummary:
+          'Browse custom PCs, IoT QC laptops, components, and Camera & Production gear (cameras, lenses, gimbals, lighting, camera rigs/cages, fluid-head tripods, and field monitors).',
+        searchPlaceholder:
+          'Search PCs, laptops, cameras, lenses, gimbals, lighting, camera rigs/cages, tripods, or field monitors…',
         stockAll: 'All',
         stockReady: 'Ready Stock',
         stockPreorder: 'Pre-Order',
@@ -1374,9 +1405,22 @@ export const TRANSLATIONS: Readonly<Record<UserLanguage, TranslationDictionary>>
         sortPriceAsc: 'Lowest Price',
         sortPriceDesc: 'Highest Price',
         categoryAll: 'All',
+        categoryCameraProduction: 'Camera & Production',
+        cameraFilterHeading: 'Camera & Production Sub-Categories',
+        cameraFilterDesc:
+          'Covers cameras, lenses, gimbals, lighting, camera rigs/cages (1/4"-20 & 3/8"-16 ARRI threads, 15mm rods), fluid-head tripods, and high-bright field monitors.',
+        cameraSampleNotice:
+          'Entries marked Sample / Simulated QC are fallback reference listings showcasing tailored Camera & Production specs and QC checkpoints.',
+        cameraSubtypeAll: 'All Gear',
         showingPrefix: 'Showing',
         showingUnit: 'products',
         reset: 'Reset',
+        datasheetBtn: 'Datasheet',
+        datasheetTitle: 'Datasheet & QC Checkpoints',
+        datasheetSpecsHeading: 'Technical Specifications',
+        datasheetQcHeading: 'QC Verification Checkpoints',
+        datasheetOpenDetail: 'Open Full Detail Page',
+        datasheetCloseAria: 'Close product datasheet',
       },
       builder: {
         badge: 'Reference & Inventory Data',

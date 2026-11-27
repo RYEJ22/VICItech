@@ -113,9 +113,111 @@ const SPEC_LABEL_MAP: Readonly<Record<string, string>> = {
   firmware_status: 'Status Firmware / OS',
   dock_included: 'Dock / Kelengkapan',
   apu: 'APU / SoC',
+  compatible_body: 'Kompatibilitas Bodi / Sistem',
+  thread_standards: 'Standar Ulir (1/4"-20 / 3/8"-16)',
+  rod_handle_integrity: 'Integritas Rod 15mm & Handle',
+  structural_alignment: 'Keselarasan Struktural',
+  material: 'Material Rangka',
+  max_payload_kg: 'Beban Maksimal (Payload)',
+  max_height_cm: 'Tinggi Maksimal',
+  fluid_pan_tilt: 'Kehalusan Fluid Pan / Tilt',
+  leg_lock_qr_condition: 'Kunci Kaki & Quick-Release Plate',
+  head_mount: 'Mount / Bowl Head',
+  screen_brightness: 'Layar & Kecerahan (nits)',
+  hdmi_sdi_loop: 'Tes Port HDMI / SDI & Loop-Through',
+  panel_pixel_check: 'Cek Dead-Pixel & Panel',
+  power_npf_dc: 'Status Daya NP-F / DC',
+  monitoring_tools: 'Tools Monitoring',
+  sensor_mount: 'Sensor & Mount',
+  thermal_recording: 'Uji Rekam & Termal',
+  aperture_mount: 'Diafragma & Mount',
+  optics_check: 'Kondisi Optik',
+  af_aperture: 'Motor AF & Diafragma',
+  payload_axis: 'Payload & Axis Motor',
+  output_cri: 'Output & Akurasi Warna (CRI/TLCI)',
+  data_source: 'Sumber Data',
 };
 
+const SPEC_LABEL_MAP_EN: Readonly<Record<string, string>> = {
+  cpu: 'Processor (CPU)',
+  gpu: 'Graphics (GPU)',
+  ram: 'Memory (RAM)',
+  storage: 'Storage',
+  psu: 'Power Supply (PSU)',
+  tdp_watts: 'Estimated TDP',
+  qc_protocol: 'IoT QC Protocol',
+  battery_health: 'Battery Health',
+  grade: 'Condition Grade',
+  target_segment: 'Target Segment',
+  target_fps: 'Performance Target',
+  motherboard: 'Motherboard',
+  display: 'Display',
+  cooling: 'Cooling System',
+  case: 'Case',
+  chassis: 'Chassis',
+  warranty: 'Warranty',
+  weight: 'Weight',
+  chipset: 'Chipset',
+  camera: 'Camera',
+  charging: 'Charging',
+  connectivity: 'Connectivity',
+  socket: 'Socket',
+  form_factor: 'Form Factor',
+  vram: 'Video Memory (VRAM)',
+  refresh_rate: 'Refresh Rate',
+  battery_wh: 'Battery Capacity (Wh)',
+  storage_type: 'Storage Type',
+  controller_condition: 'Controller / Analog Condition',
+  firmware_status: 'Firmware / OS Status',
+  dock_included: 'Dock / Accessories',
+  apu: 'APU / SoC',
+  compatible_body: 'Compatible Body / System',
+  thread_standards: 'Thread Standards',
+  rod_handle_integrity: '15mm Rod & Handle Integrity',
+  structural_alignment: 'Structural Alignment',
+  material: 'Frame Material',
+  max_payload_kg: 'Max Payload',
+  max_height_cm: 'Max Height',
+  fluid_pan_tilt: 'Fluid Pan / Tilt Smoothness',
+  leg_lock_qr_condition: 'Leg Lock & Quick-Release Plate',
+  head_mount: 'Head / Bowl Mount',
+  screen_brightness: 'Screen & Brightness',
+  hdmi_sdi_loop: 'HDMI / SDI & Loop-Through Test',
+  panel_pixel_check: 'Dead-Pixel & Panel Check',
+  power_npf_dc: 'NP-F / DC Power Status',
+  monitoring_tools: 'Monitoring Tools',
+  sensor_mount: 'Sensor & Mount',
+  thermal_recording: 'Thermal & Recording Check',
+  aperture_mount: 'Aperture & Mount',
+  optics_check: 'Optics Clarity Check',
+  af_aperture: 'AF Motor & Aperture Ring',
+  payload_axis: 'Payload & Axis Motors',
+  output_cri: 'Output & Color Accuracy',
+  data_source: 'Data Source',
+};
+
+const HIDDEN_SPEC_KEYS = new Set([
+  'gear_domain',
+  'gear_subtype',
+  'is_sample',
+  'qc_telemetry_source',
+  'live_esp32',
+]);
+
 const HIGHLIGHT_SPEC_PRIORITY: readonly string[] = [
+  'compatible_body',
+  'thread_standards',
+  'rod_handle_integrity',
+  'max_payload_kg',
+  'max_height_cm',
+  'fluid_pan_tilt',
+  'screen_brightness',
+  'hdmi_sdi_loop',
+  'power_npf_dc',
+  'sensor_mount',
+  'aperture_mount',
+  'payload_axis',
+  'output_cri',
   'cpu',
   'gpu',
   'ram',
@@ -227,6 +329,7 @@ export function getProductTrustBadge(product: ProductRow): MarketTrustBadge {
   );
 
   const telemetrySource = (specMap.get('qc_telemetry_source') ?? '').toLowerCase();
+  const dataSource = (specMap.get('data_source') ?? '').toLowerCase();
   const liveFlag = (specMap.get('live_esp32') ?? '').toLowerCase();
   const qcSerial = (specMap.get('qc_serial') ?? '').toUpperCase();
 
@@ -236,6 +339,18 @@ export function getProductTrustBadge(product: ProductRow): MarketTrustBadge {
     QC_SERIAL_PATTERN.test(qcSerial)
   ) {
     return { label: 'Live ESP32 QC', tone: 'live', hasVerifiedQc: true };
+  }
+
+  if (dataSource === 'sample' || product.id.startsWith('sample-cam-')) {
+    return {
+      label: telemetrySource === 'simulated' ? 'Sample · Simulated QC' : 'Sample',
+      tone: 'sample',
+      hasVerifiedQc: true,
+    };
+  }
+
+  if (telemetrySource === 'simulated') {
+    return { label: 'Simulated / Demo', tone: 'simulated', hasVerifiedQc: true };
   }
 
   const gradeValue = specMap.get('grade');
@@ -255,9 +370,9 @@ export function getProductTrustBadge(product: ProductRow): MarketTrustBadge {
   return { label: 'Mitra Terverifikasi', tone: 'neutral', hasVerifiedQc: false };
 }
 
-export function formatSpecLabel(rawKey: string): string {
+export function formatSpecLabel(rawKey: string, language: 'id' | 'en' = 'id'): string {
   const normalized = rawKey.trim().toLowerCase();
-  const known = SPEC_LABEL_MAP[normalized];
+  const known = language === 'en' ? SPEC_LABEL_MAP_EN[normalized] : SPEC_LABEL_MAP[normalized];
   if (known) return known;
 
   const words = rawKey
@@ -267,7 +382,7 @@ export function formatSpecLabel(rawKey: string): string {
     .split(/\s+/)
     .filter(Boolean);
 
-  if (words.length === 0) return 'Spesifikasi';
+  if (words.length === 0) return language === 'en' ? 'Specification' : 'Spesifikasi';
   return words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
@@ -290,13 +405,15 @@ export function formatSpecValue(rawKey: string, rawValue: string): string {
 
 export function getFormattedProductMetadata(
   product: Pick<ProductRow, 'metadata'>,
+  language: 'id' | 'en' = 'id',
 ): readonly MarketSpecItem[] {
   const entries = parseProductSpecs(product.metadata);
   return entries
+    .filter((entry) => !HIDDEN_SPEC_KEYS.has(entry.key.trim().toLowerCase()))
     .map((entry) => ({
       id: `meta-${entry.id}`,
       key: entry.key.trim(),
-      label: formatSpecLabel(entry.key),
+      label: formatSpecLabel(entry.key, language),
       value: formatSpecValue(entry.key, entry.value),
     }))
     .filter((item) => item.value.length > 0);
@@ -304,13 +421,15 @@ export function getFormattedProductMetadata(
 
 export function getFormattedProductSpecs(
   product: Pick<ProductRow, 'specs'>,
+  language: 'id' | 'en' = 'id',
 ): readonly MarketSpecItem[] {
   const entries = parseProductSpecs(product.specs);
   return entries
+    .filter((entry) => !HIDDEN_SPEC_KEYS.has(entry.key.trim().toLowerCase()))
     .map((entry) => ({
       id: entry.id,
       key: entry.key.trim(),
-      label: formatSpecLabel(entry.key),
+      label: formatSpecLabel(entry.key, language),
       value: formatSpecValue(entry.key, entry.value),
     }))
     .filter((item) => item.value.length > 0);
@@ -319,9 +438,10 @@ export function getFormattedProductSpecs(
 export function getHighlightSpecs(
   product: Pick<ProductRow, 'specs' | 'metadata'>,
   maxItems = 3,
+  language: 'id' | 'en' = 'id',
 ): readonly MarketSpecItem[] {
-  const specItems = getFormattedProductSpecs(product);
-  const metaItems = getFormattedProductMetadata(product);
+  const specItems = getFormattedProductSpecs(product, language);
+  const metaItems = getFormattedProductMetadata(product, language);
   const seenKeys = new Set(specItems.map((item) => item.key.toLowerCase()));
   const all = [
     ...specItems,

@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   ArrowUpDown,
+  Camera,
   Layers,
   Package,
   RotateCcw,
@@ -27,10 +28,40 @@ import type {
   ProductRow,
   ProductStockStatus,
 } from '@/lib/admin/products-validation';
+import {
+  CAMERA_PRODUCTION_CATEGORY_ID,
+  CAMERA_PRODUCTION_SUBTYPES,
+  getCameraSubtypeLabel,
+  isCameraProductionProduct,
+  isSampleCatalogProduct,
+  resolveCameraProductionSubtype,
+  SAMPLE_CAMERA_PRODUCTION_PRODUCTS,
+  type CameraProductionSubtype,
+} from '@/lib/market/camera-production';
 import { getProductTrustBadge } from '@/lib/market/product-presenter';
+import { MarketDatasheetModal } from './market-datasheet-modal';
 import { MarketProductCard } from './market-product-card';
 
 type SortOption = 'newest' | 'price_asc' | 'price_desc';
+type StorefrontCategoryFilter = 'all' | ProductCategory | typeof CAMERA_PRODUCTION_CATEGORY_ID;
+
+function isStorefrontCategoryFilter(value: string): value is StorefrontCategoryFilter {
+  return (
+    value === 'all' ||
+    value === CAMERA_PRODUCTION_CATEGORY_ID ||
+    isProductCategory(value)
+  );
+}
+
+const EN_CATEGORY_LABELS: Readonly<Record<ProductCategory, string>> = {
+  'pc-build': 'PC Build',
+  laptop: 'Laptop',
+  smartphone: 'Smartphone',
+  console: 'Consoles',
+  handheld: 'Handhelds',
+  component: 'Components',
+  accessory: 'Accessories',
+};
 
 interface MarketStorefrontProps {
   readonly initialProducts: readonly ProductRow[];
@@ -56,11 +87,13 @@ export function MarketStorefront({
   onOpenLibrary,
   onOpenBuilder,
 }: MarketStorefrontProps): ReactElement {
-  const { t } = useLanguage();
+  const { t, language, isEnglish } = useLanguage();
   const m = t.routes.market;
-  const [selectedCategory, setSelectedCategory] = useState<'all' | ProductCategory>(() =>
-    isProductCategory(initialCategory) ? initialCategory : 'all',
+  const [selectedCategory, setSelectedCategory] = useState<StorefrontCategoryFilter>(() =>
+    isStorefrontCategoryFilter(initialCategory) ? initialCategory : 'all',
   );
+  const [selectedCameraSubtype, setSelectedCameraSubtype] = useState<'all' | CameraProductionSubtype>('all');
+  const [datasheetProduct, setDatasheetProduct] = useState<ProductRow | null>(null);
   const [stockFilter, setStockFilter] = useState<'all' | ProductStockStatus>('all');
   const [iotQcOnly, setIotQcOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -73,34 +106,87 @@ export function MarketStorefront({
   const sortSelectId = useId();
 
   useEffect(() => {
-    if (isProductCategory(initialCategory)) {
+    if (isStorefrontCategoryFilter(initialCategory)) {
       setSelectedCategory(initialCategory);
-    } else if (initialCategory === 'all') {
-      setSelectedCategory('all');
     }
   }, [initialCategory]);
 
+  useEffect(() => {
+    if (selectedCategory !== CAMERA_PRODUCTION_CATEGORY_ID) {
+      setSelectedCameraSubtype('all');
+    }
+  }, [selectedCategory]);
+
+  const catalogProducts = useMemo(() => {
+    const hasLiveCameraGear = initialProducts.some((item) => isCameraProductionProduct(item));
+    return hasLiveCameraGear
+      ? initialProducts
+      : [...initialProducts, ...SAMPLE_CAMERA_PRODUCTION_PRODUCTS];
+  }, [initialProducts]);
+
   const categoryCounts = useMemo(() => {
-    const counts: Record<ProductCategory, number> = {
+    const counts: Record<ProductCategory | typeof CAMERA_PRODUCTION_CATEGORY_ID, number> = {
       'pc-build': 0,
       laptop: 0,
       smartphone: 0,
       console: 0,
       handheld: 0,
+      [CAMERA_PRODUCTION_CATEGORY_ID]: 0,
       component: 0,
       accessory: 0,
     };
-    for (const item of initialProducts) {
-      counts[item.category] = (counts[item.category] ?? 0) + 1;
+    for (const item of catalogProducts) {
+      if (isCameraProductionProduct(item)) {
+        counts[CAMERA_PRODUCTION_CATEGORY_ID] += 1;
+        if (!isSampleCatalogProduct(item)) {
+          counts[item.category] = (counts[item.category] ?? 0) + 1;
+        }
+      } else {
+        counts[item.category] = (counts[item.category] ?? 0) + 1;
+      }
     }
     return counts;
-  }, [initialProducts]);
+  }, [catalogProducts]);
+
+  const cameraSubtypeCounts = useMemo(() => {
+    const counts: Record<CameraProductionSubtype, number> = {
+      camera: 0,
+      lens: 0,
+      gimbal: 0,
+      lighting: 0,
+      'camera-rig': 0,
+      'tripod-fluid-head': 0,
+      'field-monitor': 0,
+    };
+    for (const item of catalogProducts) {
+      const subtype = resolveCameraProductionSubtype(item);
+      if (subtype) {
+        counts[subtype] += 1;
+      }
+    }
+    return counts;
+  }, [catalogProducts]);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = debouncedQuery.trim().toLowerCase();
 
-    const filtered = initialProducts.filter((product) => {
-      if (selectedCategory !== 'all' && product.category !== selectedCategory) return false;
+    const filtered = catalogProducts.filter((product) => {
+      const isCamProd = isCameraProductionProduct(product);
+      const isSample = isSampleCatalogProduct(product);
+
+      if (selectedCategory === CAMERA_PRODUCTION_CATEGORY_ID) {
+        if (!isCamProd) return false;
+        if (
+          selectedCameraSubtype !== 'all' &&
+          resolveCameraProductionSubtype(product) !== selectedCameraSubtype
+        ) {
+          return false;
+        }
+      } else if (selectedCategory !== 'all') {
+        if (isSample && isCamProd) return false;
+        if (product.category !== selectedCategory) return false;
+      }
+
       if (stockFilter !== 'all' && product.stock_status !== stockFilter) return false;
       if (iotQcOnly && !getProductTrustBadge(product).hasVerifiedQc) return false;
       if (!normalizedQuery) return true;
@@ -113,7 +199,11 @@ export function MarketStorefront({
         product.metadata && typeof product.metadata === 'object' && !Array.isArray(product.metadata)
           ? Object.values(product.metadata).map(String).join(' ')
           : '';
-      const haystack = `${product.title} ${product.description} ${PRODUCT_CATEGORY_LABELS[product.category]} ${specsValues} ${metadataValues}`.toLowerCase();
+      const subtype = resolveCameraProductionSubtype(product);
+      const subtypeText = subtype
+        ? `${getCameraSubtypeLabel(subtype, 'id')} ${getCameraSubtypeLabel(subtype, 'en')}`
+        : '';
+      const haystack = `${product.title} ${product.description} ${PRODUCT_CATEGORY_LABELS[product.category]} ${isCamProd ? 'kamera produksi camera production' : ''} ${subtypeText} ${specsValues} ${metadataValues}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
 
@@ -126,16 +216,31 @@ export function MarketStorefront({
       sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
     }
     return sorted;
-  }, [debouncedQuery, initialProducts, iotQcOnly, selectedCategory, sortBy, stockFilter]);
+  }, [
+    catalogProducts,
+    debouncedQuery,
+    iotQcOnly,
+    selectedCameraSubtype,
+    selectedCategory,
+    sortBy,
+    stockFilter,
+  ]);
 
   const hasActiveFilters =
     selectedCategory !== 'all' ||
+    selectedCameraSubtype !== 'all' ||
     stockFilter !== 'all' ||
     iotQcOnly ||
     debouncedQuery.trim().length > 0;
 
+  const hasVisibleSampleItems = useMemo(
+    () => filteredProducts.some((item) => isSampleCatalogProduct(item)),
+    [filteredProducts],
+  );
+
   const resetFilters = () => {
     setSelectedCategory('all');
+    setSelectedCameraSubtype('all');
     setStockFilter('all');
     setIotQcOnly(false);
     setSortBy('newest');
@@ -146,9 +251,8 @@ export function MarketStorefront({
     <div className="mx-auto min-w-0 max-w-7xl space-y-4 overflow-x-clip px-4 pb-24 pt-4 sm:space-y-6 sm:px-6 sm:pb-24 sm:pt-8 lg:px-8">
       {(onOpenLibrary || onOpenBuilder) && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-default bg-surface p-3 shadow-sm sm:gap-4 sm:p-5">
-          <p className="line-clamp-2 max-w-[68ch] text-xs leading-relaxed text-secondary sm:text-sm">
-            Pilih unit rakitan siap pakai, laptop lulus IoT QC, atau komponen terverifikasi. Klik
-            kartu produk mana saja untuk melihat detail lengkap, spesifikasi, dan produk serupa.
+          <p className="max-w-[70ch] text-xs leading-relaxed text-secondary sm:text-sm">
+            {m.bannerSummary}
           </p>
           <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             {onOpenLibrary && (
@@ -342,13 +446,34 @@ export function MarketStorefront({
               >
                 <span>{m.categoryAll}</span>
                 <span className="font-mono text-[11px] tabular-nums opacity-85">
-                  {initialProducts.length}
+                  {catalogProducts.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selectedCategory === CAMERA_PRODUCTION_CATEGORY_ID}
+                onClick={() => setSelectedCategory(CAMERA_PRODUCTION_CATEGORY_ID)}
+                className={`vt-motion-press vt-btn-tactile inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60 sm:min-h-10 sm:gap-2 sm:px-4 ${
+                  selectedCategory === CAMERA_PRODUCTION_CATEGORY_ID
+                    ? 'bg-accent-cta font-semibold text-accent-foreground hover:bg-accent-cta-hover'
+                    : 'border border-default bg-canvas font-medium text-secondary hover:bg-subtle hover:text-primary'
+                }`}
+              >
+                <Camera className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                <span>{m.categoryCameraProduction}</span>
+                <span className="font-mono text-[11px] tabular-nums opacity-85">
+                  {categoryCounts[CAMERA_PRODUCTION_CATEGORY_ID]}
                 </span>
               </button>
 
               {PRODUCT_CATEGORIES.map((category) => {
                 const active = selectedCategory === category;
                 const count = categoryCounts[category];
+                const label = isEnglish
+                  ? EN_CATEGORY_LABELS[category]
+                  : PRODUCT_CATEGORY_LABELS[category];
                 return (
                   <button
                     key={category}
@@ -362,7 +487,7 @@ export function MarketStorefront({
                         : 'border border-default bg-canvas font-medium text-secondary hover:bg-subtle hover:text-primary'
                     }`}
                   >
-                    <span>{PRODUCT_CATEGORY_LABELS[category]}</span>
+                    <span>{label}</span>
                     <span className="font-mono text-[11px] tabular-nums opacity-85">{count}</span>
                   </button>
                 );
@@ -396,10 +521,79 @@ export function MarketStorefront({
             )}
           </div>
         </div>
+
+        {/* Camera & Production Sub-Category Bar */}
+        {selectedCategory === CAMERA_PRODUCTION_CATEGORY_ID && (
+          <div className="space-y-2 border-t border-default pt-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs leading-relaxed text-secondary">{m.cameraFilterDesc}</p>
+              {hasVisibleSampleItems && (
+                <span data-badge-essential="true" className="vt-badge-sample shrink-0">
+                  Sample · Simulated QC
+                </span>
+              )}
+            </div>
+            <div className="relative -mx-3 sm:mx-0">
+              <div
+                role="group"
+                aria-label={m.cameraFilterHeading}
+                className="no-scrollbar flex flex-nowrap gap-1.5 overflow-x-auto px-3 pb-0.5 pr-8 sm:px-0 md:flex-wrap md:overflow-visible md:pb-0 md:pr-0"
+              >
+                <button
+                  type="button"
+                  aria-pressed={selectedCameraSubtype === 'all'}
+                  onClick={() => setSelectedCameraSubtype('all')}
+                  className={`vt-motion-press inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                    selectedCameraSubtype === 'all'
+                      ? 'bg-accent-primary text-white'
+                      : 'border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary'
+                  }`}
+                >
+                  <span>{m.cameraSubtypeAll}</span>
+                  <span className="font-mono text-[11px] tabular-nums opacity-85">
+                    {categoryCounts[CAMERA_PRODUCTION_CATEGORY_ID]}
+                  </span>
+                </button>
+                {CAMERA_PRODUCTION_SUBTYPES.map((subtype) => {
+                  const active = selectedCameraSubtype === subtype;
+                  return (
+                    <button
+                      key={subtype}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setSelectedCameraSubtype(subtype)}
+                      className={`vt-motion-press inline-flex min-h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50 ${
+                        active
+                          ? 'bg-accent-primary text-white'
+                          : 'border border-default bg-surface text-secondary hover:bg-subtle hover:text-primary'
+                      }`}
+                    >
+                      <span>{getCameraSubtypeLabel(subtype, language, true)}</span>
+                      <span className="font-mono text-[11px] tabular-nums opacity-85">
+                        {cameraSubtypeCounts[subtype]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-surface to-transparent md:hidden"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Honest Sample Notice when viewing fallback Camera & Production items */}
+      {selectedCategory === CAMERA_PRODUCTION_CATEGORY_ID && hasVisibleSampleItems && (
+        <p className="rounded-xl border border-default bg-surface px-4 py-3 text-xs leading-relaxed text-secondary shadow-sm">
+          {m.cameraSampleNotice}
+        </p>
+      )}
+
       {/* Product Grid or Empty States */}
-      {initialProducts.length === 0 ? (
+      {catalogProducts.length === 0 ? (
         <section
           aria-live="polite"
           className="rounded-xl border border-default bg-surface p-5 text-center shadow-sm sm:p-10"
@@ -473,10 +667,16 @@ export function MarketStorefront({
               key={product.id}
               product={product}
               isPriorityImage={index === 0}
+              onOpenDatasheet={setDatasheetProduct}
             />
           ))}
         </div>
       )}
+
+      <MarketDatasheetModal
+        product={datasheetProduct}
+        onClose={() => setDatasheetProduct(null)}
+      />
     </div>
   );
 }

@@ -2,6 +2,11 @@ import { cache } from 'react';
 import { normalizeProductRecord } from '@/lib/admin/products-validation';
 import type { ProductRow } from '@/lib/admin/products-validation';
 import { createClient } from '@/lib/supabase/server';
+import {
+  findSampleCameraProductionProduct,
+  isSampleCatalogProduct,
+  SAMPLE_CAMERA_PRODUCTION_PRODUCTS,
+} from './camera-production';
 import { isUuid, rankRecommendedProducts } from './product-presenter';
 
 function decodeIdentifier(rawIdentifier: string): string {
@@ -49,6 +54,11 @@ export const getMarketProductByIdentifier = cache(
       return null;
     }
 
+    const sampleMatch = findSampleCameraProductionProduct(cleaned);
+    if (sampleMatch) {
+      return sampleMatch;
+    }
+
     const supabase = await createClient();
     const baseQuery = supabase.from('products').select('*');
     const { data, error } = isUuid(cleaned)
@@ -67,6 +77,13 @@ export async function getRecommendedMarketProducts(
   currentProduct: ProductRow,
   limit = 8,
 ): Promise<{ readonly items: readonly ProductRow[]; readonly hasSameCategory: boolean }> {
+  if (isSampleCatalogProduct(currentProduct)) {
+    const sampleSiblings = SAMPLE_CAMERA_PRODUCTION_PRODUCTS.filter(
+      (item) => item.id !== currentProduct.id,
+    );
+    return rankRecommendedProducts(currentProduct, sampleSiblings, [], limit);
+  }
+
   try {
     const supabase = await createClient();
 

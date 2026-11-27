@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import {
   Activity,
   ArrowRight,
+  CheckCircle2,
   ChevronRight,
   ExternalLink,
   FileCheck2,
@@ -20,6 +21,14 @@ import { ProductPurchaseActions } from '@/components/features/market/product-pur
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import { buildSingleProductJsonLd, JsonLd } from '@/components/features/seo/json-ld';
 import { isValidMediaUrl } from '@/lib/admin/products-validation';
+import {
+  CAMERA_PRODUCTION_CATEGORY_ID,
+  getCameraProductionQcCheckpoints,
+  getCameraSubtypeLabel,
+  isCameraProductionProduct,
+  isSampleCatalogProduct,
+  resolveCameraProductionSubtype,
+} from '@/lib/market/camera-production';
 import {
   formatIdr,
   getCategoryLabel,
@@ -110,7 +119,16 @@ export default async function ProductDetailPage({
     : [];
   const summary = getProductSummary(product);
   const canonicalPath = getProductHref(product);
-  const categoryLabel = getCategoryLabel(product.category);
+  const isCamProd = isCameraProductionProduct(product);
+  const gearSubtype = resolveCameraProductionSubtype(product);
+  const isSample = isSampleCatalogProduct(product);
+  const qcCheckpoints = getCameraProductionQcCheckpoints(product, 'id');
+  const categoryQueryParam = isCamProd ? CAMERA_PRODUCTION_CATEGORY_ID : product.category;
+  const categoryLabel = isCamProd
+    ? gearSubtype
+      ? `Kamera & Produksi · ${getCameraSubtypeLabel(gearSubtype, 'id')}`
+      : 'Kamera & Produksi'
+    : getCategoryLabel(product.category);
   const sellerLabel = getSellerLabel(product.seller_type);
   const hasReviewVideo =
     typeof product.review_video_url === 'string' && isValidMediaUrl(product.review_video_url);
@@ -149,7 +167,7 @@ export default async function ProductDetailPage({
             </li>
             <li>
               <Link
-                href={`/market?category=${encodeURIComponent(product.category)}`}
+                href={`/market?category=${encodeURIComponent(categoryQueryParam)}`}
                 className="vt-motion-press inline-flex min-h-9 items-center rounded px-1.5 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
               >
                 {categoryLabel}
@@ -180,6 +198,8 @@ export default async function ProductDetailPage({
               images={images}
               trustBadge={trustBadge}
               isPreset={product.is_preset}
+              gearSubtype={gearSubtype}
+              isSample={isSample}
             />
           </div>
 
@@ -188,7 +208,7 @@ export default async function ProductDetailPage({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <Link
-                    href={`/market?category=${encodeURIComponent(product.category)}`}
+                    href={`/market?category=${encodeURIComponent(categoryQueryParam)}`}
                     className="font-semibold uppercase tracking-wider text-accent-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/60"
                   >
                     {categoryLabel}
@@ -272,6 +292,46 @@ export default async function ProductDetailPage({
                 </div>
               )}
             </section>
+
+            {/* Checkpoint QC Khusus Kamera & Produksi (Rig, Tripod Fluid Head, Field Monitor, dll.) */}
+            {qcCheckpoints.length > 0 && (
+              <section aria-labelledby="camera-qc-checkpoints-heading">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h2
+                    id="camera-qc-checkpoints-heading"
+                    className="tracking-tight font-sans text-xl font-bold text-primary sm:text-2xl"
+                  >
+                    Checkpoint QC Kamera &amp; Produksi
+                  </h2>
+                  <span
+                    data-badge-essential="true"
+                    className={isSample ? 'vt-badge-simulated' : 'vt-badge-live'}
+                  >
+                    {isSample ? 'Sample · Simulated QC' : 'Verified QC'}
+                  </span>
+                </div>
+                <ul className="mt-4 divide-y divide-default overflow-hidden rounded-xl border border-default bg-surface shadow-sm">
+                  {qcCheckpoints.map((checkpoint) => (
+                    <li
+                      key={checkpoint.id}
+                      className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-5 sm:items-center sm:gap-4 sm:px-5"
+                    >
+                      <span className="flex items-start gap-2 font-medium text-primary sm:col-span-2">
+                        <CheckCircle2
+                          className="mt-0.5 h-4 w-4 shrink-0 text-status-live"
+                          strokeWidth={1.75}
+                          aria-hidden="true"
+                        />
+                        <span>{checkpoint.label}</span>
+                      </span>
+                      <span className="font-mono font-semibold tabular-nums text-secondary sm:col-span-3">
+                        {checkpoint.value}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* Spesifikasi Khusus Perangkat (Metadata JSONB: Console / Handheld / Perangkat Terkurasi) */}
             {formattedMetadata.length > 0 && (

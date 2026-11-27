@@ -25,6 +25,7 @@ export const MARKET_FILTERS: readonly [PreviewFilterOption, ...PreviewFilterOpti
   { id: 'pc-build', label: 'Rakitan PC' },
   { id: 'laptop', label: 'Laptop QC' },
   { id: 'smartphone', label: 'Smartphone' },
+  { id: 'camera-production', label: 'Kamera & Produksi' },
   { id: 'component', label: 'Komponen' },
 ];
 
@@ -113,6 +114,20 @@ export const MARKET_PREVIEW_ITEMS: readonly [RoutePreviewItem, ...RoutePreviewIt
     metricValue: '12+ Kategori Part',
     actionLabel: 'Buka Hardware Library',
     actionHref: '/market?view=catalog',
+  },
+  {
+    id: 'mk-camera-production',
+    categoryId: 'camera-production',
+    categoryLabel: 'Kamera & Produksi (Sample)',
+    title: 'Kamera, Lensa, Rig/Cage, Tripod Fluid Head & Field Monitor',
+    subtitle:
+      'Katalog produksi video & foto terkurasi mencakup bodi kamera, lensa, gimbal, lighting, camera cage 15mm, tripod fluid head, dan field monitor high-bright.',
+    specPrimary: 'Ulir 1/4"-20 · 3/8"-16 ARRI · 2200 nits',
+    specSecondary: 'Sample · Simulated QC Checkpoints',
+    metricLabel: 'Rentang Gear',
+    metricValue: '7 Sub-Kategori Produksi',
+    actionLabel: 'Lihat Kamera & Produksi',
+    actionHref: '/market?category=camera-production',
   },
 ];
 

@@ -1,12 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { Check, FileText, ShieldCheck, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
+import { useLanguage } from '@/components/providers/LanguageProvider';
 import { useCheckout } from '@/context/CheckoutContext';
 import { RevealOnScroll } from '@/components/ui/RevealOnScroll';
 import type { ProductRow } from '@/lib/admin/products-validation';
+import {
+  getCameraSubtypeLabel,
+  isCameraProductionProduct,
+  isSampleCatalogProduct,
+  resolveCameraProductionSubtype,
+} from '@/lib/market/camera-production';
 import {
   buildCheckoutPayloadFromProduct,
   formatIdr,
@@ -25,20 +32,31 @@ interface MarketProductCardProps {
   readonly product: ProductRow;
   readonly isPriorityImage?: boolean;
   readonly className?: string;
+  readonly onOpenDatasheet?: (product: ProductRow) => void;
 }
 
 export function MarketProductCard({
   product,
   isPriorityImage = false,
   className = '',
+  onOpenDatasheet,
 }: MarketProductCardProps): ReactElement {
+  const { t, language, isEnglish } = useLanguage();
   const { addToCart, triggerCheckout } = useCheckout();
   const [justAdded, setJustAdded] = useState(false);
   const href = getProductHref(product);
   const primaryImage = getProductPrimaryImage(product);
   const stockMeta = getStockMeta(product.stock_status);
   const trustBadge = getProductTrustBadge(product);
-  const specs = getHighlightSpecs(product, 3);
+  const specs = getHighlightSpecs(product, 3, language);
+  const isCamProd = isCameraProductionProduct(product);
+  const gearSubtype = resolveCameraProductionSubtype(product);
+  const isSample = isSampleCatalogProduct(product);
+  const categoryDisplay = isCamProd
+    ? gearSubtype
+      ? `${t.routes.market.categoryCameraProduction} · ${getCameraSubtypeLabel(gearSubtype, language, true)}`
+      : t.routes.market.categoryCameraProduction
+    : getCategoryLabel(product.category);
 
   const trustBadgeClass = getTrustBadgeClassName(trustBadge.tone);
 
@@ -87,13 +105,18 @@ export function MarketProductCard({
           src={primaryImage}
           alt={product.title}
           category={product.category}
+          gearSubtype={gearSubtype}
+          isSample={isSample}
           sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 90vw"
           isPriority={isPriorityImage}
           className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
 
         <div className="pointer-events-none absolute inset-x-2.5 top-2.5 flex flex-wrap items-start justify-between gap-1.5">
-          <span className={`${trustBadgeClass} shadow-sm`}>
+          <span
+            data-badge-essential={isSample ? 'true' : undefined}
+            className={`${trustBadgeClass} shadow-sm`}
+          >
             <ShieldCheck className="h-3 w-3 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             <span>{trustBadge.label}</span>
           </span>
@@ -103,10 +126,10 @@ export function MarketProductCard({
 
       <div className="flex flex-1 flex-col p-3.5 sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-secondary">
-          <span className="font-semibold uppercase tracking-wide text-accent-cta">
-            {getCategoryLabel(product.category)}
+          <span className="truncate font-semibold uppercase tracking-wide text-accent-cta">
+            {categoryDisplay}
           </span>
-          <span className="font-medium">{getSellerLabel(product.seller_type)}</span>
+          <span className="shrink-0 font-medium">{getSellerLabel(product.seller_type)}</span>
         </div>
 
         <Link
@@ -120,7 +143,7 @@ export function MarketProductCard({
 
         {specs.length > 0 && (
           <ul
-            aria-label="Ringkasan spesifikasi utama"
+            aria-label={isEnglish ? 'Key specifications summary' : 'Ringkasan spesifikasi utama'}
             className="mt-3 flex flex-wrap gap-1.5"
           >
             {specs.map((spec) => (
@@ -130,7 +153,7 @@ export function MarketProductCard({
                 className="inline-flex max-w-full items-center gap-1 rounded-md border border-default bg-canvas px-2 py-1 text-[11px]"
               >
                 <span className="shrink-0 font-medium text-secondary">{spec.label.split(' ')[0]}:</span>
-                <span className="truncate font-mono font-semibold text-primary">{spec.value}</span>
+                <span className="truncate font-mono font-semibold tabular-nums text-primary">{spec.value}</span>
               </li>
             ))}
           </ul>
@@ -139,11 +162,24 @@ export function MarketProductCard({
         {/* Bottom-aligned Price & Action Footer */}
         <div className="mt-auto space-y-2.5 border-t border-default pt-3.5">
           <div className="flex items-baseline justify-between gap-2 pt-0.5">
-            <p className="text-xs font-medium text-secondary">Harga</p>
+            <p className="text-xs font-medium text-secondary">
+              {isEnglish ? 'Price' : 'Harga'}
+            </p>
             <p className="truncate font-mono text-base font-bold tabular-nums text-primary sm:text-lg">
               {formatIdr(product.price)}
             </p>
           </div>
+
+          {onOpenDatasheet && (
+            <button
+              type="button"
+              onClick={() => onOpenDatasheet(product)}
+              className="vt-motion-press inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-default bg-subtle px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:border-strong hover:bg-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary/50"
+            >
+              <FileText className="h-3.5 w-3.5 text-accent-primary" strokeWidth={1.75} aria-hidden="true" />
+              <span>{t.routes.market.datasheetTitle}</span>
+            </button>
+          )}
 
           <div className="grid grid-cols-2 gap-2">
             <button

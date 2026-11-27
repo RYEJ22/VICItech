@@ -1,9 +1,10 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
+  Camera, Smartphone, Laptop, Monitor, Headphones, Cpu, Search, SlidersHorizontal, ArrowRightLeft,
   CheckCircle2, ShieldCheck, Zap, Plus, FileText, Check, X,
 } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { listHardwareComponents } from "@/lib/hardware/components";
 
@@ -56,9 +57,36 @@ const CATS = {
     ],
     card: ["socket", "tdp", "perf", "cores"],
   },
+  camera: {
+    label: "Kamera & Produksi",
+    labelEn: "Camera & Production",
+    short: "Kamera & Produksi",
+    shortEn: "Camera & Production",
+    icon: Camera,
+    typeLabel: "Sub-Kategori Gear",
+    typeLabelEn: "Gear Sub-Category",
+    focus: "Kamera, lensa, gimbal, lighting, camera rig/cage, tripod fluid head & field monitor",
+    focusEn: "Cameras, lenses, gimbals, lighting, camera rigs/cages, fluid-head tripods & field monitors",
+    specs: [
+      { key: "systemFit", label: "Sistem / Kompatibilitas", short: "Sistem" },
+      { key: "primaryMetric", label: "Spesifikasi Inti (Ulir / Payload / Nits)", short: "Spek Inti" },
+      { key: "interfaceCheck", label: "Mounting / Port / Rod", short: "Mount / Port" },
+      { key: "qcSummary", label: "Status QC Produksi", short: "QC" },
+      { key: "weightKg", label: "Bobot", short: "Bobot", fmt: (v) => `${v} kg`, better: "low" },
+      { key: "warranty", label: "Garansi", fmt: (v) => `${v} bulan`, better: "high" },
+    ],
+    card: ["systemFit", "primaryMetric", "interfaceCheck", "qcSummary"],
+  },
   peripherals: {
-    label: "Periferal & Aksesori IT", short: "Periferal", icon: Headphones, typeLabel: "Jenis perangkat",
+    label: "Periferal & Aksesori IT",
+    labelEn: "Peripherals & IT Accessories",
+    short: "Periferal",
+    shortEn: "Peripherals",
+    icon: Headphones,
+    typeLabel: "Jenis perangkat",
+    typeLabelEn: "Device Type",
     focus: "Konektivitas, DPI/switch, kompatibilitas, daya, garansi",
+    focusEn: "Connectivity, DPI/switches, compatibility, power, warranty",
     specs: [
       { key: "connectivity", label: "Konektivitas", short: "Konektivitas" },
       { key: "switchType", label: "DPI / Tipe Switch", short: "DPI / Switch" },
@@ -69,7 +97,7 @@ const CATS = {
     card: ["connectivity", "switchType", "power", "warranty"],
   },
 };
-const CAT_ORDER = ["phones", "laptops", "pc", "peripherals"];
+const CAT_ORDER = ["phones", "laptops", "pc", "camera", "peripherals"];
 const COND_LABEL = { new: "Baru", refurb: "Recertified A+", used: "Bekas" };
 
 /* ───────────────────────── Sample catalog ───────────────────────── */
@@ -80,6 +108,8 @@ const laptop = (id, brand, name, type, cond, price, delta, cpu, gpu, ramMax, dis
   ({ id, cat: "laptops", brand, name, type, cond, price, delta, specs: { cpu, gpu, ramMax, display, weight, health, perf } });
 const pcPart = (id, brand, name, type, cond, price, delta, formFactor, tdp, socket, perf, cores) =>
   ({ id, cat: "pc", brand, name, type, cond, price, delta, specs: { formFactor, tdp, socket, perf, cores } });
+const cameraGear = (id, brand, name, type, cond, price, delta, specs, detailSpecs, qcCheckpoints) =>
+  ({ id, cat: "camera", brand, name, type, cond, price, delta, isSample: true, specs, detailSpecs, qcCheckpoints });
 const periph = (id, brand, name, type, cond, price, delta, connectivity, switchType, compat, power, warranty) =>
   ({ id, cat: "peripherals", brand, name, type, cond, price, delta, specs: { connectivity, switchType, compat, power, warranty } });
 
@@ -111,9 +141,202 @@ const PRODUCTS = [
   periph("xm5", "Sony", "WH-1000XM5 Headset", "Headset", "new", 5400000, -2.0, "Bluetooth 5.2 & 3.5 mm", "Driver 30 mm, Active Noise Canceling", "Windows, macOS, Android, iOS", "USB-C, hingga 30 jam putar", 12),
   periph("ups1100", "APC", "Back-UPS 1100VA", "UPS", "new", 2100000, 0.2, "Port data USB", "Tidak berlaku", "PC, router, monitor", "Output 660 W, 6 soket", 24),
   periph("wd19s", "Dell", "WD19S Docking Station", "Dock", "refurb", 2700000, -2.8, "USB-C ke HDMI, DisplayPort, RJ45", "Tidak berlaku", "Dell Latitude & laptop USB-C", "Power delivery 130 W", 12),
+
+  cameraGear(
+    "cam-rig-fx3",
+    "SmallRig",
+    "Black Mamba Camera Cage & 15mm Rail Rig Kit",
+    "Camera Rig / Cage",
+    "new",
+    3450000,
+    -0.8,
+    {
+      systemFit: "Sony FX3 / FX30 / A7 IV",
+      primaryMetric: '1/4"-20 & 3/8"-16 ARRI',
+      interfaceCheck: "Dual 15mm Rod & Top Handle",
+      qcSummary: "Alignment <= 0.05 mm",
+      weightKg: 0.41,
+      warranty: 12,
+    },
+    [
+      { label: "Kompatibilitas Bodi / Sistem", labelEn: "Compatible Body / System", value: "Sony FX3 / FX30 / A7 IV / A7S III" },
+      { label: "Standar Ulir Mounting", labelEn: "Thread Standards", value: '1/4"-20 & 3/8"-16 ARRI Locating Holes' },
+      { label: "Integritas Rod 15mm & Handle", labelEn: "15mm Rod & Handle Integrity", value: "Dual 15mm Rail Lock & Top Handle · Zero Play" },
+      { label: "Keselarasan Struktural", labelEn: "Structural Alignment", value: "0.05 mm Toleransi CNC · Bebas Twist" },
+      { label: "Material & Bobot", labelEn: "Material & Weight", value: "CNC Aluminum 6061-T6 · 410 g" },
+    ],
+    [
+      { label: "Kesesuaian Bodi / Sistem", labelEn: "Compatible Body / System Fit", value: "Presisi Tanpa Halangi Port" },
+      { label: 'Uji Ulir 1/4"-20 & 3/8"-16 ARRI', labelEn: '1/4"-20 & 3/8"-16 ARRI Thread Check', value: "Lulus Thread Gauge · Bebas Aus" },
+      { label: "Integritas Rod 15mm & Handle", labelEn: "15mm Rod & Handle Integrity", value: "Clamp Dual 15mm Rapat · Torsi Stabil" },
+      { label: "Keselarasan Struktural", labelEn: "Structural Alignment", value: "<= 0.05 mm Deviasi Baseplate" },
+    ],
+  ),
+  cameraGear(
+    "cam-tripod-freeblazer",
+    "SmallRig",
+    "FreeBlazer Heavy-Duty Carbon Tripod & Fluid Head",
+    "Tripod / Fluid Head",
+    "new",
+    5850000,
+    -1.2,
+    {
+      systemFit: "75mm Bowl · 501PL QR",
+      primaryMetric: "Payload 10.0 kg · 197 cm",
+      interfaceCheck: "Fluid Pan 360° / Tilt +90°",
+      qcSummary: "Flip-Lock & QR Rapat",
+      weightKg: 3.8,
+      warranty: 24,
+    },
+    [
+      { label: "Beban Maksimal (Payload)", labelEn: "Max Payload", value: "10.0 kg (Counterbalance 4-Step)" },
+      { label: "Tinggi Maksimal", labelEn: "Max Height", value: "197 cm (Min 94 cm · Folded 99 cm)" },
+      { label: "Kehalusan Fluid Pan / Tilt", labelEn: "Fluid Pan / Tilt Smoothness", value: "Damping 4-Step · Pan 360° / Tilt +90°/-60°" },
+      { label: "Kunci Kaki & Quick-Release Plate", labelEn: "Leg Lock & Quick-Release Plate", value: "FreeSpeed 1-Step Flip-Lock · Plate 501PL Rapat" },
+      { label: "Bowl Mount & Bobot", labelEn: "Bowl Mount & Weight", value: "75 mm Half-Ball · 3.8 kg Carbon Fiber" },
+    ],
+    [
+      { label: "Uji Beban Payload (kg)", labelEn: "Max Payload Load Test (kg)", value: "10.0 kg Static Load · Zero Creep" },
+      { label: "Stabilitas Tinggi Maksimal", labelEn: "Max Height Stability", value: "197 cm · Bebas Flex Kaki Karbon" },
+      { label: "Kehalusan Fluid Pan / Tilt", labelEn: "Fluid Pan / Tilt Smoothness", value: "Smooth Drag · Bebas Stutter" },
+      { label: "Kunci Kaki & Quick-Release Plate", labelEn: "Leg Lock & Quick-Release Plate", value: "Flip-Lock Rapat · Safety Pin QR Utuh" },
+    ],
+  ),
+  cameraGear(
+    "cam-monitor-lh7p",
+    "Portkeys",
+    'LH7P 7" 2200-Nit Daylight HDR Field Monitor',
+    "Field Monitor",
+    "refurb",
+    6200000,
+    -2.1,
+    {
+      systemFit: '7.0" IPS · 2200 nits',
+      primaryMetric: "2200 nits · 100% Rec.709",
+      interfaceCheck: "4K HDMI In/Out Loop + NP-F",
+      qcSummary: "0 Dead Pixel · DC OK",
+      weightKg: 0.25,
+      warranty: 12,
+    },
+    [
+      { label: "Ukuran Layar & Kecerahan", labelEn: "Screen Size & Brightness", value: '7.0" Full HD IPS · 2200 nits Daylight' },
+      { label: "Port HDMI / SDI & Loop-Through", labelEn: "HDMI / SDI Port & Loop-Through", value: "4K30 HDMI In/Out Loop-Through (Dual Port Lulus)" },
+      { label: "Uji Dead-Pixel & Panel", labelEn: "Dead-Pixel & Panel Check", value: "0 Dead/Stuck Pixel · Rec.709 ΔE < 1.4" },
+      { label: "Status Daya NP-F / DC", labelEn: "NP-F / DC Power Status", value: "Sony NP-F Plate + 7–24V DC Input Stabil (11 W)" },
+      { label: "Tools Monitoring", labelEn: "Monitoring Tools", value: "Waveform, False Color, Peaking, Custom 3D LUT" },
+    ],
+    [
+      { label: "Ukuran Layar & Kecerahan (nits)", labelEn: "Screen Size & Brightness (nits)", value: '7.0" · 2200 nits Terukur' },
+      { label: "Tes Port HDMI / SDI & Loop-Through", labelEn: "HDMI / SDI & Loop-Through Test", value: "4K Handshake & Loop-Through Stabil" },
+      { label: "Cek Dead-Pixel & Keseragaman Panel", labelEn: "Dead-Pixel & Panel Uniformity", value: "0 Dead Pixel · Backlight Merata" },
+      { label: "Status Daya NP-F / DC Input", labelEn: "NP-F / DC Power Status", value: "Latch NP-F Rapat & 12V DC Stabil" },
+    ],
+  ),
+  cameraGear(
+    "cam-body-fx30",
+    "Sony",
+    "FX30 Super 35 Cinema Line Body",
+    "Camera",
+    "refurb",
+    26500000,
+    -1.6,
+    {
+      systemFit: "Sony E-Mount · Super 35",
+      primaryMetric: "4K60 10-bit 4:2:2 · Dual ISO",
+      interfaceCheck: "Full HDMI · Dual CFexpress A",
+      qcSummary: "Sensor Bersih · Termal OK",
+      weightKg: 0.56,
+      warranty: 12,
+    },
+    [
+      { label: "Sensor & Mount", labelEn: "Sensor & Mount", value: "26 MP APS-C / Super 35 · Sony E-Mount" },
+      { label: "Uji Rekam & Termal", labelEn: "Recording & Thermal Test", value: "4K60 60 mnt Kipas Aktif Stabil" },
+      { label: "Port & Media", labelEn: "Ports & Media", value: "Full-Size HDMI · Dual CFexpress A / SD UHS-II" },
+    ],
+    [
+      { label: "Inspeksi Sensor & Mount", labelEn: "Sensor & Mount Inspection", value: "Bersih Bebas Debu / Hot Pixel" },
+      { label: "Burn-In Termal 4K60", labelEn: "4K60 Thermal Burn-In", value: "60 Menit Stabil · Tanpa Overheat" },
+    ],
+  ),
+  cameraGear(
+    "cam-lens-sigma-2470",
+    "Sigma",
+    "24-70mm f/2.8 DG DN II Art (E-Mount)",
+    "Lens",
+    "new",
+    17900000,
+    -0.9,
+    {
+      systemFit: "Sony E-Mount · Full Frame",
+      primaryMetric: "f/2.8 Konstan · Filter 82 mm",
+      interfaceCheck: "HLA AF · De-Click Aperture",
+      qcSummary: "Optik 100% Bersih",
+      weightKg: 0.75,
+      warranty: 24,
+    },
+    [
+      { label: "Diafragma & Mount", labelEn: "Aperture & Mount", value: "f/2.8 Konstan · Sony E-Mount · 82 mm" },
+      { label: "Kondisi Optik", labelEn: "Optics Clarity", value: "0 Fog / 0 Fungus / Coating Utuh" },
+      { label: "Motor AF & Ring", labelEn: "AF Motor & Rings", value: "HLA Linear AF · De-Clickable Aperture" },
+    ],
+    [
+      { label: "Kejernihan Optik", labelEn: "Optics Inspection", value: "Bebas Jamur, Fog & Goresan" },
+      { label: "Motor AF & Diafragma", labelEn: "AF & Aperture Blades", value: "AF Akurat · Blade Kering Presisi" },
+    ],
+  ),
+  cameraGear(
+    "cam-gimbal-rs4pro",
+    "DJI",
+    "RS 4 Pro 3-Axis Carbon Gimbal Combo",
+    "Gimbal",
+    "new",
+    13450000,
+    -1.1,
+    {
+      systemFit: "Universal Rig · Native Vertical",
+      primaryMetric: "Payload 4.5 kg · Carbon",
+      interfaceCheck: "Auto Axis Locks · Dual RSA",
+      qcSummary: "IMU & Motor Terkalibrasi",
+      weightKg: 1.24,
+      warranty: 12,
+    },
+    [
+      { label: "Payload & Axis", labelEn: "Payload & Axes", value: "4.5 kg · 3-Axis Auto-Lock Gen 2" },
+      { label: "Baterai Grip", labelEn: "Battery Grip", value: "99% Health · Hingga 13 Jam (PD Charge)" },
+    ],
+    [
+      { label: "Kalibrasi Motor & IMU", labelEn: "Motor & IMU Calibration", value: "3-Axis Seimbang · Bebas Vibrasi" },
+      { label: "Baterai & Pengisian PD", labelEn: "Battery & PD Charging", value: "99% Health · Fast Charge Lulus" },
+    ],
+  ),
+  cameraGear(
+    "cam-light-amaran200",
+    "Aputure",
+    "Amaran 200x S Bi-Color 200W COB Light",
+    "Lighting",
+    "new",
+    5350000,
+    -0.5,
+    {
+      systemFit: "Bowens Mount Universal",
+      primaryMetric: "200 W · CRI 95+ / TLCI 98+",
+      interfaceCheck: "2700K–6500K · Sidus Link",
+      qcSummary: "Silent Fan <= 28 dBA",
+      weightKg: 1.56,
+      warranty: 12,
+    },
+    [
+      { label: "Output & Akurasi Warna", labelEn: "Output & Color Accuracy", value: "200 W · 2700K–6500K · CRI 95+ / TLCI 98+" },
+      { label: "Pendinginan & Mount", labelEn: "Cooling & Mount", value: "Silent Fan <= 28 dBA · Bowens Mount Lock" },
+    ],
+    [
+      { label: "Output & CRI / TLCI", labelEn: "Output & CRI / TLCI Test", value: "200 W Stabil · CRI 95+ / TLCI 98+" },
+      { label: "Kipas & Bowens Lock", labelEn: "Fan & Bowens Mount", value: "<= 28 dBA · Pengunci Bowens Rapat" },
+    ],
+  ),
 ].map((p) => ({
   ...p,
-  hay: `${p.brand} ${p.name} ${p.type} ${COND_LABEL[p.cond]} ${CATS[p.cat].short} ${Object.values(p.specs).join(" ")}`.toLowerCase(),
+  hay: `${p.brand} ${p.name} ${p.type} ${COND_LABEL[p.cond]} ${CATS[p.cat].short} ${CATS[p.cat].shortEn || ""} ${Object.values(p.specs).join(" ")} ${(p.detailSpecs || []).map((d) => `${d.label} ${d.labelEn || ""} ${d.value}`).join(" ")}`.toLowerCase(),
 }));
 
 const STEP = 500000;
@@ -217,6 +440,11 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
         <Icon className="h-10 w-10 text-primary/80 transition-transform duration-300 ease-out group-hover:scale-110 motion-reduce:transition-none motion-reduce:group-hover:scale-100" strokeWidth={1.55} />
         <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5">
           <CondBadge cond={p.cond} />
+          {p.isSample && (
+            <span data-badge-essential="true" className="vt-badge-sample !px-1.5 !py-0.5 !text-[10px]">
+              Sample
+            </span>
+          )}
         </div>
         <span className="absolute right-2.5 top-2.5 rounded-md border border-default bg-surface px-2 py-0.5 text-[11px] font-medium text-secondary">
           {p.type}
@@ -234,7 +462,7 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
             return (
               <div key={key} className="min-w-0 rounded-lg border border-default bg-canvas px-2.5 py-1.5">
                 <dt className="truncate text-[10px] font-medium text-secondary">{specLabel(s)}</dt>
-                <dd className="mt-0.5 truncate font-mono text-xs font-semibold text-primary">{specValue(p, s)}</dd>
+                <dd className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums text-primary">{specValue(p, s)}</dd>
               </div>
             );
           })}
@@ -296,6 +524,7 @@ const ProductCard = memo(function ProductCard({ p, inCompare, compareFull, inBui
 /* ───────────────────────── Overlays ───────────────────────── */
 
 function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder, onClose }) {
+  const { isEnglish } = useLanguage();
   const cfg = CATS[p.cat];
   const hasPerf = "perf" in p.specs && Number.isFinite(Number(p.specs.perf));
   const perfScore = hasPerf ? Math.min(100, Math.max(0, Number(p.specs.perf))) : 0;
@@ -304,15 +533,24 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
   const currentRamGb = Number(String(p.specs.ram ?? "16").match(/\d+/)?.[0] ?? 16);
   const ramHeadroomPct = Math.min(100, Math.max(15, Math.round((currentRamGb / ramMaxHint) * 100)));
   const nvmeSlotsPct = p.cat === "laptops" ? 50 : 35;
+  const customDetailSpecs = Array.isArray(p.detailSpecs) && p.detailSpecs.length > 0 ? p.detailSpecs : null;
+  const customQcCheckpoints = Array.isArray(p.qcCheckpoints) && p.qcCheckpoints.length > 0 ? p.qcCheckpoints : null;
 
   return (
     <Overlay label={`Datasheet untuk ${p.name}`} onClose={onClose}>
-      <OverlayHeader title="Datasheet Lengkap" subtitle={p.name} onClose={onClose} />
+      <OverlayHeader title={isEnglish ? "Full Technical Datasheet" : "Datasheet Lengkap"} subtitle={p.name} onClose={onClose} />
       <div className="flex-1 space-y-5 overflow-y-auto p-5">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md border border-default bg-canvas px-2.5 py-0.5 text-xs font-semibold text-primary">{p.brand}</span>
           <CondBadge cond={p.cond} />
-          <span className="text-xs font-medium text-secondary">{cfg.short} · {p.type}</span>
+          {p.isSample && (
+            <span data-badge-essential="true" className="vt-badge-sample">
+              Sample · Simulated QC
+            </span>
+          )}
+          <span className="text-xs font-medium text-secondary">
+            {isEnglish ? (cfg.shortEn || cfg.short) : cfg.short} · {p.type}
+          </span>
         </div>
 
         <div className="rounded-xl border border-default bg-canvas p-4">
@@ -366,15 +604,57 @@ function Datasheet({ p, inCompare, compareFull, inBuilder, onCompare, onBuilder,
           </section>
         )}
 
+        {customQcCheckpoints && (
+          <section className="space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="tracking-tight text-sm font-bold text-primary">
+                {isEnglish ? "Production Gear QC Checkpoints" : "Checkpoint QC Kamera & Produksi"}
+              </h3>
+              <span data-badge-essential="true" className="vt-badge-simulated">
+                Simulated / Demo
+              </span>
+            </div>
+            <ul className="divide-y divide-default overflow-hidden rounded-xl border border-default bg-surface">
+              {customQcCheckpoints.map((cp) => (
+                <li
+                  key={cp.label}
+                  className="grid grid-cols-1 gap-0.5 px-3.5 py-2.5 text-xs sm:grid-cols-5 sm:items-center sm:gap-3"
+                >
+                  <span className="flex items-start gap-2 font-medium text-primary sm:col-span-2">
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-status-live" aria-hidden="true" />
+                    <span>{isEnglish ? (cp.labelEn || cp.label) : cp.label}</span>
+                  </span>
+                  <span className="break-words font-mono font-semibold tabular-nums text-secondary sm:col-span-3 sm:text-right">
+                    {cp.value}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section>
-          <h3 className="tracking-tight mb-2.5 text-sm font-bold text-primary">Spesifikasi Teknis Lengkap</h3>
+          <h3 className="tracking-tight mb-2.5 text-sm font-bold text-primary">
+            {isEnglish ? "Full Technical Specifications" : "Spesifikasi Teknis Lengkap"}
+          </h3>
           <dl className="divide-y divide-default overflow-hidden rounded-xl border border-default">
-            {cfg.specs.map((s) => (
-              <div key={s.key} className="grid grid-cols-1 gap-0.5 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface sm:grid-cols-5 sm:gap-3">
-                <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">{s.label}</dt>
-                <dd className="break-words font-mono text-xs font-semibold text-primary sm:col-span-3 sm:text-sm">{specValue(p, s)}</dd>
-              </div>
-            ))}
+            {customDetailSpecs
+              ? customDetailSpecs.map((row) => (
+                  <div key={row.label} className="grid grid-cols-1 gap-0.5 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface sm:grid-cols-5 sm:gap-3">
+                    <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">
+                      {isEnglish ? (row.labelEn || row.label) : row.label}
+                    </dt>
+                    <dd className="break-words font-mono text-xs font-semibold tabular-nums text-primary sm:col-span-3 sm:text-sm">
+                      {row.value}
+                    </dd>
+                  </div>
+                ))
+              : cfg.specs.map((s) => (
+                  <div key={s.key} className="grid grid-cols-1 gap-0.5 px-3.5 py-2.5 text-sm odd:bg-canvas/70 even:bg-surface sm:grid-cols-5 sm:gap-3">
+                    <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">{s.label}</dt>
+                    <dd className="break-words font-mono text-xs font-semibold tabular-nums text-primary sm:col-span-3 sm:text-sm">{specValue(p, s)}</dd>
+                  </div>
+                ))}
             {hasPerf && (
               <div className="grid grid-cols-1 gap-0.5 bg-accent-subtle/60 px-3.5 py-2.5 text-sm sm:grid-cols-5 sm:gap-3">
                 <dt className="text-xs font-medium text-secondary sm:col-span-2 sm:text-sm">Performa per Rp 1 juta</dt>
@@ -581,6 +861,7 @@ function FilterControls({ cfg, f, options, bounds, setFilter, fieldClass }) {
 /* ───────────────────────── Page ───────────────────────── */
 
 export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
+  const { isEnglish } = useLanguage();
   const [inventoryProducts, setInventoryProducts] = useState([]);
   const [inventoryError, setInventoryError] = useState("");
   const [cat, setCat] = useState("phones");
@@ -588,7 +869,7 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   const debouncedQuery = useDebouncedValue(query, 250);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState(newFilters);
-  const [compare, setCompare] = useState({ phones: [], laptops: [], pc: [], peripherals: [] });
+  const [compare, setCompare] = useState({ phones: [], laptops: [], pc: [], camera: [], peripherals: [] });
   const [builder, setBuilder] = useState([]);
   const [sheetId, setSheetId] = useState(null);
   const [panel, setPanel] = useState(null); // "compare" | "builder" | null
@@ -732,16 +1013,24 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
   return (
     <div className="bg-canvas text-primary antialiased">
       <div className={`mx-auto max-w-7xl px-4 pt-8 sm:px-6 ${barVisible ? "pb-44 md:pb-32" : "pb-24 md:pb-24"}`}>
-        <h2 className="font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">Hardware Library &amp; Periferal</h2>
-        <p className="mt-3 max-w-2xl leading-relaxed text-secondary">Jelajahi ponsel, laptop, komponen PC, dan aksesori IT dengan spesifikasi inti lalu bandingkan berdampingan.</p>
+        <h2 className="font-sans text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+          {isEnglish ? "Hardware Library & Production Gear" : "Hardware Library & Perangkat Produksi"}
+        </h2>
+        <p className="mt-3 max-w-2xl leading-relaxed text-secondary">
+          {isEnglish
+            ? "Explore smartphones, laptops, PC components, Camera & Production gear (cameras, lenses, gimbals, lighting, camera rigs/cages, fluid-head tripods, field monitors), and IT accessories side by side."
+            : "Jelajahi ponsel, laptop, komponen PC, perangkat Kamera & Produksi (kamera, lensa, gimbal, lighting, camera rig/cage, tripod fluid head, field monitor), dan aksesori IT lalu bandingkan berdampingan."}
+        </p>
         {inventoryError && <p role="status" className="mt-4 rounded-xl border border-default bg-surface p-4 text-sm text-accent-hover shadow-sm">{inventoryError} Menampilkan katalog terkurasi.</p>}
 
         {/* Category tabs */}
-        <div role="tablist" aria-label="Kategori hardware" className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div role="tablist" aria-label={isEnglish ? "Hardware categories" : "Kategori hardware"} className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {CAT_ORDER.map((k) => {
             const c = CATS[k];
             const Icon = c.icon;
             const on = cat === k;
+            const tabLabel = isEnglish ? (c.labelEn || c.label) : c.label;
+            const tabFocus = isEnglish ? (c.focusEn || c.focus) : c.focus;
             return (
               <button
                 key={k}
@@ -764,8 +1053,8 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
                     <span className="rounded-md border border-default bg-canvas px-2 py-0.5 font-mono text-xs font-medium tabular-nums text-secondary">{tabCounts[k]}</span>
                   </span>
                 </span>
-                <span className="mt-4 block text-base font-semibold text-primary">{c.label}</span>
-                <span className="mt-1 block text-xs text-secondary">{c.focus}</span>
+                <span className="mt-4 block text-base font-semibold text-primary">{tabLabel}</span>
+                <span className="mt-1 block text-xs text-secondary">{tabFocus}</span>
               </button>
             );
           })}
@@ -776,9 +1065,22 @@ export default function HardwareLibrary({ onOpenBuilder, onCheckUpgrade }) {
           <div className="mt-6 rounded-xl border border-default bg-surface p-4 shadow-sm sm:p-6">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
-                <label htmlFor="lib-search" className="sr-only">Cari di semua kategori hardware</label>
+                <label htmlFor="lib-search" className="sr-only">
+                  {isEnglish ? "Search across all hardware categories" : "Cari di semua kategori hardware"}
+                </label>
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary" />
-                <input id="lib-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari merek, chipset, RTX, DDR5…" className={`${field} min-h-11 py-2.5 pl-12`} />
+                <input
+                  id="lib-search"
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={
+                    isEnglish
+                      ? "Search brand, RTX, DDR5, camera, lens, gimbal, cage/rig, tripod, or field monitor…"
+                      : "Cari merek, RTX, DDR5, kamera, lensa, gimbal, rig/cage, tripod, atau field monitor…"
+                  }
+                  className={`${field} min-h-11 py-2.5 pl-12`}
+                />
               </div>
               <button
                 type="button"
